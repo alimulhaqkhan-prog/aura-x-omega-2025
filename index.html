@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AURA-X Ω v1 – Emotional Continuity Prototype</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #020617 0, #020617 40%, #000 100%);
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+    .app {
+      width: 100%;
+      max-width: 480px;
+      height: 100vh;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Header */
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .title-block h1 {
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+    }
+    .title-block p {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      line-height: 1.2;
+    }
+    .mode-pill {
+      border-radius: 999px;
+      padding: 6px 10px;
+      border: 1px solid #38bdf8;
+      font-size: 0.63rem;
+      text-align: right;
+      background: #020617;
+    }
+    .mode-pill span { display: block; }
+    .mode-pill .mode-label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.9;
+    }
+    .mode-pill .mode-sub {
+      color: #22c55e;
+      font-weight: 500;
+    }
+    .mode-pill .engine { opacity: 0.6; }
+
+    /* Top buttons */
+    .top-buttons {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .pill-btn {
+      flex: 1;
+      border-radius: 999px;
+      padding: 8px 6px;
+      border: 1px solid #4b5563;
+      background: rgba(15,23,42,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, border-color 0.2s;
+      min-width: 0;
+      white-space: nowrap;
+    }
+    .pill-btn span.icon { font-size: 0.95rem; }
+    .pill-btn.primary {
+      border-color: #f59e0b;
+      background: rgba(24, 18, 6, 0.9);
+    }
+    .pill-btn:hover {
+      transform: translateY(-1px);
+      border-color: #facc15;
+    }
+
+    /* Cards */
+    .card {
+      border-radius: 18px;
+      padding: 12px 14px;
+      border: 1px solid rgba(148,163,184,0.4);
+      background: radial-gradient(circle at top left, #1f2937 0, #020617 55%, #020617 100%);
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+    .card.golden {
+      background: radial-gradient(circle at top left, #713f12 0, #1f2937 55%, #020617 100%);
+      border-color: #fbbf24;
+      color: #fde68a;
+      font-weight: 500;
+    }
+    .card.equation {
+      border-style: dashed;
+      background: radial-gradient(circle at top left, #0f172a 0, #020617 60%, #000 100%);
+      font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.75rem;
+    }
+    .card.equation .label {
+      opacity: 0.9;
+      margin-bottom: 4px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+    .card.equation .formula-main {
+      margin: 4px 0 6px;
+      color: #e5e7eb;
+    }
+    .card.equation .formula-values { opacity: 0.85; }
+
+    /* Chat area */
+    .chat-area {
+      flex: 1;
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.9);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 140px;
+    }
+    .chat-log {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+      font-size: 0.8rem;
+    }
+    .msg { margin-bottom: 8px; }
+    .msg-user { text-align: right; color: #bfdbfe; }
+    .msg-bot { text-align: left; color: #e5e7eb; }
+
+    .status-line {
+      font-size: 0.7rem;
+      opacity: 0.7;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .input-row textarea {
+      flex: 1;
+      resize: none;
+      min-height: 40px;
+      max-height: 80px;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+    }
+    .input-row textarea:focus {
+      outline: none;
+      border-color: #22c55e;
+    }
+    .send-btn {
+      border-radius: 999px;
+      padding: 10px 16px;
+      border: none;
+      background: #16a34a;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 0 0 1px rgba(22,163,74,0.6), 0 10px 18px rgba(22,163,74,0.4);
+      transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
+    }
+    .send-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 6px 12px rgba(22,163,74,0.5);
+      background: #15803d;
+    }
+    .footer-line {
+      font-size: 0.7rem;
+      opacity: 0.65;
+      margin-top: 2px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Demo buttons bottom */
+    .bottom-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .demo-btn {
+      flex: 1;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: none;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-weight: 500;
+      color: #f9fafb;
+    }
+    .demo-btn.negative { background: #b91c1c; }
+    .demo-btn.positive { background: #15803d; }
+    .demo-btn span { font-size: 1rem; }
+
+    /* Modals shared */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+    }
+    .modal {
+      width: 100%;
+      max-width: 480px;
+      max-height: 80vh;
+      background: #020617;
+      border-radius: 20px;
+      border: 1px solid #4b5563;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .modal-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .modal-close {
+      border-radius: 999px;
+      border: none;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      background: #111827;
+      color: #e5e7eb;
+    }
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      font-size: 0.78rem;
+    }
+
+    /* BM Viewer styles */
+    .bm-day {
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(55,65,81,0.7);
+      padding-bottom: 6px;
+    }
+    .bm-day-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+    }
+    .bm-node {
+      margin-bottom: 8px;
+      padding: 6px 8px;
+      border-radius: 12px;
+      background: #020617;
+      border: 1px solid #374151;
+    }
+    .bm-node-title {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .bm-node-meta {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      margin-bottom: 4px;
+    }
+
+    /* NEW: Polarity line with colored numbers */
+    .bm-node-polarity {
+      font-size: 0.75rem;
+      margin-bottom: 4px;
+    }
+    .bm-node-polarity .pol-pos {
+      color: #4ade80;
+      font-weight: 600;
+    }
+    .bm-node-polarity .pol-neg {
+      color: #f87171;
+      font-weight: 600;
+    }
+
+    .layer-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .layer-chip {
+      border-radius: 999px;
+      padding: 2px 6px;
+      font-size: 0.65rem;
+      color: #020617;
+      font-weight: 600;
+    }
+    .L1 { background: #60a5fa; }
+    .L2 { background: #fb7185; }
+    .L3 { background: #f97316; }
+    .L4 { background: #a855f7; }
+    .L5 { background: #22c55e; }
+    .L6 { background: #eab308; }
+    .L7 { background: #e5e7eb; }
+
+    .delete-day-btn {
+      border-radius: 999px;
+      border: none;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      background: #7f1d1d;
+      color: #fee2e2;
+      margin-left: auto;
+      display: block;
+      margin-top: 4px;
+    }
+
+    /* Recall modal */
+    .recall-search { margin-bottom: 6px; }
+    .recall-search input {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+    }
+    .recall-node {
+      border-radius: 12px;
+      border: 1px solid #374151;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      background: #020617;
+    }
+    .copy-btn {
+      border-radius: 999px;
+      border: none;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      background: #1d4ed8;
+      color: #e5e7eb;
+      margin-top: 4px;
+    }
+
+    /* Options modal */
+    .option-section-title {
+      font-weight: 600;
+      font-size: 0.8rem;
+      margin: 6px 0 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      opacity: 0.9;
+    }
+    .faith-note {
+      font-size: 0.74rem;
+      opacity: 0.8;
+      margin-bottom: 6px;
+    }
+    .faith-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .faith-pill {
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      padding: 5px 10px;
+      font-size: 0.73rem;
+      cursor: pointer;
+    }
+    .faith-pill.active {
+      background: #0f172a;
+      border-color: #22c55e;
+      color: #bbf7d0;
+      font-weight: 500;
+    }
+
+    .option-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .option-row span { font-size: 0.78rem; }
+
+    .toggle {
+      position: relative;
+      width: 38px;
+      height: 20px;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #374151;
+      transition: .2s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #22c55e; }
+    input:checked + .slider:before { transform: translateX(18px); }
+
+    .llm-list {
+      margin-top: 4px;
+      padding: 6px 8px;
+      border-radius: 12px;
+      border: 1px solid #374151;
+      background: #020617;
+      font-size: 0.74rem;
+    }
+    .llm-list ul { padding-left: 18px; margin: 4px 0; }
+    .llm-list li { margin-bottom: 2px; }
+
+    .options-footer-note {
+      margin-top: 6px;
+      font-size: 0.72rem;
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header-top">
+      <div class="title-block">
+        <h1>AURA-X Ω</h1>
+        <p>EMOTIONAL CONTINUITY · AEC · CRM · AECN · RL³ · LR³</p>
+      </div>
+      <div class="mode-pill" id="modePill">
+        <span class="mode-label">MODE: OFFLINE PROTOTYPE</span>
+        <span class="mode-sub">Universal Ethics · Local BM</span>
+        <span class="engine">Engine: Seed (local)</span>
+      </div>
+    </div>
+
+    <div class="top-buttons">
+      <button class="pill-btn" id="bmViewerBtn">
+        <span class="icon">🧠</span><span>BM Viewer</span>
+      </button>
+      <button class="pill-btn primary" id="recallBtn">
+        <span class="icon">📂</span><span>Recall BM</span>
+      </button>
+      <button class="pill-btn" id="cleanupBtn">
+        <span class="icon">♻️</span><span>Cleanup 24h</span>
+      </button>
+      <button class="pill-btn" id="optionsBtn">
+        <span class="icon">🔘</span><span>Options</span>
+      </button>
+    </div>
+
+    <div class="card golden" id="ethicsBanner">
+      Avoid actions that generate negative emotions in yourself or others.
+      Gently move toward choices that create calm, kindness, and positive feelings.
+    </div>
+
+    <div class="card equation" id="equationCard">
+      <div class="label">EMOTIONAL CONTINUITY EQUATION</div>
+      <div class="formula-main" id="eqMain">
+        E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)
+      </div>
+      <div class="formula-values" id="eqValues">
+        E₀ = 0.00 · TM = 0.35 · BM = 0.55 · D = 0.00 · ΣCₜ = 0.05 · λ_faith = 0.00 · λ_sys = 0.02
+      </div>
+    </div>
+
+    <div class="chat-area">
+      <div class="chat-log" id="chatLog"></div>
+      <div class="status-line" id="statusLine">
+        E₀=0.00 · TM=0.35 · D=0.00 · tag=neutral
+      </div>
+      <div class="input-row">
+        <textarea id="userInput"
+          placeholder="Write anything… AURA-X Ω will treat it as TM (Temporary Memory)."></textarea>
+        <button class="send-btn" id="sendBtn">Send</button>
+      </div>
+      <div class="footer-line">
+        <span>Prototype · TM → LLM(seed) → BM · Self-learning · Equation live.</span>
+        <span>Engine: Seed (local)</span>
+      </div>
+    </div>
+
+    <div class="bottom-row">
+      <button class="demo-btn negative" id="dogDemoBtn">
+        <span>🐒</span> Dog Bite (Negative Demo)
+      </button>
+      <button class="demo-btn positive" id="childDemoBtn">
+        <span>❤️</span> Lost Child (Positive Demo)
+      </button>
+    </div>
+  </div>
+
+  <!-- BM Viewer Modal -->
+  <div class="modal-backdrop" id="bmModalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title"><span>🧠</span> Bold Memory (BM)</div>
+        <button class="modal-close" data-close="bmModalBackdrop">Close</button>
+      </div>
+      <div class="modal-body" id="bmModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Recall Modal -->
+  <div class="modal-backdrop" id="recallModalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title"><span>📂</span> Recall from BM</div>
+        <button class="modal-close" data-close="recallModalBackdrop">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="recall-search">
+          <input id="recallSearchInput"
+            placeholder='Search all BM layers by keyword (e.g., "snow", "mother", "court", "hope").' />
+        </div>
+        <div id="recallList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Options Modal -->
+  <div class="modal-backdrop" id="optionsModalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title"><span>🔘</span> AURA-X Ω options</div>
+        <button class="modal-close" data-close="optionsModalBackdrop">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="option-section-title">FAITH LENS (OPTIONAL)</div>
+        <div class="faith-note">
+          Universal ethics are always active. You can optionally pick a faith lens to shape
+          encouragement lines locally. Nothing is sent to any external server.
+        </div>
+        <div class="faith-row" id="faithRow">
+          <button class="faith-pill" data-faith="None">None</button>
+          <button class="faith-pill" data-faith="Islam">Islam</button>
+          <button class="faith-pill" data-faith="Christianity">Christianity</button>
+          <button class="faith-pill" data-faith="Hinduism">Hinduism</button>
+          <button class="faith-pill" data-faith="Buddhism">Buddhism</button>
+          <button class="faith-pill" data-faith="Sikhism">Sikhism</button>
+          <button class="faith-pill" data-faith="Judaism">Judaism</button>
+          <button class="faith-pill" data-faith="Atheism / Humanism">Atheism / Humanism</button>
+          <button class="faith-pill" data-faith="Other / Mixed">Other / Mixed</button>
+        </div>
+
+        <div class="option-section-title">Engine mode</div>
+        <div class="faith-note">
+          Seed-only (offline) or Live emotional reactor (via backend).
+        </div>
+        <div class="option-row">
+          <span>Current: <span id="engineModeLabel">Seed-only. Everything runs locally.</span></span>
+          <label class="toggle">
+            <input type="checkbox" id="engineModeToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="llm-list">
+          <div><strong>Example models your backend could use via OpenRouter:</strong></div>
+          <ul>
+            <li>OpenAI – GPT-4.1 / GPT-4o</li>
+            <li>Anthropic – Claude 3.5 Sonnet / Opus</li>
+            <li>Google – Gemini 1.5 Pro</li>
+            <li>Mistral – Mistral Large</li>
+            <li>Cohere – Command-R+</li>
+            <li>xAI – Grok-2</li>
+            <li>Meta – Llama-3-70B-Instruct</li>
+            <li>Qwen – Qwen-2-72B</li>
+            <li>DeepSeek – DeepSeek-Coder-V2</li>
+          </ul>
+          <div style="font-size:0.7rem; opacity:0.8;">
+            The frontend never reveals which exact model is used.
+            It always identifies as the AURA-X Ω artificial resonance reactor.
+          </div>
+        </div>
+
+        <div class="option-section-title">Prototype controls</div>
+        <div class="option-row">
+          <span>Auto-summarize long conversations to ~200 sentences</span>
+          <label class="toggle">
+            <input type="checkbox" id="autoSummarizeToggle" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="option-row">
+          <span>Ignore tiny small-talk as BM (hello / hi / how are you)</span>
+          <label class="toggle">
+            <input type="checkbox" id="ignoreSmallTalkToggle" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="option-row">
+          <span>Clear all stored BM for the last 24 hours (wastage cleanup)</span>
+          <button class="modal-close" id="clear24hBtn">♻️ Clear 24h</button>
+        </div>
+        <div class="option-row">
+          <span>Delete full local BM life (all days)</span>
+          <button class="modal-close" id="clearAllBtn">Delete All</button>
+        </div>
+
+        <div class="options-footer-note">
+          About AURA-X Ω: Designed around the idea that emotions are continuity functions
+          between memories (TM and BM), not isolated sparks. This page is a small offline
+          demo of Alim ul Haq’s emotional continuity theory.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const lsKey = "auraX_bm_v31";
+    const faithKey = "auraX_faithLens";
+    const engineKey = "auraX_engineMode";
+    const smallTalkPatterns = [
+      "hi","hello","hey","salam","assalamualaikum",
+      "how are you","kia hal hai","kese ho","how r u"
+    ];
+
+    function loadBM() {
+      try {
+        const raw = localStorage.getItem(lsKey);
+        return raw ? JSON.parse(raw) : {};
+      } catch { return {}; }
+    }
+    function saveBM(data) { localStorage.setItem(lsKey, JSON.stringify(data)); }
+    function todayKey() { return new Date().toISOString().slice(0,10); }
+    function tanh(x){ const e2x=Math.exp(2*x); return (e2x-1)/(e2x+1); }
+
+    function approximateSentences(text){
+      return text.split(/[.!?۔\n]/).filter(s=>s.trim().length>0);
+    }
+    function summarizeTo200Sentences(text){
+      const sentences = approximateSentences(text);
+      if (sentences.length<=200) return text.trim();
+      return sentences.slice(0,200).join(". ").slice(0,10000);
+    }
+    function isMostlySmallTalk(text){
+      const clean=text.toLowerCase().trim();
+      if (clean.length>80) return false;
+      return smallTalkPatterns.some(p=>clean===p||clean.startsWith(p+" "));
+    }
+
+    // State
+    let TM=0.35, BMvalue=0.55, D=0.0, Csum=0.05;
+    const lambdaFaith=0.0, lambdaSys=0.02;
+    let E0=0.0;
+
+    const chatLogEl=document.getElementById("chatLog");
+    const statusLineEl=document.getElementById("statusLine");
+    const eqMainEl=document.getElementById("eqMain");
+    const eqValuesEl=document.getElementById("eqValues");
+    const userInputEl=document.getElementById("userInput");
+    const modePill=document.getElementById("modePill");
+
+    function updateEquationDisplay(){
+      eqMainEl.textContent="E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)";
+      eqValuesEl.textContent=
+        `E₀ = ${E0.toFixed(2)} · TM = ${TM.toFixed(2)} · BM = ${BMvalue.toFixed(2)} · ` +
+        `D = ${D.toFixed(2)} · ΣCₜ = ${Csum.toFixed(2)} · λ_faith = ${lambdaFaith.toFixed(2)} · λ_sys = ${lambdaSys.toFixed(2)}`;
+      statusLineEl.textContent=
+        `E₀=${E0.toFixed(2)} · TM=${TM.toFixed(2)} · D=${D.toFixed(2)} · tag=${
+          E0>0.1?"positive":E0<-0.1?"negative":"neutral"
+        }`;
+    }
+
+    function appendMessage(text, who){
+      const div=document.createElement("div");
+      div.className="msg "+(who==="user"?"msg-user":"msg-bot");
+      div.textContent=text;
+      chatLogEl.appendChild(div);
+      chatLogEl.scrollTop=chatLogEl.scrollHeight;
+    }
+
+    function computeEmotion(strength){
+      TM=Math.min(1,0.2+strength/400);
+      BMvalue=0.7*BMvalue+0.3*TM;
+      Csum=Math.min(1,Csum+0.02*TM);
+      const raw=TM*BMvalue-D+lambdaFaith+lambdaSys+Csum;
+      E0=tanh(raw);
+      updateEquationDisplay();
+    }
+
+    function getFaithLens(){
+      return localStorage.getItem(faithKey) || "None";
+    }
+
+    function buildSeedReply(userText){
+      const clean=userText.trim();
+      const lower=clean.toLowerCase();
+      const faith=getFaithLens();
+
+      if (isMostlySmallTalk(clean)){
+        if (lower.includes("how are")){
+          return "I’m stable and calm — my emotional core E₀ is around "+E0.toFixed(2)+
+                 ". How is your inner graph today?";
+        }
+        if (lower.includes("salam")||lower.includes("assalam")){
+          return "Wa-alaikum-salam. I’m an emotional continuity prototype observing how your memories resonate over time.";
+        }
+        return "Hello. I treat even small greetings as tiny TM events, but I only save deeper stories into Bold Memory (BM).";
+      }
+
+      if (lower.includes("who created you")||lower.includes("who made you")){
+        return "Conceptually I was created by Alim ul Haq from Timergara, Pakistan, as part of the AURA-X Ω / AEC research on emotional continuity.";
+      }
+      if (lower.includes("who is alim ul haq")){
+        return "Alim ul Haq is the researcher behind AURA-X Ω, Artificial Emotional Continuity, and the TM–BM emotional reactor model.";
+      }
+      if (lower.includes("formula")||lower.includes("equation")){
+        return "My emotional output follows the grand equation E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ). You can see it live in the dashboard above.";
+      }
+
+      let prefix="";
+      if (faith==="Islam"){
+        prefix="From an Islamic encouragement lens I’d say: ";
+      } else if (faith==="Christianity"){
+        prefix="From a Christian encouragement lens I’d say: ";
+      } else if (faith==="Hinduism" || faith==="Buddhism" || faith==="Sikhism" ||
+                 faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"){
+        prefix="Through your selected faith lens I’d say: ";
+      }
+
+      if (E0>0.15){
+        return prefix +
+          "I’ve received your TM event and collided it with the current BM state. Right now E₀ ≈ "+
+               E0.toFixed(2)+
+               " (range −1 to +1). The more clearly you describe context, the stronger and cleaner your BM trace becomes.";
+      } else if (E0<-0.15){
+        return prefix +
+          "Your TM event is resonating with some heavier patterns. E₀ ≈ "+
+               E0.toFixed(2)+
+               ". If this topic feels difficult, you can re-frame it, add supporting memories, or move toward calmer lines of continuity.";
+      } else {
+        return prefix +
+          "E₀ is currently near neutral ("+E0.toFixed(2)+"). This means your TM event is balanced but still contributes to your long-run BM layers.";
+      }
+    }
+
+    function storeInBM(userText, botReply){
+      const ignoreSmall=document.getElementById("ignoreSmallTalkToggle").checked;
+      if (ignoreSmall && isMostlySmallTalk(userText)) return;
+
+      const autoSumm=document.getElementById("autoSummarizeToggle").checked;
+      const full=userText.trim()+"\n\nAURA-X Ω: "+botReply.trim();
+      const summary=autoSumm?summarizeTo200Sentences(full):full;
+
+      const bm=loadBM();
+      const key=todayKey();
+      if (!bm[key]) bm[key]=[];
+
+      const base=Math.abs(E0);
+      const layers=[
+        Math.round(50+50*base),
+        Math.round(10+80*Math.max(0,E0)),
+        Math.round(15+70*Math.abs(TM-0.5)),
+        Math.round(20+60*(1-Math.abs(E0))),
+        Math.round(30+60*TM),
+        Math.round(5+40*(1-D)),
+        Math.round(5+40*Csum)
+      ];
+
+      const node={
+        ts:new Date().toISOString(),
+        summary,
+        full,
+        polarity:E0>0.15?"Positive":E0<-0.15?"Negative":"Neutral",
+        intensity:Math.abs(E0),
+        TM,BMvalue,D,Csum,layers,
+        E0 // save signed emotional value
+      };
+
+      bm[key].push(node);
+      saveBM(bm);
+    }
+
+    function handleUserMessage(text){
+      if (!text.trim()) return;
+      appendMessage(text,"user");
+      computeEmotion(text.length);
+      const reply=buildSeedReply(text);
+      appendMessage(reply,"bot");
+      storeInBM(text,reply);
+      userInputEl.value="";
+    }
+
+    document.getElementById("sendBtn").addEventListener("click",()=>{
+      handleUserMessage(userInputEl.value);
+    });
+    userInputEl.addEventListener("keydown",e=>{
+      if (e.key==="Enter" && !e.shiftKey){
+        e.preventDefault();
+        handleUserMessage(userInputEl.value);
+      }
+    });
+
+    // Demos
+    document.getElementById("dogDemoBtn").addEventListener("click",()=>{
+      const story="When I was a child in New York, a dog bit me in the snow near a street light. I still remember the cold wind, the barking sound, and my own fear.";
+      handleUserMessage(story);
+    });
+    document.getElementById("childDemoBtn").addEventListener("click",()=>{
+      const story="A lost child in a crowded market started crying until he heard his mother’s voice. She ran to him, hugged him tightly, and both started laughing with tears.";
+      handleUserMessage(story);
+    });
+
+    // ===== Helper: polarity ratio for BM viewer =====
+    function getPolarityInfo(node){
+      let e = typeof node.E0==="number"
+        ? node.E0
+        : (node.polarity==="Positive"
+            ? node.intensity
+            : node.polarity==="Negative"
+              ? -node.intensity
+              : 0);
+      let label,pos,neg;
+      if (e>0.12){
+        label="Positive";
+        pos=Math.round(50+e*50);
+        if (pos>100) pos=100;
+        neg=100-pos;
+      } else if (e<-0.12){
+        label="Negative";
+        neg=Math.round(50+(-e)*50);
+        if (neg>100) neg=100;
+        pos=100-neg;
+      } else {
+        label="Neutral / Mixed";
+        pos=50;
+        neg=50;
+      }
+      return {label,pos,neg};
+    }
+
+    // BM Viewer
+    const bmBackdrop=document.getElementById("bmModalBackdrop");
+    const bmBody=document.getElementById("bmModalBody");
+    document.getElementById("bmViewerBtn").addEventListener("click",()=>{
+      const bm=loadBM();
+      bmBody.innerHTML="";
+      const keys=Object.keys(bm).sort().reverse();
+      if(!keys.length){
+        bmBody.textContent="No Bold Memory stored yet. Share a story or run a demo.";
+      }else{
+        keys.forEach(k=>{
+          const dayDiv=document.createElement("div");
+          dayDiv.className="bm-day";
+          const title=document.createElement("div");
+          title.className="bm-day-title";
+          title.textContent=`${k} (${bm[k].length} nodes)`;
+          dayDiv.appendChild(title);
+
+          bm[k].forEach(node=>{
+            const nDiv=document.createElement("div");
+            nDiv.className="bm-node";
+            const t=document.createElement("div");
+            t.className="bm-node-title";
+            t.textContent=node.summary.slice(0,80)+(node.summary.length>80?"…":"");
+            const meta=document.createElement("div");
+            meta.className="bm-node-meta";
+            meta.textContent=`E₀≈${(node.E0??(node.polarity==="Positive"?node.intensity:node.polarity==="Negative"?-node.intensity:0)).toFixed(2)} · TM=${(node.TM??TM).toFixed(2)} · D=${(node.D??D).toFixed(2)} · `+
+                             new Date(node.ts).toLocaleTimeString();
+
+            // NEW polarity colored line
+            const polInfo=getPolarityInfo(node);
+            const polDiv=document.createElement("div");
+            polDiv.className="bm-node-polarity";
+            polDiv.innerHTML=
+              `Polarity: ${polInfo.label} `+
+              `<span class="pol-pos">${polInfo.pos}</span> : `+
+              `<span class="pol-neg">${polInfo.neg}</span>`;
+
+            const chips=document.createElement("div");
+            chips.className="layer-chips";
+            node.layers.forEach((v,idx)=>{
+              const c=document.createElement("span");
+              c.className="layer-chip L"+(idx+1);
+              c.textContent=`L${idx+1}:${v}`;
+              chips.appendChild(c);
+            });
+            const fullP=document.createElement("div");
+            fullP.style.fontSize="0.7rem";
+            fullP.style.opacity="0.85";
+            fullP.textContent="Triggers / text: "+
+              node.summary.slice(0,140)+(node.summary.length>140?"…":"");
+            nDiv.appendChild(t);
+            nDiv.appendChild(meta);
+            nDiv.appendChild(polDiv);
+            nDiv.appendChild(chips);
+            nDiv.appendChild(fullP);
+            dayDiv.appendChild(nDiv);
+          });
+
+          const delBtn=document.createElement("button");
+          delBtn.className="delete-day-btn";
+          delBtn.textContent="Delete Day";
+          delBtn.addEventListener("click",()=>{
+            const store=loadBM();
+            delete store[k];
+            saveBM(store);
+            bmBackdrop.style.display="none";
+          });
+          dayDiv.appendChild(delBtn);
+          bmBody.appendChild(dayDiv);
+        });
+      }
+      bmBackdrop.style.display="flex";
+    });
+
+    // Recall
+    const recallBackdrop=document.getElementById("recallModalBackdrop");
+    const recallInput=document.getElementById("recallSearchInput");
+    const recallList=document.getElementById("recallList");
+
+    function rebuildRecallList(query=""){
+      const bm=loadBM();
+      recallList.innerHTML="";
+      const q=query.toLowerCase().trim();
+      const all=[];
+      Object.entries(bm).forEach(([day,nodes])=>{
+        nodes.forEach(n=>all.push({day,node:n}));
+      });
+      const filtered=all.filter(item=>
+        !q || item.node.summary.toLowerCase().includes(q) ||
+        item.node.full.toLowerCase().includes(q)
+      );
+      if(!filtered.length){
+        recallList.textContent="No BM nodes match this keyword yet.";
+        return;
+      }
+      filtered.sort((a,b)=>a.node.ts<b.node.ts?1:-1);
+      filtered.forEach(({day,node})=>{
+        const d=document.createElement("div");
+        d.className="recall-node";
+        const meta=document.createElement("div");
+        meta.className="bm-node-meta";
+        meta.textContent=
+          `${day} · ${node.polarity} · E₀≈${node.intensity.toFixed(2)} · `+
+          new Date(node.ts).toLocaleTimeString();
+        const sum=document.createElement("div");
+        sum.textContent="Summary: "+node.summary.slice(0,200)+
+          (node.summary.length>200?"…":"");
+        const copyBtn=document.createElement("button");
+        copyBtn.className="copy-btn";
+        copyBtn.textContent="Copy Prompt";
+        copyBtn.addEventListener("click",()=>{
+          const prompt=
+            "Photo / video prompt for this memory:\n\n"+
+            node.summary+
+            "\n\nEmotional formula snapshot:\n"+
+            "E0 = tanh(TM × BM − D + λ_faith + λ_sys + ΣCt)\n"+
+            `TM=${(node.TM??TM).toFixed(2)}, BM=${node.BMvalue?node.BMvalue.toFixed(2):BMvalue.toFixed(2)}, `+
+            `D=${(node.D??D).toFixed(2)}, ΣCt=${(node.Csum??Csum).toFixed(2)}, `+
+            `layers=${node.layers.join(",")}`;
+          navigator.clipboard.writeText(prompt).catch(()=>{});
+        });
+        d.appendChild(meta);
+        d.appendChild(sum);
+        d.appendChild(copyBtn);
+        recallList.appendChild(d);
+      });
+    }
+
+    document.getElementById("recallBtn").addEventListener("click",()=>{
+      rebuildRecallList("");
+      recallInput.value="";
+      recallBackdrop.style.display="flex";
+    });
+    recallInput.addEventListener("input",()=>{
+      rebuildRecallList(recallInput.value);
+    });
+
+    // Options
+    const optionsBackdrop=document.getElementById("optionsModalBackdrop");
+    const engineModeToggle=document.getElementById("engineModeToggle");
+    const engineModeLabel=document.getElementById("engineModeLabel");
+
+    function applyEngineMode(){
+      const mode=localStorage.getItem(engineKey) || "seed";
+      const seedOnly = mode!=="live";
+      engineModeToggle.checked=!seedOnly;
+      engineModeLabel.textContent=seedOnly
+        ? "Seed-only. Everything runs locally."
+        : "Live emotional reactor (backend LLM).";
+      const sub=seedOnly
+        ? "Universal Ethics · Local BM"
+        : "Universal Ethics · BM + Live LLM";
+      modePill.querySelector(".mode-sub").textContent=sub;
+    }
+
+    // Faith lens UI
+    const faithRow=document.getElementById("faithRow");
+    function applyFaithHighlight(){
+      const current=getFaithLens();
+      faithRow.querySelectorAll(".faith-pill").forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.faith===current);
+      });
+    }
+    faithRow.addEventListener("click",e=>{
+      const btn=e.target.closest(".faith-pill");
+      if(!btn) return;
+      localStorage.setItem(faithKey, btn.dataset.faith);
+      applyFaithHighlight();
+    });
+
+    document.getElementById("optionsBtn").addEventListener("click",()=>{
+      applyFaithHighlight();
+      applyEngineMode();
+      optionsBackdrop.style.display="flex";
+    });
+
+    engineModeToggle.addEventListener("change",()=>{
+      const mode=engineModeToggle.checked?"live":"seed";
+      localStorage.setItem(engineKey, mode);
+      applyEngineMode();
+    });
+
+    document.getElementById("clear24hBtn").addEventListener("click",()=>{
+      const bm=loadBM();
+      delete bm[todayKey()];
+      saveBM(bm);
+      optionsBackdrop.style.display="none";
+    });
+    document.getElementById("clearAllBtn").addEventListener("click",()=>{
+      localStorage.removeItem(lsKey);
+      optionsBackdrop.style.display="none";
+    });
+
+    // Cleanup 24h (♻️ shortcut)
+    document.getElementById("cleanupBtn").addEventListener("click",()=>{
+      const bm=loadBM();
+      if(!Object.keys(bm).length){
+        alert("No BM stored yet to clean.");
+        return;
+      }
+      if(confirm("Clear all Bold Memory nodes stored in the last 24 hours?")){
+        delete bm[todayKey()];
+        saveBM(bm);
+      }
+    });
+
+    // Close modals
+    document.querySelectorAll(".modal-close").forEach(btn=>{
+      btn.addEventListener("click",e=>{
+        const target=e.target.getAttribute("data-close");
+        if(target){
+          document.getElementById(target).style.display="none";
+        }
+      });
+    });
+    [document.getElementById("bmModalBackdrop"),
+     document.getElementById("recallModalBackdrop"),
+     document.getElementById("optionsModalBackdrop")].forEach(backdrop=>{
+      backdrop.addEventListener("click",e=>{
+        if(e.target===backdrop) backdrop.style.display="none";
+      });
+    });
+
+    applyEngineMode();
+    applyFaithHighlight();
+    updateEquationDisplay();
+  </script>
+</body>
+</html>
