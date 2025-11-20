@@ -6,7 +6,6 @@
 
 <p align="center">
   <a href="https://zenodo.org/records/17653634">
-    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17653634.svg" alt="DOI">
   </a>
 </p>
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17653634.svg)](https://zenodo.org/records/17653634)
