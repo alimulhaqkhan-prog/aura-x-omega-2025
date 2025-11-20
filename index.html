@@ -168,25 +168,6 @@
       color: #fef9c3;
     }
 
-    /* Polarity line (for banner + BM viewer) */
-    .polarity-line {
-      font-size: 0.72rem;
-      margin-top: 2px;
-      margin-bottom: 3px;
-    }
-    .polarity-pos {
-      color: #22c55e;
-      font-weight: 600;
-    }
-    .polarity-neg {
-      color: #ef4444;
-      font-weight: 600;
-    }
-    .polarity-mixed {
-      color: #e5e7eb;
-      font-weight: 500;
-    }
-
     .chat-log {
       flex: 1;
       overflow-y: auto;
@@ -346,6 +327,10 @@
       opacity: 0.8;
       margin-bottom: 4px;
     }
+    .bm-node-polarity {
+      font-size: 0.7rem;
+      margin-bottom: 4px;
+    }
     .layer-chips {
       display: flex;
       flex-wrap: wrap;
@@ -406,6 +391,23 @@
       background: #1d4ed8;
       color: #e5e7eb;
       margin-top: 4px;
+    }
+
+    /* Polarity line styles for BM + recall */
+    .polarity-line {
+      font-size: 0.7rem;
+    }
+    .polarity-pos {
+      color: #22c55e;
+      font-weight: 600;
+    }
+    .polarity-neg {
+      color: #ef4444;
+      font-weight: 600;
+    }
+    .polarity-mixed {
+      color: #eab308;
+      font-weight: 600;
     }
 
     /* Options modal */
@@ -491,7 +493,7 @@
       opacity: 0.75;
     }
 
-    /* LLM select dropdown (still stored, no example list) */
+    /* LLM select dropdown */
     #llmModelSelect {
       background: #020617;
       color: #e5e7eb;
@@ -692,7 +694,7 @@
       "how are you","kia hal hai","kese ho","how r u"
     ];
 
-    // Lexicons
+    // ===== SEED LEXICONS =====
     const abuseWords = [
       "fuck","fucking","fucked","lanat","laanat","haramzada",
       "bastard","bitch","bitches","bloody","kutte","kutta","kutiya",
@@ -780,20 +782,26 @@
       };
     }
 
-    // Helper: polarity percentages (for banner + BM viewer)
-    function polarityPerc(polarity, intensity){
-      let pos, neg;
+    // ===== Polarity % helper (for BM & recall) =====
+    function getPolarityInfoFromE0(value){
+      const e = value;
+      let polarity;
+      if (e>0.1) polarity="Positive";
+      else if (e<-0.1) polarity="Negative";
+      else polarity="Neutral / Mixed";
+
+      let posPct, negPct;
       if (polarity==="Positive"){
-        pos = 50 + 50*intensity;
-        neg = 100 - pos;
+        posPct = 50 + Math.abs(e)*50;
+        negPct = 100 - posPct;
       } else if (polarity==="Negative"){
-        neg = 50 + 50*intensity;
-        pos = 100 - neg;
+        negPct = 50 + Math.abs(e)*50;
+        posPct = 100 - negPct;
       } else {
-        pos = 50;
-        neg = 50;
+        posPct = 50;
+        negPct = 50;
       }
-      return {pos:Math.round(pos), neg:Math.round(neg)};
+      return {polarity, posPct:Math.round(posPct), negPct:Math.round(negPct)};
     }
 
     // State
@@ -853,32 +861,11 @@
         return;
       }
       const {polarity, cls, intensity, tone} = buildReactionTone();
-      const {pos, neg} = polarityPerc(polarity, intensity);
-      const snippet = text.length>120 ? text.slice(0,120)+"…" : text;
-
-      let posClass, negClass;
-      if (polarity==="Positive"){
-        posClass="polarity-pos";
-        negClass="polarity-neg";
-      } else if (polarity==="Negative"){
-        posClass="polarity-neg";
-        negClass="polarity-pos";
-      } else {
-        posClass="polarity-mixed";
-        negClass="polarity-mixed";
-      }
-
       reactionBannerEl.className = "reaction-banner " + cls;
       reactionBannerEl.innerHTML =
         `<strong>AURA-X Ω REACTION</strong><br>`+
-        `<div class="polarity-line">
-          Polarity: ${polarity} –
-          <span class="${posClass}">${pos}</span> :
-          <span class="${negClass}">${neg}</span>
-          · Intensity ${(intensity*100).toFixed(0)}%
-        </div>`+
-        `Tone: ${tone}<br>`+
-        `<span style="opacity:0.75;">Reading last TM: “${snippet.replace(/"/g,"'")}”</span>`;
+        `Polarity: ${polarity} · Intensity: ${intensity.toFixed(2)}<br>`+
+        `Tone: ${tone}`;
       reactionBannerEl.style.display="block";
     }
 
@@ -1056,7 +1043,6 @@
       }
     }
 
-    // ===== BM storage, compatible with old & new shapes =====
     function storeInBM(userText, botReply){
       const ignoreSmall=document.getElementById("ignoreSmallTalkToggle").checked;
       if (ignoreSmall && isMostlySmallTalk(userText)) return;
@@ -1067,13 +1053,7 @@
 
       const bm=loadBM();
       const key=todayKey();
-
-      // Normalize any old object-based day into array shape
-      if (!bm[key]) {
-        bm[key]=[];
-      } else if (!Array.isArray(bm[key]) && bm[key] && Array.isArray(bm[key].nodes)) {
-        bm[key]=bm[key].nodes;
-      }
+      if (!bm[key]) bm[key]=[];
 
       const base=Math.abs(E0);
       const layers=[
@@ -1086,13 +1066,16 @@
         Math.round(5+40*Csum)
       ];
 
+      const nodePerc = getPolarityInfoFromE0(E0);
+
       const node={
         ts:new Date().toISOString(),
         summary,
         full,
-        polarity:E0>0.15?"Positive":E0<-0.15?"Negative":"Neutral",
+        polarity:E0>0.15?"Positive":E0<-0.15?"Negative":"Neutral / Mixed",
         intensity:Math.abs(E0),
-        TM,BMvalue,D,Csum,layers
+        TM,BMvalue,D,Csum,layers,
+        perc: nodePerc
       };
       bm[key].push(node);
       saveBM(bm);
@@ -1128,7 +1111,7 @@
       voiceToggleEl.textContent = autoVoice ? "🔊 Voice: On" : "🔇 Voice: Off";
     });
 
-    // ===== BM Viewer (supports old object-based days too) =====
+    // BM Viewer
     const bmBackdrop=document.getElementById("bmModalBackdrop");
     const bmBody=document.getElementById("bmModalBody");
     document.getElementById("bmViewerBtn").addEventListener("click",()=>{
@@ -1136,37 +1119,34 @@
       bmBody.innerHTML="";
       const keys=Object.keys(bm).sort().reverse();
       if(!keys.length){
-        bmBody.textContent="No Bold Memory stored yet. Share a story first.";
+        bmBody.textContent="No Bold Memory stored yet. Share a story.";
       }else{
         keys.forEach(k=>{
-          const dayData = bm[k];
-          const nodes = Array.isArray(dayData)
-            ? dayData
-            : (dayData && Array.isArray(dayData.nodes) ? dayData.nodes : []);
-          if (!nodes.length) return;
-
           const dayDiv=document.createElement("div");
           dayDiv.className="bm-day";
           const title=document.createElement("div");
           title.className="bm-day-title";
-          title.textContent=`${k} (${nodes.length} nodes)`;
+          title.textContent=`${k} (${bm[k].length} nodes)`;
           dayDiv.appendChild(title);
 
-          nodes.forEach(node=>{
+          bm[k].forEach(node=>{
             const nDiv=document.createElement("div");
             nDiv.className="bm-node";
             const t=document.createElement("div");
             t.className="bm-node-title";
             t.textContent=node.summary.slice(0,80)+(node.summary.length>80?"…":"");
+
             const meta=document.createElement("div");
             meta.className="bm-node-meta";
-            meta.textContent=`${node.polarity} · E₀≈${(node.intensity||0).toFixed(2)} · `+
-                             new Date(node.ts).toLocaleTimeString();
+            meta.textContent=
+              `E₀≈${node.intensity.toFixed(2)} · TM=${node.TM.toFixed(2)} · D=${node.D.toFixed(2)} · `+
+              new Date(node.ts).toLocaleTimeString();
 
-            // Polarity percentage line
-            const polLine=document.createElement("div");
-            polLine.className="polarity-line";
-            const pp = polarityPerc(node.polarity || "Neutral", Math.abs(node.intensity||0));
+            const polDiv=document.createElement("div");
+            polDiv.className="bm-node-polarity";
+            const perc = node.perc || getPolarityInfoFromE0(
+              (node.polarity==="Negative"?-1:1)*node.intensity
+            );
             let posClass, negClass;
             if (node.polarity==="Positive"){
               posClass="polarity-pos"; negClass="polarity-neg";
@@ -1175,15 +1155,14 @@
             } else {
               posClass="polarity-mixed"; negClass="polarity-mixed";
             }
-            polLine.innerHTML =
-              `Polarity:
-                <span class="${posClass}">${pp.pos}</span> :
-                <span class="${negClass}">${pp.neg}</span>
-               · Intensity ${(Math.abs(node.intensity||0)*100).toFixed(0)}%`;
+            polDiv.innerHTML =
+              `Polarity: ${node.polarity} `+
+              `<span class="${posClass}">${perc.posPct}</span> : `+
+              `<span class="${negClass}">${perc.negPct}</span>`;
 
             const chips=document.createElement("div");
             chips.className="layer-chips";
-            (node.layers||[]).forEach((v,idx)=>{
+            node.layers.forEach((v,idx)=>{
               const c=document.createElement("span");
               c.className="layer-chip L"+(idx+1);
               c.textContent=`L${idx+1}:${v}`;
@@ -1196,7 +1175,7 @@
               node.summary.slice(0,140)+(node.summary.length>140?"…":"");
             nDiv.appendChild(t);
             nDiv.appendChild(meta);
-            nDiv.appendChild(polLine);
+            nDiv.appendChild(polDiv);
             nDiv.appendChild(chips);
             nDiv.appendChild(fullP);
             dayDiv.appendChild(nDiv);
@@ -1228,10 +1207,7 @@
       recallList.innerHTML="";
       const q=query.toLowerCase().trim();
       const all=[];
-      Object.entries(bm).forEach(([day,val])=>{
-        const nodes = Array.isArray(val)
-          ? val
-          : (val && Array.isArray(val.nodes) ? val.nodes : []);
+      Object.entries(bm).forEach(([day,nodes])=>{
         nodes.forEach(n=>all.push({day,node:n}));
       });
       const filtered=all.filter(item=>
@@ -1246,11 +1222,27 @@
       filtered.forEach(({day,node})=>{
         const d=document.createElement("div");
         d.className="recall-node";
+        const perc = node.perc || getPolarityInfoFromE0(
+          (node.polarity==="Negative"?-1:1)*node.intensity
+        );
         const meta=document.createElement("div");
         meta.className="bm-node-meta";
         meta.textContent=
-          `${day} · ${node.polarity} · E₀≈${(node.intensity||0).toFixed(2)} · `+
+          `${day} · ${node.polarity} · E₀≈${node.intensity.toFixed(2)} · `+
           new Date(node.ts).toLocaleTimeString();
+        const pol=document.createElement("div");
+        let posClass, negClass;
+        if (node.polarity==="Positive"){
+          posClass="polarity-pos"; negClass="polarity-neg";
+        } else if (node.polarity==="Negative"){
+          posClass="polarity-neg"; negClass="polarity-pos";
+        } else {
+          posClass="polarity-mixed"; negClass="polarity-mixed";
+        }
+        pol.className="polarity-line";
+        pol.innerHTML=
+          `Polarity: <span class="${posClass}">${perc.posPct}</span> : `+
+          `<span class="${negClass}">${perc.negPct}</span>`;
         const sum=document.createElement("div");
         sum.textContent="Summary: "+node.summary.slice(0,200)+
           (node.summary.length>200?"…":"");
@@ -1258,19 +1250,23 @@
         copyBtn.className="copy-btn";
         copyBtn.textContent="Copy Prompt";
         copyBtn.addEventListener("click",()=>{
+          const sign = node.polarity==="Negative" ? -1 : 1;
+          const e0val = (sign*node.intensity).toFixed(2);
           const prompt=
-            "Photo / video prompt for this memory:\n\n"+
+            "Emotional snapshot from AURA-X Ω BM:\n\n"+
+            `Day: ${day}\n`+
+            `Time: ${new Date(node.ts).toISOString()}\n`+
+            `Polarity: ${node.polarity}\n`+
+            `E₀≈${e0val}\n`+
+            `TM=${node.TM.toFixed(2)}, D=${node.D.toFixed(2)}, ΣCₜ=${node.Csum.toFixed(2)}\n`+
+            `Layers: ${node.layers.join(",")}\n\n`+
+            "Original TM summary:\n"+
             node.summary+
-            "\n\nEmotional formula snapshot:\n"+
-            "E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)\n"+
-            `TM=${(node.TM||TM).toFixed(2)}, BM=${(node.BMvalue||BMvalue).toFixed(2)}, `+
-            `D=${(node.D||D).toFixed(2)}, ΣCₜ=${(node.Csum||Csum).toFixed(2)}, `+
-            `layers=${(node.layers||[]).join(",")}`;
-          if (navigator.clipboard && navigator.clipboard.writeText){
-            navigator.clipboard.writeText(prompt).catch(()=>{});
-          }
+            "\n\nUse this as context for a new emotional continuity reply.";
+          navigator.clipboard.writeText(prompt).catch(()=>{});
         });
         d.appendChild(meta);
+        d.appendChild(pol);
         d.appendChild(sum);
         d.appendChild(copyBtn);
         recallList.appendChild(d);
