@@ -167,10 +167,9 @@ Use, reproduction, or derivative works are **not allowed** without written permi
 
 ## 👤 Author
 
-**Alim ul Haq Khan**  
-Founder — *AURA-X Ω Project*  
-Researcher — *Artificial Emotional Continuity & Resonance Models*  
-Pakistan 🇵🇰  
+**Alim ul Haq**  
+Founder — *AURA-X-OMEGA*  
+
 
 ---
 
