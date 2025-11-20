@@ -7,17 +7,14 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Test route (GET)
 app.get("/", (req, res) => {
   res.send("AURA-X backend running ✔");
 });
 
-// Optional: GET /api/chat to avoid blank screen
 app.get("/api/chat", (req, res) => {
   res.send("Use POST method for /api/chat");
 });
 
-// Main LLM route (POST)
 app.post("/api/chat", async (req, res) => {
   try {
     const { messages } = req.body;
@@ -32,7 +29,6 @@ app.post("/api/chat", async (req, res) => {
     });
 
     const reply = completion.choices[0].message.content;
-
     res.json({ reply });
   } catch (err) {
     console.error("LLM error:", err);
