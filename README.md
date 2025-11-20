@@ -162,7 +162,7 @@ Open `index.html` in any modern browser and the reactor is live.
 
 If you use this prototype or theory in research, please cite:
 
-**Alim ul Haq, Khan (2025). _AURA-X Ω — The Artificial Emotional Continuity System (AEC v3): TM–BM Collision Reactor, Polarity Engine, and CRM Model (2025 Edition)._ Zenodo.**  
+**Alim ul Haq, (2025). _AURA-X Ω — The Artificial Emotional Continuity System (AEC v3): TM–BM Collision Reactor, Polarity Engine, and CRM Model (2025 Edition)._ Zenodo.**  
 DOI: [10.5281/zenodo.17653634](https://doi.org/10.5281/zenodo.17653634)
 
 BibTeX and CFF formats are available in `CITATION.cff`.
