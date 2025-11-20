@@ -221,6 +221,7 @@
       box-shadow: 0 6px 12px rgba(22,163,74,0.5);
       background: #15803d;
     }
+
     .footer-line {
       font-size: 0.7rem;
       opacity: 0.65;
@@ -229,6 +230,22 @@
       justify-content: space-between;
       gap: 8px;
       flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* Voice toggle */
+    .voice-toggle {
+      border-radius: 999px;
+      padding: 3px 10px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+    .voice-toggle.active {
+      border-color: #22c55e;
+      color: #bbf7d0;
     }
 
     /* Demo buttons bottom */
@@ -551,6 +568,7 @@
       <div class="footer-line">
         <span>Prototype · TM → LLM(seed) → BM · Self-learning · Equation live.</span>
         <span>Engine: Seed (local)</span>
+        <button id="voiceToggle" class="voice-toggle active">🔊 Voice: On</button>
       </div>
     </div>
 
@@ -741,7 +759,6 @@
       return smallTalkPatterns.some(p=>clean===p||clean.startsWith(p+" "));
     }
 
-    // ===== NEW: Analyse content for seeds =====
     function containsAny(lower, arr){
       return arr.some(w => lower.includes(w));
     }
@@ -795,6 +812,9 @@
     const userInputEl=document.getElementById("userInput");
     const modePill=document.getElementById("modePill");
     const reactionBannerEl=document.getElementById("reactionBanner");
+    const voiceToggleEl=document.getElementById("voiceToggle");
+
+    let autoVoice = true;
 
     function updateEquationDisplay(){
       eqMainEl.textContent="E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)";
@@ -854,32 +874,68 @@
       chatLogEl.scrollTop=chatLogEl.scrollHeight;
     }
 
-    // ===== UPDATED: use analysis for TM / D / Csum / λ_faith =====
+    // ===== Voice synthesis =====
+    function pickVoiceForPolarity(polarity) {
+      const synth = window.speechSynthesis;
+      if (!synth) return {voice:null, pitch:1.0, rate:1.0};
+
+      let voices = synth.getVoices();
+      // some browsers return [] first time
+      if (!voices || !voices.length) {
+        return {voice:null, pitch: polarity==="Negative" ? 1.2 : 0.9, rate:1.0};
+      }
+
+      let target = null;
+      if (polarity === "Positive") {
+        target = voices.find(v => /male/i.test(v.name)) || voices[0];
+        return {voice:target, pitch:0.9, rate:1.0};
+      } else if (polarity === "Negative") {
+        target = voices.find(v => /female/i.test(v.name)) || voices[0];
+        return {voice:target, pitch:1.2, rate:1.0};
+      } else {
+        target = voices[0];
+        return {voice:target, pitch:1.0, rate:1.0};
+      }
+    }
+
+    function speakReply(text){
+      if (!autoVoice) return;
+      if (!("speechSynthesis" in window)) return;
+      if (!text || !text.trim()) return;
+
+      const synth = window.speechSynthesis;
+      const {polarity} = buildReactionTone();
+      const {voice, pitch, rate} = pickVoiceForPolarity(polarity);
+
+      const utt = new SpeechSynthesisUtterance(text);
+      if (voice) utt.voice = voice;
+      utt.pitch = pitch;
+      utt.rate = rate;
+
+      synth.cancel();
+      synth.speak(utt);
+    }
+
+    // ===== Emotion maths (uses analysis) =====
     function computeEmotion(strength, analysis){
       const baseFromLength=Math.min(1,0.2+strength/400);
       const sentiment = analysis ? analysis.sentiment || 0 : 0;
 
-      // Base TM from length + sentiment tilt
       TM = Math.min(1, Math.max(0, baseFromLength + sentiment*0.3));
 
-      // Distortion D
       if (analysis && analysis.isAbuse){
         D = Math.min(1, D + 0.25);
         Csum = Math.max(0, Csum - 0.03);
       } else {
-        // slow healing
         D = Math.max(0, D - 0.02);
       }
 
-      // Positive context seeds
       if (analysis && (analysis.positiveSeed || analysis.hasFaithSeed)){
         Csum = Math.min(1, Csum + 0.06);
       }
 
-      // Faith coefficient
       lambdaFaith = analysis && analysis.hasFaithSeed ? 0.05 : 0.0;
 
-      // BM update
       BMvalue = 0.7*BMvalue + 0.3*TM;
 
       const raw=TM*BMvalue-D+lambdaFaith+lambdaSys+Csum;
@@ -891,7 +947,6 @@
       return localStorage.getItem(faithKey) || "None";
     }
 
-    // UPDATED: now receives analysis
     function buildSeedReply(userText, analysis){
       const clean=userText.trim();
       const lower=clean.toLowerCase();
@@ -929,9 +984,7 @@
         prefix="Through your selected faith lens I’d say: ";
       }
 
-      // ===== SPECIAL SEEDS =====
-
-      // Abuse / گالی
+      // Abuse
       if (analysis.isAbuse){
         let msg = "I can feel a lot of anger and harsh, abusive words inside this TM event. "+
                   "AURA-X Ω does not want to reinforce insults or curses, because they usually increase D (damage) in your emotional field.";
@@ -957,28 +1010,28 @@
         return msg;
       }
 
-      // Shukr / Gratitude
+      // Shukr
       if (analysis.hasShukr){
         return prefix +
           "There is clear shukr / gratitude inside this TM. Even when life is heavy, noticing small blessings gently pulls E₀ to the positive side. "+
           "Keep bookmarking such moments — they become strong, protective BM nodes for the future you.";
       }
 
-      // Love / Mohabbat
+      // Love
       if (analysis.hasLove){
         return prefix +
-          "This memory is soaked in love and connection. Emotionaly it behaves like a warm anchor: when future storms come, "+
+          "This memory is soaked in love and connection. Emotionally it behaves like a warm anchor: when future storms come, "+
           "revisiting such moments can quickly stabilize your E₀ and remind you that you are not alone.";
       }
 
-      // Hamdardi / empathy
+      // Empathy / hamdardi
       if (analysis.hasEmpathy){
         return prefix +
           "Your words carry hamdardi — you are trying to share someone else’s pain, not just your own. "+
           "This kind of empathy increases positive continuity even if the story itself is sad, because it creates safe emotional space for others.";
       }
 
-      // ===== Default E₀-based reply =====
+      // Default E₀-based reply
       if (E0>0.15){
         return prefix +
           "I’ve received your TM event and collided it with the current BM state. Right now E₀ ≈ "+
@@ -1040,6 +1093,7 @@
       const reply=buildSeedReply(text, analysis);
       appendMessage(reply,"bot");
       storeInBM(text,reply);
+      speakReply(reply);
       userInputEl.value="";
     }
 
@@ -1051,6 +1105,13 @@
         e.preventDefault();
         handleUserMessage(userInputEl.value);
       }
+    });
+
+    // Voice toggle
+    voiceToggleEl.addEventListener("click", () => {
+      autoVoice = !autoVoice;
+      voiceToggleEl.classList.toggle("active", autoVoice);
+      voiceToggleEl.textContent = autoVoice ? "🔊 Voice: On" : "🔇 Voice: Off";
     });
 
     // Demos
@@ -1208,10 +1269,10 @@
       modePill.querySelector(".mode-sub").textContent=sub;
     }
 
-    // Faith lens UI
     const faithRow=document.getElementById("faithRow");
+    function getFaithLensStored(){ return localStorage.getItem(faithKey) || "None"; }
     function applyFaithHighlight(){
-      const current=getFaithLens();
+      const current=getFaithLensStored();
       faithRow.querySelectorAll(".faith-pill").forEach(btn=>{
         btn.classList.toggle("active", btn.dataset.faith===current);
       });
@@ -1279,6 +1340,11 @@
     applyEngineMode();
     applyFaithHighlight();
     updateEquationDisplay();
+
+    // ensure voices loaded on some browsers
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.getVoices();
+    }
   </script>
 </body>
 </html>
