@@ -1,9 +1,4 @@
 
-# AURA-X Ω – Artificial Emotional Continuity Prototype (AEC v3.1)
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17653634.svg)](https://doi.org/10.5281/zenodo.17653634)
-# AURA-X Ω — Artificial Emotional Continuity Prototype (AEC v3.1)
-
 **Live demo:**  
 https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/
 
