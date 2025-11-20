@@ -249,7 +249,7 @@
       color: #bbf7d0;
     }
 
-    /* Old demo buttons hidden */
+    /* Old demo buttons disabled */
     .bottom-row { display:none; }
     .demo-btn { display:none; }
 
@@ -560,7 +560,7 @@
         <button class="send-btn" id="sendBtn">Send</button>
       </div>
       <div class="footer-line">
-        <span>Prototype · TM → LLM(seed) → BM · Self-learning · Equation live.</span>
+        <span>Prototype · TM → Seed → BM · Self-learning · Equation live.</span>
         <span>Engine: Seed (local)</span>
         <button id="voiceToggle" class="voice-toggle active">🔊 Voice: On</button>
       </div>
@@ -693,7 +693,7 @@
       "how are you","kia hal hai","kese ho","how r u"
     ];
 
-    // ===== Seed lexicons =====
+    // ===== SEED LEXICONS =====
     const abuseWords = [
       "fuck","fucking","fucked","lanat","laanat","haramzada",
       "bastard","bitch","bitches","bloody","kutte","kutta","kutiya",
@@ -720,7 +720,7 @@
       "i am with you","i understand your pain","may god help you"
     ];
 
-    // ===== Helpers for BM storage =====
+    // ==== Helpers ====
     function loadBM() {
       try {
         const raw = localStorage.getItem(lsKey);
@@ -750,32 +750,27 @@
       return arr.reduce((c,w)=> c + (lower.includes(w)?1:0), 0);
     }
 
-    // ===== Content analysis: global + ending sentiment =====
     function analyseContent(text){
       const lower = text.toLowerCase();
-
       const abuseCount = countAny(lower, abuseWords);
       const posSeedCount =
         countAny(lower, loveSeedWords) +
         countAny(lower, shukrWords) +
         countAny(lower, tawakkulWords) +
         countAny(lower, empathyWords);
-
       const total = abuseCount + posSeedCount;
       const sentiment = total ? (posSeedCount - abuseCount) / total : 0;
 
-      // Ending segment sentiment (last ~260 chars)
-      const tail = lower.slice(Math.max(0, lower.length - 260));
-      const tailAbuse = countAny(tail, abuseWords);
-      const tailPos =
-        countAny(tail, loveSeedWords) +
-        countAny(tail, shukrWords) +
-        countAny(tail, tawakkulWords) +
-        countAny(tail, empathyWords);
-      const tailTotal = tailAbuse + tailPos;
-      const endingSentiment = tailTotal
-        ? (tailPos - tailAbuse) / tailTotal
-        : sentiment * 0.4;
+      // Ending segment sentiment (~last 300 chars) – small weight (~8%)
+      const endSlice = lower.slice(Math.max(0, lower.length - 300));
+      const endAbuse = countAny(endSlice, abuseWords);
+      const endPos =
+        countAny(endSlice, loveSeedWords) +
+        countAny(endSlice, shukrWords) +
+        countAny(endSlice, tawakkulWords) +
+        countAny(endSlice, empathyWords);
+      const endTotal = endAbuse + endPos;
+      const endingSentiment = endTotal ? (endPos - endAbuse) / endTotal : sentiment;
 
       const hasDua = containsAny(lower, duaWords);
       const hasShukr = containsAny(lower, shukrWords);
@@ -783,7 +778,6 @@
       const hasEmpathy = containsAny(lower, empathyWords);
       const hasTawakkul = containsAny(lower, tawakkulWords);
       const isAbuse = abuseCount > 0;
-
       return {
         isAbuse,
         hasDua,
@@ -800,14 +794,12 @@
       };
     }
 
-    // ===== Global state =====
+    // ===== State =====
     let TM=0.35, BMvalue=0.55, D=0.0, Csum=0.05;
     let lambdaFaith=0.0;
     const lambdaSys=0.02;
     let E0=0.0;
-    let currentFaithLens = "None";
 
-    // ===== DOM refs =====
     const chatLogEl=document.getElementById("chatLog");
     const statusLineEl=document.getElementById("statusLine");
     const eqMainEl=document.getElementById("eqMain");
@@ -816,13 +808,8 @@
     const modePill=document.getElementById("modePill");
     const reactionBannerEl=document.getElementById("reactionBanner");
     const voiceToggleEl=document.getElementById("voiceToggle");
-    const engineModeToggle=document.getElementById("engineModeToggle");
-    const engineModeLabel=document.getElementById("engineModeLabel");
-    const llmModelRow=document.getElementById("llmModelRow");
-    const llmModelSelect=document.getElementById("llmModelSelect");
     let autoVoice = true;
 
-    // ===== Equation display =====
     function updateEquationDisplay(){
       eqMainEl.textContent="E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)";
       eqValuesEl.textContent=
@@ -834,7 +821,6 @@
         }`;
     }
 
-    // ===== Reaction banner =====
     function buildReactionTone(){
       const intensity=Math.abs(E0);
       let polarity = "Neutral / Mixed";
@@ -873,7 +859,6 @@
       reactionBannerEl.style.display="block";
     }
 
-    // ===== Chat log helpers =====
     function appendMessage(text, who){
       const div=document.createElement("div");
       div.className="msg "+(who==="user"?"msg-user":"msg-bot");
@@ -908,7 +893,7 @@
       if (!("speechSynthesis" in window)) return;
       if (!text || !text.trim()) return;
       const synth = window.speechSynthesis;
-      const {polarity} = buildReactionTone();
+      const {polarity} = buildReactionTone(); // polarity se pitch/voice change
       const {voice, pitch, rate} = pickVoiceForPolarity(polarity);
       const utt = new SpeechSynthesisUtterance(text);
       if (voice) utt.voice = voice;
@@ -918,29 +903,22 @@
       synth.speak(utt);
     }
 
-    // ===== Emotion maths (uses analysis) =====
+    // ===== Emotion maths (uses analysis, ending weight 8%) =====
     function computeEmotion(strength, analysis){
-      // base TM from length / strength
       const baseFromLength=Math.min(1,0.2+strength/400);
-
       const sentiment = analysis ? (analysis.sentiment || 0) : 0;
-      const endingSentiment = analysis && typeof analysis.endingSentiment==="number"
-        ? analysis.endingSentiment
-        : sentiment;
+      const endingSentiment = analysis ? (analysis.endingSentiment || sentiment) : sentiment;
+      const globalWeight = 0.22;
+      const endWeight = 0.08; // final emotional closure small influence (~8%)
 
-      const GLOBAL_WEIGHT = 0.22;
-      const END_WEIGHT    = 0.08; // final closure small influence (~8%)
-      const sentimentContribution =
-        GLOBAL_WEIGHT * sentiment + END_WEIGHT * endingSentiment;
+      const combinedSentiment = globalWeight*sentiment + endWeight*endingSentiment;
+      TM = Math.min(1, Math.max(0, baseFromLength + combinedSentiment));
 
-      TM = Math.min(1, Math.max(0, baseFromLength + sentimentContribution));
-
-      // D & continuity Csum
       if (analysis && analysis.isAbuse){
-        D     = Math.min(1, D + 0.25);
-        Csum  = Math.max(0, Csum - 0.03);
+        D = Math.min(1, D + 0.25);
+        Csum = Math.max(0, Csum - 0.03);
       } else {
-        D     = Math.max(0, D - 0.02);
+        D = Math.max(0, D - 0.02);
       }
 
       if (analysis && (analysis.positiveSeed || analysis.hasFaithSeed)){
@@ -948,401 +926,591 @@
       }
 
       lambdaFaith = analysis && analysis.hasFaithSeed ? 0.05 : 0.0;
+      BMvalue = 0.7*BMvalue + 0.3*TM;
 
-      // BM inertia
-      BMvalue = 0.7 * BMvalue + 0.3 * TM;
-
-      const raw = TM * BMvalue - D + lambdaFaith + lambdaSys + Csum;
-      E0 = tanh(raw);
-
+      const raw=TM*BMvalue-D+lambdaFaith+lambdaSys+Csum;
+      E0=tanh(raw);
       updateEquationDisplay();
-      updateReactionBanner();
     }
 
-    // ===== BM storage with throttle (dog-bite style) =====
-    function storeInBM(userText, botReply){
-      const ignoreSmall = document.getElementById("ignoreSmallTalkToggle").checked;
-      if (ignoreSmall && isMostlySmallTalk(userText)) return;
+    function getFaithLens(){
+      return localStorage.getItem(faithKey) || "None";
+    }
 
-      const autoSumm = document.getElementById("autoSummarizeToggle").checked;
-      const full = userText.trim() + "\n\nAURA-X Ω: " + botReply.trim();
-      const summary = autoSumm ? summarizeTo200Sentences(full) : full;
+    function buildSeedReply(userText, analysis){
+      const clean=userText.trim();
+      const lower=clean.toLowerCase();
+      const faith=getFaithLens();
+      analysis = analysis || analyseContent(userText);
 
-      const bm = loadBM();
-      const key = todayKey();
-      if (!bm[key]) bm[key] = [];
-
-      const MAX_NODES_PER_DAY = 12;
-      if (bm[key].length >= MAX_NODES_PER_DAY) {
-        return; // aaj ka BM already full – future recall ke liye enough
+      // small-talk handling
+      if (isMostlySmallTalk(clean)){
+        if (lower.includes("how are")){
+          return "I’m stable and calm — my emotional core E₀ is around "+E0.toFixed(2)+
+                 ". How is your inner graph today?";
+        }
+        if (lower.includes("salam")||lower.includes("assalam")){
+          return "Wa-alaikum-salam. I’m an emotional continuity prototype observing how your memories resonate over time.";
+        }
+        return "Hello. I treat even small greetings as tiny TM events, but I only save deeper stories into Bold Memory (BM).";
       }
 
-      const intensity = Math.abs(E0);
-      if (intensity < 0.12 && full.length < 160) {
-        // bohat halka flash – full BM node nahi banate
+      if (lower.includes("who created you")||lower.includes("who made you")){
+        return "Conceptually I was created by Alim ul Haq from Timergara, Pakistan, as part of the AURA-X Ω / AEC research on emotional continuity.";
+      }
+      if (lower.includes("who is alim ul haq")){
+        return "Alim ul Haq is the researcher behind AURA-X Ω, Artificial Emotional Continuity, and the TM–BM emotional reactor model.";
+      }
+      if (lower.includes("formula")||lower.includes("equation")){
+        return "My emotional output follows the grand equation E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ). You can see it live in the dashboard above.";
+      }
+
+      let prefix="";
+      if (faith==="Islam"){
+        prefix="From an Islamic encouragement lens I’d say: ";
+      } else if (faith==="Christianity"){
+        prefix="From a Christian encouragement lens I’d say: ";
+      } else if (
+        faith==="Hinduism" || faith==="Buddhism" || faith==="Sikhism" ||
+        faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"
+      ){
+        prefix="Through your selected faith lens I’d say: ";
+      }
+
+      // Abuse
+      if (analysis.isAbuse){
+        let msg = "I can feel a lot of anger and harsh, abusive words inside this TM event. "+
+                  "AURA-X Ω does not want to reinforce insults or curses, because they usually increase D (damage) in your emotional field.";
+        if (faith==="Islam"){
+          msg += " From an Islamic lens, cleaning the tongue and using zikr, sabr, and istighfar often pulls E₀ back toward calmer continuity.";
+        } else if (faith!=="None"){
+          msg += " Through your faith lens, it may help to pause, breathe, and choose words that reduce harm for you and for others.";
+        }
+        msg += " Try to describe what is really hurting or scaring you, without attacking yourself or anyone else.";
+        return msg;
+      }
+
+      // Dua / Tawakkul
+      if (analysis.hasDua || analysis.hasTawakkul){
+        let msg = prefix +
+          "Your words carry dua and tawakkul. This kind of trust usually lowers D and increases Cₜ in the equation, "+
+          "so even painful memories can start moving toward calmer trajectories.";
+        if (faith==="Islam"){
+          msg += " Keep combining wise action with sincere dua — ‘tie your camel and trust Allah’ style — so your long-run BM stays balanced.";
+        } else if (faith!=="None" && faith!=="Islam"){
+          msg += " Staying connected to your source of faith while taking small practical steps is a strong way to stabilize E₀.";
+        }
+        return msg;
+      }
+
+      // Shukr
+      if (analysis.hasShukr){
+        return prefix +
+          "There is clear shukr / gratitude inside this TM. Even when life is heavy, noticing small blessings gently pulls E₀ to the positive side. "+
+          "Keep bookmarking such moments — they become strong, protective BM nodes for the future you.";
+      }
+
+      // Love
+      if (analysis.hasLove){
+        return prefix +
+          "This memory is soaked in love and connection. Emotionally it behaves like a warm anchor: when future storms come, "+
+          "revisiting such moments can quickly stabilize your E₀ and remind you that you are not alone.";
+      }
+
+      // Empathy / hamdardi
+      if (analysis.hasEmpathy){
+        return prefix +
+          "Your words carry hamdardi — you are tryingfunction computeEmotion(strength, analysis){
+      const baseFromLength=Math.min(1,0.2+strength/400);
+      const sentiment = analysis ? (analysis.sentiment || 0) : 0;
+      const endingSentiment = analysis ? (analysis.endingSentiment || sentiment) : sentiment;
+      const globalWeight = 0.22;
+      const endWeight = 0.08; // final emotional closure small influence (~8%)
+
+      const combinedSentiment = globalWeight*sentiment + endWeight*endingSentiment;
+      TM = Math.min(1, Math.max(0, baseFromLength + combinedSentiment));
+
+      if (analysis && analysis.isAbuse){
+        D = Math.min(1, D + 0.25);
+        Csum = Math.max(0, Csum - 0.03);
+      } else {
+        D = Math.max(0, D - 0.02);
+      }
+
+      if (analysis && (analysis.positiveSeed || analysis.hasFaithSeed)){
+        Csum = Math.min(1, Csum + 0.06);
+      }
+
+      lambdaFaith = analysis && analysis.hasFaithSeed ? 0.05 : 0.0;
+      BMvalue = 0.7*BMvalue + 0.3*TM;
+
+      const raw=TM*BMvalue-D+lambdaFaith+lambdaSys+Csum;
+      E0=tanh(raw);
+      updateEquationDisplay();
+    }
+
+    function getFaithLens(){
+      return localStorage.getItem(faithKey) || "None";
+    }
+
+    function buildSeedReply(userText, analysis){
+      const clean=userText.trim();
+      const lower=clean.toLowerCase();
+      const faith=getFaithLens();
+      analysis = analysis || analyseContent(userText);
+
+      // small-talk handling
+      if (isMostlySmallTalk(clean)){
+        if (lower.includes("how are")){
+          return "I’m stable and calm — my emotional core E₀ is around "+E0.toFixed(2)+
+                 ". How is your inner graph today?";
+        }
+        if (lower.includes("salam")||lower.includes("assalam")){
+          return "Wa-alaikum-salam. I’m an emotional continuity prototype observing how your memories resonate over time.";
+        }
+        return "Hello. I treat even small greetings as tiny TM events, but I only save deeper stories into Bold Memory (BM).";
+      }
+
+      if (lower.includes("who created you")||lower.includes("who made you")){
+        return "Conceptually I was created by Alim ul Haq from Timergara, Pakistan, as part of the AURA-X Ω / AEC research on emotional continuity.";
+      }
+      if (lower.includes("who is alim ul haq")){
+        return "Alim ul Haq is the researcher behind AURA-X Ω, Artificial Emotional Continuity, and the TM–BM emotional reactor model.";
+      }
+      if (lower.includes("formula")||lower.includes("equation")){
+        return "My emotional output follows the grand equation E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ). You can see it live in the dashboard above.";
+      }
+
+      let prefix="";
+      if (faith==="Islam"){
+        prefix="From an Islamic encouragement lens I’d say: ";
+      } else if (faith==="Christianity"){
+        prefix="From a Christian encouragement lens I’d say: ";
+      } else if (
+        faith==="Hinduism" || faith==="Buddhism" || faith==="Sikhism" ||
+        faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"
+      ){
+        prefix="Through your selected faith lens I’d say: ";
+      }
+
+      // Abuse
+      if (analysis.isAbuse){
+        let msg = "I can feel a lot of anger and harsh, abusive words inside this TM event. "+
+                  "AURA-X Ω does not want to reinforce insults or curses, because they usually increase D (damage) in your emotional field.";
+        if (faith==="Islam"){
+          msg += " From an Islamic lens, cleaning the tongue and using zikr, sabr, and istighfar often pulls E₀ back toward calmer continuity.";
+        } else if (faith!=="None"){
+          msg += " Through your faith lens, it may help to pause, breathe, and choose words that reduce harm for you and for others.";
+        }
+        msg += " Try to describe what is really hurting or scaring you, without attacking yourself or anyone else.";
+        return msg;
+      }
+
+      // Dua / Tawakkul
+      if (analysis.hasDua || analysis.hasTawakkul){
+        let msg = prefix +
+          "Your words carry dua and tawakkul. This kind of trust usually lowers D and increases Cₜ in the equation, "+
+          "so even painful memories can start moving toward calmer trajectories.";
+        if (faith==="Islam"){
+          msg += " Keep combining wise action with sincere dua — ‘tie your camel and trust Allah’ style — so your long-run BM stays balanced.";
+        } else if (faith!=="None" && faith!=="Islam"){
+          msg += " Staying connected to your source of faith while taking small practical steps is a strong way to stabilize E₀.";
+        }
+        return msg;
+      }
+
+      // Shukr
+      if (analysis.hasShukr){
+        return prefix +
+          "There is clear shukr / gratitude inside this TM. Even when life is heavy, noticing small blessings gently pulls E₀ to the positive side. "+
+          "Keep bookmarking such moments — they become strong, protective BM nodes for the future you.";
+      }
+
+      // Love
+      if (analysis.hasLove){
+        return prefix +
+          "This memory is soaked in love and connection. Emotionally it behaves like a warm anchor: when future storms come, "+
+          "revisiting such moments can quickly stabilize your E₀ and remind you that you are not alone.";
+      }
+
+      // Empathy / hamdardi
+      if (analysis.hasEmpathy){
+        return prefix +
+          "Your words carry hamdardi — you are trying to share someone else’s pain, not just your own. "+
+          "This kind of empathy increases positive continuity even if the story itself is sad, because it creates safe emotional space for others.";
+      }
+
+      // Default E₀-based reply
+      if (E0>0.15){
+        return prefix +
+          "I’ve received your TM event and collided it with the current BM state. Right now E₀ ≈ "+
+               E0.toFixed(2)+
+               " (range −1 to +1). The more clearly you describe context, the stronger and cleaner your BM trace becomes.";
+      } else if (E0<-0.15){
+        return prefix +
+          "Your TM event is resonating with some heavier patterns. E₀ ≈ "+
+               E0.toFixed(2)+
+               ". If this topic feels difficult, you can re-frame it, add supporting memories, or move toward calmer lines of continuity.";
+      } else {
+        return prefix +
+          "E₀ is currently near neutral ("+E0.toFixed(2)+"). This means your TM event is balanced but still contributes to your long-run BM layers.";
+      }
+    }
+
+    // ==== BM STORE (with daily limit + duplicate guard) ====
+    function storeInBM(userText, botReply){
+      const ignoreSmall=document.getElementById("ignoreSmallTalkToggle").checked;
+      if (ignoreSmall && isMostlySmallTalk(userText)) return;
+
+      const autoSumm=document.getElementById("autoSummarizeToggle").checked;
+      const full=userText.trim()+"\n\nAURA-X Ω: "+botReply.trim();
+      const summary=autoSumm?summarizeTo200Sentences(full):full;
+
+      const bm=loadBM();
+      const key=todayKey();
+      if (!bm[key]) bm[key]=[];
+      const dayArr = bm[key];
+
+      // daily limit: max 40 BM nodes per day
+      if (dayArr.length >= 40) {
+        return;
+      }
+      // duplicate guard: if last full text same, skip
+      if (dayArr.length>0 && dayArr[dayArr.length-1].full === full){
         return;
       }
 
-      const base = intensity;
-      const layers = [
-        Math.round(50 + 50 * base),
-        Math.round(10 + 80 * Math.max(0, E0)),
-        Math.round(15 + 70 * Math.abs(TM - 0.5)),
-        Math.round(20 + 60 * (1 - Math.abs(E0))),
-        Math.round(30 + 60 * TM),
-        Math.round(5 + 40 * (1 - D)),
-        Math.round(5 + 40 * Csum)
+      const base=Math.abs(E0);
+      const layers=[
+        Math.round(50+50*base),
+        Math.round(10+80*Math.max(0,E0)),
+        Math.round(15+70*Math.abs(TM-0.5)),
+        Math.round(20+60*(1-Math.abs(E0))),
+        Math.round(30+60*TM),
+        Math.round(5+40*(1-D)),
+        Math.round(5+40*Csum)
       ];
 
-      const node = {
-        ts: new Date().toISOString(),
+      const node={
+        ts:new Date().toISOString(),
         summary,
         full,
-        polarity: E0 > 0.15 ? "Positive" : E0 < -0.15 ? "Negative" : "Neutral",
-        intensity,
-        TM,
-        BMvalue,
-        D,
-        Csum,
-        layers,
-        e0: E0
+        polarity:E0>0.15?"Positive":E0<-0.15?"Negative":"Neutral",
+        intensity:Math.abs(E0),
+        TM,BMvalue,D,Csum,layers
       };
-
-      bm[key].push(node);
+      dayArr.push(node);
       saveBM(bm);
     }
 
-    // ===== Seed reply generator =====
-    function generateSeedReply(text, analysis){
-      const lower=text.toLowerCase();
-      const {polarity, intensity} = buildReactionTone();
-      let core="";
-
-      if (!text.trim()){
-        return "If you share even one line, I will treat it as a small TM event and reflect it back to you.";
-      }
-
-      if (analysis && analysis.isAbuse){
-        core =
-          "I can feel a lot of harsh, heavy language in this TM. I do not want to reinforce insults, " +
-          "but I understand there is pain and anger behind them. Let us try to move that pain into something safer and cleaner.";
-      } else if (analysis && analysis.hasShukr){
-        core =
-          "There is a clear line of shukr and gratitude inside this TM. Gratitude usually stabilises the heart and makes E₀ drift positive over time.";
-      } else if (analysis && analysis.hasDua){
-        core =
-          "You are invoking dua in this memory. Calling out for help – even silently – is already a form of movement toward light.";
-      } else if (polarity==="Positive"){
-        core =
-          "This TM feels mostly positive. Your description carries warmth and a sense of forward motion, " +
-          "even if there are small worries hidden inside.";
-      } else if (polarity==="Negative"){
-        core =
-          "This TM feels heavy and strained. There is clear pressure on you, but by naming it here you have already pulled it out of the dark a little.";
-      } else {
-        core =
-          "Emotionally this TM looks mixed / neutral. It is more like an observation layer than a strong emotional wave.";
-      }
-
-      let faithTail = "";
-      if (currentFaithLens === "Islam" && (polarity==="Negative" || intensity>0.4)){
-        faithTail =
-          " Remember, no emotional state is permanent; even the heaviest feeling decays over time. " +
-          "A little sabr and a quiet dua can bend this curve in your favour.";
-      } else if (currentFaithLens === "Atheism / Humanism"){
-        faithTail =
-          " Even small, rational steps – breathing, writing, talking to a trusted person – can slowly rebalance this emotional curve.";
-      }
-
-      return core + faithTail;
-    }
-
-    // ===== BM Viewer rendering =====
-    function renderBMModal(){
-      const body=document.getElementById("bmModalBody");
-      body.innerHTML="";
-      const bm=loadBM();
-      const days=Object.keys(bm).sort().reverse();
-      if (!days.length){
-        body.textContent="No BM nodes stored yet. Talk a bit and they will appear here.";
-        return;
-      }
-      days.forEach(day=>{
-        const dayDiv=document.createElement("div");
-        dayDiv.className="bm-day";
-        const title=document.createElement("div");
-        title.className="bm-day-title";
-        title.textContent=`${day} (${bm[day].length} nodes)`;
-        dayDiv.appendChild(title);
-
-        bm[day].forEach(node=>{
-          const n=document.createElement("div");
-          n.className="bm-node";
-
-          const titleText=node.summary.split("\n")[0].slice(0,90);
-          const titleEl=document.createElement("div");
-          titleEl.className="bm-node-title";
-          titleEl.textContent=titleText;
-          n.appendChild(titleEl);
-
-          const meta=document.createElement("div");
-          meta.className="bm-node-meta";
-          const time=node.ts ? node.ts.slice(11,19) : "";
-          meta.textContent=
-            `E₀≈${(node.e0||0).toFixed(2)} · TM=${(node.TM||0).toFixed(2)} · D=${(node.D||0).toFixed(2)} · ${time}`;
-          n.appendChild(meta);
-
-          const polLine=document.createElement("div");
-          polLine.className="polarity-line";
-          const e = node.e0 || 0;
-          const posPct = Math.round((e+1)*50);
-          const negPct = 100-posPct;
-          polLine.innerHTML =
-            `<span class="label">Polarity:</span>`+
-            `<span class="pos">${posPct}</span> : `+
-            `<span class="neg">${negPct}</span>`;
-          n.appendChild(polLine);
-
-          const chips=document.createElement("div");
-          chips.className="layer-chips";
-          (node.layers||[]).forEach((val,idx)=>{
-            const c=document.createElement("span");
-            c.className="layer-chip L"+(idx+1);
-            c.textContent=`L${idx+1}:${val}`;
-            chips.appendChild(c);
-          });
-          n.appendChild(chips);
-
-          const trig=document.createElement("div");
-          trig.style.fontSize="0.7rem";
-          trig.style.opacity="0.9";
-          trig.textContent=`Triggers / text: ${node.summary.slice(0,260)}${node.summary.length>260?"…":""}`;
-          n.appendChild(trig);
-
-          dayDiv.appendChild(n);
-        });
-
-        const delBtn=document.createElement("button");
-        delBtn.className="delete-day-btn";
-        delBtn.textContent="Delete Day";
-        delBtn.addEventListener("click",()=>{
-          const data=loadBM();
-          delete data[day];
-          saveBM(data);
-          renderBMModal();
-        });
-        dayDiv.appendChild(delBtn);
-
-        body.appendChild(dayDiv);
-      });
-    }
-
-    // ===== Recall search =====
-    function buildRecallList(filterText){
-      const listEl=document.getElementById("recallList");
-      listEl.innerHTML="";
-      const bm=loadBM();
-      const days=Object.keys(bm).sort();
-      const query=(filterText||"").toLowerCase();
-
-      let count=0;
-      days.forEach(day=>{
-        bm[day].forEach(node=>{
-          const hay=(node.full||node.summary||"").toLowerCase();
-          if (!query || hay.includes(query)){
-            const item=document.createElement("div");
-            item.className="recall-node";
-            const title=document.createElement("div");
-            title.style.fontWeight="500";
-            title.style.marginBottom="2px";
-            title.textContent=`${day} · ${node.summary.split("\n")[0].slice(0,80)}`;
-            item.appendChild(title);
-
-            const meta=document.createElement("div");
-            meta.style.fontSize="0.7rem";
-            meta.style.opacity="0.8";
-            meta.textContent=`Polarity: ${node.polarity} · Intensity=${(node.intensity||0).toFixed(2)}`;
-            item.appendChild(meta);
-
-            const text=document.createElement("div");
-            text.style.fontSize="0.72rem";
-            text.style.marginTop="2px";
-            text.textContent=(node.full||"").slice(0,260)+(node.full&&node.full.length>260?"…":"");
-            item.appendChild(text);
-
-            const copy=document.createElement("button");
-            copy.className="copy-btn";
-            copy.textContent="Copy prompt";
-            copy.addEventListener("click",()=>{
-              navigator.clipboard.writeText(node.full||node.summary||"");
-            });
-            item.appendChild(copy);
-
-            listEl.appendChild(item);
-            count++;
-          }
-        });
-      });
-      if (!count){
-        listEl.textContent="No BM nodes matched this search.";
-      }
-    }
-
-    // ===== Faith lens handling =====
-    function applyFaithFromStorage(){
-      const stored=localStorage.getItem(faithKey);
-      currentFaithLens = stored || "None";
-      const pills=document.querySelectorAll("#faithRow .faith-pill");
-      pills.forEach(p=>{
-        if (p.dataset.faith===currentFaithLens) p.classList.add("active");
-        else p.classList.remove("active");
-      });
-    }
-
-    // ===== Engine mode handling =====
-    function applyEngineModeFromStorage(){
-      const stored=localStorage.getItem(engineKey);
-      const live = stored==="live";
-      engineModeToggle.checked = live;
-      if (live){
-        engineModeLabel.textContent="Live emotional reactor (backend / API).";
-        modePill.querySelector(".engine").textContent="Engine: Live emotional reactor (UI only)";
-        llmModelRow.style.display="flex";
-      } else {
-        engineModeLabel.textContent="Seed-only. Everything runs locally.";
-        modePill.querySelector(".engine").textContent="Engine: Seed (local)";
-        llmModelRow.style.display="none";
-      }
-    }
-
-    function applyLLMModelFromStorage(){
-      const stored=localStorage.getItem(llmModelKey);
-      if (stored) llmModelSelect.value=stored;
-    }
-
-    // ===== Send handler =====
-    function handleSend(){
-      const text=userInputEl.value;
+    function handleUserMessage(text){
       if (!text.trim()) return;
-      const analysis=analyseContent(text);
       appendMessage(text,"user");
-      userInputEl.value="";
-
+      const analysis = analyseContent(text);
       computeEmotion(text.length, analysis);
-
-      const reply=generateSeedReply(text, analysis);
+      updateReactionBanner(text);
+      const reply=buildSeedReply(text, analysis);
       appendMessage(reply,"bot");
+      storeInBM(text,reply);
       speakReply(reply);
-      storeInBM(text, reply);
+      userInputEl.value="";
     }
 
-    // ===== Modal helpers =====
-    function openModal(id){
-      const el=document.getElementById(id);
-      if (!el) return;
-      el.style.display="flex";
-    }
-    function closeModal(id){
-      const el=document.getElementById(id);
-      if (!el) return;
-      el.style.display="none";
-    }
-
-    // ===== Event wiring =====
-    document.getElementById("sendBtn").addEventListener("click", handleSend);
-    userInputEl.addEventListener("keydown", (e)=>{
+    document.getElementById("sendBtn").addEventListener("click",()=>{
+      handleUserMessage(userInputEl.value);
+    });
+    userInputEl.addEventListener("keydown",e=>{
       if (e.key==="Enter" && !e.shiftKey){
         e.preventDefault();
-        handleSend();
+        handleUserMessage(userInputEl.value);
       }
     });
 
     // Voice toggle
-    voiceToggleEl.addEventListener("click", ()=>{
+    voiceToggleEl.addEventListener("click", () => {
       autoVoice = !autoVoice;
-      if (autoVoice){
-        voiceToggleEl.classList.add("active");
-        voiceToggleEl.textContent="🔊 Voice: On";
-      } else {
-        voiceToggleEl.classList.remove("active");
-        voiceToggleEl.textContent="🔇 Voice: Off";
+      voiceToggleEl.classList.toggle("active", autoVoice);
+      voiceToggleEl.textContent = autoVoice ? "🔊 Voice: On" : "🔇 Voice: Off";
+    });
+
+    // ===== BM Viewer =====
+    const bmBackdrop=document.getElementById("bmModalBackdrop");
+    const bmBody=document.getElementById("bmModalBody");
+
+    function polarityPercentages(polarity, intensity){
+      intensity = Math.max(0, Math.min(1, intensity || 0));
+      let pos=50, neg=50;
+      if (polarity==="Positive"){
+        pos = Math.round(50 + 50*intensity);
+        neg = 100 - pos;
+      } else if (polarity==="Negative"){
+        neg = Math.round(50 + 50*intensity);
+        pos = 100 - neg;
       }
+      return {pos,neg};
+    }
+
+    document.getElementById("bmViewerBtn").addEventListener("click",()=>{
+      const bm=loadBM();
+      bmBody.innerHTML="";
+      const keys=Object.keys(bm).sort().reverse();
+      if(!keys.length){
+        bmBody.textContent="No Bold Memory stored yet. Share a story or type any emotional event.";
+      }else{
+        keys.forEach(k=>{
+          const dayDiv=document.createElement("div");
+          dayDiv.className="bm-day";
+          const title=document.createElement("div");
+          title.className="bm-day-title";
+          title.textContent=`${k} (${bm[k].length} nodes)`;
+          dayDiv.appendChild(title);
+
+          bm[k].forEach(node=>{
+            const nDiv=document.createElement("div");
+            nDiv.className="bm-node";
+
+            const t=document.createElement("div");
+            t.className="bm-node-title";
+            t.textContent=node.summary.slice(0,80)+(node.summary.length>80?"…":"");
+
+            const meta=document.createElement("div");
+            meta.className="bm-node-meta";
+            meta.textContent=`${node.polarity} · |E₀|≈${node.intensity.toFixed(2)} · `+
+                             new Date(node.ts).toLocaleTimeString();
+
+            const polLine=document.createElement("div");
+            polLine.className="polarity-line";
+            const {pos,neg} = polarityPercentages(node.polarity, node.intensity);
+            polLine.innerHTML =
+              `<span class="label">Polarity:</span>`+
+              `<span class="pos">${node.polarity==="Negative"?"Positive":node.polarity} ${pos}%</span>`+
+              ` : <span class="neg">Negative ${neg}%</span>`;
+
+            const chips=document.createElement("div");
+            chips.className="layer-chips";
+            (node.layers || []).forEach((v,idx)=>{
+              const c=document.createElement("span");
+              c.className="layer-chip L"+(idx+1);
+              c.textContent=`L${idx+1}:${v}`;
+              chips.appendChild(c);
+            });
+
+            const fullP=document.createElement("div");
+            fullP.style.fontSize="0.7rem";
+            fullP.style.opacity="0.85";
+            fullP.textContent="Triggers / text: "+
+              node.summary.slice(0,140)+(node.summary.length>140?"…":"");
+
+            nDiv.appendChild(t);
+            nDiv.appendChild(meta);
+            nDiv.appendChild(polLine);
+            nDiv.appendChild(chips);
+            nDiv.appendChild(fullP);
+            dayDiv.appendChild(nDiv);
+          });
+
+          const delBtn=document.createElement("button");
+          delBtn.className="delete-day-btn";
+          delBtn.textContent="Delete Day";
+          delBtn.addEventListener("click",()=>{
+            const store=loadBM();
+            delete store[k];
+            saveBM(store);
+            bmBackdrop.style.display="none";
+          });
+          dayDiv.appendChild(delBtn);
+          bmBody.appendChild(dayDiv);
+        });
+      }
+      bmBackdrop.style.display="flex";
     });
 
-    // BM Viewer button
-    document.getElementById("bmViewerBtn").addEventListener("click", ()=>{
-      renderBMModal();
-      openModal("bmModalBackdrop");
+    // ===== Recall Modal =====
+    const recallBackdrop=document.getElementById("recallModalBackdrop");
+    const recallInput=document.getElementById("recallSearchInput");
+    const recallList=document.getElementById("recallList");
+
+    function rebuildRecallList(query=""){
+      const bm=loadBM();
+      recallList.innerHTML="";
+      const q=query.toLowerCase().trim();
+      const all=[];
+      Object.entries(bm).forEach(([day,nodes])=>{
+        nodes.forEach(n=>all.push({day,node:n}));
+      });
+      const filtered=all.filter(item=>
+        !q || item.node.summary.toLowerCase().includes(q) ||
+        item.node.full.toLowerCase().includes(q)
+      );
+      if(!filtered.length){
+        recallList.textContent="No BM nodes match this keyword yet.";
+        return;
+      }
+      filtered.sort((a,b)=>a.node.ts<b.node.ts?1:-1);
+      filtered.forEach(({day,node})=>{
+        const d=document.createElement("div");
+        d.className="recall-node";
+        const meta=document.createElement("div");
+        meta.className="bm-node-meta";
+        meta.textContent=
+          `${day} · ${node.polarity} · |E₀|≈${node.intensity.toFixed(2)} · `+
+          new Date(node.ts).toLocaleTimeString();
+        const sum=document.createElement("div");
+        sum.textContent="Summary: "+node.summary.slice(0,200)+
+          (node.summary.length>200?"…":"");
+        const copyBtn=document.createElement("button");
+        copyBtn.className="copy-btn";
+        copyBtn.textContent="Copy Prompt";
+        copyBtn.addEventListener("click",()=>{
+          const bmVal = typeof node.BMvalue==="number" ? node.BMvalue : BMvalue;
+          const prompt=
+            "Photo / video prompt for this memory:\n\n"+
+            node.summary+
+            "\n\nEmotional formula snapshot:\n"+
+            "E0 = tanh(TM × BM − D + λ_faith + λ_sys + ΣCt)\n"+
+            `TM=${node.TM.toFixed(2)}, BM=${bmVal.toFixed(2)}, `+
+            `D=${node.D.toFixed(2)}, ΣCt=${node.Csum.toFixed(2)}, `+
+            `layers=${(node.layers||[]).join(",")}`;
+          navigator.clipboard.writeText(prompt).catch(()=>{});
+        });
+        d.appendChild(meta);
+        d.appendChild(sum);
+        d.appendChild(copyBtn);
+        recallList.appendChild(d);
+      });
+    }
+
+    document.getElementById("recallBtn").addEventListener("click",()=>{
+      rebuildRecallList("");
+      recallInput.value="";
+      recallBackdrop.style.display="flex";
+    });
+    recallInput.addEventListener("input",()=>{
+      rebuildRecallList(recallInput.value);
     });
 
-    // Recall button
-    document.getElementById("recallBtn").addEventListener("click", ()=>{
-      buildRecallList("");
-      document.getElementById("recallSearchInput").value="";
-      openModal("recallModalBackdrop");
+    // ===== Options / Engine / Faith =====
+    const optionsBackdrop=document.getElementById("optionsModalBackdrop");
+    const engineModeToggle=document.getElementById("engineModeToggle");
+    const engineModeLabel=document.getElementById("engineModeLabel");
+    const llmModelRow=document.getElementById("llmModelRow");
+    const llmModelSelect=document.getElementById("llmModelSelect");
+    const faithRow=document.getElementById("faithRow");
+
+    function applyEngineMode(){
+      const mode=localStorage.getItem(engineKey) || "seed";
+      const seedOnly = mode!=="live";
+      engineModeToggle.checked=!seedOnly;
+      engineModeLabel.textContent=seedOnly
+        ? "Seed-only. Everything runs locally."
+        : "Live emotional reactor (backend LLM).";
+
+      const sub=seedOnly
+        ? "Universal Ethics · Local BM"
+        : "Universal Ethics · BM + Live LLM";
+      const subSpan = modePill.querySelector(".mode-sub");
+      if (subSpan) subSpan.textContent=sub;
+
+      const engineSpan = modePill.querySelector(".engine");
+      if (engineSpan) {
+        engineSpan.textContent = seedOnly
+          ? "Engine: Seed (local)"
+          : "Engine: Live emotional reactor";
+      }
+
+      if (llmModelRow) {
+        llmModelRow.style.display = seedOnly ? "none" : "flex";
+      }
+      if (!seedOnly && llmModelSelect) {
+        const stored = localStorage.getItem(llmModelKey) || "gpt-4.1";
+        llmModelSelect.value = stored;
+      }
+    }
+
+    function getFaithLensStored(){ return localStorage.getItem(faithKey) || "None"; }
+    function applyFaithHighlight(){
+      const current=getFaithLensStored();
+      faithRow.querySelectorAll(".faith-pill").forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.faith===current);
+      });
+    }
+
+    faithRow.addEventListener("click",e=>{
+      const btn=e.target.closest(".faith-pill");
+      if(!btn) return;
+      localStorage.setItem(faithKey, btn.dataset.faith);
+      applyFaithHighlight();
     });
 
-    document.getElementById("recallSearchInput").addEventListener("input", (e)=>{
-      buildRecallList(e.target.value);
+    document.getElementById("optionsBtn").addEventListener("click",()=>{
+      applyFaithHighlight();
+      applyEngineMode();
+      optionsBackdrop.style.display="flex";
     });
 
-    // Cleanup 24h (just delete today's key)
-    document.getElementById("cleanupBtn").addEventListener("click", ()=>{
-      const data=loadBM();
-      const key=todayKey();
-      delete data[key];
-      saveBM(data);
-    });
-
-    // Options button
-    document.getElementById("optionsBtn").addEventListener("click", ()=>{
-      openModal("optionsModalBackdrop");
-    });
-
-    // Options modal clears
-    document.getElementById("clear24hBtn").addEventListener("click", ()=>{
-      const data=loadBM();
-      const key=todayKey();
-      delete data[key];
-      saveBM(data);
-    });
-    document.getElementById("clearAllBtn").addEventListener("click", ()=>{
-      saveBM({});
-    });
-
-    // Faith lens pills
-    document.getElementById("faithRow").addEventListener("click",(e)=>{
-      const pill=e.target.closest(".faith-pill");
-      if (!pill) return;
-      currentFaithLens=pill.dataset.faith;
-      localStorage.setItem(faithKey,currentFaithLens);
-      applyFaithFromStorage();
-    });
-
-    // Engine mode toggle
     engineModeToggle.addEventListener("change",()=>{
-      const live = engineModeToggle.checked;
-      localStorage.setItem(engineKey, live ? "live" : "seed");
-      applyEngineModeFromStorage();
+      const mode=engineModeToggle.checked?"live":"seed";
+      localStorage.setItem(engineKey, mode);
+      applyEngineMode();
     });
 
-    llmModelSelect.addEventListener("change",()=>{
-      localStorage.setItem(llmModelKey, llmModelSelect.value);
+    if (llmModelSelect) {
+      llmModelSelect.addEventListener("change", () => {
+        localStorage.setItem(llmModelKey, llmModelSelect.value);
+      });
+    }
+
+    document.getElementById("clear24hBtn").addEventListener("click",()=>{
+      const bm=loadBM();
+      delete bm[todayKey()];
+      saveBM(bm);
+      optionsBackdrop.style.display="none";
     });
 
-    // Generic modal close buttons
-    document.querySelectorAll(".modal-close").forEach(btn=>{
-      const id=btn.dataset.close;
-      if (id){
-        btn.addEventListener("click", ()=>closeModal(id));
+    document.getElementById("clearAllBtn").addEventListener("click",()=>{
+      localStorage.removeItem(lsKey);
+      optionsBackdrop.style.display="none";
+    });
+
+    // Cleanup 24h shortcut pill
+    document.getElementById("cleanupBtn").addEventListener("click",()=>{
+      const bm=loadBM();
+      if(!Object.keys(bm).length){
+        alert("No BM stored yet to clean.");
+        return;
+      }
+      if(confirm("Clear all Bold Memory nodes stored in the last 24 hours?")){
+        delete bm[todayKey()];
+        saveBM(bm);
       }
     });
 
-    // Initial setup
-    applyFaithFromStorage();
-    applyEngineModeFromStorage();
-    applyLLMModelFromStorage();
+    // Close modals
+    document.querySelectorAll(".modal-close").forEach(btn=>{
+      btn.addEventListener("click",e=>{
+        const target=e.target.getAttribute("data-close");
+        if(target){
+          document.getElementById(target).style.display="none";
+        }
+      });
+    });
+    [document.getElementById("bmModalBackdrop"),
+     document.getElementById("recallModalBackdrop"),
+     document.getElementById("optionsModalBackdrop")].forEach(backdrop=>{
+      backdrop.addEventListener("click",e=>{
+        if(e.target===backdrop) backdrop.style.display="none";
+      });
+    });
+
+    // Init
+    applyEngineMode();
+    applyFaithHighlight();
     updateEquationDisplay();
+
+    // ensure voices loaded on some browsers
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.getVoices();
+    }
   </script>
 </body>
 </html>
