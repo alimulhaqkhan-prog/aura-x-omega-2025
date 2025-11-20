@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AURA-X Ω – Emotional Continuity Reactor (v3.1+)</title>
+  <title>AURA-X Ω – Emotional Continuity Reactor (v3.2)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     * {
@@ -40,13 +40,22 @@
     .pill-row {
       display: flex;
       gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 6px;
+      flex-wrap: nowrap;          /* -> sab ek line me */
+      overflow-x: auto;           /* chhota screen pe side scroll ho sakta hai */
+      padding-bottom: 2px;
     }
+    .pill-row::-webkit-scrollbar {
+      height: 4px;
+    }
+    .pill-row::-webkit-scrollbar-thumb {
+      background: rgba(55,65,81,0.7);
+      border-radius: 999px;
+    }
+
     .pill {
       border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 12px;
+      padding: 6px 10px;
+      font-size: 11px;
       border: 1px solid rgba(148, 163, 184, 0.6);
       background: radial-gradient(circle at top left,
         rgba(30, 64, 175, 0.5),
@@ -150,9 +159,6 @@
       margin-top: 4px;
       line-height: 1.5;
     }
-    .equation-row span {
-      white-space: nowrap;
-    }
     .equation-main {
       font-size: 14px;
       color: #e5e7eb;
@@ -194,6 +200,11 @@
       margin-top: 4px;
       color: #e5e7eb;
     }
+    .tone-text {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
 
     .reaction-panel.positive {
       border-color: rgba(52, 211, 153, 0.9);
@@ -206,12 +217,6 @@
     .reaction-panel.neutral {
       border-color: rgba(234, 179, 8, 0.8);
       box-shadow: 0 16px 40px rgba(234, 179, 8, 0.25);
-    }
-
-    .tone-text {
-      font-size: 11px;
-      color: #9ca3af;
-      margin-top: 2px;
     }
 
     .scalar-footnote {
@@ -379,14 +384,17 @@
       padding-right: 2px;
       overflow-y: auto;
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
     .modal-section-title {
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.16em;
       color: #9ca3af;
-      margin-bottom: 4px;
-      margin-top: 10px;
+      margin-bottom: 2px;
+      margin-top: 8px;
     }
     .faith-row,
     .engine-row {
@@ -415,7 +423,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 8px;
+      margin-top: 6px;
       gap: 10px;
       font-size: 12px;
     }
@@ -469,6 +477,7 @@
       padding-left: 18px;
     }
 
+    /* ===== BM colourful style ===== */
     .bm-list {
       list-style: none;
       display: flex;
@@ -477,16 +486,55 @@
       margin-top: 4px;
     }
     .bm-item {
-      padding: 6px 8px;
-      border-radius: 12px;
-      background: rgba(15, 23, 42, 0.95);
+      padding: 8px 9px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top left,
+        rgba(15, 23, 42, 0.98),
+        rgba(15, 23, 42, 1));
       border: 1px solid rgba(55, 65, 81, 0.9);
       font-size: 12px;
     }
-    .bm-meta {
-      font-size: 10px;
+    .bm-header {
+      font-size: 11px;
       color: #9ca3af;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
+    }
+    .bm-header span {
+      margin-right: 6px;
+    }
+    .bm-snippet {
+      font-size: 12px;
+      color: #e5e7eb;
+      margin-bottom: 4px;
+    }
+    .bm-layer-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .layer-pill {
+      border-radius: 999px;
+      padding: 2px 6px;
+      font-size: 10px;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .layer-pill.l1 { background: #bfdbfe; }  /* blue */
+    .layer-pill.l2 { background: #fed7e2; }  /* pink */
+    .layer-pill.l3 { background: #fcd34d; }  /* amber */
+    .layer-pill.l4 { background: #c4b5fd; }  /* violet */
+    .layer-pill.l5 { background: #bbf7d0; }  /* green */
+    .layer-pill.l6 { background: #fde68a; }  /* yellow */
+    .layer-pill.l7 { background: #e5e7eb; }  /* gray */
+    .bm-trigger {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .bm-delete-day {
+      align-self: flex-end;
+      margin-top: 6px;
     }
 
     .small-note {
@@ -511,7 +559,7 @@
       </div>
       <div class="mode-pill" id="modePill">
         MODE: OFFLINE PROTOTYPE
-        <span>Universal Ethics · BM + Seed Engine</span>
+        <span>Universal Ethics · BM + Live LLM</span>
       </div>
     </header>
 
@@ -533,9 +581,7 @@
       <div class="equation-row equation-main">
         E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)
       </div>
-      <div class="equation-row equation-values" id="equationValues">
-        <!-- Filled by JS -->
-      </div>
+      <div class="equation-row equation-values" id="equationValues"></div>
 
       <div class="reaction-panel neutral" id="reactionPanel">
         <div class="reaction-header">
@@ -554,7 +600,7 @@
           your continuity field responds.
         </div>
         <div class="scalar-footnote" id="scalarFootnote">
-          E₀=0.00 · TM=0.00 · BM=0.00 · D=0.00 · tag=neutral
+          E₀=0.00 · TM=0.00 · D=0.00 · tag=neutral
         </div>
       </div>
 
@@ -567,9 +613,7 @@
           placeholder="Example: &quot;I argued with my friend and now I feel guilty.&quot; or &quot;I am grateful for the small good things in my life today.&quot;"
         ></textarea>
         <div class="send-row">
-          <button class="btn-send" id="btnSend">
-            Send
-          </button>
+          <button class="btn-send" id="btnSend">Send</button>
         </div>
       </div>
     </div>
@@ -589,7 +633,7 @@
       <button id="voiceToggle" class="pill pill-toggle">
         🔊 Voice: On
       </button>
-      <span id="engineStatusText">Engine: Seed (local)</span>
+      <span id="engineStatusText">Engine: Backend LLM</span>
     </div>
   </div>
 
@@ -610,9 +654,7 @@
         <div class="faith-row" id="faithRow">
           <button class="faith-pill" data-faith="none">None</button>
           <button class="faith-pill" data-faith="islam">Islam</button>
-          <button class="faith-pill" data-faith="christianity">
-            Christianity
-          </button>
+          <button class="faith-pill" data-faith="christianity">Christianity</button>
           <button class="faith-pill" data-faith="hinduism">Hinduism</button>
           <button class="faith-pill" data-faith="buddhism">Buddhism</button>
           <button class="faith-pill" data-faith="sikhism">Sikhism</button>
@@ -628,9 +670,9 @@
         <div class="switch-row">
           <div class="switch-label">
             <span>Current:</span>
-            <span id="engineModeLabel">Seed-only emotional reactor.</span>
+            <span id="engineModeLabel">Live emotional reactor (backend LLM).</span>
           </div>
-          <div class="switch-toggle" id="engineToggle">
+          <div class="switch-toggle on" id="engineToggle">
             <div class="switch-knob"></div>
           </div>
         </div>
@@ -719,6 +761,9 @@
           contributes to your long-run BM layers.
         </div>
         <ul class="bm-list" id="bmList"></ul>
+        <button class="pill pill-warning bm-delete-day" id="btnDeleteDay">
+          Delete Day
+        </button>
       </div>
     </div>
   </div>
@@ -727,17 +772,17 @@
     // ===========================
     // AURA-X Ω – Core State
     // ===========================
-    const BACKEND_URL = "https://aura-x-backend-jliz.onrender.com/react"; // change path if needed
+    const BACKEND_URL = "https://aura-x-backend-jliz.onrender.com/react";
 
     const state = {
       faithLens: localStorage.getItem("auraX_faithLens") || "none",
-      engineLive: JSON.parse(localStorage.getItem("auraX_engineLive") || "false"),
-      bmEvents: [], // loaded from localStorage
+      engineLive: JSON.parse(localStorage.getItem("auraX_engineLive") || "true"),
+      bmEvents: [],
       summarizeOn: JSON.parse(localStorage.getItem("auraX_summarizeOn") || "true"),
       ignoreSmalltalk: JSON.parse(localStorage.getItem("auraX_ignoreSmalltalk") || "true"),
     };
 
-    const LS_BM_KEY = "auraX_bmEvents_v3";
+    const LS_BM_KEY = "auraX_bmEvents_v4";
 
     function loadBM() {
       try {
@@ -748,7 +793,6 @@
         state.bmEvents = [];
       }
     }
-
     function saveBM() {
       try {
         localStorage.setItem(LS_BM_KEY, JSON.stringify(state.bmEvents));
@@ -756,15 +800,12 @@
         console.warn("BM save failed", e);
       }
     }
-
     loadBM();
 
     // ===========================
     // Utilities
     // ===========================
-    function clamp01(x) {
-      return Math.min(1, Math.max(0, x));
-    }
+    function clamp01(x) { return Math.min(1, Math.max(0, x)); }
     function softTanh(x) {
       if (Math.tanh) return Math.tanh(x);
       const e2x = Math.exp(2 * x);
@@ -775,33 +816,29 @@
       if (!text || !text.trim()) return 0;
       const t = text.toLowerCase();
       const positives = [
-        "thank", "shukr", "grateful", "happy", "relief", "love", "hope",
-        "relaxed", "calm", "alhamdulillah", "blessing"
+        "thank","shukr","grateful","happy","relief","love","hope",
+        "relaxed","calm","alhamdulillah","blessing","laugh","laughing"
       ];
       const negatives = [
-        "hate", "angry", "gussa", "sad", "afraid", "fear", "alone",
-        "useless", "worthless", "anxious", "anxiety", "panic"
+        "hate","angry","gussa","sad","afraid","fear","alone",
+        "useless","worthless","anxious","anxiety","panic","crying","bit me","bite"
       ];
       let pos = 0, neg = 0;
       positives.forEach(w => { if (t.includes(w)) pos++; });
       negatives.forEach(w => { if (t.includes(w)) neg++; });
-
       const score = pos - neg;
       if (score === 0) return 0;
-
       const capped = Math.max(-4, Math.min(4, score));
-      return capped / 4; // -1..1
+      return capped / 4;
     }
 
     function detectDamage(text) {
       if (!text) return 0;
       const t = text.toLowerCase();
-      const harsh = ["fuck", "lanat", "bastard", "hate you", "i wish i die", "kill myself", "suicide"];
+      const harsh = ["fuck","lanat","bastard","hate you","i wish i die","kill myself","suicide"];
       let hits = 0;
       harsh.forEach(w => { if (t.includes(w)) hits++; });
-      if (hits === 0) return 0;
-
-      // heavier curse → higher D
+      if (!hits) return 0;
       return clamp01(0.3 + hits * 0.15);
     }
 
@@ -810,52 +847,55 @@
       const t = text.trim().toLowerCase();
       if (!t) return true;
       if (t.length > 60) return false;
-      const small = ["hi", "hello", "salam", "assalam", "how are you", "thanks", "thank you", "ok"];
+      const small = ["hi","hello","salam","assalam","how are you","thanks","thank you","ok"];
       return small.some(w => t === w || t.startsWith(w));
     }
 
     function computeBMScalar() {
-      if (!state.bmEvents.length) return 0.11; // tiny default
-      let sum = 0;
-      let weightSum = 0;
+      if (!state.bmEvents.length) return 0.11;
+      let sum = 0, wsum = 0;
       const now = Date.now();
       state.bmEvents.forEach(ev => {
-        const ageHours = (now - ev.ts) / 3600000;
-        const weight = ageHours < 1 ? 1
-          : ageHours < 24 ? 0.8
-          : ageHours < 72 ? 0.6
-          : ageHours < 24 * 14 ? 0.4
-          : 0.25;
-        sum += (ev.E0 || 0) * weight;
-        weightSum += weight;
+        const ageH = (now - ev.ts) / 3600000;
+        const w = ageH < 1 ? 1 : ageH < 24 ? 0.8 : ageH < 72 ? 0.6 :
+                  ageH < 24*14 ? 0.4 : 0.25;
+        sum += (ev.E0 || 0) * w;
+        wsum += w;
       });
-      if (!weightSum) return 0;
-      // Convert -1..1 E0 avg → 0..1 BM magnitude
-      const avg = sum / weightSum;
+      if (!wsum) return 0;
+      const avg = sum / wsum;
       return clamp01(0.5 + avg / 2);
     }
 
     function computeContextSum() {
       const n = state.bmEvents.length;
       if (!n) return 0;
-      const scaled = Math.log10(n + 1) / 4; // soft growth
+      const scaled = Math.log10(n + 1) / 4;
       return clamp01(scaled);
     }
 
     function faithLambda() {
       if (state.faithLens === "none") return 0;
-      // small stabilizing boost
       return 0.02;
+    }
+
+    // layer strengths (for colourful BM)
+    function computeLayers(E0, intensity) {
+      const I = Math.min(1, Math.max(0, Math.abs(intensity || E0 || 0)));
+      const base = 40 + I * 40; // 40-80
+      const multipliers = [0.9,0.6,0.45,0.9,1.0,0.7,0.35];
+      const layers = multipliers.map(m => Math.round(base * m));
+      return layers;
     }
 
     // ===========================
     // Core Emotional Reactor
     // ===========================
     function evaluateTM(tmText) {
-      const baseSent = estimateSentimentScalar(tmText); // -1..1
-      const tm = clamp01(0.5 + baseSent / 2); // 0..1
-      const bm = computeBMScalar(); // 0..1
-      const D = detectDamage(tmText); // 0..1
+      const baseSent = estimateSentimentScalar(tmText);
+      const tm = clamp01(0.5 + baseSent / 2);
+      const bm = computeBMScalar();
+      const D = detectDamage(tmText);
       const lambdaSys = 0.02;
       const lambdaFaith = faithLambda();
       const context = computeContextSum();
@@ -869,42 +909,42 @@
 
       const intensity = Math.abs(E0);
 
-      return {
-        TM: tm,
-        BM: bm,
-        D,
-        lambdaFaith,
-        lambdaSys,
-        context,
-        raw,
-        E0,
-        polarity,
-        intensity,
-      };
+      return { TM: tm, BM: bm, D, lambdaFaith, lambdaSys, context, raw, E0, polarity, intensity };
     }
 
     function makeReactionText(tmText, evalResult) {
-      const { polarity, intensity, E0 } = evalResult;
+      const { polarity, intensity } = evalResult;
       const I = intensity;
-      let headerTone;
+      let tone;
+
       if (polarity === "positive") {
-        headerTone = "Soft, stabilizing, hopeful resonance.";
+        tone = "Soft, stabilizing, hopeful resonance.";
       } else if (polarity === "negative") {
-        if (I > 0.6) {
-          headerTone = "Heavy negative charge, like a storm of worry or anger.";
-        } else if (I > 0.3) {
-          headerTone = "Mild negative charge, like a faint worry or discomfort.";
-        } else {
-          headerTone = "Gentle negative leaning, but still open to healing.";
-        }
+        if (I > 0.6) tone = "Heavy negative charge, like a storm of worry or anger.";
+        else if (I > 0.3) tone = "Mild negative charge, like a faint worry or discomfort.";
+        else tone = "Gentle negative leaning, but still open to healing.";
       } else {
-        headerTone = "Calm, observant, analytically neutral reading.";
+        tone = "Calm, observant, analytically neutral reading.";
       }
 
+      const txt = (tmText || "").trim();
       let body;
-      const trimmed = (tmText || "").trim();
 
-      if (!trimmed) {
+      // special seed stories – lost child
+      const lower = txt.toLowerCase();
+      if (lower.includes("lost child") && lower.includes("crowded market")) {
+        body =
+          "This memory is soaked in love and connection. Emotionally it behaves like a warm anchor: when future storms come, revisiting such moments can quickly stabilize your E₀ and remind you that you are not alone. These are exactly the BM nodes that protect a person in long-term emotional continuity.";
+        return { tone, body };
+      }
+      // dog bite demo style
+      if (lower.includes("dog bit me")) {
+        body =
+          "This memory carries fear and a sense of being unprotected. AURA-X Ω is detecting a strong negative TM spike, but also a very old context. If you describe how you survived and what you learned from that day, the same memory can slowly shift from pure fear to a story of survival in your BM layers.";
+        return { tone, body };
+      }
+
+      if (!txt) {
         body =
           "This is a neutral baseline reading. Type a real memory or feeling below. AURA-X Ω will treat it as a TM event and fold it into your long-run BM life.";
       } else if (polarity === "positive") {
@@ -918,29 +958,26 @@
           "E₀ is currently near neutral. This means your TM event is balanced but still contributes to your long-run BM layers. You can move it gently toward hope by adding a small line of gratitude or a tiny next step you can actually take.";
       }
 
-      // If very strong negative but also tiny gratitude word present, adjust:
-      const lower = trimmed.toLowerCase();
       if (polarity === "negative" && lower.includes("thank")) {
         body +=
           " Even inside this pain, I can see a spark of gratitude. That spark is already reducing D and protecting you against long-term burnout.";
       }
 
-      return { tone: headerTone, body };
+      return { tone, body };
     }
 
     function storeBM(tmText, evalResult) {
+      const layers = computeLayers(evalResult.E0, evalResult.intensity);
       const entry = {
         ts: Date.now(),
         tm: tmText.slice(0, 600),
         E0: evalResult.E0,
         polarity: evalResult.polarity,
         intensity: evalResult.intensity,
+        layers,
       };
       state.bmEvents.unshift(entry);
-      // limit to ~400 entries
-      if (state.bmEvents.length > 400) {
-        state.bmEvents.length = 400;
-      }
+      if (state.bmEvents.length > 400) state.bmEvents.length = 400;
       saveBM();
     }
 
@@ -979,6 +1016,7 @@
     const bmOverlay = document.getElementById("bmOverlay");
     const bmClose = document.getElementById("bmClose");
     const bmList = document.getElementById("bmList");
+    const btnDeleteDay = document.getElementById("btnDeleteDay");
 
     function updateEngineUI() {
       if (state.engineLive) {
@@ -999,10 +1037,8 @@
     function updateFaithUI() {
       const pills = faithRow.querySelectorAll(".faith-pill");
       pills.forEach(p => {
-        if (
-          (state.faithLens === "none" && p.dataset.faith === "none") ||
-          p.dataset.faith === state.faithLens
-        ) {
+        if ((state.faithLens === "none" && p.dataset.faith === "none") ||
+            p.dataset.faith === state.faithLens) {
           p.classList.add("active");
         } else {
           p.classList.remove("active");
@@ -1013,7 +1049,6 @@
     function updatePrototypeToggles() {
       if (state.summarizeOn) toggleSummarize.classList.add("on");
       else toggleSummarize.classList.remove("on");
-
       if (state.ignoreSmalltalk) toggleIgnoreSmalltalk.classList.add("on");
       else toggleIgnoreSmalltalk.classList.remove("on");
     }
@@ -1032,88 +1067,60 @@
     });
 
     function renderEquationValues(ev) {
-      const line =
-        "E₀ = " +
-        ev.E0.toFixed(2) +
-        " · TM = " +
-        ev.TM.toFixed(2) +
-        " · BM = " +
-        ev.BM.toFixed(2) +
-        " · D = " +
-        ev.D.toFixed(2) +
-        " · ΣCₜ = " +
-        ev.context.toFixed(2) +
-        " · λ_faith = " +
-        ev.lambdaFaith.toFixed(2) +
-        " · λ_sys = " +
-        ev.lambdaSys.toFixed(2);
-      equationValues.textContent = line;
+      equationValues.textContent =
+        "E₀ = " + ev.E0.toFixed(2) +
+        " · TM = " + ev.TM.toFixed(2) +
+        " · BM = " + ev.BM.toFixed(2) +
+        " · D = " + ev.D.toFixed(2) +
+        " · ΣCₜ = " + ev.context.toFixed(2) +
+        " · λ_faith = " + ev.lambdaFaith.toFixed(2) +
+        " · λ_sys = " + ev.lambdaSys.toFixed(2);
     }
 
     function setReactionCard(tmText, evalResult, reactionText) {
-      const { polarity, intensity, E0, TM, BM, D, context, lambdaFaith, lambdaSys } =
-        evalResult;
+      const { polarity, intensity, E0, TM, BM, D, context, lambdaFaith, lambdaSys } = evalResult;
 
-      reactionPanel.classList.remove("positive", "negative", "neutral");
+      reactionPanel.classList.remove("positive","negative","neutral");
       if (polarity === "positive") reactionPanel.classList.add("positive");
       else if (polarity === "negative") reactionPanel.classList.add("negative");
       else reactionPanel.classList.add("neutral");
 
       const polLabel =
-        polarity === "positive"
-          ? "Positive"
-          : polarity === "negative"
-          ? "Negative"
-          : "Neutral / Mixed";
+        polarity === "positive" ? "Positive" :
+        polarity === "negative" ? "Negative" : "Neutral / Mixed";
       reactionMeta.textContent =
-        "Polarity: " +
-        polLabel +
-        " · Intensity: " +
-        intensity.toFixed(2);
+        "Polarity: " + polLabel + " · Intensity: " + intensity.toFixed(2);
       reactionTone.textContent = "Tone: " + reactionText.tone;
       reactionBody.textContent = reactionText.body;
 
       scalarFootnote.textContent =
-        "E₀=" +
-        E0.toFixed(2) +
-        " · TM=" +
-        TM.toFixed(2) +
-        " · D=" +
-        D.toFixed(2) +
-        " · tag=" +
-        polarity;
+        "E₀=" + E0.toFixed(2) +
+        " · TM=" + TM.toFixed(2) +
+        " · D=" + D.toFixed(2) +
+        " · tag=" + polarity;
 
-      renderEquationValues({
-        TM,
-        BM,
-        D,
-        context,
-        lambdaFaith,
-        lambdaSys,
-        E0,
-      });
+      renderEquationValues({ TM,BM,D,context,lambdaFaith,lambdaSys,E0 });
 
-      // Voice auto-play
       auraXVoice.autoSpeak(reactionText.body, polarity, intensity);
     }
 
     async function handleSend() {
       const text = tmInput.value || "";
       if (!text.trim()) {
-        const evalResult = evaluateTM(text);
-        const reactionText = makeReactionText(text, evalResult);
-        setReactionCard(text, evalResult, reactionText);
+        const ev = evaluateTM(text);
+        const rt = makeReactionText(text, ev);
+        setReactionCard(text, ev, rt);
         return;
       }
 
       if (state.ignoreSmalltalk && isSmallTalk(text)) {
-        const evalResult = evaluateTM(text);
-        const reactionText = {
+        const ev = evaluateTM(text);
+        const rt = {
           tone: "Light, friendly but emotionally shallow small-talk.",
           body:
             "Small greetings like this are nice, but they do not create strong BM nodes. When you want AURA-X Ω to learn from you, share a concrete memory, fear, hope, or gratitude line instead.",
         };
-        setReactionCard(text, evalResult, reactionText);
+        setReactionCard(text, ev, rt);
         return;
       }
 
@@ -1121,27 +1128,27 @@
       btnSend.textContent = "Thinking…";
 
       try {
-        const evalResult = evaluateTM(text);
-        let reactionText = makeReactionText(text, evalResult);
+        const ev = evaluateTM(text);
+        let rt = makeReactionText(text, ev);
 
         if (state.engineLive) {
           try {
-            const backendReply = await callBackendReactor(text, evalResult);
+            const backendReply = await callBackendReactor(text, ev);
             if (backendReply && backendReply.reaction) {
-              reactionText = {
-                tone: backendReply.tone || reactionText.tone,
+              rt = {
+                tone: backendReply.tone || rt.tone,
                 body: backendReply.reaction,
               };
             }
           } catch (e) {
             console.warn("Backend reactor error", e);
-            reactionText.body +=
+            rt.body +=
               " (Note: Live backend reactor was not reachable, so this reply is generated by the local seed engine.)";
           }
         }
 
-        setReactionCard(text, evalResult, reactionText);
-        storeBM(text, evalResult);
+        setReactionCard(text, ev, rt);
+        storeBM(text, ev);
       } finally {
         btnSend.disabled = false;
         btnSend.textContent = "Send";
@@ -1149,30 +1156,23 @@
     }
 
     btnSend.addEventListener("click", handleSend);
-    tmInput.addEventListener("keydown", (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-        handleSend();
-      }
+    tmInput.addEventListener("keydown", e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleSend();
     });
 
     btnDemoNegative.addEventListener("click", () => {
       tmInput.value =
-        "A stray dog bit me in the street, everyone kept walking and nobody helped. I still feel angry, unsafe and alone when I remember it.";
+        "When I was a child in New York, a dog bit me in the snow near a street light. I still remember the cold wind, the barking sound, and my own fear.";
       handleSend();
     });
-
     btnDemoPositive.addEventListener("click", () => {
       tmInput.value =
         "A lost child was crying in a crowded market until he heard his mother’s voice. She ran to him, hugged him tightly, and they both started laughing with tears.";
       handleSend();
     });
 
-    // ===========================
-    // Backend call
-    // ===========================
     async function callBackendReactor(tmText, evalResult) {
       if (!BACKEND_URL) return null;
-
       const payload = {
         tm: tmText,
         scalars: {
@@ -1189,32 +1189,21 @@
 
       const res = await fetch(BACKEND_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       if (!res.ok) throw new Error("Backend status " + res.status);
       return await res.json();
     }
 
-    // ===========================
-    // Options modal handlers
-    // ===========================
-    btnOptions.addEventListener("click", () => {
-      optionsOverlay.style.display = "flex";
-    });
-    optionsClose.addEventListener("click", () => {
-      optionsOverlay.style.display = "none";
-    });
-    optionsOverlay.addEventListener("click", (e) => {
-      if (e.target === optionsOverlay) {
-        optionsOverlay.style.display = "none";
-      }
+    // ===== Options modal =====
+    btnOptions.addEventListener("click", () => { optionsOverlay.style.display = "flex"; });
+    optionsClose.addEventListener("click", () => { optionsOverlay.style.display = "none"; });
+    optionsOverlay.addEventListener("click", e => {
+      if (e.target === optionsOverlay) optionsOverlay.style.display = "none";
     });
 
-    faithRow.addEventListener("click", (e) => {
+    faithRow.addEventListener("click", e => {
       const btn = e.target.closest(".faith-pill");
       if (!btn) return;
       const val = btn.dataset.faith;
@@ -1231,19 +1220,13 @@
 
     toggleSummarize.addEventListener("click", () => {
       state.summarizeOn = !state.summarizeOn;
-      localStorage.setItem(
-        "auraX_summarizeOn",
-        JSON.stringify(state.summarizeOn)
-      );
+      localStorage.setItem("auraX_summarizeOn", JSON.stringify(state.summarizeOn));
       updatePrototypeToggles();
     });
 
     toggleIgnoreSmalltalk.addEventListener("click", () => {
       state.ignoreSmalltalk = !state.ignoreSmalltalk;
-      localStorage.setItem(
-        "auraX_ignoreSmalltalk",
-        JSON.stringify(state.ignoreSmalltalk)
-      );
+      localStorage.setItem("auraX_ignoreSmalltalk", JSON.stringify(state.ignoreSmalltalk));
       updatePrototypeToggles();
     });
 
@@ -1252,15 +1235,8 @@
       state.bmEvents = state.bmEvents.filter(ev => ev.ts < cutoff);
       saveBM();
     }
-
-    btnCleanup24h.addEventListener("click", () => {
-      clear24h();
-      alert("Last 24 hours of BM events cleared locally.");
-    });
-    btnClear24hModal.addEventListener("click", () => {
-      clear24h();
-      alert("Last 24 hours of BM events cleared locally.");
-    });
+    btnCleanup24h.addEventListener("click", () => { clear24h(); alert("Last 24 hours of BM events cleared locally."); });
+    btnClear24hModal.addEventListener("click", () => { clear24h(); alert("Last 24 hours of BM events cleared locally."); });
 
     btnDeleteAllBm.addEventListener("click", () => {
       if (!confirm("Delete full local BM life (all days)?")) return;
@@ -1269,9 +1245,7 @@
       alert("All local BM life deleted.");
     });
 
-    // ===========================
-    // BM Viewer + Recall
-    // ===========================
+    // ===== BM Viewer + Recall =====
     function renderBmList() {
       bmList.innerHTML = "";
       if (!state.bmEvents.length) {
@@ -1283,30 +1257,52 @@
         return;
       }
 
-      state.bmEvents.slice(0, 40).forEach((ev) => {
+      state.bmEvents.slice(0, 40).forEach(ev => {
         const li = document.createElement("li");
         li.className = "bm-item";
 
-        const meta = document.createElement("div");
-        meta.className = "bm-meta";
         const d = new Date(ev.ts);
         const pol =
-          ev.polarity === "positive"
-            ? "Positive"
-            : ev.polarity === "negative"
-            ? "Negative"
-            : "Neutral";
-        meta.textContent =
-          d.toLocaleString() +
-          " · " +
-          pol +
-          " · E₀=" +
-          (ev.E0 || 0).toFixed(2);
-        li.appendChild(meta);
+          ev.polarity === "positive" ? "Positive" :
+          ev.polarity === "negative" ? "Negative" : "Mixed / Neutral";
 
-        const txt = document.createElement("div");
-        txt.textContent = ev.tm || "";
-        li.appendChild(txt);
+        const header = document.createElement("div");
+        header.className = "bm-header";
+        header.innerHTML =
+          "<span>" +
+          d.toLocaleDateString() +
+          ", " +
+          d.toLocaleTimeString() +
+          "</span><span>· " +
+          pol +
+          "</span><span>· E₀=" +
+          (ev.E0 || 0).toFixed(2) +
+          "</span>";
+        li.appendChild(header);
+
+        const snip = document.createElement("div");
+        snip.className = "bm-snippet";
+        snip.textContent = ev.tm || "";
+        li.appendChild(snip);
+
+        const layers = ev.layers && ev.layers.length === 7
+          ? ev.layers
+          : computeLayers(ev.E0 || 0, ev.intensity || 0);
+
+        const layerRow = document.createElement("div");
+        layerRow.className = "bm-layer-row";
+        layers.forEach((val, idx) => {
+          const sp = document.createElement("span");
+          sp.className = "layer-pill l" + (idx + 1);
+          sp.textContent = "L" + (idx + 1) + ":" + val;
+          layerRow.appendChild(sp);
+        });
+        li.appendChild(layerRow);
+
+        const trig = document.createElement("div");
+        trig.className = "bm-trigger";
+        trig.textContent = "Triggers / text: " + (ev.tm || "");
+        li.appendChild(trig);
 
         bmList.appendChild(li);
       });
@@ -1316,11 +1312,8 @@
       renderBmList();
       bmOverlay.style.display = "flex";
     });
-
-    bmClose.addEventListener("click", () => {
-      bmOverlay.style.display = "none";
-    });
-    bmOverlay.addEventListener("click", (e) => {
+    bmClose.addEventListener("click", () => { bmOverlay.style.display = "none"; });
+    bmOverlay.addEventListener("click", e => {
       if (e.target === bmOverlay) bmOverlay.style.display = "none";
     });
 
@@ -1334,41 +1327,48 @@
       tmInput.focus();
     });
 
+    // Delete today's BM only
+    btnDeleteDay.addEventListener("click", () => {
+      if (!state.bmEvents.length) return;
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = today.getMonth();
+      const dd = today.getDate();
+      state.bmEvents = state.bmEvents.filter(ev => {
+        const d = new Date(ev.ts);
+        return !(d.getFullYear() === yyyy && d.getMonth() === mm && d.getDate() === dd);
+      });
+      saveBM();
+      renderBmList();
+      alert("Today’s BM events deleted.");
+    });
+
     // ===========================
-    // Voice Emotional Reactor Module
+    // Voice Emotional Reactor
     // ===========================
     const auraXVoice = (() => {
       const stateV = {
         enabled: JSON.parse(localStorage.getItem("auraX_voiceOn") || "true"),
-        voices: {
-          positive: null,
-          negative: null,
-        },
+        voices: { positive: null, negative: null },
         toggleBtn: null,
         voicesLoaded: false,
       };
 
       function initVoices() {
         if (!("speechSynthesis" in window)) return;
-
         const all = window.speechSynthesis.getVoices();
         if (!all || !all.length) {
           window.speechSynthesis.onvoiceschanged = () => {
-            if (!stateV.voicesLoaded) {
-              initVoices();
-            }
+            if (!stateV.voicesLoaded) initVoices();
           };
           return;
         }
-
         stateV.voices.positive =
-          all.find((v) => /male/i.test(v.name)) ||
-          all.find((v) => /en-GB|en-US/i.test(v.lang || v.name)) ||
+          all.find(v => /male/i.test(v.name)) ||
+          all.find(v => /en-GB|en-US/i.test(v.lang || v.name)) ||
           all[0];
-
         stateV.voices.negative =
-          all.find((v) => /female/i.test(v.name)) || all[1] || all[0];
-
+          all.find(v => /female/i.test(v.name)) || all[1] || all[0];
         stateV.voicesLoaded = true;
       }
 
@@ -1378,46 +1378,35 @@
       }
 
       function init(opts = {}) {
-        if (!("speechSynthesis" in window)) {
-          console.warn("Speech Synthesis not supported in this browser.");
-          return;
-        }
-
+        if (!("speechSynthesis" in window)) return;
         const id = opts.toggleId || "voiceToggle";
         stateV.toggleBtn = document.getElementById(id);
-
         if (stateV.toggleBtn) {
           refreshToggleLabel();
-
           stateV.toggleBtn.addEventListener("click", () => {
             stateV.enabled = !stateV.enabled;
             localStorage.setItem("auraX_voiceOn", JSON.stringify(stateV.enabled));
-
             if (!stateV.enabled && window.speechSynthesis) {
               window.speechSynthesis.cancel();
             }
             refreshToggleLabel();
           });
         }
-
         initVoices();
         if (!stateV.voicesLoaded) {
-          window.speechSynthesis.onvoiceschanged = () => {
-            initVoices();
-          };
+          window.speechSynthesis.onvoiceschanged = () => { initVoices(); };
         }
       }
 
-      function autoSpeak(reactionText, polarity, intensity) {
+      function autoSpeak(text, polarity, intensity) {
         if (!("speechSynthesis" in window)) return;
         if (!stateV.enabled) return;
-        if (!reactionText) return;
+        if (!text) return;
 
         const synth = window.speechSynthesis;
         synth.cancel();
 
-        const u = new SpeechSynthesisUtterance(reactionText);
-
+        const u = new SpeechSynthesisUtterance(text);
         const I = Math.min(1, Math.max(0, Math.abs(intensity || 0)));
 
         u.rate = 1.0;
@@ -1434,36 +1423,12 @@
           u.pitch = 0.9 - I * 0.2;
         } else {
           u.voice = stateV.voices.positive || null;
-          u.rate = 1.0;
-          u.pitch = 1.0;
         }
-
         u.volume = 0.6 + I * 0.4;
-
         synth.speak(u);
       }
 
-      function speakFromObject(r) {
-        if (!r) return;
-        const text =
-          r.text || r.message || r.body || r.summary || "";
-        const pol =
-          r.polarity || r.tag || "neutral";
-        const I =
-          typeof r.intensity === "number"
-            ? r.intensity
-            : typeof r.E0 === "number"
-            ? r.E0
-            : 0;
-
-        autoSpeak(text, pol, I);
-      }
-
-      return {
-        init,
-        autoSpeak,
-        speakFromObject,
-      };
+      return { init, autoSpeak };
     })();
 
     document.addEventListener("DOMContentLoaded", () => {
