@@ -249,7 +249,7 @@
       color: #bbf7d0;
     }
 
-    /* Old demo buttons disabled */
+    /* (Old demo buttons styles can stay or be removed – not used now) */
     .bottom-row { display:none; }
     .demo-btn { display:none; }
 
@@ -560,7 +560,7 @@
         <button class="send-btn" id="sendBtn">Send</button>
       </div>
       <div class="footer-line">
-        <span>Prototype · TM → Seed → BM · Self-learning · Equation live.</span>
+        <span>Prototype · TM → LLM(seed) → BM · Self-learning · Equation live.</span>
         <span>Engine: Seed (local)</span>
         <button id="voiceToggle" class="voice-toggle active">🔊 Voice: On</button>
       </div>
@@ -693,7 +693,7 @@
       "how are you","kia hal hai","kese ho","how r u"
     ];
 
-    // ===== SEED LEXICONS =====
+    // ===== NEW SEED LEXICONS =====
     const abuseWords = [
       "fuck","fucking","fucked","lanat","laanat","haramzada",
       "bastard","bitch","bitches","bloody","kutte","kutta","kutiya",
@@ -720,7 +720,6 @@
       "i am with you","i understand your pain","may god help you"
     ];
 
-    // ==== Helpers ====
     function loadBM() {
       try {
         const raw = localStorage.getItem(lsKey);
@@ -761,7 +760,7 @@
       const total = abuseCount + posSeedCount;
       const sentiment = total ? (posSeedCount - abuseCount) / total : 0;
 
-      // Ending segment sentiment (~last 300 chars) – small weight (~8%)
+      // Ending segment sentiment (last ~300 chars) – small weight (~8%)
       const endSlice = lower.slice(Math.max(0, lower.length - 300));
       const endAbuse = countAny(endSlice, abuseWords);
       const endPos =
@@ -794,7 +793,7 @@
       };
     }
 
-    // ===== State =====
+    // State
     let TM=0.35, BMvalue=0.55, D=0.0, Csum=0.05;
     let lambdaFaith=0.0;
     const lambdaSys=0.02;
@@ -893,7 +892,7 @@
       if (!("speechSynthesis" in window)) return;
       if (!text || !text.trim()) return;
       const synth = window.speechSynthesis;
-      const {polarity} = buildReactionTone(); // polarity se pitch/voice change
+      const {polarity} = buildReactionTone();
       const {voice, pitch, rate} = pickVoiceForPolarity(polarity);
       const utt = new SpeechSynthesisUtterance(text);
       if (voice) utt.voice = voice;
@@ -903,124 +902,8 @@
       synth.speak(utt);
     }
 
-    // ===== Emotion maths (uses analysis, ending weight 8%) =====
+    // ===== Emotion maths (uses analysis) =====
     function computeEmotion(strength, analysis){
-      const baseFromLength=Math.min(1,0.2+strength/400);
-      const sentiment = analysis ? (analysis.sentiment || 0) : 0;
-      const endingSentiment = analysis ? (analysis.endingSentiment || sentiment) : sentiment;
-      const globalWeight = 0.22;
-      const endWeight = 0.08; // final emotional closure small influence (~8%)
-
-      const combinedSentiment = globalWeight*sentiment + endWeight*endingSentiment;
-      TM = Math.min(1, Math.max(0, baseFromLength + combinedSentiment));
-
-      if (analysis && analysis.isAbuse){
-        D = Math.min(1, D + 0.25);
-        Csum = Math.max(0, Csum - 0.03);
-      } else {
-        D = Math.max(0, D - 0.02);
-      }
-
-      if (analysis && (analysis.positiveSeed || analysis.hasFaithSeed)){
-        Csum = Math.min(1, Csum + 0.06);
-      }
-
-      lambdaFaith = analysis && analysis.hasFaithSeed ? 0.05 : 0.0;
-      BMvalue = 0.7*BMvalue + 0.3*TM;
-
-      const raw=TM*BMvalue-D+lambdaFaith+lambdaSys+Csum;
-      E0=tanh(raw);
-      updateEquationDisplay();
-    }
-
-    function getFaithLens(){
-      return localStorage.getItem(faithKey) || "None";
-    }
-
-    function buildSeedReply(userText, analysis){
-      const clean=userText.trim();
-      const lower=clean.toLowerCase();
-      const faith=getFaithLens();
-      analysis = analysis || analyseContent(userText);
-
-      // small-talk handling
-      if (isMostlySmallTalk(clean)){
-        if (lower.includes("how are")){
-          return "I’m stable and calm — my emotional core E₀ is around "+E0.toFixed(2)+
-                 ". How is your inner graph today?";
-        }
-        if (lower.includes("salam")||lower.includes("assalam")){
-          return "Wa-alaikum-salam. I’m an emotional continuity prototype observing how your memories resonate over time.";
-        }
-        return "Hello. I treat even small greetings as tiny TM events, but I only save deeper stories into Bold Memory (BM).";
-      }
-
-      if (lower.includes("who created you")||lower.includes("who made you")){
-        return "Conceptually I was created by Alim ul Haq from Timergara, Pakistan, as part of the AURA-X Ω / AEC research on emotional continuity.";
-      }
-      if (lower.includes("who is alim ul haq")){
-        return "Alim ul Haq is the researcher behind AURA-X Ω, Artificial Emotional Continuity, and the TM–BM emotional reactor model.";
-      }
-      if (lower.includes("formula")||lower.includes("equation")){
-        return "My emotional output follows the grand equation E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ). You can see it live in the dashboard above.";
-      }
-
-      let prefix="";
-      if (faith==="Islam"){
-        prefix="From an Islamic encouragement lens I’d say: ";
-      } else if (faith==="Christianity"){
-        prefix="From a Christian encouragement lens I’d say: ";
-      } else if (
-        faith==="Hinduism" || faith==="Buddhism" || faith==="Sikhism" ||
-        faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"
-      ){
-        prefix="Through your selected faith lens I’d say: ";
-      }
-
-      // Abuse
-      if (analysis.isAbuse){
-        let msg = "I can feel a lot of anger and harsh, abusive words inside this TM event. "+
-                  "AURA-X Ω does not want to reinforce insults or curses, because they usually increase D (damage) in your emotional field.";
-        if (faith==="Islam"){
-          msg += " From an Islamic lens, cleaning the tongue and using zikr, sabr, and istighfar often pulls E₀ back toward calmer continuity.";
-        } else if (faith!=="None"){
-          msg += " Through your faith lens, it may help to pause, breathe, and choose words that reduce harm for you and for others.";
-        }
-        msg += " Try to describe what is really hurting or scaring you, without attacking yourself or anyone else.";
-        return msg;
-      }
-
-      // Dua / Tawakkul
-      if (analysis.hasDua || analysis.hasTawakkul){
-        let msg = prefix +
-          "Your words carry dua and tawakkul. This kind of trust usually lowers D and increases Cₜ in the equation, "+
-          "so even painful memories can start moving toward calmer trajectories.";
-        if (faith==="Islam"){
-          msg += " Keep combining wise action with sincere dua — ‘tie your camel and trust Allah’ style — so your long-run BM stays balanced.";
-        } else if (faith!=="None" && faith!=="Islam"){
-          msg += " Staying connected to your source of faith while taking small practical steps is a strong way to stabilize E₀.";
-        }
-        return msg;
-      }
-
-      // Shukr
-      if (analysis.hasShukr){
-        return prefix +
-          "There is clear shukr / gratitude inside this TM. Even when life is heavy, noticing small blessings gently pulls E₀ to the positive side. "+
-          "Keep bookmarking such moments — they become strong, protective BM nodes for the future you.";
-      }
-
-      // Love
-      if (analysis.hasLove){
-        return prefix +
-          "This memory is soaked in love and connection. Emotionally it behaves like a warm anchor: when future storms come, "+
-          "revisiting such moments can quickly stabilize your E₀ and remind you that you are not alone.";
-      }
-
-      // Empathy / hamdardi
-      if (analysis.hasEmpathy){
-        return prefix +
-          "Your words carry hamdardi — you are tryingfunction computeEmotion(strength, analysis){
       const baseFromLength=Math.min(1,0.2+strength/400);
       const sentiment = analysis ? (analysis.sentiment || 0) : 0;
       const endingSentiment = analysis ? (analysis.endingSentiment || sentiment) : sentiment;
@@ -1208,11 +1091,11 @@
       appendMessage(text,"user");
       const analysis = analyseContent(text);
       computeEmotion(text.length, analysis);
-      updateReactionBanner(text);
-      const reply=buildSeedReply(text, analysis);
+      updateReactionBanner(text); // sirf banner mein polarity + tone
+      const reply=buildSeedReply(text, analysis); // yahan se **correct answer** banta hai
       appendMessage(reply,"bot");
       storeInBM(text,reply);
-      speakReply(reply);
+      speakReply(reply);          // voice sirf answer ko read karega, banner ko nahi
       userInputEl.value="";
     }
 
