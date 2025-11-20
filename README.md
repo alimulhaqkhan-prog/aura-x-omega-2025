@@ -1,4 +1,5 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17653634.svg)](https://zenodo.org/records/17653634)
+
 🔗 **Live Demo:**  
 https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/
 
