@@ -1,42 +1,27 @@
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
-import OpenAI from "openai";
 
 const app = express();
+
 app.use(cors());
-app.use(bodyParser.json());
-
-app.get("/", (req, res) => {
-  res.send("AURA-X backend running ✔");
-});
-
-app.get("/api/chat", (req, res) => {
-  res.send("Use POST method for /api/chat");
-});
-
-app.post("/api/chat", async (req, res) => {
-  try {
-    const { messages } = req.body;
-
-    const client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
-
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o",
-      messages
-    });
-
-    const reply = completion.choices[0].message.content;
-    res.json({ reply });
-  } catch (err) {
-    console.error("LLM error:", err);
-    res.status(500).json({ error: "LLM request failed" });
-  }
-});
+app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
+
+// Test route – browser me open karne pe yeh text nazar aayega
+app.get("/", (req, res) => {
+  res.send("AURA-X Ω Backend Running ✔");
+});
+
+// Example API route (baad me front-end yahan call karega)
+app.post("/react", (req, res) => {
+  res.json({
+    ok: true,
+    msg: "Backend connected successfully",
+    data: req.body || null
+  });
+});
+
 app.listen(PORT, () => {
-  console.log("AURA-X backend listening on port", PORT);
+  console.log(`AURA-X backend live on port ${PORT}`);
 });
