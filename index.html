@@ -139,6 +139,35 @@
       gap: 8px;
       min-height: 140px;
     }
+
+    /* Reaction banner */
+    .reaction-banner {
+      display: none;
+      border-radius: 12px;
+      padding: 6px 8px;
+      font-size: 0.75rem;
+      line-height: 1.3;
+      border: 1px solid rgba(148,163,184,0.5);
+      background: radial-gradient(circle at top left, #020617 0, #020617 50%, #000 100%);
+    }
+    .reaction-banner strong {
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+    }
+    .reaction-positive {
+      border-color: #22c55e;
+      color: #bbf7d0;
+    }
+    .reaction-negative {
+      border-color: #ef4444;
+      color: #fecaca;
+    }
+    .reaction-neutral {
+      border-color: #eab308;
+      color: #fef9c3;
+    }
+
     .chat-log {
       flex: 1;
       overflow-y: auto;
@@ -304,21 +333,6 @@
       opacity: 0.8;
       margin-bottom: 4px;
     }
-
-    /* NEW: Polarity line with colored numbers */
-    .bm-node-polarity {
-      font-size: 0.75rem;
-      margin-bottom: 4px;
-    }
-    .bm-node-polarity .pol-pos {
-      color: #4ade80;
-      font-weight: 600;
-    }
-    .bm-node-polarity .pol-neg {
-      color: #f87171;
-      font-weight: 600;
-    }
-
     .layer-chips {
       display: flex;
       flex-wrap: wrap;
@@ -523,6 +537,8 @@
     </div>
 
     <div class="chat-area">
+      <div id="reactionBanner" class="reaction-banner"></div>
+
       <div class="chat-log" id="chatLog"></div>
       <div class="status-line" id="statusLine">
         E₀=0.00 · TM=0.35 · D=0.00 · tag=neutral
@@ -709,6 +725,7 @@
     const eqValuesEl=document.getElementById("eqValues");
     const userInputEl=document.getElementById("userInput");
     const modePill=document.getElementById("modePill");
+    const reactionBannerEl=document.getElementById("reactionBanner");
 
     function updateEquationDisplay(){
       eqMainEl.textContent="E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)";
@@ -719,6 +736,45 @@
         `E₀=${E0.toFixed(2)} · TM=${TM.toFixed(2)} · D=${D.toFixed(2)} · tag=${
           E0>0.1?"positive":E0<-0.1?"negative":"neutral"
         }`;
+    }
+
+    function buildReactionTone(){
+      const intensity=Math.abs(E0);
+      let polarity = "Neutral / Mixed";
+      let cls = "reaction-neutral";
+      if (E0>0.1){ polarity="Positive"; cls="reaction-positive"; }
+      else if (E0<-0.1){ polarity="Negative"; cls="reaction-negative"; }
+
+      let tone="";
+      if (polarity==="Positive"){
+        if (intensity>0.7) tone="Warm, expansive, high-energy encouragement.";
+        else if (intensity>0.35) tone="Soft, stabilizing, hopeful resonance.";
+        else tone="Light, gentle, low-amplitude positive drift.";
+      } else if (polarity==="Negative"){
+        if (intensity>0.7) tone="Deep, heavy, thunder-style emotional load (fear/anger).";
+        else if (intensity>0.35) tone="Firm, serious, caution-oriented resonance.";
+        else tone="Mild negative charge, like a faint worry or discomfort.";
+      } else {
+        if (intensity>0.5) tone="Mixed signal: strong but conflicted emotional pattern.";
+        else tone="Calm, observant, analytically neutral reading.";
+      }
+
+      return {polarity, cls, intensity, tone};
+    }
+
+    function updateReactionBanner(sourceText){
+      const text = (sourceText||"").trim();
+      if (!text){
+        reactionBannerEl.style.display="none";
+        return;
+      }
+      const {polarity, cls, intensity, tone} = buildReactionTone();
+      reactionBannerEl.className = "reaction-banner " + cls;
+      reactionBannerEl.innerHTML =
+        `<strong>AURA-X Ω REACTION</strong><br>`+
+        `Polarity: ${polarity} · Intensity: ${intensity.toFixed(2)}<br>`+
+        `Tone: ${tone}`;
+      reactionBannerEl.style.display="block";
     }
 
     function appendMessage(text, who){
@@ -823,8 +879,7 @@
         full,
         polarity:E0>0.15?"Positive":E0<-0.15?"Negative":"Neutral",
         intensity:Math.abs(E0),
-        TM,BMvalue,D,Csum,layers,
-        E0 // save signed emotional value
+        TM,BMvalue,D,Csum,layers
       };
 
       bm[key].push(node);
@@ -835,6 +890,7 @@
       if (!text.trim()) return;
       appendMessage(text,"user");
       computeEmotion(text.length);
+      updateReactionBanner(text);
       const reply=buildSeedReply(text);
       appendMessage(reply,"bot");
       storeInBM(text,reply);
@@ -857,37 +913,9 @@
       handleUserMessage(story);
     });
     document.getElementById("childDemoBtn").addEventListener("click",()=>{
-      const story="A lost child in a crowded market started crying until he heard his mother’s voice. She ran to him, hugged him tightly, and both started laughing with tears.";
+      const story="A lost child was crying in a crowded market until he heard his mother’s voice. She ran to him, hugged him tightly, and both started laughing with tears.";
       handleUserMessage(story);
     });
-
-    // ===== Helper: polarity ratio for BM viewer =====
-    function getPolarityInfo(node){
-      let e = typeof node.E0==="number"
-        ? node.E0
-        : (node.polarity==="Positive"
-            ? node.intensity
-            : node.polarity==="Negative"
-              ? -node.intensity
-              : 0);
-      let label,pos,neg;
-      if (e>0.12){
-        label="Positive";
-        pos=Math.round(50+e*50);
-        if (pos>100) pos=100;
-        neg=100-pos;
-      } else if (e<-0.12){
-        label="Negative";
-        neg=Math.round(50+(-e)*50);
-        if (neg>100) neg=100;
-        pos=100-neg;
-      } else {
-        label="Neutral / Mixed";
-        pos=50;
-        neg=50;
-      }
-      return {label,pos,neg};
-    }
 
     // BM Viewer
     const bmBackdrop=document.getElementById("bmModalBackdrop");
@@ -915,18 +943,8 @@
             t.textContent=node.summary.slice(0,80)+(node.summary.length>80?"…":"");
             const meta=document.createElement("div");
             meta.className="bm-node-meta";
-            meta.textContent=`E₀≈${(node.E0??(node.polarity==="Positive"?node.intensity:node.polarity==="Negative"?-node.intensity:0)).toFixed(2)} · TM=${(node.TM??TM).toFixed(2)} · D=${(node.D??D).toFixed(2)} · `+
+            meta.textContent=`${node.polarity} · E₀≈${node.intensity.toFixed(2)} · `+
                              new Date(node.ts).toLocaleTimeString();
-
-            // NEW polarity colored line
-            const polInfo=getPolarityInfo(node);
-            const polDiv=document.createElement("div");
-            polDiv.className="bm-node-polarity";
-            polDiv.innerHTML=
-              `Polarity: ${polInfo.label} `+
-              `<span class="pol-pos">${polInfo.pos}</span> : `+
-              `<span class="pol-neg">${polInfo.neg}</span>`;
-
             const chips=document.createElement("div");
             chips.className="layer-chips";
             node.layers.forEach((v,idx)=>{
@@ -942,7 +960,6 @@
               node.summary.slice(0,140)+(node.summary.length>140?"…":"");
             nDiv.appendChild(t);
             nDiv.appendChild(meta);
-            nDiv.appendChild(polDiv);
             nDiv.appendChild(chips);
             nDiv.appendChild(fullP);
             dayDiv.appendChild(nDiv);
@@ -1006,8 +1023,8 @@
             node.summary+
             "\n\nEmotional formula snapshot:\n"+
             "E0 = tanh(TM × BM − D + λ_faith + λ_sys + ΣCt)\n"+
-            `TM=${(node.TM??TM).toFixed(2)}, BM=${node.BMvalue?node.BMvalue.toFixed(2):BMvalue.toFixed(2)}, `+
-            `D=${(node.D??D).toFixed(2)}, ΣCt=${(node.Csum??Csum).toFixed(2)}, `+
+            `TM=${node.TM.toFixed(2)}, BM=${node.BMvalue?node.BMvalue.toFixed(2):BMvalue.toFixed(2)}, `+
+            `D=${node.D.toFixed(2)}, ΣCt=${node.Csum.toFixed(2)}, `+
             `layers=${node.layers.join(",")}`;
           navigator.clipboard.writeText(prompt).catch(()=>{});
         });
