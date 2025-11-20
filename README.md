@@ -1,71 +1,126 @@
-<img src="AURA-X-Ω-DIAGRAM.png" width="150" align="right">
-# AURA-X Ω – Artificial Emotional Continuity (AEC v3.1)
+# AURA-X Ω — Artificial Emotional Continuity (AEC v3.1)
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17653634.svg)](https://doi.org/10.5281/zenodo.17653634)
-**Live demo:**  
+
+🔗 **Live Demo:**  
 https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/
 
-AURA-X Ω (Omega v1 Beta Extended + TRC) is a working **Emotional Continuity Reactor** running fully in the browser with HTML, CSS, and vanilla JavaScript.
+---
 
-This prototype implements the core idea that **emotion is not a reflex**, but a **continuity function** between:
+## 📘 Overview
+
+**AURA-X Ω (Omega v1 Beta Extended + TRC)** is a working Emotional Continuity Reactor  
+that runs fully inside the browser using **HTML, CSS, and vanilla JavaScript**, without any server.
+
+This prototype implements the core scientific principle that:
+
+### **Emotion is not a reaction — it is a continuity function between TM & BM.**
+
+It mathematically connects:
 
 - **TM (Temporary Memory)**
-- **BM (Bold Memory, 7 layers)**
+- **BM (Bold Memory – 7 computational layers)**
 - **D (Distortion / Damage)**
 - **λ_faith (Faith / Spiritual lens)**
 - **λ_sys (Logic / System lens)**
-- **ΣCₜ (Context tension)**
-
-The grand emotional output is:
-
-> `E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)`
-
-E₀ is shown live in the UI as a glowing continuity bar.
+- **ΣCₜ (Context Tension)**
 
 ---
 
-## 🔬 What this prototype does
+## 🧮 Grand Continuity Equation (AEC)
 
-- ✅ Takes **TM input** (a story, memory, or event) from the user.  
-- ✅ Classifies **positive vs negative actions** sentence-by-sentence (polarity engine).  
-- ✅ Builds a **7-layer BM capsule** (L1–L7) and stores it in `localStorage` by date.  
-- ✅ Computes **E₀** using the AEC equation and shows:
-  - Valence (positive / negative / mixed)
-  - Intensity
-  - Polarity split (e.g. `70 : 30` positive : negative)
-- ✅ Saves all memories in a **BM Viewer** with colored tags so you can see:
-  - Which day
-  - Which story
-  - Which polarity (green/red ratio)
-- ✅ Supports **faith lens** switch (Islam / other / universal ethics) that gently shifts λ_faith.  
-- ✅ Adds a **Truth Resonance Core (TRC)** term for future integration with external signals.
+The system computes the emotional output:
 
-All logic runs **client-side only** and does **not send data to any server**. Your TM/BM data stays in the browser.
+
+E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)
+
+E₀ is visualized in the UI as a live glowing continuity bar.
 
 ---
 
-## 🧠 Theory background
+## 🧪 What This Prototype Does
 
-This prototype is based on the 2025 extended paper:
+### ✔ 1. Accepts TM input  
+User enters a story, memory, or event.
 
-> **AURA-X Ω — The Artificial Emotional Continuity System (AEC v3):  
-> TM–BM Collision Reactor, Polarity Engine, and CRM Model (2025 Edition)**
+### ✔ 2. Polarity Engine  
+Classifies each sentence into:
+- Positive
+- Negative
+- Mixed
 
-Zenodo DOI: **10.5281/zenodo.17653634**
+### ✔ 3. Builds a 7-Layer BM Capsule  
+BM-7 stored by date in browser `localStorage`:
+- L1–L7 spectrum
+- Green/Red emotional ratio
+- Memory decay/continuity logic
 
-The model:
+### ✔ 4. Computes Emotional Output  
+Displays:
+- Valence  
+- Intensity  
+- Polarity split (e.g., **70 : 30**)  
 
-- Extends the **Continuity Reflex Model (CRM)**  
-- Introduces **Artificial Emotional Continuity (AEC)** as a mathematical law  
-- Uses a **TM–BM collision** to generate, stabilize, or decay emotion over time  
-- Treats forgiveness, trauma, and spiritual healing as **controlled changes in D and λ_faith**
+### ✔ 5. BM Viewer (Memory Browser)  
+Shows:
+- Each day’s memory capsule  
+- Polarity color tags  
+- TM/BM resonance  
+- Emotional decay across time  
+
+### ✔ 6. Faith Lens  
+(Optional)  
+User can choose:
+- Islam  
+- Other religion  
+- Universal ethics  
+
+This gently adjusts **λ_faith** in the equation.
+
+### ✔ 7. Includes TRC  
+Truth Resonance Core for future external signal integration.
+
+### ✔ 8. 100% Client-Side  
+No data leaves the browser.  
+Your emotional data is fully private.
 
 ---
 
-## 🖥 How to run locally
+## 📂 Project Structure
 
-You only need a browser.
 
-1. Download this repository (`Code → Download ZIP`) or clone it:
-   ```bash
-   git clone https://github.com/alimulhaqkhan-prog/aura-x-omega-2025.git
+/index.html /README.md /LICENSE /CONTRIBUTING.md /CHANGELOG.md /CITATION.cff /AURA-X-Ω-DIAGRAM.png
+
+---
+
+## 🔖 Citation (APA)
+
+Alim ul Haq Khan. (2025). *AURA-X Ω — The Artificial Emotional Continuity System (AEC v3): TM–BM Collision Reactor & TRC*. Zenodo.  
+https://doi.org/10.5281/zenodo.17653634
+
+---
+
+## 🛡 License
+
+This project is open for viewing but protected under **copyright** &  
+**UK IPO intellectual property filing (GB2518804.6)**.
+
+See LICENSE for details.
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome for:
+- UI improvements  
+- BM compression models  
+- TRC integration  
+- AEC analytics visualization  
+
+---
+
+## 🧩 Diagram
+
+![AURA-X Ω Diagram](AURA-X-Ω-DIAGRAM.png)
+
+
