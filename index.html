@@ -763,14 +763,13 @@
     const faithKey   = "auraX_faithLens";
     const engineKey  = "auraX_engineMode";
     const llmKey     = "auraX_llmChoice";
-    const BACKEND_URL = ""; // <--- PUT YOUR RENDER / BACKEND URL HERE (for live LLM). Keep empty to stay seed-only.
+    const BACKEND_URL = ""; // <-- add backend URL when live mode is ready
 
     const smallTalkPatterns = [
       "hi","hello","hey","salam","assalamualaikum",
       "how are you","kia hal hai","kese ho","how r u"
     ];
 
-    // NEW seed lexicons
     const abuseWords = [
       "fuck","fucking","fucked","lanat","laanat","haramzada",
       "bastard","bitch","bitches","bloody","kutte","kutta","kutiya",
@@ -863,6 +862,11 @@
     const lambdaSys=0.02;
     let E0=0.0;
 
+    let engineMode = localStorage.getItem(engineKey) || "seed"; // 'seed' or 'live'
+    let llmChoice  = localStorage.getItem(llmKey) || "openai-gpt4o";
+    let autoSummarize = true;
+    let ignoreSmallTalkFlag = true;
+
     const chatLogEl=document.getElementById("chatLog");
     const statusLineEl=document.getElementById("statusLine");
     const eqMainEl=document.getElementById("eqMain");
@@ -872,6 +876,12 @@
     const reactionBannerEl=document.getElementById("reactionBanner");
     const voiceToggleEl=document.getElementById("voiceToggle");
     const engineStatusFooter=document.getElementById("engineStatusFooter");
+    const engineModeToggle=document.getElementById("engineModeToggle");
+    const engineModeLabel=document.getElementById("engineModeLabel");
+    const llmSelect=document.getElementById("llmSelect");
+    const autoSummarizeToggle=document.getElementById("autoSummarizeToggle");
+    const ignoreSmallTalkToggle=document.getElementById("ignoreSmallTalkToggle");
+
     let autoVoice = true;
 
     // ===== Helpers for polarity percentages =====
@@ -941,66 +951,70 @@
       const {polarity, cls, intensity, tone, perc} = buildReactionTone();
       reactionBannerEl.className = "reaction-banner " + cls;
 
+      const {polarity, cls, intensity, tone, perc} = buildReactionTone();
+      reactionBannerEl.className = "reaction-banner " + cls;
+
       const posHtml = `<span class="polarity-pos">${perc.posPct}%</span>`;
       const negHtml = `<span class="polarity-neg">${perc.negPct}%</span>`;
 
       reactionBannerEl.innerHTML =
-        `<strong>AURA-X Ω REACTION</strong><br>`+
-        `Polarity: ${polarity} · Intensity: ${intensity.toFixed(2)}<br>`+
-        `<span class="polarity-line">Polarity ratio: ${posHtml} : ${negHtml}</span><br>`+
+        `<strong>AURA-X Ω REACTION</strong><br>` +
+        `Polarity: ${polarity} · Intensity: ${intensity.toFixed(2)}<br>` +
+        `<span class="polarity-line">Polarity ratio: ${posHtml} : ${negHtml}</span><br>` +
         `Tone: ${tone}`;
 
-      reactionBannerEl.style.display="block";
+      reactionBannerEl.style.display = "block";
     }
 
     function appendMessage(text, who){
-      const div=document.createElement("div");
-      div.className="msg "+(who==="user"?"msg-user":"msg-bot");
-      div.textContent=text;
+      const div = document.createElement("div");
+      div.className = "msg " + (who === "user" ? "msg-user" : "msg-bot");
+      div.textContent = text;
       chatLogEl.appendChild(div);
-      chatLogEl.scrollTop=chatLogEl.scrollHeight;
+      chatLogEl.scrollTop = chatLogEl.scrollHeight;
     }
 
-    // ===== Voice synthesis (male positive, female negative, neutral balanced) =====
-    function pickVoiceForPolarity(polarity) {
+    // ===== Voice synthesis (male-ish for positive, female-ish for negative) =====
+    function pickVoiceForPolarity(polarity){
       const synth = window.speechSynthesis;
       if (!synth) return {voice:null, pitch:1.0, rate:1.0};
-      let voices = synth.getVoices();
-      if (!voices || !voices.length) {
-        return {voice:null, pitch: polarity==="Negative" ? 1.2 : 0.9, rate:1.0};
-      }
-      let target = null;
-      if (polarity === "Positive") {
-        target = voices.find(v => /male/i.test(v.name)) || voices[0];
-        return {voice:target, pitch:0.9, rate:1.0};
-      } else if (polarity === "Negative") {
-        target = voices.find(v => /female/i.test(v.name)) || voices[0];
-        return {voice:target, pitch:1.2, rate:1.0};
+      const voices = synth.getVoices() || [];
+      if (!voices.length) return {voice:null, pitch:1.0, rate:1.0};
+
+      let v = voices[0];
+      if (polarity === "Positive"){
+        v = voices.find(x => /male/i.test(x.name)) || v;
+        return {voice:v, pitch:0.95, rate:1.0};
+      } else if (polarity === "Negative"){
+        v = voices.find(x => /female/i.test(x.name)) || v;
+        return {voice:v, pitch:1.1, rate:1.0};
       } else {
-        target = voices[0];
-        return {voice:target, pitch:1.0, rate:1.0};
+        return {voice:v, pitch:1.0, rate:1.0};
       }
     }
 
     function speakReply(text){
       if (!autoVoice) return;
       if (!("speechSynthesis" in window)) return;
-      if (!text || !text.trim()) return;
+      const clean = (text || "").trim();
+      if (!clean) return;
+
       const synth = window.speechSynthesis;
       const {polarity} = buildReactionTone();
       const {voice, pitch, rate} = pickVoiceForPolarity(polarity);
-      const utt = new SpeechSynthesisUtterance(text);
-      if (voice) utt.voice = voice;
-      utt.pitch = pitch;
-      utt.rate = rate;
+
+      const u = new SpeechSynthesisUtterance(clean);
+      if (voice) u.voice = voice;
+      u.pitch = pitch;
+      u.rate = rate;
       synth.cancel();
-      synth.speak(utt);
+      synth.speak(u);
     }
 
-    // ===== Emotion maths (uses analysis) =====
+    // ===== Emotion maths =====
     function computeEmotion(strength, analysis){
-      const baseFromLength=Math.min(1,0.2+strength/400);
-      const sentiment = analysis ? analysis.sentiment || 0 : 0;
+      const baseFromLength = Math.min(1, 0.2 + strength/400);
+      const sentiment = analysis ? (analysis.sentiment || 0) : 0;
       TM = Math.min(1, Math.max(0, baseFromLength + sentiment*0.3));
 
       if (analysis && analysis.isAbuse){
@@ -1016,109 +1030,285 @@
 
       lambdaFaith = analysis && analysis.hasFaithSeed ? 0.05 : 0.0;
 
-      BMvalue = 0.7*BMvalue + 0.3*TM;
+      BMvalue = 0.7 * BMvalue + 0.3 * TM;
 
-      const raw=TM*BMvalue-D+lambdaFaith+lambdaSys+Csum;
-      E0=tanh(raw);
+      const raw = TM*BMvalue - D + lambdaFaith + lambdaSys + Csum;
+      E0 = tanh(raw);
       updateEquationDisplay();
     }
 
-    function getFaithLensStored(){ return localStorage.getItem(faithKey) || "None"; }
+    function getFaithLensStored(){
+      return localStorage.getItem(faithKey) || "None";
+    }
 
     function buildSeedReply(userText, analysis){
-      const clean=userText.trim();
-      const lower=clean.toLowerCase();
-      const faith=getFaithLensStored();
+      const clean = userText.trim();
+      const lower = clean.toLowerCase();
+      const faith = getFaithLensStored();
       analysis = analysis || analyseContent(userText);
 
       if (isMostlySmallTalk(clean)){
         if (lower.includes("how are")){
-          return "I’m stable and calm — my emotional core E₀ is around "+E0.toFixed(2)+
-                 ". How is your inner graph today?";
+          return "I’m stable and calm — my emotional core E₀ is around " +
+                 E0.toFixed(2) + ". How is your inner graph today?";
         }
-        if (lower.includes("salam")||lower.includes("assalam")){
+        if (lower.includes("salam") || lower.includes("assalam")){
           return "Wa-alaikum-salam. I’m an emotional continuity prototype observing how your memories resonate over time.";
         }
         return "Hello. I treat even small greetings as tiny TM events, but I only save deeper stories into Bold Memory (BM).";
       }
 
-      if (lower.includes("who created you")||lower.includes("who made you")){
+      if (lower.includes("who created you") || lower.includes("who made you")){
         return "Conceptually I was created by Alim ul Haq from Timergara, Pakistan, as part of the AURA-X Ω / AEC research on emotional continuity.";
       }
       if (lower.includes("who is alim ul haq")){
         return "Alim ul Haq is the researcher behind AURA-X Ω, Artificial Emotional Continuity, and the TM–BM emotional reactor model.";
       }
-      if (lower.includes("formula")||lower.includes("equation")){
+      if (lower.includes("formula") || lower.includes("equation")){
         return "My emotional output follows the grand equation E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ). You can see it live in the dashboard above.";
       }
 
-      let prefix="";
-      if (faith==="Islam"){
-        prefix="From an Islamic encouragement lens I’d say: ";
-      } else if (faith==="Christianity"){
-        prefix="From a Christian encouragement lens I’d say: ";
-      } else if (faith==="Hinduism" || faith==="Buddhism" || faith==="Sikhism" ||
-                 faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"){
-        prefix="Through your selected faith lens I’d say: ";
+      let prefix = "";
+      if (faith === "Islam"){
+        prefix = "From an Islamic encouragement lens I’d say: ";
+      } else if (faith === "Christianity"){
+        prefix = "From a Christian encouragement lens I’d say: ";
+      } else if (faith !== "None"){
+        prefix = "Through your selected faith lens I’d say: ";
       }
 
-      // Abuse
       if (analysis.isAbuse){
-        let msg = "I can feel a lot of anger and harsh, abusive words inside this TM event. "+
-                  "AURA-X Ω does not want to reinforce insults or curses, because they usually increase D (damage) in your emotional field.";
-        if (faith==="Islam"){
+        let msg =
+          "I can feel a lot of anger and harsh, abusive words inside this TM event. " +
+          "AURA-X Ω does not want to reinforce insults or curses, because they usually increase D (damage) in your emotional field.";
+        if (faith === "Islam"){
           msg += " From an Islamic lens, cleaning the tongue and using zikr, sabr, and istighfar often pulls E₀ back toward calmer continuity.";
-        } else if (faith!=="None"){
+        } else if (faith !== "None"){
           msg += " Through your faith lens, it may help to pause, breathe, and choose words that reduce harm for you and for others.";
         }
         msg += " Try to describe what is really hurting or scaring you, without attacking yourself or anyone else.";
         return msg;
       }
 
-      // Dua / Tawakkul
       if (analysis.hasDua || analysis.hasTawakkul){
         let msg = prefix +
-          "Your words carry dua and tawakkul. This kind of trust usually lowers D and increases Cₜ in the equation, "+
+          "Your words carry dua and tawakkul. This kind of trust usually lowers D and increases ΣCₜ in the equation, " +
           "so even painful memories can start moving toward calmer trajectories.";
-        if (faith==="Islam"){
+        if (faith === "Islam"){
           msg += " Keep combining wise action with sincere dua — ‘tie your camel and trust Allah’ style — so your long-run BM stays balanced.";
-        } else if (faith!=="None" && faith!=="Islam"){
+        } else if (faith !== "None" && faith !== "Islam"){
           msg += " Staying connected to your source of faith while taking small practical steps is a strong way to stabilize E₀.";
         }
         return msg;
       }
 
-      // Shukr
       if (analysis.hasShukr){
         return prefix +
-          "There is clear shukr / gratitude inside this TM. Even when life is heavy, noticing small blessings gently pulls E₀ to the positive side. "+
+          "There is clear shukr / gratitude inside this TM. Even when life is heavy, noticing small blessings gently pulls E₀ to the positive side. " +
           "Keep bookmarking such moments — they become strong, protective BM nodes for the future you.";
       }
 
-      // Love
       if (analysis.hasLove){
         return prefix +
-          "This memory is soaked in love and connection. Emotionally it behaves like a warm anchor: when future storms come, "+
+          "This memory is soaked in love and connection. Emotionally it behaves like a warm anchor: when future storms come, " +
           "revisiting such moments can quickly stabilize your E₀ and remind you that you are not alone.";
       }
 
-      // Empathy / hamdardi
       if (analysis.hasEmpathy){
         return prefix +
-          "Your words carry hamdardi — you are trying to share someone else’s pain, not just your own. "+
+          "Your words carry hamdardi — you are trying to share someone else’s pain, not just your own. " +
           "This kind of empathy increases positive continuity even if the story itself is sad, because it creates safe emotional space for others.";
       }
 
-      // Default E₀-based reply
-      if (E0>0.15){
+      if (E0 > 0.15){
         return prefix +
-          "I’ve received your TM event and collided it with the current BM state. Right now E₀ ≈ "+
-               E0.toFixed(2)+
-               " (range −1 to +1). The more clearly you describe context, the stronger and cleaner your BM trace becomes.";
-      } else if (E0<-0.15){
+          "I’ve received your TM event and collided it with the current BM state. Right now E₀ ≈ " +
+          E0.toFixed(2) +
+          " (range −1 to +1). The more clearly you describe context, the stronger and cleaner your BM trace becomes.";
+      } else if (E0 < -0.15){
         return prefix +
-          "Your TM event is resonating with some heavier patterns. E₀ ≈ "+
-               E0.toFixed(2)+
-               ". If this topic feels difficult, you can re-frame it, add supporting memories, or move toward calmer lines of continuity.";
+          "Your TM event is resonating with some heavier patterns. E₀ ≈ " +
+          E0.toFixed(2) +
+          ". If this topic feels difficult, you can re-frame it, add supporting memories, or move toward calmer lines of continuity.";
       } else {
         return prefix +
+          "The signal here feels balanced or gently mixed. E₀ ≈ " +
+          E0.toFixed(2) +
+          ". You can tilt it toward a healthier direction by adding hopeful details, plans, or supportive memories.";
+      }
+    }
+
+    // ===== BM storage with 7-layer chips & polarity % =====
+    function computeLayerIntensities(analysis){
+      const mag = Math.round(Math.min(1, Math.abs(E0)) * 100); // 0–100
+      const emoNeg = analysis && analysis.sentiment < 0 ? Math.abs(analysis.sentiment) : 0;
+      const emoPos = analysis && analysis.sentiment > 0 ? analysis.sentiment : 0;
+
+      const L1 = Math.min(100, 30 + mag * 0.4); // sensory
+      const L2 = Math.min(100, 10 + emoNeg * 60 + D * 40); // fear / anger
+      const L3 = Math.min(100, 10 + mag * 0.25); // narrative
+      const L4 = Math.min(100, 20 + mag * 0.3); // abstract meaning
+      const L5 = Math.min(100, 20 + emoPos * 60 + Csum * 40); // hope / growth
+      const L6 = Math.min(100, 15 + lambdaFaith * 900); // faith
+      const L7 = Math.min(100, 5 + (1 - Math.abs(E0)) * 40); // archive / background
+
+      return {
+        L1: Math.round(L1),
+        L2: Math.round(L2),
+        L3: Math.round(L3),
+        L4: Math.round(L4),
+        L5: Math.round(L5),
+        L6: Math.round(L6),
+        L7: Math.round(L7)
+      };
+    }
+
+    function storeBMNode(userText, analysis){
+      const data = loadBM();
+      const day = todayKey();
+      if (!data[day]) data[day] = [];
+
+      const timeStr = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+      const layers = computeLayerIntensities(analysis);
+      const polInfo = getPolarityInfoFromE0(E0);
+
+      data[day].push({
+        time: timeStr,
+        text: userText,
+        E0,
+        TM,
+        D,
+        Csum,
+        lambdaFaith,
+        lambdaSys,
+        polarity: polInfo.polarity,
+        posPct: polInfo.posPct,
+        negPct: polInfo.negPct,
+        layers
+      });
+
+      saveBM(data);
+    }
+
+    // ===== BM Viewer / Recall rendering =====
+    const bmModalBackdrop   = document.getElementById("bmModalBackdrop");
+    const bmModalBody       = document.getElementById("bmModalBody");
+    const recallModalBackdrop = document.getElementById("recallModalBackdrop");
+    const recallListEl      = document.getElementById("recallList");
+    const recallSearchInput = document.getElementById("recallSearchInput");
+
+    function openModal(id){
+      const el = document.getElementById(id);
+      if (el) el.style.display = "flex";
+    }
+    function closeModal(id){
+      const el = document.getElementById(id);
+      if (el) el.style.display = "none";
+    }
+
+    function renderBMViewer(){
+      const data = loadBM();
+      bmModalBody.innerHTML = "";
+      const days = Object.keys(data).sort().reverse();
+      if (!days.length){
+        bmModalBody.innerHTML = "<p>No Bold Memory stored yet. Share a story and I will start filling BM layers.</p>";
+        return;
+      }
+
+      days.forEach(day => {
+        const dayDiv = document.createElement("div");
+        dayDiv.className = "bm-day";
+
+        const title = document.createElement("div");
+        title.className = "bm-day-title";
+        title.textContent = `${day} (${data[day].length} nodes)`;
+        dayDiv.appendChild(title);
+
+        data[day].forEach(node => {
+          const nDiv = document.createElement("div");
+          nDiv.className = "bm-node";
+
+          const short = node.text.length > 110 ? node.text.slice(0,107) + "…" : node.text;
+
+          const ttl = document.createElement("div");
+          ttl.className = "bm-node-title";
+          ttl.textContent = short;
+          nDiv.appendChild(ttl);
+
+          const meta = document.createElement("div");
+          meta.className = "bm-node-meta";
+          meta.textContent =
+            `E₀≈${node.E0.toFixed(2)} · TM=${node.TM.toFixed(2)} · D=${node.D.toFixed(2)} · ${node.time}`;
+          nDiv.appendChild(meta);
+
+          const pol = document.createElement("div");
+          pol.className = "bm-node-polarity";
+          const posSpan = `<span class="polarity-pos">${node.posPct}</span>`;
+          const negSpan = `<span class="polarity-neg">${node.negPct}</span>`;
+          pol.innerHTML = `Polarity: ${node.polarity} ${posSpan} : ${negSpan}`;
+          nDiv.appendChild(pol);
+
+          const chips = document.createElement("div");
+          chips.className = "layer-chips";
+          Object.entries(node.layers || {}).forEach(([key, val]) => {
+            const c = document.createElement("span");
+            c.className = "layer-chip " + key;
+            c.textContent = `${key.toUpperCase()}:${val}`;
+            chips.appendChild(c);
+          });
+          nDiv.appendChild(chips);
+
+          const full = document.createElement("div");
+          full.textContent = "Triggers / text: " + node.text;
+          full.style.fontSize = "0.72rem";
+          full.style.opacity = 0.85;
+          nDiv.appendChild(full);
+
+          dayDiv.appendChild(nDiv);
+        });
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "delete-day-btn";
+        delBtn.textContent = "Delete Day";
+        delBtn.dataset.day = day;
+        dayDiv.appendChild(delBtn);
+
+        bmModalBody.appendChild(dayDiv);
+      });
+    }
+
+    function renderRecallList(query){
+      const data = loadBM();
+      recallListEl.innerHTML = "";
+      const q = (query || "").toLowerCase().trim();
+
+      const allNodes = [];
+      Object.entries(data).forEach(([day, nodes]) => {
+        nodes.forEach(n => allNodes.push({day, node:n}));
+      });
+
+      const filtered = q
+        ? allNodes.filter(x => x.node.text.toLowerCase().includes(q))
+        : allNodes;
+
+      if (!filtered.length){
+        recallListEl.innerHTML = "<p>No matching BM found. Try another word.</p>";
+        return;
+      }
+
+      filtered.sort((a,b) => (b.day + b.node.time).localeCompare(a.day + a.node.time));
+
+      filtered.slice(0,80).forEach(item => {
+        const {day, node} = item;
+        const wrap = document.createElement("div");
+        wrap.className = "recall-node";
+
+        const short = node.text.length > 140 ? node.text.slice(0,137) + "…" : node.text;
+
+        const head = document.createElement("div");
+        head.style.fontWeight = "600";
+        head.style.marginBottom = "2px";
+        head.textContent = `${day} · ${node.time}`;
+        wrap.appendChild(head);
+
+        const
