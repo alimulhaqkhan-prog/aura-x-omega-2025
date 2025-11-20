@@ -1,12 +1,5 @@
 <p align="center">
-  <img src="AURA-X-Ω-LOGO.png" alt="AURA-X Omega Logo" width="360">
-</p>
-
-<h1 align="center">AURA-X Ω — Artificial Emotional Continuity (AEC v3.1)</h1>
-
-<p align="center">
-  <a href="https://zenodo.org/records/17653634">
-  </a>
+  <img src="AURA-X-LOGO.png" width="360">
 </p>
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17653634.svg)](https://zenodo.org/records/17653634)
 
