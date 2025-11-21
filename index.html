@@ -1147,17 +1147,60 @@
       voiceToggleEl.textContent = autoVoice ? "🔊 Voice: On" : "🔇 Voice: Off";
     });
 
-    // BM Viewer
+    // BM Viewer (read-only conversation + 48h buffer)
     const bmBackdrop=document.getElementById("bmModalBackdrop");
     const bmBody=document.getElementById("bmModalBody");
     document.getElementById("bmViewerBtn").addEventListener("click",()=>{
       const bm=loadBM();
+      const buffer=loadSmallBuffer();
       bmBody.innerHTML="";
-      const keys=Object.keys(bm).sort().reverse();
-      if(!keys.length){
+
+      const dayKeys=Object.keys(bm).sort().reverse();
+
+      if(!dayKeys.length && !buffer.length){
         bmBody.textContent="No Bold Memory stored yet. Share a deeper story (at least a few sentences).";
-      }else{
-        keys.forEach(k=>{
+        bmBackdrop.style.display="flex";
+        return;
+      }
+
+      // 48h continuity buffer section (small-talk, greetings)
+      if (buffer.length){
+        const bufDiv=document.createElement("div");
+        bufDiv.className="bm-day";
+        const title=document.createElement("div");
+        title.className="bm-day-title";
+        title.textContent=`♻️ Continuity buffer – last 48 hours (${buffer.length} events)`;
+        bufDiv.appendChild(title);
+
+        buffer.forEach(item=>{
+          const nDiv=document.createElement("div");
+          nDiv.className="bm-node";
+          const meta=document.createElement("div");
+          meta.className="bm-node-meta";
+          meta.textContent=new Date(item.ts).toLocaleString();
+          const txt=document.createElement("div");
+          txt.style.fontSize="0.72rem";
+          txt.style.opacity="0.95";
+          txt.textContent=item.text;
+          nDiv.appendChild(meta);
+          nDiv.appendChild(txt);
+          bufDiv.appendChild(nDiv);
+        });
+
+        const clearBufBtn=document.createElement("button");
+        clearBufBtn.className="delete-day-btn";
+        clearBufBtn.textContent="Clear 48h buffer";
+        clearBufBtn.addEventListener("click",()=>{
+          saveSmallBuffer([]);
+          bmBackdrop.style.display="none";
+        });
+        bufDiv.appendChild(clearBufBtn);
+        bmBody.appendChild(bufDiv);
+      }
+
+      // BM per day, read-only “conversation”
+      if(dayKeys.length){
+        dayKeys.forEach(k=>{
           const dayDiv=document.createElement("div");
           dayDiv.className="bm-day";
           const title=document.createElement("div");
@@ -1168,9 +1211,11 @@
           bm[k].forEach(node=>{
             const nDiv=document.createElement("div");
             nDiv.className="bm-node";
+
             const t=document.createElement("div");
             t.className="bm-node-title";
             t.textContent=node.summary.slice(0,80)+(node.summary.length>80?"…":"");
+
             const meta=document.createElement("div");
             meta.className="bm-node-meta";
             meta.textContent=`${node.polarity} · E₀≈${(node.E0??node.intensity).toFixed(2)} · `+
@@ -1197,11 +1242,14 @@
               c.textContent=`L${idx+1}:${v}`;
               chips.appendChild(c);
             });
+
+            // read-only conversation preview
             const fullP=document.createElement("div");
             fullP.style.fontSize="0.7rem";
-            fullP.style.opacity="0.9";
-            fullP.textContent="Triggers / text: "+
-              node.summary.slice(0,140)+(node.summary.length>140?"…":"");
+            fullP.style.opacity="0.95";
+            fullP.style.whiteSpace="pre-line";
+            fullP.textContent=node.summary.slice(0,220)+(node.summary.length>220?"…":"");
+
             nDiv.appendChild(t);
             nDiv.appendChild(meta);
             nDiv.appendChild(polLine);
@@ -1223,6 +1271,7 @@
           bmBody.appendChild(dayDiv);
         });
       }
+
       bmBackdrop.style.display="flex";
     });
 
