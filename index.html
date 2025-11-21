@@ -172,10 +172,7 @@
     .msg { margin-bottom: 8px; }
     .msg-user { text-align: right; color: #bfdbfe; }
     .msg-bot { text-align: left; color: #e5e7eb; }
-    .status-line {
-      font-size: 0.7rem;
-      opacity: 0.7;
-    }
+
     .input-row {
       display: flex;
       align-items: center;
@@ -214,15 +211,11 @@
       box-shadow: 0 6px 12px rgba(22,163,74,0.5);
       background: #15803d;
     }
+
     .footer-line {
-      font-size: 0.7rem;
-      opacity: 0.65;
-      margin-top: 2px;
       display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
+      justify-content: flex-end;
+      margin-top: 2px;
     }
 
     .voice-toggle {
@@ -547,24 +540,19 @@
         E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)
       </div>
       <div class="formula-values" id="eqValues">
-        E₀ = 0.00 · TM = 0.35 · BM = 0.55 · D = 0.00 · ΣCₜ = 0.05 · λ_faith = 0.00 · λ_sys = 0.02
+        E₀ = 0.00 · TM = 0.35 · BM = 0.50 · D = 0.00 · ΣCₜ = 0.02 · λ_faith = 0.00 · λ_sys = 0.02
       </div>
     </div>
 
     <div class="chat-area">
       <div id="reactionBanner" class="reaction-banner"></div>
       <div class="chat-log" id="chatLog"></div>
-      <div class="status-line" id="statusLine">
-        E₀=0.00 · TM=0.35 · D=0.00 · tag=neutral
-      </div>
       <div class="input-row">
         <textarea id="userInput"
           placeholder="Write anything… AURA-X Ω will treat it as TM (Temporary Memory)."></textarea>
         <button class="send-btn" id="sendBtn">Send</button>
       </div>
       <div class="footer-line">
-        <span>Prototype · TM → Engine → BM · Equation live.</span>
-        <span>Engine: Seed (local)</span>
         <button id="voiceToggle" class="voice-toggle active">🔊 Voice: On</button>
       </div>
     </div>
@@ -699,8 +687,6 @@
 
   <script>
     // === BACKEND CONFIG ===
-    // Yahan apna real backend URL daalein (Render / Railway / VPS etc.)
-    // Backend neeche diye gaye Node.js code se OpenAI ya kisi bhi LLM se connect karega.
     const BACKEND_URL = "https://YOUR-AURA-X-BACKEND-URL/api/react";
 
     const lsKey = "auraX_bm_v31";
@@ -719,6 +705,19 @@
       "chutiya","stupid","idiot","gadha","gandi zuban","shut up","chup",
       "bakwas","bakwass","zalil","zaleel","cursed"
     ];
+    // New: general negative / sadness / fear words
+    const sadnessWords = [
+      "sad","sorrow","grief","cry","crying","tears","hurt","pain",
+      "heartbroken","depressed","depression","lonely","alone",
+      "lost","loss","buried","funeral","tragedy","accident",
+      "die","died","dead","death","killed","murder","mar gaya","mar gayi"
+    ];
+    const fearWords = [
+      "afraid","scared","fear","terrified","anxious","anxiety",
+      "panic","tension","tensed","stress","stressed","worry","worried",
+      "danger","threat","phobia"
+    ];
+
     const duaWords = [
       "dua","prayer","pray for me","make dua","dua karo","dua karna",
       "istighfar","astaghfirullah"
@@ -761,13 +760,19 @@
     function analyseContent(text){
       const lower=text.toLowerCase();
       const abuseCount=countAny(lower,abuseWords);
+      const sadCount=countAny(lower,sadnessWords);
+      const fearCount=countAny(lower,fearWords);
+      const negSeedCount=abuseCount+sadCount+fearCount;
+
       const posSeedCount=
         countAny(lower,loveSeedWords)+
         countAny(lower,shukrWords)+
         countAny(lower,tawakkulWords)+
         countAny(lower,empathyWords);
-      const total=abuseCount+posSeedCount;
-      const sentiment=total?(posSeedCount-abuseCount)/total:0;
+
+      const total=negSeedCount+posSeedCount;
+      const sentiment= total ? (posSeedCount - negSeedCount)/total : 0;
+
       return{
         isAbuse:abuseCount>0,
         hasDua:containsAny(lower,duaWords),
@@ -778,17 +783,20 @@
         hasFaithSeed:containsAny(lower,duaWords)||containsAny(lower,tawakkulWords),
         positiveSeed:posSeedCount>0,
         abuseCount,
+        sadCount,
+        fearCount,
+        negSeedCount,
         posSeedCount,
         sentiment
       };
     }
 
-    let TM=0.35,BMvalue=0.55,D=0.0,Csum=0.05,lambdaFaith=0.0;
+    // Start more neutral
+    let TM=0.35,BMvalue=0.50,D=0.0,Csum=0.02,lambdaFaith=0.0;
     const lambdaSys=0.02;
     let E0=0.0;
 
     const chatLogEl=document.getElementById("chatLog");
-    const statusLineEl=document.getElementById("statusLine");
     const eqMainEl=document.getElementById("eqMain");
     const eqValuesEl=document.getElementById("eqValues");
     const userInputEl=document.getElementById("userInput");
@@ -802,10 +810,6 @@
       eqValuesEl.textContent=
         `E₀ = ${E0.toFixed(2)} · TM = ${TM.toFixed(2)} · BM = ${BMvalue.toFixed(2)} · `+
         `D = ${D.toFixed(2)} · ΣCₜ = ${Csum.toFixed(2)} · λ_faith = ${lambdaFaith.toFixed(2)} · λ_sys = ${lambdaSys.toFixed(2)}`;
-      statusLineEl.textContent=
-        `E₀=${E0.toFixed(2)} · TM=${TM.toFixed(2)} · D=${D.toFixed(2)} · tag=${
-          E0>0.1?"positive":E0<-0.1?"negative":"neutral"
-        }`;
     }
     function buildReactionTone(){
       const intensity=Math.abs(E0);
@@ -818,9 +822,9 @@
         else if(intensity>0.35) tone="Soft, stabilizing, hopeful resonance.";
         else tone="Light, gentle, low-amplitude positive drift.";
       }else if(polarity==="Negative"){
-        if(intensity>0.7) tone="Deep, heavy, thunder-style emotional load (fear/anger).";
+        if(intensity>0.7) tone="Deep, heavy, thunder-style emotional load (fear/anger/sorrow).";
         else if(intensity>0.35) tone="Firm, serious, caution-oriented resonance.";
-        else tone="Mild negative charge, like a faint worry or discomfort.";
+        else tone="Mild negative charge, like a faint sadness or worry.";
       }else{
         if(intensity>0.5) tone="Mixed signal: strong but conflicted emotional pattern.";
         else tone="Calm, observant, analytically neutral reading.";
@@ -875,16 +879,23 @@
     }
 
     function computeEmotion(strength,analysis){
-      const base=Math.min(1,0.2+strength/400);
+      const base=Math.min(1,0.22+strength/400);
       const sentiment=analysis?analysis.sentiment||0:0;
       TM=Math.min(1,Math.max(0,base+sentiment*0.3));
-      if(analysis&&analysis.isAbuse){D=Math.min(1,D+0.25);Csum=Math.max(0,Csum-0.03);}
-      else{D=Math.max(0,D-0.02);}
-      if(analysis&&(analysis.positiveSeed||analysis.hasFaithSeed)){
-        Csum=Math.min(1,Csum+0.06);
+
+      if(analysis && analysis.negSeedCount>0){
+        D=Math.min(1,D+0.15);
+        Csum=Math.max(0,Csum-0.02);
+      }else{
+        D=Math.max(0,D-0.02);
       }
+      if(analysis && analysis.posSeedCount>0){
+        Csum=Math.min(1,Csum+0.04);
+      }
+
       lambdaFaith=analysis&&analysis.hasFaithSeed?0.05:0.0;
       BMvalue=0.7*BMvalue+0.3*TM;
+
       const raw=TM*BMvalue-D+lambdaFaith+lambdaSys+Csum;
       E0=tanh(raw);
       updateEquationDisplay();
@@ -926,15 +937,15 @@
         prefix="Through your selected faith lens I’d say: ";
       }
 
-      if(analysis.isAbuse){
-        let msg="I can feel a lot of anger and harsh, abusive words inside this TM event. "+
-                "AURA-X Ω does not want to reinforce insults or curses, because they usually increase D (damage) in your emotional field.";
+      if(analysis.negSeedCount>0){
+        let msg="I can feel a heavy emotional load in this TM event — words about pain, loss, fear or abuse are active. "+
+                "AURA-X Ω does not want to amplify that damage, because it usually increases D (damage) in your field.";
         if(faith==="Islam"){
-          msg+=" From an Islamic lens, cleaning the tongue and using zikr, sabr, and istighfar often pulls E₀ back toward calmer continuity.";
+          msg+=" From an Islamic lens, sabr, zikr and wise action together can slowly pull E₀ back from this negative zone.";
         }else if(faith!=="None"){
-          msg+=" Through your faith lens, it may help to pause, breathe, and choose words that reduce harm for you and for others.";
+          msg+=" Your faith lens can help you combine honest feeling with gentle, protective actions for yourself and others.";
         }
-        msg+=" Try to describe what is really hurting or scaring you, without attacking yourself or anyone else.";
+        msg+=" Try to describe what exactly hurts or scares you, without cursing yourself or anyone else.";
         return msg;
       }
       if(analysis.hasDua||analysis.hasTawakkul){
