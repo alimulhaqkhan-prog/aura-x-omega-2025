@@ -110,8 +110,8 @@
     .card.golden {
       background: #fff7e6;
       border-color: #facc15;
-      color: #92400e;
-      font-weight: 500;
+      color: #b45309; /* more golden text */
+      font-weight: 600;
     }
     .card.equation {
       border-style: dashed;
@@ -187,7 +187,9 @@
     .msg-user { text-align: right; color: #2563eb; }
     .msg-bot { text-align: left; color: #111827; }
 
+    /* Status line hidden from UI */
     .status-line {
+      display: none;
       font-size: 0.7rem;
       opacity: 0.7;
     }
@@ -555,7 +557,7 @@
     </div>
 
     <div class="card golden" id="ethicsBanner">
-      Avoid actions that generate negative emotions in yourself or others.
+      Universal ethics: Avoid actions that generate negative emotions in yourself or others.
       Gently move toward choices that create calm, kindness, and positive feelings.
     </div>
 
@@ -685,7 +687,7 @@
           </label>
         </div>
         <div class="option-row">
-          <span>Ignore tiny small-talk as BM (hello / hi / how are you)</span>
+          <span>Ignore tiny small-talk as BM (hello / hi / how are you, mood one-liners)</span>
           <label class="toggle">
             <input type="checkbox" id="ignoreSmallTalkToggle" checked />
             <span class="slider"></span>
@@ -719,7 +721,7 @@
       "how are you","kia hal hai","kese ho","how r u"
     ];
 
-    // Seed lexicons
+    // Sentiment word lists
     const abuseWords = [
       "fuck","fucking","fucked","lanat","laanat","haramzada",
       "bastard","bitch","bitches","bloody","kutte","kutta","kutiya",
@@ -755,6 +757,7 @@
     function saveBM(data) { localStorage.setItem(lsKey, JSON.stringify(data)); }
     function todayKey() { return new Date().toISOString().slice(0,10); }
     function tanh(x){ const e2x=Math.exp(2*x); return (e2x-1)/(e2x+1); }
+
     function approximateSentences(text){
       return text.split(/[.!?۔\n]/).filter(s=>s.trim().length>0);
     }
@@ -763,11 +766,24 @@
       if (sentences.length<=200) return text.trim();
       return sentences.slice(0,200).join(". ").slice(0,10000);
     }
+
+    // Short mood / greeting detector
+    function isShortMoodLine(text){
+      const clean=text.toLowerCase().trim();
+      if (clean.length>120) return false;
+      const startsMood = /^(i am|i'm|i m|i feel|i was|i'm feeling|mein|main)/.test(clean);
+      const hasEmotionWord = /(happy|sad|angry|tired|afraid|scared|nervous|anxious|bored|boring|lonely|depressed|khush|udaas|gussa|thaka|thaka hua|dar|ghabra|tension)/.test(clean);
+      const sentenceCount = approximateSentences(clean).length;
+      return startsMood && hasEmotionWord && sentenceCount<=3;
+    }
+
     function isMostlySmallTalk(text){
       const clean=text.toLowerCase().trim();
-      if (clean.length>80) return false;
+      if (clean.length>120) return false;
+      if (isShortMoodLine(clean)) return true;
       return smallTalkPatterns.some(p=>clean===p||clean.startsWith(p+" "));
     }
+
     function containsAny(lower, arr){
       return arr.some(w => lower.includes(w));
     }
@@ -958,6 +974,9 @@
         if (lower.includes("salam")||lower.includes("assalam")){
           return "Wa-alaikum-salam. I’m an emotional continuity prototype observing how your memories resonate over time.";
         }
+        if (isShortMoodLine(clean)){
+          return "I can feel a quick mood ping in this TM event. I’ll keep it in short-term continuity but won’t store it as a deep BM node.";
+        }
         return "Hello. I treat even small greetings as tiny TM events, but I only save deeper stories into Bold Memory (BM).";
       }
 
@@ -1039,7 +1058,7 @@
       }
     }
 
-    // Polarity percentages helper (for BM viewer & recall)
+    // Polarity percentages helper
     function getPolarityPercent(node){
       let sign = 0;
       if (node.polarity === "Positive") sign = 1;
@@ -1061,9 +1080,17 @@
       return {pos, neg};
     }
 
-    function storeInBM(userText, botReply){
+    // Store BM only for deep / high-intensity events
+    function storeInBM(userText, botReply, analysis){
       const ignoreSmall=document.getElementById("ignoreSmallTalkToggle").checked;
-      if (ignoreSmall && isMostlySmallTalk(userText)) return;
+      if (ignoreSmall && (isMostlySmallTalk(userText) || isShortMoodLine(userText))) return;
+
+      const sentences = approximateSentences(userText);
+      const isDeepStory = sentences.length >= 5;
+      const highJoy = (E0 > 0.5) && analysis && analysis.positiveSeed;
+
+      // only center ideas / high joy become BM
+      if (!(isDeepStory || highJoy)) return;
 
       const autoSumm=document.getElementById("autoSummarizeToggle").checked;
       const full=userText.trim()+"\n\nAURA-X Ω: "+botReply.trim();
@@ -1105,7 +1132,7 @@
       updateReactionBanner(text);
       const reply=buildSeedReply(text, analysis);
       appendMessage(reply,"bot");
-      storeInBM(text,reply);
+      storeInBM(text,reply,analysis);
       speakReply(reply);
       userInputEl.value="";
     }
@@ -1135,7 +1162,7 @@
       bmBody.innerHTML="";
       const keys=Object.keys(bm).sort().reverse();
       if(!keys.length){
-        bmBody.textContent="No Bold Memory stored yet. Share a story first.";
+        bmBody.textContent="No Bold Memory stored yet. Share a deeper story first.";
       }else{
         keys.forEach(k=>{
           const dayDiv=document.createElement("div");
