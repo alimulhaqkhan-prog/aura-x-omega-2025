@@ -747,6 +747,9 @@
   </div>
 
   <script>
+    /* 🔗 Backend URL – later yahan Render / Railway ka real link laga dena */
+    const backendURL = "https://YOUR-BACKEND-URL/api/aura-x-llm";
+
     const lsKey = "auraX_bm_v31";
     const faithKey = "auraX_faithLens";
     const engineKey = "auraX_engineMode";
@@ -1229,13 +1232,60 @@
       recallHideTimeout=null;
     }
 
-    function handleUserMessage(text){
+    /* 🔌 Backend LLM call – jab Engine Mode = live hoga */
+    async function callBackendLLM(text, analysis) {
+      const bm = loadBM();
+      const lastDay = Object.keys(bm).sort().reverse()[0];
+      const lastNodes = lastDay ? bm[lastDay] : [];
+      const recentSummary = lastNodes
+        ? lastNodes.slice(-3).map(n => n.summary).join("\n\n")
+        : "";
+
+      const body = {
+        tm: text,
+        e0: E0,
+        tmLength: text.length,
+        faithLens: getFaithLens(),
+        recentBM: recentSummary
+      };
+
+      const res = await fetch(backendURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        throw new Error("Backend error " + res.status);
+      }
+
+      const data = await res.json();
+      return data.reply || "LLM backend ne koi reply nahi diya.";
+    }
+
+    /* 🧠 Main handler – ab async, seed-only + live mode dono */
+    async function handleUserMessage(text){
       if (!text.trim()) return;
       appendMessage(text,"user");
+
       const analysis = analyseContent(text);
       computeEmotion(text.length, analysis);
       updateReactionBanner(text);
-      const reply=buildSeedReply(text, analysis);
+
+      const mode = localStorage.getItem(engineKey) || "seed";
+      let reply;
+
+      if (mode === "live") {
+        try {
+          reply = await callBackendLLM(text, analysis);
+        } catch (err) {
+          console.error(err);
+          reply = "Backend / LLM se connection nahi ho saka, is liye filhaal seed-only reply de raha hoon.";
+        }
+      } else {
+        reply = buildSeedReply(text, analysis);
+      }
+
       appendMessage(reply,"bot");
       storeInBM(text,reply);
       speakReply(reply);
