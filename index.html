@@ -557,7 +557,7 @@
         E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)
       </div>
       <div class="formula-values" id="eqValues">
-        TM, BM, D, λ_faith, λ_sys and ΣCₜ are updated internally after every message.
+        All parameters are being updated internally after every message to keep emotional continuity live.
       </div>
     </div>
     <!-- chat area -->
@@ -711,21 +711,26 @@
       </div>
     </div>
   </div>
-  <script>
-    /* ====== BACKEND CONFIG (Render) ====== */
-    const BACKEND_URL = "https://aura-x-omega-backend-2.onrender.com/react";
 
+  <script>
+    /* ===== BACKEND CONFIG ===== */
+    const BACKEND_URL = "https://aura-x-omega-backend-2.onrender.com";
+    const BACKEND_ENDPOINT = "/react"; // change if your backend route is different
+
+    /* ===== KEYS & CONSTANTS ===== */
     const lsKey = "auraX_bm_v31";
     const faithKey = "auraX_faithLens";
     const engineKey = "auraX_engineMode";
     const llmModelKey = "auraX_llmModel";
     const smallBufferKey = "auraX_smallTalkBuffer_v1"; // 48h continuity buffer for small talk
+
     const smallTalkPatterns = [
       "hi","hello","hey","salam","assalamualaikum","asalamualaikum",
       "how are you","kia hal hai","kese ho","how r u",
       "i am happy","i am very happy","i am sad","i am very sad",
       "i am fine","i'm fine","i’m fine","i am ok","i'm ok"
     ];
+
     // Seed lexicons
     const abuseWords = [
       "fuck","fucking","fucked","lanat","laanat","haramzada",
@@ -752,6 +757,11 @@
       "may allah make it easy","allah apko ajar de",
       "i am with you","i understand your pain","may god help you"
     ];
+
+    function isLiveEngine() {
+      return (localStorage.getItem(engineKey) || "seed") === "live";
+    }
+
     function loadBM() {
       try {
         const raw = localStorage.getItem(lsKey);
@@ -857,6 +867,7 @@
     const autoRecallOpenBtn = document.getElementById("autoRecallOpenBtn");
     let lastRecallCandidate = null;
     let recallHideTimeout = null;
+
     function updateEquationDisplay(){
       eqMainEl.textContent="E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)";
       eqValuesEl.textContent=
@@ -955,6 +966,29 @@
       synth.cancel();
       synth.speak(utt);
     }
+
+    /* ===== BACKEND CALL ===== */
+    async function callBackendLLM(userText) {
+      try {
+        const model = localStorage.getItem(llmModelKey) || "gpt-4.1";
+        const res = await fetch(BACKEND_URL + BACKEND_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: userText,
+            model
+          })
+        });
+        if (!res.ok) throw new Error("Backend HTTP " + res.status);
+        const data = await res.json();
+        // adjust this line if your backend field name is different:
+        return (data.reply || data.text || "").toString();
+      } catch (err) {
+        console.error("Backend error:", err);
+        return "";
+      }
+    }
+
     // emotion maths
     function computeEmotion(strength, analysis){
       const baseFromLength=Math.min(1,0.2+strength/400);
@@ -1013,7 +1047,7 @@
       } else if (faith==="Christianity"){
         prefix="From a Christian encouragement lens I’d say: ";
       } else if (faith==="Hinduism" || faith==="Buddhism" || faith==="Sikhism" ||
-                faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"){
+                 faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"){
         prefix="Through your selected faith lens I’d say: ";
       }
       if (analysis.isAbuse){
@@ -1152,75 +1186,7 @@
       recallHideTimeout=null;
     }
 
-    /* ==== BM snapshot for backend ==== */
-    function getBMSnapshot() {
-      const bm = loadBM();
-      const days = Object.keys(bm).sort().reverse();
-      const latestDay = days[0] || null;
-      let latestNodes = [];
-      if (latestDay) {
-        latestNodes = bm[latestDay].slice(-3);
-      }
-      return {
-        dayCount: days.length,
-        latestDay,
-        latestNodes
-      };
-    }
-
-    /* ==== Backend call: live emotional reactor ==== */
-    async function callBackend(tmText, analysis) {
-      try {
-        const engineMode = localStorage.getItem(engineKey) || "seed";
-        if (engineMode !== "live") return null;
-
-        const payload = {
-          tmText,
-          analysis,
-          equation: {
-            E0, TM, BMvalue, D, Csum, lambdaFaith, lambdaSys
-          },
-          bmSnapshot: getBMSnapshot(),
-          engineMode,
-          llmModel: localStorage.getItem(llmModelKey) || "gpt-4.1"
-        };
-
-        const res = await fetch(BACKEND_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) throw new Error("Non-200 from backend");
-        const data = await res.json();
-
-        const text =
-          data.reactionText ||
-          data.reply ||
-          data.message ||
-          "";
-
-        if (!text) return null;
-
-        // Optional: if backend sends its own E0, adopt it
-        if (typeof data.E0 === "number") {
-          E0 = Math.max(-1, Math.min(1, data.E0));
-          updateReactionBanner(tmText);
-        }
-
-        const polRaw = (data.polarity || data.emotionPolarity || "").toLowerCase();
-        let polarity = "Neutral";
-        if (polRaw.includes("pos")) polarity = "Positive";
-        else if (polRaw.includes("neg")) polarity = "Negative";
-
-        return { text, polarity };
-      } catch (err) {
-        console.warn("Backend call failed, using seed:", err);
-        return null;
-      }
-    }
-
-    /* ==== MAIN SEND FLOW (seed + backend) ==== */
+    /* ===== MAIN MESSAGE HANDLER (WITH BACKEND) ===== */
     async function handleUserMessage(text){
       if (!text.trim()) return;
       appendMessage(text,"user");
@@ -1229,16 +1195,15 @@
       computeEmotion(text.length, analysis);
       updateReactionBanner(text);
 
-      const engineMode = localStorage.getItem(engineKey) || "seed";
       let reply = "";
-      if (engineMode === "live") {
-        const backendReply = await callBackend(text, analysis);
-        if (backendReply && backendReply.text) {
-          reply = backendReply.text;
-        }
+
+      // Try backend if live engine selected
+      if (isLiveEngine()) {
+        reply = await callBackendLLM(text);
       }
 
-      if (!reply) {
+      // Fallback to seed engine if backend empty / error
+      if (!reply || !reply.trim()) {
         reply = buildSeedReply(text, analysis);
       }
 
