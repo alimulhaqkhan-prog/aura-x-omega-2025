@@ -565,7 +565,7 @@
       </button>
     </div>
 
-    <!-- ethics banner in golden -->
+    <!-- ethics banner -->
     <div class="card golden" id="ethicsBanner">
       Avoid actions that generate negative emotions in yourself or others.
       Gently move toward choices that create calm, kindness, and positive feelings.
@@ -620,7 +620,7 @@
     </div>
   </div>
 
-  <!-- Recall Modal (search all BM) -->
+  <!-- Recall Modal -->
   <div class="modal-backdrop" id="recallModalBackdrop">
     <div class="modal">
       <div class="modal-header">
@@ -637,7 +637,7 @@
     </div>
   </div>
 
-  <!-- Auto-Recall View Modal (single matched memory) -->
+  <!-- Auto-Recall View Modal -->
   <div class="modal-backdrop" id="recallViewModalBackdrop">
     <div class="modal">
       <div class="modal-header">
@@ -696,7 +696,7 @@
           </label>
         </div>
 
-        <!-- LLM model selection (UI only) -->
+        <!-- LLM model selection -->
         <div class="option-row" id="llmModelRow" style="display:none;">
           <span>Preferred backend LLM model</span>
           <select id="llmModelSelect">
@@ -740,21 +740,22 @@
         <div class="options-footer-note">
           About AURA-X Ω: Designed around the idea that emotions are continuity functions
           between memories (TM and BM), not isolated sparks. This page is a small offline
-          demo of Alim ul Haq’s emotional continuity theory.
+          + online demo of Alim ul Haq’s emotional continuity theory.
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    /* 🔗 Backend URL – later yahan Render / Railway ka real link laga dena */
-    const backendURL = "https://YOUR-BACKEND-URL/api/aura-x-llm";
+    // 🔗 BACKEND URL (Render)
+    const BACKEND_URL = "https://backend-jliz.onrender.com/api/chat";
+    // agar baad mein naya Render URL ho to sirf yahan change karna
 
     const lsKey = "auraX_bm_v31";
     const faithKey = "auraX_faithLens";
     const engineKey = "auraX_engineMode";
     const llmModelKey = "auraX_llmModel";
-    const smallBufferKey = "auraX_smallTalkBuffer_v1"; // 48h continuity buffer for small talk
+    const smallBufferKey = "auraX_smallTalkBuffer_v1";
 
     const smallTalkPatterns = [
       "hi","hello","hey","salam","assalamualaikum","asalamualaikum",
@@ -816,7 +817,7 @@
       return smallTalkPatterns.some(p=>clean===p || clean.startsWith(p+" "));
     }
 
-    // continuity buffer for greetings etc (48h rolling)
+    // 48h continuity buffer (small-talk only)
     function loadSmallBuffer(){
       try{
         const raw = localStorage.getItem(smallBufferKey);
@@ -884,7 +885,7 @@
       };
     }
 
-    // emotion state
+    // Emotion state
     let TM=0.35, BMvalue=0.55, D=0.0, Csum=0.05;
     let lambdaFaith=0.0;
     const lambdaSys=0.02;
@@ -973,9 +974,10 @@
       div.textContent=text;
       chatLogEl.appendChild(div);
       chatLogEl.scrollTop=chatLogEl.scrollHeight;
+      return div;
     }
 
-    // voice
+    // Voice
     function pickVoiceForPolarity(polarity) {
       const synth = window.speechSynthesis;
       if (!synth) return {voice:null, pitch:1.0, rate:1.0};
@@ -1011,7 +1013,7 @@
       synth.speak(utt);
     }
 
-    // emotion maths
+    // Emotion maths
     function computeEmotion(strength, analysis){
       const baseFromLength=Math.min(1,0.2+strength/400);
       const sentiment = analysis ? analysis.sentiment || 0 : 0;
@@ -1140,14 +1142,12 @@
       }
     }
 
-    // BM store: small talk NEVER stored in BM, only in 48h buffer
+    // BM store
     function storeInBM(userText, botReply){
       if (isMostlySmallTalk(userText)){
-        // only continuity buffer (user + bot as conversation)
         pushSmallBuffer(userText, botReply);
         return;
       }
-
       const autoSumm=document.getElementById("autoSummarizeToggle").checked;
       const full=userText.trim()+"\n\nAURA-X Ω: "+botReply.trim();
       const summary=autoSumm?summarizeTo200Sentences(full):full;
@@ -1180,7 +1180,7 @@
       saveBM(bm);
     }
 
-    // simple word-overlap similarity for auto-recall (0–1)
+    // match score for auto-recall
     function computeMatchScore(a,b){
       if (!a || !b) return 0;
       const tokenize = s =>
@@ -1232,66 +1232,75 @@
       recallHideTimeout=null;
     }
 
-    /* 🔌 Backend LLM call – jab Engine Mode = live hoga */
-    async function callBackendLLM(text, analysis) {
-      const bm = loadBM();
-      const lastDay = Object.keys(bm).sort().reverse()[0];
-      const lastNodes = lastDay ? bm[lastDay] : [];
-      const recentSummary = lastNodes
-        ? lastNodes.slice(-3).map(n => n.summary).join("\n\n")
-        : "";
+    // 🔌 BACKEND CALL
+    async function getLLMReply(userText){
+      const mode = localStorage.getItem(engineKey) || "seed";
+      if (mode !== "live") return null;   // agar live mode nahi to skip
 
-      const body = {
-        tm: text,
-        e0: E0,
-        tmLength: text.length,
-        faithLens: getFaithLens(),
-        recentBM: recentSummary
-      };
-
-      const res = await fetch(backendURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-
-      if (!res.ok) {
-        throw new Error("Backend error " + res.status);
+      const model = localStorage.getItem(llmModelKey) || "gpt-4.1";
+      try{
+        const res = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: userText, model })
+        });
+        if (!res.ok) throw new Error("Backend error");
+        const data = await res.json();
+        if (data && data.reply) return data.reply.trim();
+        return null;
+      }catch(err){
+        console.error("LLM backend error:", err);
+        return null;
       }
-
-      const data = await res.json();
-      return data.reply || "LLM backend ne koi reply nahi diya.";
     }
 
-    /* 🧠 Main handler – ab async, seed-only + live mode dono */
+    // MAIN HANDLER
     async function handleUserMessage(text){
       if (!text.trim()) return;
-      appendMessage(text,"user");
+      const userDiv = appendMessage(text,"user");
 
       const analysis = analyseContent(text);
       computeEmotion(text.length, analysis);
       updateReactionBanner(text);
 
-      const mode = localStorage.getItem(engineKey) || "seed";
-      let reply;
+      // local seed reply
+      const seedReply = buildSeedReply(text, analysis);
 
-      if (mode === "live") {
-        try {
-          reply = await callBackendLLM(text, analysis);
-        } catch (err) {
-          console.error(err);
-          reply = "Backend / LLM se connection nahi ho saka, is liye filhaal seed-only reply de raha hoon.";
+      // by default ye hi reply hoga, baad mein LLM add kar denge
+      let finalReply = seedReply;
+
+      const mode = localStorage.getItem(engineKey) || "seed";
+      let tempDiv = null;
+
+      if (mode === "live"){
+        // chhota sa loading message
+        tempDiv = appendMessage("Connecting to AURA-X Ω live reactor…","bot");
+        const llmReply = await getLLMReply(text);
+        if (llmReply){
+          // temp ko replace kar dete hain
+          tempDiv.textContent = "AURA-X Ω (LLM): " + llmReply;
+          // BM ke liye combined reply
+          finalReply = seedReply + "\n\nAURA-X Ω (LLM): " + llmReply;
+        }else{
+          tempDiv.textContent = "Backend not available, using local seed engine only.";
         }
-      } else {
-        reply = buildSeedReply(text, analysis);
+      }else{
+        appendMessage(seedReply,"bot");
       }
 
-      appendMessage(reply,"bot");
-      storeInBM(text,reply);
-      speakReply(reply);
+      if (mode === "live" && tempDiv && tempDiv.textContent.startsWith("Backend not")){
+        // sirf seed reply screen par show hua hai
+        // nothing extra
+      } else if (mode === "live" && tempDiv && !tempDiv.textContent.startsWith("Backend not")){
+        // seed reply alag se show nahi hua, to chahen to niche chhota note bhi de sakte ho
+        appendMessage(seedReply,"bot");
+      }
+
+      storeInBM(text, finalReply);
+      speakReply(seedReply); // voice sirf seed reply par (LLM text bohat lamba ho sakta hai)
+
       userInputEl.value="";
 
-      // auto-recall only for non-small-talk TM
       if (!isMostlySmallTalk(text)){
         const candidate = findBestRecallMatch(text);
         if (candidate) showAutoRecallHint(candidate);
@@ -1518,12 +1527,28 @@
       hideAutoRecallHint();
     });
 
-    // Options
+    // Options & engine mode
     const optionsBackdrop=document.getElementById("optionsModalBackdrop");
     const engineModeToggle=document.getElementById("engineModeToggle");
     const engineModeLabel=document.getElementById("engineModeLabel");
     const llmModelRow=document.getElementById("llmModelRow");
     const llmModelSelect=document.getElementById("llmModelSelect");
+
+    const faithRow=document.getElementById("faithRow");
+    function getFaithLensStored(){ return localStorage.getItem(faithKey) || "None"; }
+    function applyFaithHighlight(){
+      const current=getFaithLensStored();
+      faithRow.querySelectorAll(".faith-pill").forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.faith===current);
+      });
+    }
+
+    faithRow.addEventListener("click",e=>{
+      const btn=e.target.closest(".faith-pill");
+      if(!btn) return;
+      localStorage.setItem(faithKey, btn.dataset.faith);
+      applyFaithHighlight();
+    });
 
     function applyEngineMode(){
       const mode=localStorage.getItem(engineKey) || "seed";
@@ -1555,22 +1580,6 @@
       }
     }
 
-    const faithRow=document.getElementById("faithRow");
-    function getFaithLensStored(){ return localStorage.getItem(faithKey) || "None"; }
-    function applyFaithHighlight(){
-      const current=getFaithLensStored();
-      faithRow.querySelectorAll(".faith-pill").forEach(btn=>{
-        btn.classList.toggle("active", btn.dataset.faith===current);
-      });
-    }
-
-    faithRow.addEventListener("click",e=>{
-      const btn=e.target.closest(".faith-pill");
-      if(!btn) return;
-      localStorage.setItem(faithKey, btn.dataset.faith);
-      applyFaithHighlight();
-    });
-
     document.getElementById("optionsBtn").addEventListener("click",()=>{
       applyFaithHighlight();
       applyEngineMode();
@@ -1589,7 +1598,7 @@
       });
     }
 
-    // BM clear / delete (BM only, buffer ♻️ separate)
+    // BM clear / delete
     document.getElementById("clear24hBtn").addEventListener("click",()=>{
       const bm=loadBM();
       delete bm[todayKey()];
@@ -1602,7 +1611,7 @@
       optionsBackdrop.style.display="none";
     });
 
-    // Recycle / continuity buffer modal logic
+    // Recycle / continuity buffer modal
     const recycleBackdrop=document.getElementById("recycleModalBackdrop");
     const recycleBody=document.getElementById("recycleModalBody");
 
@@ -1683,7 +1692,7 @@
       recycleBackdrop.style.display="flex";
     });
 
-    // Close modals
+    // Close modals by clicking background
     document.querySelectorAll(".modal-close").forEach(btn=>{
       btn.addEventListener("click",e=>{
         const target=e.target.getAttribute("data-close");
@@ -1705,7 +1714,7 @@
     applyEngineMode();
     applyFaithHighlight();
     updateEquationDisplay();
-    loadSmallBuffer(); // trigger 48h cleanup on start
+    loadSmallBuffer(); // cleanup
 
     if ("speechSynthesis" in window) {
       window.speechSynthesis.getVoices();
