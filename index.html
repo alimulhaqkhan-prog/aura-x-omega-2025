@@ -582,7 +582,6 @@
       </div>
     </div>
   </div>
-
   <!-- BM Viewer Modal -->
   <div class="modal-backdrop" id="bmModalBackdrop">
     <div class="modal">
@@ -677,7 +676,7 @@
             <option value="command-r-plus">Cohere – Command-R+</option>
             <option value="grok-2">xAI – Grok-2</option>
             <option value="llama-3-70b-instruct">Meta – Llama-3-70B-Instruct</option>
-            <option value="qwen-2-72b">Qwen – Qwen-2-72B</option>
+            <option value="qwen-2-72b">Qwen – Qwen-2-72b</option>
             <option value="deepseek-coder-v2">DeepSeek – DeepSeek-Coder-V2</option>
           </select>
         </div>
@@ -714,8 +713,7 @@
   </div>
 
   <script>
-    /* ===== BACKEND CONFIG ===== */
-    // yahan apna asli Render backend URL + route lagayen:
+    // === BACKEND CONFIG (LIVE LLM) – change this URL to your Render backend ===
     const BACKEND_URL = "https://YOUR-RENDER-APP.onrender.com/api/react";
 
     const lsKey = "auraX_bm_v31";
@@ -767,6 +765,7 @@
     function saveBM(data) { localStorage.setItem(lsKey, JSON.stringify(data)); }
     function todayKey() { return new Date().toISOString().slice(0,10); }
     function tanh(x){ const e2x=Math.exp(2*x); return (e2x-1)/(e2x+1); }
+
     function approximateSentences(text){
       return text.split(/[.!?۔\n]/).filter(s=>s.trim().length>0);
     }
@@ -775,11 +774,6 @@
       if (sentences.length<=200) return text.trim();
       return sentences.slice(0,200).join(". ").slice(0,10000);
     }
-
-    function engineModeIsLive(){
-      return localStorage.getItem(engineKey)==="live";
-    }
-
     function isMostlySmallTalk(text){
       const clean=text.toLowerCase().trim();
       if (clean.length>80) return false;
@@ -822,7 +816,6 @@
     function countAny(lower, arr){
       return arr.reduce((c,w)=> c + (lower.includes(w)?1:0), 0);
     }
-
     function analyseContent(text){
       const lower = text.toLowerCase();
       const abuseCount = countAny(lower, abuseWords);
@@ -1000,14 +993,14 @@
       updateEquationDisplay();
     }
 
-    function getFaithLensStored(){
+    function getFaithLens(){
       return localStorage.getItem(faithKey) || "None";
     }
 
     function buildSeedReply(userText, analysis){
       const clean=userText.trim();
       const lower=clean.toLowerCase();
-      const faith=getFaithLensStored();
+      const faith=getFaithLens();
       analysis = analysis || analyseContent(userText);
 
       if (isMostlySmallTalk(clean)){
@@ -1042,7 +1035,7 @@
       } else if (faith==="Christianity"){
         prefix="From a Christian encouragement lens I’d say: ";
       } else if (faith==="Hinduism" || faith==="Buddhism" || faith==="Sikhism" ||
-                faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"){
+                 faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"){
         prefix="Through your selected faith lens I’d say: ";
       }
 
@@ -1060,7 +1053,7 @@
 
       if (analysis.hasDua || analysis.hasTawakkul){
         let msg = prefix +
-          "Your words carry dua and tawakkul. This kind of trust usually lowers D and increases ΣCₜ in the equation, "+
+          "Your words carry dua and trust. This kind of reliance usually lowers D and increases ΣCₜ in the equation, "+
           "so even painful memories can start moving toward calmer trajectories.";
         if (faith==="Islam"){
           msg += " Keep combining wise action with sincere dua — ‘tie your camel and trust Allah’ style — so your long-run BM stays balanced.";
@@ -1072,7 +1065,7 @@
 
       if (analysis.hasShukr){
         return prefix +
-          "There is clear shukr / gratitude inside this TM. Even when life is heavy, noticing small blessings gently pulls E₀ to the positive side. "+
+          "There is clear gratitude inside this TM. Even when life is heavy, noticing small blessings gently pulls E₀ to the positive side. "+
           "Keep bookmarking such moments — they become strong, protective BM nodes for the future you.";
       }
 
@@ -1084,8 +1077,8 @@
 
       if (analysis.hasEmpathy){
         return prefix +
-          "Your words carry hamdardi — you are trying to share someone else’s pain, not just your own. "+
-          "This kind of empathy increases positive continuity even if the story itself is sad, because it creates safe emotional space for others.";
+          "Your words carry empathy — you are trying to share someone else’s pain, not just your own. "+
+          "This kind of compassion increases positive continuity even if the story itself is sad, because it creates safe emotional space for others.";
       }
 
       if (E0>0.15){
@@ -1184,7 +1177,6 @@
         lastRecallCandidate=null;
       }, 8000);
     }
-
     function hideAutoRecallHint(){
       autoRecallHint.style.display="none";
       lastRecallCandidate=null;
@@ -1192,60 +1184,85 @@
       recallHideTimeout=null;
     }
 
-    async function callBackendForReply(userText, analysis){
-      const payload = {
-        tm: userText,
-        analysis,
-        state: {
-          TM, BMvalue, D, Csum, lambdaFaith, lambdaSys, E0
-        },
-        faith: getFaithLensStored(),
-        model: localStorage.getItem(llmModelKey) || "gpt-4.1"
-      };
+    // === Call backend LLM when Engine Mode = "live" ===
+    async function callBackendLLM(userText, analysis) {
       try {
+        if (!BACKEND_URL) {
+          throw new Error("BACKEND_URL is not configured.");
+        }
+
+        const faithLens = getFaithLensStored();
+        const model = localStorage.getItem(llmModelKey) || "gpt-4.1";
+        const payload = {
+          tm: userText,
+          analysis,
+          state: { TM, BMvalue, D, Csum, lambdaFaith, lambdaSys, E0 },
+          faithLens,
+          model
+        };
+
         const res = await fetch(BACKEND_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
+
         if (!res.ok) {
-          throw new Error("HTTP "+res.status);
+          throw new Error(`HTTP ${res.status}`);
         }
+
         const data = await res.json();
-        // yahan aap backend ka actual JSON schema adjust kar sakte hain:
-        const reply = data.reply || data.message || data.text;
-        if (!reply) throw new Error("No reply in backend JSON");
-        return reply;
+        if (data && typeof data.reply === "string") {
+          return { reply: data.reply, error: null };
+        }
+        throw new Error("Invalid JSON from backend");
       } catch (err) {
-        return (
-          "Backend error aya, lekin TM/BM local side par phir bhi save ho sakte hain. "+
-          "Thori dair baad dobara try karein.\n\n"+
-          "[LLM backend error: "+(err && err.message ? err.message : "Unknown")+"]"
-        );
+        console.error("LLM backend error:", err);
+        return { reply: null, error: err.message || String(err) };
       }
     }
 
-    async function handleUserMessage(text){
+    async function handleUserMessage(text) {
       if (!text.trim()) return;
-      appendMessage(text,"user");
+
+      appendMessage(text, "user");
 
       const analysis = analyseContent(text);
       computeEmotion(text.length, analysis);
       updateReactionBanner(text);
 
-      let reply;
-      if (engineModeIsLive()) {
-        // pehle backend se try karein
-        reply = await callBackendForReply(text, analysis);
-        // agar reply backend error wala bhi ho, BM mein save ho jayega
-      } else {
-        reply = buildSeedReply(text, analysis);
+      const mode = (localStorage.getItem(engineKey) || "seed"); // "seed" or "live"
+      let finalReply = "";
+      let backendError = null;
+
+      if (mode === "live" && BACKEND_URL) {
+        const { reply, error } = await callBackendLLM(text, analysis);
+        if (reply) {
+          finalReply = reply;
+        } else {
+          backendError = error || "Unknown error";
+        }
       }
 
-      appendMessage(reply,"bot");
-      storeInBM(text,reply);
-      speakReply(reply);
-      userInputEl.value="";
+      // If backend failed OR mode is seed-only → use local seed reply
+      if (!finalReply) {
+        const seedReply = buildSeedReply(text, analysis);
+        if (backendError) {
+          finalReply =
+            "A backend error occurred, but your TM/BM are still saved locally. " +
+            "You can continue using the local emotional reactor and try live mode again later.\n\n" +
+            "Local seed reaction:\n" +
+            seedReply +
+            `\n\n[LLM backend error: ${backendError}]`;
+        } else {
+          finalReply = seedReply;
+        }
+      }
+
+      appendMessage(finalReply, "bot");
+      storeInBM(text, finalReply);
+      speakReply(finalReply);
+      userInputEl.value = "";
 
       // auto-recall only for non-small-talk TM
       if (!isMostlySmallTalk(text)){
@@ -1402,8 +1419,8 @@
             node.summary+
             "\n\nEmotional formula snapshot:\n"+
             "E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)\n"+
-            `E₀=${(node.E0??0).toFixed(2)}, TM=${(node.TM ?? TM).toFixed(2)}, BM=${(node.BMvalue??BMvalue).toFixed(2)}, `+
-            `D=${(node.D ?? D).toFixed(2)}, ΣCₜ=${(node.Csum ?? Csum).toFixed(2)}, `+
+            `E₀=${(node.E0??0).toFixed(2)}, TM=${node.TM.toFixed(2)}, BM=${(node.BMvalue??BMvalue).toFixed(2)}, `+
+            `D=${node.D.toFixed(2)}, ΣCₜ=${node.Csum.toFixed(2)}, `+
             `layers=${node.layers.join(",")}`;
           navigator.clipboard.writeText(prompt).catch(()=>{});
         });
@@ -1468,7 +1485,6 @@
     const engineModeLabel=document.getElementById("engineModeLabel");
     const llmModelRow=document.getElementById("llmModelRow");
     const llmModelSelect=document.getElementById("llmModelSelect");
-    const faithRow=document.getElementById("faithRow");
 
     function applyEngineMode(){
       const mode=localStorage.getItem(engineKey) || "seed";
@@ -1497,13 +1513,14 @@
       }
     }
 
+    const faithRow=document.getElementById("faithRow");
+    function getFaithLensStored(){ return localStorage.getItem(faithKey) || "None"; }
     function applyFaithHighlight(){
       const current=getFaithLensStored();
       faithRow.querySelectorAll(".faith-pill").forEach(btn=>{
         btn.classList.toggle("active", btn.dataset.faith===current);
       });
     }
-
     faithRow.addEventListener("click",e=>{
       const btn=e.target.closest(".faith-pill");
       if(!btn) return;
@@ -1623,11 +1640,13 @@
         }
       });
     });
-    [document.getElementById("bmModalBackdrop"),
-     document.getElementById("recallModalBackdrop"),
-     document.getElementById("optionsModalBackdrop"),
-     document.getElementById("recycleModalBackdrop"),
-     document.getElementById("recallViewModalBackdrop")].forEach(backdrop=>{
+    [
+      document.getElementById("bmModalBackdrop"),
+      document.getElementById("recallModalBackdrop"),
+      document.getElementById("optionsModalBackdrop"),
+      document.getElementById("recycleModalBackdrop"),
+      document.getElementById("recallViewModalBackdrop")
+    ].forEach(backdrop=>{
       backdrop.addEventListener("click",e=>{
         if(e.target===backdrop) backdrop.style.display="none";
       });
