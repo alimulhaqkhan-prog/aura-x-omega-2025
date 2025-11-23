@@ -262,27 +262,31 @@
       color: #4b5563;
     }
 
-    /* Auto recall hint */
-    .auto-recall-hint {
-      margin-top: 2px;
-      border-radius: 999px;
-      padding: 4px 8px;
-      border: 1px solid #facc15;
-      background: #fef9c3;
-      font-size: 0.72rem;
+    /* Auto-recall bar */
+    .auto-recall-bar {
       display: none;
+      margin-top: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: #fef9c3;
+      border: 1px solid #facc15;
+      font-size: 0.75rem;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 8px;
     }
-    .auto-recall-hint button {
+    .auto-recall-text {
+      flex: 1;
+    }
+    .auto-recall-btn {
       border-radius: 999px;
       border: none;
-      padding: 3px 8px;
-      font-size: 0.7rem;
+      padding: 4px 10px;
+      font-size: 0.75rem;
       cursor: pointer;
-      background: #1d4ed8;
+      background: #2563eb;
       color: #e5e7eb;
+      white-space: nowrap;
     }
 
     /* Modals shared */
@@ -533,6 +537,21 @@
       font-size: 0.72rem;
       opacity: 0.8;
     }
+
+    /* Recycle buffer list */
+    .recycle-item {
+      margin-bottom: 6px;
+      padding: 6px 8px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #fffbeb;
+      font-size: 0.75rem;
+    }
+    .recycle-meta {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      margin-bottom: 2px;
+    }
   </style>
 </head>
 <body>
@@ -557,7 +576,7 @@
       <button class="pill-btn primary" id="recallBtn">
         <span class="icon">📂</span><span>Recall BM</span>
       </button>
-      <button class="pill-btn" id="cleanupBtn">
+      <button class="pill-btn" id="recycleBtn">
         <span class="icon">♻️</span><span>Recycle 48h</span>
       </button>
       <button class="pill-btn" id="optionsBtn">
@@ -597,9 +616,11 @@
         <button class="send-btn" id="sendBtn">Send</button>
       </div>
 
-      <div id="autoRecallHint" class="auto-recall-hint">
-        <span id="autoRecallText">💡 Related memory found.</span>
-        <button id="autoRecallOpenBtn">Open</button>
+      <div id="autoRecallBar" class="auto-recall-bar">
+        <span id="autoRecallText" class="auto-recall-text">
+          💡 Related memory ~7% match. Open previous topic?
+        </span>
+        <button id="autoRecallOpenBtn" class="auto-recall-btn">Open</button>
       </div>
 
       <div class="footer-line">
@@ -620,7 +641,7 @@
     </div>
   </div>
 
-  <!-- Recall Modal (search all BM) -->
+  <!-- Recall Modal -->
   <div class="modal-backdrop" id="recallModalBackdrop">
     <div class="modal">
       <div class="modal-header">
@@ -634,28 +655,6 @@
         </div>
         <div id="recallList"></div>
       </div>
-    </div>
-  </div>
-
-  <!-- Auto-Recall View Modal (single matched memory) -->
-  <div class="modal-backdrop" id="recallViewModalBackdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title"><span>💡</span> Auto-Recall Memory</div>
-        <button class="modal-close" data-close="recallViewModalBackdrop">Close</button>
-      </div>
-      <div class="modal-body" id="recallViewBody"></div>
-    </div>
-  </div>
-
-  <!-- Recycle / continuity buffer Modal -->
-  <div class="modal-backdrop" id="recycleModalBackdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title"><span>♻️</span> Continuity buffer – last 48 hours</div>
-        <button class="modal-close" data-close="recycleModalBackdrop">Close</button>
-      </div>
-      <div class="modal-body" id="recycleModalBody"></div>
     </div>
   </div>
 
@@ -730,11 +729,11 @@
           </label>
         </div>
         <div class="option-row">
-          <span>Clear today’s BM (this day only)</span>
-          <button class="modal-close" id="clear24hBtn">♻️ Clear Today</button>
+          <span>Clear today’s BM + continuity buffer</span>
+          <button class="modal-close" id="clear24hBtn">♻️ Clear 24h</button>
         </div>
         <div class="option-row">
-          <span>Delete full local BM life (all days)</span>
+          <span>Delete full local BM life (all days + continuity buffer)</span>
           <button class="modal-close" id="clearAllBtn">Delete All</button>
         </div>
         <div class="options-footer-note">
@@ -746,12 +745,35 @@
     </div>
   </div>
 
+  <!-- Recycle 48h Modal (small-talk buffer) -->
+  <div class="modal-backdrop" id="recycleModalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title"><span>♻️</span> Recycle 48h – Continuity Buffer</div>
+        <button class="modal-close" data-close="recycleModalBackdrop">Close</button>
+      </div>
+      <div class="modal-body" id="recycleModalBody"></div>
+      <button class="modal-close" id="clearRecycleBtn">Clear 48h buffer</button>
+    </div>
+  </div>
+
+  <!-- Auto-Recall Modal -->
+  <div class="modal-backdrop" id="autoRecallModalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title"><span>💡</span> Auto-Recall Memory</div>
+        <button class="modal-close" data-close="autoRecallModalBackdrop">Close</button>
+      </div>
+      <div class="modal-body" id="autoRecallModalBody"></div>
+    </div>
+  </div>
+
   <script>
     const lsKey = "auraX_bm_v31";
     const faithKey = "auraX_faithLens";
     const engineKey = "auraX_engineMode";
     const llmModelKey = "auraX_llmModel";
-    const smallBufferKey = "auraX_smallTalkBuffer_v1"; // 48h continuity buffer for small talk
+    const smallBufferKey = "auraX_smallTalkBuffer_v1"; // 48h continuity buffer
 
     const smallTalkPatterns = [
       "hi","hello","hey","salam","assalamualaikum","asalamualaikum",
@@ -833,13 +855,9 @@
     function saveSmallBuffer(arr){
       localStorage.setItem(smallBufferKey, JSON.stringify(arr));
     }
-    function pushSmallBuffer(userText, botReply){
+    function pushSmallBuffer(text){
       const arr = loadSmallBuffer();
-      arr.push({
-        ts:new Date().toISOString(),
-        text:userText.trim(),
-        reply:(botReply||"").trim()
-      });
+      arr.push({ts:new Date().toISOString(), text:text.trim()});
       saveSmallBuffer(arr);
     }
 
@@ -894,13 +912,10 @@
     const modePill=document.getElementById("modePill");
     const reactionBannerEl=document.getElementById("reactionBanner");
     const voiceToggleEl=document.getElementById("voiceToggle");
-    let autoVoice = true;
-
-    const autoRecallHint = document.getElementById("autoRecallHint");
+    const autoRecallBar = document.getElementById("autoRecallBar");
     const autoRecallText = document.getElementById("autoRecallText");
     const autoRecallOpenBtn = document.getElementById("autoRecallOpenBtn");
-    let lastRecallCandidate = null;
-    let recallHideTimeout = null;
+    let autoVoice = true;
 
     function updateEquationDisplay(){
       eqMainEl.textContent="E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)";
@@ -1137,12 +1152,12 @@
       }
     }
 
-    // BM store: small talk NEVER stored in BM, only in 48h buffer
     function storeInBM(userText, botReply){
+      const ignoreSmall=document.getElementById("ignoreSmallTalkToggle").checked;
       if (isMostlySmallTalk(userText)){
-        // only continuity buffer (user + bot as conversation)
-        pushSmallBuffer(userText, botReply);
-        return;
+        // keep only in hidden 48h continuity buffer
+        pushSmallBuffer(userText);
+        if (ignoreSmall) return;
       }
 
       const autoSumm=document.getElementById("autoSummarizeToggle").checked;
@@ -1177,57 +1192,127 @@
       saveBM(bm);
     }
 
-    // simple word-overlap similarity for auto-recall (0–1)
-    function computeMatchScore(a,b){
-      if (!a || !b) return 0;
-      const tokenize = s =>
-        s.toLowerCase()
-         .replace(/[^a-z0-9\u0600-\u06FF\s]/g," ")
-         .split(/\s+/)
-         .filter(w=>w.length>2);
-      const waArr = tokenize(a);
-      const wbArr = tokenize(b);
-      if (!waArr.length || !wbArr.length) return 0;
-      const wa = new Set(waArr);
-      let matches=0;
-      wbArr.forEach(w => { if (wa.has(w)) matches++; });
-      return matches / Math.max(wa.size, wbArr.length);
+    /* ---------- Auto-Recall logic ---------- */
+
+    const stopWords = [
+      "the","a","an","is","are","to","of","and","for","in","on","at","with",
+      "this","that","i","you","he","she","they","we","it","was","were","be",
+      "been","have","has","had","will","shall","would","should","can","could",
+      "may","might","do","did","does","not","no","yes","but","so","if","or",
+      "as","from","by","about","into","over","after","before","when","while",
+      "then","there","here","just","very","too","also","only","own"
+    ];
+
+    function tokenizeMeaningful(text){
+      return text
+        .toLowerCase()
+        .replace(/[^a-z0-9\u0600-\u06FF\s]+/g," ")
+        .split(/\s+/)
+        .filter(w => w.length>=3 && !stopWords.includes(w));
     }
 
-    function findBestRecallMatch(tmText){
-      const bm=loadBM();
-      let best=null;
+    function jaccardSimilarity(tokensA, tokensB){
+      if (!tokensA.length || !tokensB.length) return 0;
+      const setA = new Set(tokensA);
+      const setB = new Set(tokensB);
+      let inter = 0;
+      setA.forEach(t => { if (setB.has(t)) inter++; });
+      const union = setA.size + setB.size - inter;
+      return union ? inter/union : 0;
+    }
+
+    function findBestBMMatch(tmText){
+      const clean = tmText.trim();
+      if (!clean || clean.length < 40) return null;        // very short lines skip
+      if (isMostlySmallTalk(clean)) return null;           // greetings skip
+
+      const tmTokens = tokenizeMeaningful(clean);
+      if (tmTokens.length < 4) return null;                // need some content
+
+      const bm = loadBM();
+      const entries = [];
       Object.entries(bm).forEach(([day,nodes])=>{
-        nodes.forEach(node=>{
-          const baseText = node.summary || node.full || "";
-          const score = computeMatchScore(tmText, baseText);
-          if (score>=0.05 && (!best || score>best.score)){
-            best={day,node,score};
-          }
-        });
+        nodes.forEach(node => entries.push({day,node}));
       });
-      return best;
+      if (!entries.length) return null;
+
+      let best = null;
+      let bestScore = 0;
+
+      entries.forEach(item=>{
+        const text = (item.node.summary || item.node.full || "").slice(0,600);
+        const nodeTokens = tokenizeMeaningful(text);
+        if (!nodeTokens.length) return;
+        const score = jaccardSimilarity(tmTokens, nodeTokens);
+        if (score > bestScore) {
+          bestScore = score;
+          best = item;
+        }
+      });
+
+      const MATCH_THRESHOLD = 0.07; // ≈7% overlap
+      if (!best || bestScore < MATCH_THRESHOLD) return null;
+
+      return { day: best.day, node: best.node, score: bestScore };
     }
 
-    function showAutoRecallHint(candidate){
-      lastRecallCandidate = candidate;
-      const perc = Math.round(candidate.score*100);
-      autoRecallText.textContent =
-        `💡 Related memory ~${perc}% match. Open previous topic?`;
-      autoRecallHint.style.display="flex";
-      if (recallHideTimeout) clearTimeout(recallHideTimeout);
-      recallHideTimeout = setTimeout(()=>{
-        autoRecallHint.style.display="none";
-        lastRecallCandidate=null;
-      }, 8000);
+    let currentAutoRecall = null;
+
+    function maybeShowAutoRecall(tmText){
+      const match = findBestBMMatch(tmText);
+      if (!match){
+        autoRecallBar.style.display = "none";
+        currentAutoRecall = null;
+        return;
+      }
+      currentAutoRecall = match;
+      const pct = Math.round(match.score * 100);
+      autoRecallText.textContent = `💡 Related memory ~${pct}% match. Open previous topic?`;
+      autoRecallBar.style.display = "flex";
     }
 
-    function hideAutoRecallHint(){
-      autoRecallHint.style.display="none";
-      lastRecallCandidate=null;
-      if (recallHideTimeout) clearTimeout(recallHideTimeout);
-      recallHideTimeout=null;
+    function buildAutoRecallModal(match){
+      const {day,node,score} = match;
+      const body = document.getElementById("autoRecallModalBody");
+      body.innerHTML = "";
+
+      const wrap = document.createElement("div");
+      wrap.className = "bm-node";
+
+      const header = document.createElement("div");
+      header.className = "bm-node-meta";
+      header.textContent = `Day: ${day} · Match ≈ ${Math.round(score*100)}%`;
+
+      const meta = document.createElement("div");
+      meta.className = "bm-node-meta";
+      const pol = node.polarity || "Neutral";
+      const intensity = node.intensity ?? Math.abs(node.E0 ?? 0);
+      const {pos,neg} = polarityPercentages(pol,intensity);
+      const polLine = pol==="Neutral"
+        ? `Polarity: Neutral 50 : 50`
+        : `Polarity: ${pos} : ${neg}`;
+      meta.textContent =
+        `${pol} · E₀≈${(node.E0??node.intensity).toFixed(2)} · `+
+        new Date(node.ts).toLocaleTimeString() + " · " + polLine;
+
+      const title = document.createElement("div");
+      title.className = "bm-node-title";
+      title.textContent = (node.summary || "").slice(0,80) +
+        ((node.summary||"").length>80 ? "…" : "");
+
+      const full = document.createElement("div");
+      full.style.fontSize = "0.75rem";
+      full.style.marginTop = "4px";
+      full.textContent = node.full || node.summary || "";
+
+      wrap.appendChild(header);
+      wrap.appendChild(meta);
+      wrap.appendChild(title);
+      wrap.appendChild(full);
+      body.appendChild(wrap);
     }
+
+    /* ---------- Main message handling ---------- */
 
     function handleUserMessage(text){
       if (!text.trim()) return;
@@ -1237,18 +1322,13 @@
       updateReactionBanner(text);
       const reply=buildSeedReply(text, analysis);
       appendMessage(reply,"bot");
+
+      // auto-recall check BEFORE storing this TM as BM, so it doesn't match itself
+      maybeShowAutoRecall(text);
+
       storeInBM(text,reply);
       speakReply(reply);
       userInputEl.value="";
-
-      // auto-recall only for non-small-talk TM
-      if (!isMostlySmallTalk(text)){
-        const candidate = findBestRecallMatch(text);
-        if (candidate) showAutoRecallHint(candidate);
-        else hideAutoRecallHint();
-      } else {
-        hideAutoRecallHint();
-      }
     }
 
     document.getElementById("sendBtn").addEventListener("click",()=>{
@@ -1266,6 +1346,12 @@
       autoVoice = !autoVoice;
       voiceToggleEl.classList.toggle("inactive", !autoVoice);
       voiceToggleEl.textContent = autoVoice ? "🔊 Voice: On" : "🔇 Voice: Off";
+    });
+
+    autoRecallOpenBtn.addEventListener("click", () => {
+      if (!currentAutoRecall) return;
+      buildAutoRecallModal(currentAutoRecall);
+      document.getElementById("autoRecallModalBackdrop").style.display = "flex";
     });
 
     // BM Viewer
@@ -1347,7 +1433,7 @@
       bmBackdrop.style.display="flex";
     });
 
-    // Recall (search BM)
+    // Recall
     const recallBackdrop=document.getElementById("recallModalBackdrop");
     const recallInput=document.getElementById("recallSearchInput");
     const recallList=document.getElementById("recallList");
@@ -1424,48 +1510,42 @@
       rebuildRecallList(recallInput.value);
     });
 
-    // Auto-Recall view modal
-    const recallViewBackdrop=document.getElementById("recallViewModalBackdrop");
-    const recallViewBody=document.getElementById("recallViewBody");
-    autoRecallOpenBtn.addEventListener("click",()=>{
-      if (!lastRecallCandidate) return;
-      const {day,node,score} = lastRecallCandidate;
-      recallViewBody.innerHTML="";
-      const title=document.createElement("div");
-      title.className="bm-day-title";
-      title.textContent=`Day: ${day} · Match ≈ ${Math.round(score*100)}%`;
+    // Recycle 48h (small-talk buffer)
+    const recycleBackdrop = document.getElementById("recycleModalBackdrop");
+    const recycleBody = document.getElementById("recycleModalBody");
 
-      const meta=document.createElement("div");
-      meta.className="bm-node-meta";
-      meta.textContent=
-        `${node.polarity} · E₀≈${(node.E0??node.intensity).toFixed(2)} · `+
-        new Date(node.ts).toLocaleString();
-
-      const polLine=document.createElement("div");
-      polLine.className="bm-node-polarity";
-      const pol = node.polarity || "Neutral";
-      const intensity = node.intensity ?? Math.abs(node.E0 ?? 0);
-      const {pos,neg} = polarityPercentages(pol,intensity);
-      if(pol==="Neutral"){
-        polLine.innerHTML=`Polarity: <span class="neu">Neutral 50 : 50</span>`;
-      }else if(pol==="Positive"){
-        polLine.innerHTML=`Polarity: <span class="pos">${pos}</span> : <span class="neg">${neg}</span>`;
-      }else{
-        polLine.innerHTML=`Polarity: <span class="pos">${pos}</span> : <span class="neg">${neg}</span>`;
+    function rebuildRecycleList(){
+      const buf = loadSmallBuffer();
+      recycleBody.innerHTML = "";
+      if (!buf.length){
+        recycleBody.textContent =
+          "No small-talk continuity messages stored in the last 48 hours.\n"+
+          "Greetings like hello / hi / how are you will appear here instead of BM.";
+        return;
       }
+      buf.sort((a,b)=> a.ts<b.ts ? 1 : -1);
+      buf.forEach(item=>{
+        const div = document.createElement("div");
+        div.className = "recycle-item";
+        const meta = document.createElement("div");
+        meta.className = "recycle-meta";
+        meta.textContent = new Date(item.ts).toLocaleString();
+        const text = document.createElement("div");
+        text.textContent = item.text;
+        div.appendChild(meta);
+        div.appendChild(text);
+        recycleBody.appendChild(div);
+      });
+    }
 
-      const fullText=document.createElement("div");
-      fullText.style.fontSize="0.75rem";
-      fullText.style.whiteSpace="pre-wrap";
-      fullText.textContent=node.full || node.summary;
+    document.getElementById("recycleBtn").addEventListener("click",()=>{
+      rebuildRecycleList();
+      recycleBackdrop.style.display = "flex";
+    });
 
-      recallViewBody.appendChild(title);
-      recallViewBody.appendChild(meta);
-      recallViewBody.appendChild(polLine);
-      recallViewBody.appendChild(fullText);
-
-      recallViewBackdrop.style.display="flex";
-      hideAutoRecallHint();
+    document.getElementById("clearRecycleBtn").addEventListener("click", () => {
+      saveSmallBuffer([]);
+      recycleBackdrop.style.display = "none";
     });
 
     // Options
@@ -1539,98 +1619,19 @@
       });
     }
 
-    // BM clear / delete (BM only, buffer ♻️ separate)
     document.getElementById("clear24hBtn").addEventListener("click",()=>{
       const bm=loadBM();
       delete bm[todayKey()];
       saveBM(bm);
+      // also clear continuity buffer
+      saveSmallBuffer([]);
       optionsBackdrop.style.display="none";
     });
 
     document.getElementById("clearAllBtn").addEventListener("click",()=>{
       localStorage.removeItem(lsKey);
+      saveSmallBuffer([]);
       optionsBackdrop.style.display="none";
-    });
-
-    // Recycle / continuity buffer modal logic
-    const recycleBackdrop=document.getElementById("recycleModalBackdrop");
-    const recycleBody=document.getElementById("recycleModalBody");
-
-    function rebuildRecycleView(){
-      const buf=loadSmallBuffer();
-      recycleBody.innerHTML="";
-      if (!buf.length){
-        recycleBody.textContent="No continuity buffer stored in the last 48 hours. Greetings and tiny small-talk will appear here when you use them.";
-        return;
-      }
-      const groups={};
-      buf.forEach(item=>{
-        const key=(item.ts||"").slice(0,10) || "Unknown";
-        if (!groups[key]) groups[key]=[];
-        groups[key].push(item);
-      });
-
-      Object.entries(groups)
-        .sort(([a],[b])=>a<b?1:-1)
-        .forEach(([day,items])=>{
-          const wrap=document.createElement("div");
-          wrap.className="bm-day";
-          const title=document.createElement("div");
-          title.className="bm-day-title";
-          title.textContent=`${day} (${items.length} messages)`;
-          wrap.appendChild(title);
-
-          items.forEach(it=>{
-            const nDiv=document.createElement("div");
-            nDiv.className="bm-node";
-            const meta=document.createElement("div");
-            meta.className="bm-node-meta";
-            meta.textContent=new Date(it.ts).toLocaleTimeString();
-
-            const convo=document.createElement("div");
-            convo.style.fontSize="0.72rem";
-            convo.style.whiteSpace="pre-wrap";
-            const u = it.text || "";
-            const r = it.reply || "";
-            if (r){
-              convo.textContent = "You: " + u + "\nAURA-X Ω: " + r;
-            } else {
-              convo.textContent = u;
-            }
-
-            nDiv.appendChild(meta);
-            nDiv.appendChild(convo);
-            wrap.appendChild(nDiv);
-          });
-
-          const delDayBtn=document.createElement("button");
-          delDayBtn.className="delete-day-btn";
-          delDayBtn.textContent="Delete this day";
-          delDayBtn.addEventListener("click",()=>{
-            const curr=loadSmallBuffer();
-            const filtered=curr.filter(x=>(x.ts||"").slice(0,10)!==day);
-            saveSmallBuffer(filtered);
-            rebuildRecycleView();
-          });
-          wrap.appendChild(delDayBtn);
-          recycleBody.appendChild(wrap);
-        });
-
-      const clearAllBtn=document.createElement("button");
-      clearAllBtn.className="delete-day-btn";
-      clearAllBtn.style.background="#4b5563";
-      clearAllBtn.style.marginTop="8px";
-      clearAllBtn.textContent="Clear full 48h buffer";
-      clearAllBtn.addEventListener("click",()=>{
-        saveSmallBuffer([]);
-        rebuildRecycleView();
-      });
-      recycleBody.appendChild(clearAllBtn);
-    }
-
-    document.getElementById("cleanupBtn").addEventListener("click",()=>{
-      rebuildRecycleView();
-      recycleBackdrop.style.display="flex";
     });
 
     // Close modals
@@ -1642,11 +1643,13 @@
         }
       });
     });
-    [document.getElementById("bmModalBackdrop"),
-     document.getElementById("recallModalBackdrop"),
-     document.getElementById("optionsModalBackdrop"),
-     document.getElementById("recycleModalBackdrop"),
-     document.getElementById("recallViewModalBackdrop")].forEach(backdrop=>{
+    [
+      document.getElementById("bmModalBackdrop"),
+      document.getElementById("recallModalBackdrop"),
+      document.getElementById("optionsModalBackdrop"),
+      document.getElementById("recycleModalBackdrop"),
+      document.getElementById("autoRecallModalBackdrop")
+    ].forEach(backdrop=>{
       backdrop.addEventListener("click",e=>{
         if(e.target===backdrop) backdrop.style.display="none";
       });
