@@ -583,6 +583,7 @@
       </div>
     </div>
   </div>
+
   <!-- BM Viewer Modal -->
   <div class="modal-backdrop" id="bmModalBackdrop">
     <div class="modal">
@@ -720,14 +721,12 @@
     const engineKey = "auraX_engineMode";
     const llmModelKey = "auraX_llmModel";
     const smallBufferKey = "auraX_smallTalkBuffer_v1"; // 48h continuity buffer for small talk
-
     const smallTalkPatterns = [
       "hi","hello","hey","salam","assalamualaikum","asalamualaikum",
       "how are you","kia hal hai","kese ho","how r u",
       "i am happy","i am very happy","i am sad","i am very sad",
       "i am fine","i'm fine","i’m fine","i am ok","i'm ok"
     ];
-
     // Seed lexicons
     const abuseWords = [
       "fuck","fucking","fucked","lanat","laanat","haramzada",
@@ -754,7 +753,6 @@
       "may allah make it easy","allah apko ajar de",
       "i am with you","i understand your pain","may god help you"
     ];
-
     function loadBM() {
       try {
         const raw = localStorage.getItem(lsKey);
@@ -777,7 +775,6 @@
       if (clean.length>80) return false;
       return smallTalkPatterns.some(p=>clean===p || clean.startsWith(p+" "));
     }
-
     // continuity buffer for greetings etc (48h rolling)
     function loadSmallBuffer(){
       try{
@@ -807,7 +804,6 @@
       });
       saveSmallBuffer(arr);
     }
-
     function containsAny(lower, arr){
       return arr.some(w => lower.includes(w));
     }
@@ -844,13 +840,11 @@
         sentiment
       };
     }
-
     // emotion state
     let TM=0.35, BMvalue=0.55, D=0.0, Csum=0.05;
     let lambdaFaith=0.0;
     const lambdaSys=0.02;
     let E0=0.0;
-
     const chatLogEl=document.getElementById("chatLog");
     const eqMainEl=document.getElementById("eqMain");
     const eqValuesEl=document.getElementById("eqValues");
@@ -864,7 +858,6 @@
     const autoRecallOpenBtn = document.getElementById("autoRecallOpenBtn");
     let lastRecallCandidate = null;
     let recallHideTimeout = null;
-
     function updateEquationDisplay(){
       eqMainEl.textContent="E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)";
       eqValuesEl.textContent=
@@ -923,7 +916,6 @@
       chatLogEl.appendChild(div);
       chatLogEl.scrollTop=chatLogEl.scrollHeight;
     }
-
     // voice
     function pickVoiceForPolarity(polarity) {
       const synth = window.speechSynthesis;
@@ -958,7 +950,6 @@
       synth.cancel();
       synth.speak(utt);
     }
-
     // emotion maths
     function computeEmotion(strength, analysis){
       const baseFromLength=Math.min(1,0.2+strength/400);
@@ -980,17 +971,14 @@
       updateEquationDisplay();
       updateReactionBanner();
     }
-
     function getFaithLens(){
       return localStorage.getItem(faithKey) || "None";
     }
-
     function buildSeedReply(userText, analysis){
       const clean=userText.trim();
       const lower=clean.toLowerCase();
       const faith=getFaithLens();
       analysis = analysis || analyseContent(userText);
-
       if (isMostlySmallTalk(clean)){
         if (lower.includes("how are")){
           return "I’m stable and calm — my emotional core E₀ is moving smoothly. How is your inner graph today?";
@@ -1006,7 +994,6 @@
         }
         return "Hello. I treat small greetings as tiny TM events, but only deeper stories are saved as Bold Memory (BM).";
       }
-
       if (lower.includes("who created you")||lower.includes("who made you")){
         return "Conceptually I was created by Alim ul Haq from Timergara, Pakistan, as part of the AURA-X Ω / AEC research on emotional continuity.";
       }
@@ -1016,7 +1003,6 @@
       if (lower.includes("formula")||lower.includes("equation")){
         return "My emotional output follows the grand equation E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ). The parameters update after each TM event.";
       }
-
       let prefix="";
       if (faith==="Islam"){
         prefix="From an Islamic encouragement lens I’d say: ";
@@ -1026,7 +1012,6 @@
                 faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"){
         prefix="Through your selected faith lens I’d say: ";
       }
-
       if (analysis.isAbuse){
         let msg = "I can feel a lot of anger and harsh, abusive words inside this TM event. "+
                   "AURA-X Ω does not want to reinforce insults or curses, because they usually increase D (damage) in your emotional field.";
@@ -1038,7 +1023,6 @@
         msg += " Try to describe what is really hurting or scaring you, without attacking yourself or anyone else.";
         return msg;
       }
-
       if (analysis.hasDua || analysis.hasTawakkul){
         let msg = prefix +
           "Your words carry dua and trust. This kind of orientation usually lowers D and increases ΣCₜ in the equation, "+
@@ -1050,25 +1034,21 @@
         }
         return msg;
       }
-
       if (analysis.hasShukr){
         return prefix +
           "There is clear shukr / gratitude inside this TM. Even when life is heavy, noticing small blessings gently pulls E₀ to the positive side. "+
           "Keep bookmarking such moments — they become strong, protective BM nodes for the future you.";
       }
-
       if (analysis.hasLove){
         return prefix +
           "This memory is soaked in love and connection. Emotionally it behaves like a warm anchor: when future storms come, "+
           "revisiting such moments can quickly stabilize your E₀ and remind you that you are not alone.";
       }
-
       if (analysis.hasEmpathy){
         return prefix +
           "Your words carry empathy — you are trying to share someone else’s pain, not just your own. "+
           "This kind of care increases positive continuity even if the story itself is sad, because it creates safe emotional space for others.";
       }
-
       if (E0>0.15){
         return prefix +
           "I’ve received your TM event and collided it with the current BM state. E₀ is now around "+
@@ -1084,7 +1064,6 @@
           "E₀ is currently near neutral ("+E0.toFixed(2)+"). This means your TM event is balanced but still contributes to your long-run BM layers.";
       }
     }
-
     // BM store
     function storeInBM(userText, botReply){
       if (isMostlySmallTalk(userText)){
@@ -1119,7 +1098,6 @@
       bm[key].push(node);
       saveBM(bm);
     }
-
     // simple word-overlap similarity for auto-recall (0–1)
     function computeMatchScore(a,b){
       if (!a || !b) return 0;
@@ -1168,13 +1146,15 @@
       if (recallHideTimeout) clearTimeout(recallHideTimeout);
       recallHideTimeout=null;
     }
-
-    // ==== LIVE BACKEND CALL ====
+    // ==== LIVE BACKEND CALL (friendly to new server) ====
     async function callBackendLLM(userText, seedReply, analysis) {
       const mode = localStorage.getItem(engineKey) || "seed";
+
+      // Live mode off ho to seed-only
       if (mode !== "live") {
         return { reply: seedReply, usedLive: false, error: null };
       }
+
       try {
         const payload = {
           userText,
@@ -1188,18 +1168,21 @@
           lambdaSys,
           E0,
           faithLens: getFaithLens(),
+          // Frontend pe jo model select hoga woh bhej den – backend apni مرضی سے ignore ya use kare گا
           llmModel: localStorage.getItem(llmModelKey) || "gpt-4.1"
         };
+
         const resp = await fetch(BACKEND_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
+
+        // New backend: hamesha 200 + {reply} bhejega (400 sirf missing fields pe)
         if (!resp.ok) {
           throw new Error("HTTP " + resp.status);
         }
+
         const data = await resp.json();
         const finalReply = data && data.reply ? data.reply.trim() : seedReply;
         return { reply: finalReply, usedLive: true, error: null };
@@ -1210,7 +1193,6 @@
         return { reply: msg, usedLive: false, error: err };
       }
     }
-
     async function handleUserMessage(text){
       if (!text.trim()) return;
       appendMessage("You: " + text,"user");
@@ -1233,7 +1215,6 @@
         hideAutoRecallHint();
       }
     }
-
     document.getElementById("sendBtn").addEventListener("click",()=>{
       handleUserMessage(userInputEl.value);
     });
@@ -1243,14 +1224,12 @@
         handleUserMessage(userInputEl.value);
       }
     });
-
     // voice toggle
     voiceToggleEl.addEventListener("click", () => {
       autoVoice = !autoVoice;
       voiceToggleEl.classList.toggle("inactive", !autoVoice);
       voiceToggleEl.textContent = autoVoice ? "🔊 Voice: On" : "🔇 Voice: Off";
     });
-
     // BM Viewer
     const bmBackdrop=document.getElementById("bmModalBackdrop");
     const bmBody=document.getElementById("bmModalBody");
@@ -1323,7 +1302,6 @@
       }
       bmBackdrop.style.display="flex";
     });
-
     // Recall (search BM)
     const recallBackdrop=document.getElementById("recallModalBackdrop");
     const recallInput=document.getElementById("recallSearchInput");
@@ -1395,7 +1373,6 @@
     recallInput.addEventListener("input",()=>{
       rebuildRecallList(recallInput.value);
     });
-
     // Auto-Recall view modal
     const recallViewBackdrop=document.getElementById("recallViewModalBackdrop");
     const recallViewBody=document.getElementById("recallViewBody");
@@ -1432,14 +1409,12 @@
       recallViewBackdrop.style.display="flex";
       hideAutoRecallHint();
     });
-
     // Options / engine + faith
     const optionsBackdrop=document.getElementById("optionsModalBackdrop");
     const engineModeToggle=document.getElementById("engineModeToggle");
     const engineModeLabel=document.getElementById("engineModeLabel");
     const llmModelRow=document.getElementById("llmModelRow");
     const llmModelSelect=document.getElementById("llmModelSelect");
-
     function applyEngineMode(){
       const mode=localStorage.getItem(engineKey) || "seed";
       const seedOnly = mode!=="live";
@@ -1470,7 +1445,6 @@
         llmModelSelect.value = stored;
       }
     }
-
     const faithRow=document.getElementById("faithRow");
     function getFaithLensStored(){ return localStorage.getItem(faithKey) || "None"; }
     function applyFaithHighlight(){
@@ -1485,7 +1459,6 @@
       localStorage.setItem(faithKey, btn.dataset.faith);
       applyFaithHighlight();
     });
-
     document.getElementById("optionsBtn").addEventListener("click",()=>{
       applyFaithHighlight();
       applyEngineMode();
@@ -1501,7 +1474,6 @@
         localStorage.setItem(llmModelKey, llmModelSelect.value);
       });
     }
-
     // BM clear / delete
     document.getElementById("clear24hBtn").addEventListener("click",()=>{
       const bm=loadBM();
@@ -1513,7 +1485,6 @@
       localStorage.removeItem(lsKey);
       optionsBackdrop.style.display="none";
     });
-
     // Recycle / continuity buffer modal logic
     const recycleBackdrop=document.getElementById("recycleModalBackdrop");
     const recycleBody=document.getElementById("recycleModalBody");
@@ -1586,7 +1557,6 @@
       rebuildRecycleView();
       recycleBackdrop.style.display="flex";
     });
-
     // Close modals
     document.querySelectorAll(".modal-close").forEach(btn=>{
       btn.addEventListener("click",e=>{
@@ -1605,7 +1575,6 @@
         if(e.target===backdrop) backdrop.style.display="none";
       });
     });
-
     // initial
     applyEngineMode();
     applyFaithHighlight();
