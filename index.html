@@ -583,6 +583,7 @@
       </div>
     </div>
   </div>
+
   <!-- BM Viewer Modal -->
   <div class="modal-backdrop" id="bmModalBackdrop">
     <div class="modal">
@@ -714,18 +715,22 @@
 
   <script>
     // ===== CONFIG =====
+    // NOTE: اگر آپ کے backend میں route "/react" ہے تو نیچے "/api/react" کو "/react" سے بدل دیں۔
     const BACKEND_URL = "https://aura-x-omega-backend.onrender.com/api/react";
+
     const lsKey = "auraX_bm_v31";
     const faithKey = "auraX_faithLens";
     const engineKey = "auraX_engineMode";
     const llmModelKey = "auraX_llmModel";
     const smallBufferKey = "auraX_smallTalkBuffer_v1"; // 48h continuity buffer for small talk
+
     const smallTalkPatterns = [
       "hi","hello","hey","salam","assalamualaikum","asalamualaikum",
       "how are you","kia hal hai","kese ho","how r u",
       "i am happy","i am very happy","i am sad","i am very sad",
       "i am fine","i'm fine","i’m fine","i am ok","i'm ok"
     ];
+
     // Seed lexicons
     const abuseWords = [
       "fuck","fucking","fucked","lanat","laanat","haramzada",
@@ -752,6 +757,7 @@
       "may allah make it easy","allah apko ajar de",
       "i am with you","i understand your pain","may god help you"
     ];
+
     function loadBM() {
       try {
         const raw = localStorage.getItem(lsKey);
@@ -761,6 +767,7 @@
     function saveBM(data) { localStorage.setItem(lsKey, JSON.stringify(data)); }
     function todayKey() { return new Date().toISOString().slice(0,10); }
     function tanh(x){ const e2x=Math.exp(2*x); return (e2x-1)/(e2x+1); }
+
     function approximateSentences(text){
       return text.split(/[.!?۔\n]/).filter(s=>s.trim().length>0);
     }
@@ -774,6 +781,7 @@
       if (clean.length>80) return false;
       return smallTalkPatterns.some(p=>clean===p || clean.startsWith(p+" "));
     }
+
     // continuity buffer for greetings etc (48h rolling)
     function loadSmallBuffer(){
       try{
@@ -803,12 +811,14 @@
       });
       saveSmallBuffer(arr);
     }
+
     function containsAny(lower, arr){
       return arr.some(w => lower.includes(w));
     }
     function countAny(lower, arr){
       return arr.reduce((c,w)=> c + (lower.includes(w)?1:0), 0);
     }
+
     function analyseContent(text){
       const lower = text.toLowerCase();
       const abuseCount = countAny(lower, abuseWords);
@@ -839,11 +849,13 @@
         sentiment
       };
     }
+
     // emotion state
     let TM=0.35, BMvalue=0.55, D=0.0, Csum=0.05;
     let lambdaFaith=0.0;
     const lambdaSys=0.02;
     let E0=0.0;
+
     const chatLogEl=document.getElementById("chatLog");
     const eqMainEl=document.getElementById("eqMain");
     const eqValuesEl=document.getElementById("eqValues");
@@ -852,16 +864,19 @@
     const reactionBannerEl=document.getElementById("reactionBanner");
     const voiceToggleEl=document.getElementById("voiceToggle");
     let autoVoice = true;
+
     const autoRecallHint = document.getElementById("autoRecallHint");
     const autoRecallText = document.getElementById("autoRecallText");
     const autoRecallOpenBtn = document.getElementById("autoRecallOpenBtn");
     let lastRecallCandidate = null;
     let recallHideTimeout = null;
+
     function updateEquationDisplay(){
       eqMainEl.textContent="E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ)";
       eqValuesEl.textContent=
         "All parameters are being updated internally after every message to keep emotional continuity live.";
     }
+
     function polarityPercentages(polarity, intensity){
       let pos=50, neg=50;
       if(polarity==="Positive"){
@@ -875,12 +890,14 @@
       neg = Math.round(neg);
       return {pos,neg};
     }
+
     function buildReactionTone(){
       const intensity=Math.abs(E0);
       let polarity = "Neutral";
       let cls = "reaction-neutral";
       if (E0>0.1){ polarity="Positive"; cls="reaction-positive"; }
       else if (E0<-0.1){ polarity="Negative"; cls="reaction-negative"; }
+
       let tone="";
       if (polarity==="Positive"){
         if (intensity>0.7) tone="Warm, expansive, high-energy encouragement.";
@@ -896,6 +913,7 @@
       }
       return {polarity, cls, intensity, tone};
     }
+
     function updateReactionBanner(){
       const {polarity, cls, intensity, tone} = buildReactionTone();
       reactionBannerEl.className = "reaction-banner " + cls;
@@ -908,6 +926,7 @@
         `${polLine}<br>`+
         `Tone: ${tone}`;
     }
+
     function appendMessage(text, who){
       const div=document.createElement("div");
       div.className="msg "+(who==="user"?"msg-user":"msg-bot");
@@ -915,6 +934,7 @@
       chatLogEl.appendChild(div);
       chatLogEl.scrollTop=chatLogEl.scrollHeight;
     }
+
     // voice
     function pickVoiceForPolarity(polarity) {
       const synth = window.speechSynthesis;
@@ -949,11 +969,13 @@
       synth.cancel();
       synth.speak(utt);
     }
+
     // emotion maths
     function computeEmotion(strength, analysis){
       const baseFromLength=Math.min(1,0.2+strength/400);
       const sentiment = analysis ? analysis.sentiment || 0 : 0;
       TM = Math.min(1, Math.max(0, baseFromLength + sentiment*0.3));
+
       if (analysis && analysis.isAbuse){
         D = Math.min(1, D + 0.25);
         Csum = Math.max(0, Csum - 0.03);
@@ -965,19 +987,23 @@
       }
       lambdaFaith = analysis && analysis.hasFaithSeed ? 0.05 : 0.0;
       BMvalue = 0.7*BMvalue + 0.3*TM;
+
       const raw=TM*BMvalue-D+lambdaFaith+lambdaSys+Csum;
       E0=tanh(raw);
       updateEquationDisplay();
       updateReactionBanner();
     }
+
     function getFaithLens(){
       return localStorage.getItem(faithKey) || "None";
     }
+
     function buildSeedReply(userText, analysis){
       const clean=userText.trim();
       const lower=clean.toLowerCase();
       const faith=getFaithLens();
       analysis = analysis || analyseContent(userText);
+
       if (isMostlySmallTalk(clean)){
         if (lower.includes("how are")){
           return "I’m stable and calm — my emotional core E₀ is moving smoothly. How is your inner graph today?";
@@ -993,6 +1019,7 @@
         }
         return "Hello. I treat small greetings as tiny TM events, but only deeper stories are saved as Bold Memory (BM).";
       }
+
       if (lower.includes("who created you")||lower.includes("who made you")){
         return "Conceptually I was created by Alim ul Haq from Timergara, Pakistan, as part of the AURA-X Ω / AEC research on emotional continuity.";
       }
@@ -1002,6 +1029,7 @@
       if (lower.includes("formula")||lower.includes("equation")){
         return "My emotional output follows the grand equation E₀ = tanh(TM × BM − D + λ_faith + λ_sys + ΣCₜ). The parameters update after each TM event.";
       }
+
       let prefix="";
       if (faith==="Islam"){
         prefix="From an Islamic encouragement lens I’d say: ";
@@ -1011,6 +1039,7 @@
                 faith==="Judaism" || faith==="Atheism / Humanism" || faith==="Other / Mixed"){
         prefix="Through your selected faith lens I’d say: ";
       }
+
       if (analysis.isAbuse){
         let msg = "I can feel a lot of anger and harsh, abusive words inside this TM event. "+
                   "AURA-X Ω does not want to reinforce insults or curses, because they usually increase D (damage) in your emotional field.";
@@ -1022,6 +1051,7 @@
         msg += " Try to describe what is really hurting or scaring you, without attacking yourself or anyone else.";
         return msg;
       }
+
       if (analysis.hasDua || analysis.hasTawakkul){
         let msg = prefix +
           "Your words carry dua and trust. This kind of orientation usually lowers D and increases ΣCₜ in the equation, "+
@@ -1033,6 +1063,7 @@
         }
         return msg;
       }
+
       if (analysis.hasShukr){
         return prefix +
           "There is clear shukr / gratitude inside this TM. Even when life is heavy, noticing small blessings gently pulls E₀ to the positive side. "+
@@ -1048,6 +1079,7 @@
           "Your words carry empathy — you are trying to share someone else’s pain, not just your own. "+
           "This kind of care increases positive continuity even if the story itself is sad, because it creates safe emotional space for others.";
       }
+
       if (E0>0.15){
         return prefix +
           "I’ve received your TM event and collided it with the current BM state. E₀ is now around "+
@@ -1063,6 +1095,7 @@
           "E₀ is currently near neutral ("+E0.toFixed(2)+"). This means your TM event is balanced but still contributes to your long-run BM layers.";
       }
     }
+
     // BM store
     function storeInBM(userText, botReply){
       if (isMostlySmallTalk(userText)){
@@ -1075,6 +1108,7 @@
       const bm=loadBM();
       const key=todayKey();
       if (!bm[key]) bm[key]=[];
+
       const base=Math.abs(E0);
       const layers=[
         Math.round(50+50*base),
@@ -1085,6 +1119,7 @@
         Math.round(5+40*(1-D)),
         Math.round(5+40*Csum)
       ];
+
       const node={
         ts:new Date().toISOString(),
         summary,
@@ -1097,6 +1132,7 @@
       bm[key].push(node);
       saveBM(bm);
     }
+
     // simple word-overlap similarity for auto-recall (0–1)
     function computeMatchScore(a,b){
       if (!a || !b) return 0;
@@ -1145,12 +1181,16 @@
       if (recallHideTimeout) clearTimeout(recallHideTimeout);
       recallHideTimeout=null;
     }
+
     // ==== LIVE BACKEND CALL ====
     async function callBackendLLM(userText, seedReply, analysis) {
       const mode = localStorage.getItem(engineKey) || "seed";
+
+      // اگر mode LIVE نہیں تو سیدھا local seed reply
       if (mode !== "live") {
         return { reply: seedReply, usedLive: false, error: null };
       }
+
       try {
         const payload = {
           userText,
@@ -1166,40 +1206,67 @@
           faithLens: getFaithLens(),
           llmModel: localStorage.getItem(llmModelKey) || "gpt-4.1"
         };
+
         const resp = await fetch(BACKEND_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
+
         if (!resp.ok) {
           throw new Error("HTTP " + resp.status);
         }
+
         const data = await resp.json();
         const finalReply = data && data.reply ? data.reply.trim() : seedReply;
+
         return { reply: finalReply, usedLive: true, error: null };
+
       } catch (err) {
+        // Backend fail → صاف fallback + seedReply
         const msg =
-          "Backend error, but your TM/BM remain saved locally. You can continue using the local emotional reactor and try live mode again later. " +
-          "Local seed reaction: " + seedReply + " [LLM backend error: " + err.message + "]";
+          "AURA-X Ω backend error, using fallback emotional mode.\n\n" +
+          seedReply;
+
+        console.error("AURA-X backend error:", err);
         return { reply: msg, usedLive: false, error: err };
       }
     }
+
+    // ==== USER MESSAGE HANDLER (frontend + backend) ====
     async function handleUserMessage(text){
       if (!text.trim()) return;
+
       appendMessage("You: " + text,"user");
+
       const analysis = analyseContent(text);
       computeEmotion(text.length, analysis);
+
+      // پہلے local seed reply
       const seedReply = buildSeedReply(text, analysis);
-      const { reply: finalReply } = await callBackendLLM(text, seedReply, analysis);
-      const prefix = (localStorage.getItem(engineKey) || "seed") === "live"
-        ? "AURA-X Ω: "
-        : "AURA-X Ω (local fallback): ";
+
+      // پھر backend کو try کریں (اگر mode live ہو)
+      const { reply: finalReply, usedLive } =
+        await callBackendLLM(text, seedReply, analysis);
+
+      const mode = localStorage.getItem(engineKey) || "seed";
+      let prefix;
+
+      if (mode === "live") {
+        prefix = usedLive
+          ? "AURA-X Ω: "                // backend سے آیا
+          : "AURA-X Ω (local fallback): "; // backend fail → seed
+      } else {
+        prefix = "AURA-X Ω (local): ";     // seed-only mode
+      }
+
       appendMessage(prefix + finalReply,"bot");
+
       storeInBM(text, finalReply);
       speakReply(finalReply);
+
       userInputEl.value="";
+
       if (!isMostlySmallTalk(text)){
         const candidate = findBestRecallMatch(text);
         if (candidate) showAutoRecallHint(candidate);
@@ -1208,6 +1275,7 @@
         hideAutoRecallHint();
       }
     }
+
     document.getElementById("sendBtn").addEventListener("click",()=>{
       handleUserMessage(userInputEl.value);
     });
@@ -1217,12 +1285,14 @@
         handleUserMessage(userInputEl.value);
       }
     });
+
     // voice toggle
     voiceToggleEl.addEventListener("click", () => {
       autoVoice = !autoVoice;
       voiceToggleEl.classList.toggle("inactive", !autoVoice);
       voiceToggleEl.textContent = autoVoice ? "🔊 Voice: On" : "🔇 Voice: Off";
     });
+
     // BM Viewer
     const bmBackdrop=document.getElementById("bmModalBackdrop");
     const bmBody=document.getElementById("bmModalBody");
@@ -1295,6 +1365,7 @@
       }
       bmBackdrop.style.display="flex";
     });
+
     // Recall (search BM)
     const recallBackdrop=document.getElementById("recallModalBackdrop");
     const recallInput=document.getElementById("recallSearchInput");
@@ -1366,6 +1437,7 @@
     recallInput.addEventListener("input",()=>{
       rebuildRecallList(recallInput.value);
     });
+
     // Auto-Recall view modal
     const recallViewBackdrop=document.getElementById("recallViewModalBackdrop");
     const recallViewBody=document.getElementById("recallViewBody");
@@ -1402,12 +1474,14 @@
       recallViewBackdrop.style.display="flex";
       hideAutoRecallHint();
     });
+
     // Options / engine + faith
     const optionsBackdrop=document.getElementById("optionsModalBackdrop");
     const engineModeToggle=document.getElementById("engineModeToggle");
     const engineModeLabel=document.getElementById("engineModeLabel");
     const llmModelRow=document.getElementById("llmModelRow");
     const llmModelSelect=document.getElementById("llmModelSelect");
+
     function applyEngineMode(){
       const mode=localStorage.getItem(engineKey) || "seed";
       const seedOnly = mode!=="live";
@@ -1438,6 +1512,7 @@
         llmModelSelect.value = stored;
       }
     }
+
     const faithRow=document.getElementById("faithRow");
     function getFaithLensStored(){ return localStorage.getItem(faithKey) || "None"; }
     function applyFaithHighlight(){
@@ -1467,6 +1542,7 @@
         localStorage.setItem(llmModelKey, llmModelSelect.value);
       });
     }
+
     // BM clear / delete
     document.getElementById("clear24hBtn").addEventListener("click",()=>{
       const bm=loadBM();
@@ -1478,6 +1554,7 @@
       localStorage.removeItem(lsKey);
       optionsBackdrop.style.display="none";
     });
+
     // Recycle / continuity buffer modal logic
     const recycleBackdrop=document.getElementById("recycleModalBackdrop");
     const recycleBody=document.getElementById("recycleModalBody");
@@ -1550,6 +1627,7 @@
       rebuildRecycleView();
       recycleBackdrop.style.display="flex";
     });
+
     // Close modals
     document.querySelectorAll(".modal-close").forEach(btn=>{
       btn.addEventListener("click",e=>{
@@ -1559,15 +1637,18 @@
         }
       });
     });
-    [document.getElementById("bmModalBackdrop"),
-     document.getElementById("recallModalBackdrop"),
-     document.getElementById("optionsModalBackdrop"),
-     document.getElementById("recycleModalBackdrop"),
-     document.getElementById("recallViewModalBackdrop")].forEach(backdrop=>{
+    [
+      document.getElementById("bmModalBackdrop"),
+      document.getElementById("recallModalBackdrop"),
+      document.getElementById("optionsModalBackdrop"),
+      document.getElementById("recycleModalBackdrop"),
+      document.getElementById("recallViewModalBackdrop")
+    ].forEach(backdrop=>{
       backdrop.addEventListener("click",e=>{
         if(e.target===backdrop) backdrop.style.display="none";
       });
     });
+
     // initial
     applyEngineMode();
     applyFaithHighlight();
