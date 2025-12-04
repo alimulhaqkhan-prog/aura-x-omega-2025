@@ -129,7 +129,7 @@ Includes:
 
 # 📄 Official Publications
 
-### **1️⃣ Main Architecture – AURA-X Ω Atreficial Unified Resonance Architecture Model**  
+### **1️⃣ Main Architecture – AURA-X Ω Artificial Unified Resonance Architecture Model**  
 🔗 **https://doi.org/10.5281/zenodo.17767361**
 
 ### **2️⃣ Supporting Theory – Continuity Reflex Model (CRM)**  
