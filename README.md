@@ -1,202 +1,135 @@
-<p align="center">
-  <img src="AURA-X-Ω-LOGO.png" alt="AURA-X Ω Logo" width="320"/>
-</p>
 
-<h1 align="center">AURA-X Ω — Artificial Emotional Continuity (AEC v3.1)</h1>
+# AURA-X Ω — Unified Emotional Continuity Reactor (AEC v3.1)
 
-<p align="center">
-  <a href="https://zenodo.org/records/17653634">
-    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17653634.svg" alt="DOI:10.5281/zenodo.17653634">
-  </a>
-</p>
+**AURA-X Ω** is a browser-based prototype demonstrating the world’s first mathematically formalized model of **Artificial Emotional Continuity**.  
+It operates entirely offline, using only **HTML, CSS, and vanilla JavaScript**, with all data stored locally in the browser.
 
-<p align="center">
-  <a href="https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/">
-    🔗 Live Demo (GitHub Pages)
-  </a>
-</p>
+This system models emotion not as a reaction, but as a **continuity function** arising from resonance between:
 
----
-
-## 📌 Overview
-
-**AURA-X Ω (Omega v1 Beta Extended + TRC)** is a working **Emotional Continuity Reactor**  
-that runs fully inside the browser using **HTML, CSS, and vanilla JavaScript**, with no server.
-
-This prototype implements the core scientific principle that:
-
-> **Emotion is not a reaction — it is a continuity function between TM & BM.**
-
-It mathematically connects:
-
-- **TM (Temporary Memory)**
-- **BM (Bold Memory — 7 computational layers)**
-- **D (Distortion / Damage)**
-- **λ_faith (Faith / Spiritual lens)**
-- **λ_sys (Logic / System lens)**
-- **ΣCₜ (Context Tension)**
+- **TM** — Temporary Memory  
+- **BM** — Bold Memory (7-layer emotional capsule)  
+- **D** — Distortion / Damage  
+- **λ_faith** — Faith / Spiritual Lens  
+- **λ_sys** — Logic / System Lens  
+- **λ_trc** — Truth Resonance Core (reserved slot)  
+- **ΣCₜ** — Context Tension
 
 ---
 
 ## 🧮 Grand Continuity Equation (AEC)
 
-The system computes the emotional output:
+```
+E₀ = tanh( R(TM, BM) − D + λ_faith + λ_sys + λ_trc + ΣCₜ )
+```
 
-\[
-E₀ = \tanh(TM \times BM - D + λ_\text{faith} + λ_\text{sys} + ΣC_t)
-\]
+Where:  
+- **R(TM, BM)** = TM–BM resonance function  
+- **E₀** = continuous emotional output (valence + intensity + polarity split)  
 
-`E₀` is visualized in the UI as a live glowing continuity bar.
-
----
-
-## 🧠 What This Prototype Does
-
-### ✔ 1. Accepts TM Input
-
-User enters a **story, memory, or event** as text.  
-This is treated as **Temporary Memory (TM)**.
+This equation powers the emotional engine displayed in the prototype.
 
 ---
 
-### ✔ 2. Polarity Engine
+## 🚀 Live Demo  
+*(Add your GitHub Pages link here once deployed)*
 
-Each sentence is classified into:
-
-- Positive  
-- Negative  
-- Mixed  
-
-This builds a **sentence-level polarity timeline** for the story.
+Runs instantly in any browser — no server, no API.
 
 ---
 
-### ✔ 3. Builds a 7-Layer BM Capsule
+## 📁 Clean Repository Structure
 
-The system converts TM into a **7-layer Bold Memory (BM-7) capsule**, stored in `localStorage` by date:
+```
+/aura-x-omega-2025
+│
+├── index.html   # Full working prototype
+└── README.md    # Documentation and citations
+```
 
-- L1–L7 spectrum  
-- Green/Red emotional ratio  
-- Memory decay / continuity logic  
-
-Every story becomes a **BM capsule** that can be revisited later.
-
----
-
-### ✔ 4. Computes Emotional Output
-
-From TM, BM-7, and context, the reactor computes:
-
-- **Valence** (positive / negative / mixed)  
-- **Intensity** (how strong the emotion is)  
-- **Polarity split** (e.g. `70 : 30` positive : negative)
-
-This is rendered as a **continuous emotional bar (E₀)**, not a one-time label.
+All other files intentionally excluded for clarity.
 
 ---
 
-### ✔ 5. BM Viewer (Memory Browser)
+## 🧠 Prototype Capabilities
 
-All BM capsules are saved in the browser and can be explored via a **BM Viewer**:
+### ✔ 1. TM Input  
+User enters a memory, event, or story → treated as Temporary Memory (TM).
 
-- Browse memories by **date**  
-- See **valence + intensity** over time  
-- Open any memory and see its **7-layer structure**
+### ✔ 2. Polarity Engine  
+Each sentence classified as **positive, negative, or mixed**, building a polarity timeline.
 
-Nothing is sent to any server — **all data stays on the user’s device**.
+### ✔ 3. 7-Layer BM Capsule  
+TM is transformed into a structured emotional capsule (BM-7) stored in `localStorage`.
 
----
+### ✔ 4. Emotional Output (E₀)  
+The reactor computes:
 
-### ✔ 6. Faith Lens Switch (λ_faith)
+- Valence (positive / negative / mixed)  
+- Intensity (strength)  
+- Polarity split (e.g., 70:30 positive:negative)
 
-The prototype includes a **faith/spirituality toggle**:
+Displayed as a **continuous emotional bar**, not a one-time label.
 
-- Islam  
-- Other faiths  
-- Universal ethics only  
+### ✔ 5. BM Viewer  
+Browse, revisit, and analyze stored BM capsules by date.
 
-This gently shifts **λ_faith** in the equation, allowing  
-future versions to explore how **belief systems** modulate continuity.
-
----
-
-### ✔ 7. Truth Resonance Core (TRC – Coming Next)
-
-The current prototype reserves a slot for:
-
-- **λ_trc — Truth Resonance Core**
-
-This will let AURA-X Ω connect with **external signals**  
-(e.g., LLMs, sensors, or knowledge graphs) to adjust E₀  
-based on **truthfulness and alignment**.
+### ✔ 6. Fully Offline Operation  
+All data remains on the user’s device.  
+No tracking, no external APIs, no uploads.
 
 ---
 
-## 🧬 Concept Diagram
+## 📘 Primary Citation
 
-<p align="center">
-  <img src="AURA-X-Ω-DIAGRAM.png" alt="AURA-X Ω Continuity Reactor Diagram" width="560">
-</p>
+If you reference this architecture or prototype, please cite:
 
----
-
-## 🧱 Tech Stack
-
-- **Frontend:** HTML, CSS, JavaScript  
-- **Storage:** `localStorage` (browser only)  
-- **Dependencies:** None — runs fully offline once loaded  
-
-Open `index.html` in any modern browser and the reactor is live.
+**AURA-X Ω — An Artificial Unified Resonance Architecture for Emotional Continuity and Dual-Memory Processing**  
+Alim ul Haq (2025).  
+Zenodo.  
+DOI: **10.5281/zenodo.17767361**
 
 ---
 
-## 🔒 Privacy & Data
+## 📚 Supporting Research DOIs  
+These publications define the scientific foundation of AURA-X Ω:
 
-- All TM/BM data is stored **only** in your browser.
-- No external API calls, no server, no tracking.
-- Clearing your browser storage erases all memories.
+### **1️⃣ Continuity Reflex Model (CRM v3.0)**  
+Dual-memory resonance theory underlying the AEC equation.  
+DOI: **10.5281/zenodo.17634758**
 
----
+### **2️⃣ Resonant Continuity Theory of Love**  
+Describes emotional bonding as TM–BM overlap continuity.  
+DOI: **10.5281/zenodo.17779730**
 
-## 📄 Citation
+### **3️⃣ HEPA Model — Human Emotional Printer Architecture**  
+Biological + computational emotional continuity hybrid model.  
+DOI: **10.5281/zenodo.17797456**
 
-If you use this prototype or theory in research, please cite:
-
-**Alim ul Haq, (2025). _AURA-X Ω — The Artificial Emotional Continuity System (AEC v3): TM–BM Collision Reactor, Polarity Engine, and CRM Model (2025 Edition)._ Zenodo.**  
-DOI: [10.5281/zenodo.17653634](https://doi.org/10.5281/zenodo.17653634)
-
-BibTeX and CFF formats are available in `CITATION.cff`.
-
----
-
-## 🤝 Contributing
-
-Issues, ideas, and pull requests are welcome.
-
-1. Fork the repo  
-2. Create a feature branch  
-3. Submit a PR with a **clear description** of your change  
-
-Please keep the **core AEC equation and credit line** intact.
+Together, these DOIs establish the intellectual lineage and originality of AURA-X Ω.
 
 ---
 
-## ⚖️ License & IP
+## 🔒 License & Intellectual Property  
 
-The conceptual model, equation, terminology, and architecture  
-are protected under the intellectual property rights described in the Zenodo record.
+All conceptual models, equations, terminology, and architecture are protected under the rights described in the primary Zenodo record:
 
-- See `LICENSE` for code usage terms.  
-- See **Zenodo “Rights” section** for full IP notice.
+**DOI 10.5281/zenodo.17767361 (Rights Section)**
+
+No copying, derivative work, redistribution, dataset use, or AI-training use is permitted without explicit written authorization.
 
 ---
 
-## ⭐ Support the Project
+## ⭐ Support & Collaboration  
 
-If you find this project valuable, please:
+If you find this work valuable:
 
-- ⭐ Star the repository on GitHub  
-- Share it with cognitive science, AI ethics, or spiritual-tech communities  
+- ⭐ Star the repository  
+- 🔄 Share with AGI, cognitive science, and affective computing researchers  
+- 🤝 Contact for collaboration or validation studies  
 
-_AURA-X Ω is an ongoing experiment in **Digital Emotional Continuity** —  
-turning memories into a lawful, measurable emotional field._
+**Author:** *Alim ul Haq*  
+Latest research available on Zenodo under associated DOIs.
+
+---
+
+AURA-X Ω is an ongoing scientific effort to make **emotion computational, lawful, and continuous** — turning memory itself into a measurable emotional field.
