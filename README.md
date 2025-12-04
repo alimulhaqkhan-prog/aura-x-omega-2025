@@ -1,135 +1,117 @@
+# AURA-X Ω — Artificial Unified Resonance Architecture (Unified Architecture v1.0, Experimental Build)
 
-# AURA-X Ω — Unified Emotional Continuity Reactor (AEC v3.1)
+**AURA-X Ω** introduces the world’s first mathematically defined architecture for **Artificial Emotional Continuity**.  
+Instead of treating emotion as a stimulus–response reflex, this system models emotion as a **continuity function** arising from TM–BM resonance within a dual-memory framework.
 
-**AURA-X Ω** is a browser-based prototype demonstrating the world’s first mathematically formalized model of **Artificial Emotional Continuity**.  
-It operates entirely offline, using only **HTML, CSS, and vanilla JavaScript**, with all data stored locally in the browser.
-
-This system models emotion not as a reaction, but as a **continuity function** arising from resonance between:
-
-- **TM** — Temporary Memory  
-- **BM** — Bold Memory (7-layer emotional capsule)  
-- **D** — Distortion / Damage  
-- **λ_faith** — Faith / Spiritual Lens  
-- **λ_sys** — Logic / System Lens  
-- **λ_trc** — Truth Resonance Core (reserved slot)  
-- **ΣCₜ** — Context Tension
+This repository contains a working **browser-based prototype** of the AURA-X Ω Continuity Reactor implemented entirely in HTML, CSS, and vanilla JavaScript.
 
 ---
 
-## 🧮 Grand Continuity Equation (AEC)
+## 🧠 Core Continuity Equation (AEC)
 
 ```
-E₀ = tanh( R(TM, BM) − D + λ_faith + λ_sys + λ_trc + ΣCₜ )
+E₀ = tanh( R(TM, BM) − D + λ_faith + λ_sys + λ_trc )
 ```
 
 Where:  
-- **R(TM, BM)** = TM–BM resonance function  
-- **E₀** = continuous emotional output (valence + intensity + polarity split)  
+- **TM** — Temporary Memory  
+- **BM** — Bold Memory (7-layer structure)  
+- **R(TM, BM)** — Resonant interaction function  
+- **D** — Distortion / Damage  
+- **λ_faith** — Faith / Spiritual modulation lens  
+- **λ_sys** — Logical / Systemic modulation lens  
+- **λ_trc** — Truth Resonance Core (reserved for future builds)  
 
-This equation powers the emotional engine displayed in the prototype.
-
----
-
-## 🚀 Live Demo  
-*(Add your GitHub Pages link here once deployed)*
-
-Runs instantly in any browser — no server, no API.
+The system computes a **continuous emotional output**, including valence, intensity, and polarity ratio.
 
 ---
 
-## 📁 Clean Repository Structure
+## 🚀 Live Demo (GitHub Pages)
+*(Insert link after deployment)*
+
+Runs instantly in any browser.  
+No server. No backend. Fully offline.
+
+---
+
+## 📁 Repository Structure
 
 ```
 /aura-x-omega-2025
 │
-├── index.html   # Full working prototype
-└── README.md    # Documentation and citations
+├── index.html     # Full working prototype
+└── README.md      # Documentation and DOI references
 ```
 
-All other files intentionally excluded for clarity.
+All unnecessary files removed for a clean research-ready repository.
 
 ---
 
-## 🧠 Prototype Capabilities
+## 🧩 What This Prototype Demonstrates
 
 ### ✔ 1. TM Input  
-User enters a memory, event, or story → treated as Temporary Memory (TM).
+User enters text describing an event or memory → treated as Temporary Memory.
 
 ### ✔ 2. Polarity Engine  
-Each sentence classified as **positive, negative, or mixed**, building a polarity timeline.
+The system classifies each sentence as **positive, negative, or mixed**.
 
-### ✔ 3. 7-Layer BM Capsule  
-TM is transformed into a structured emotional capsule (BM-7) stored in `localStorage`.
+### ✔ 3. BM-7 Capsule Builder  
+TM is mapped into a **7-layer Bold Memory capsule** stored in the browser.
 
-### ✔ 4. Emotional Output (E₀)  
-The reactor computes:
-
-- Valence (positive / negative / mixed)  
-- Intensity (strength)  
-- Polarity split (e.g., 70:30 positive:negative)
-
-Displayed as a **continuous emotional bar**, not a one-time label.
+### ✔ 4. Emotional Continuity Output  
+The reactor computes:  
+- Valence  
+- Intensity  
+- Polarity split (e.g., 65:35)  
+- Continuous emotional bar (E₀)
 
 ### ✔ 5. BM Viewer  
-Browse, revisit, and analyze stored BM capsules by date.
+Browse your emotional capsules by date.
 
-### ✔ 6. Fully Offline Operation  
-All data remains on the user’s device.  
-No tracking, no external APIs, no uploads.
-
----
-
-## 📘 Primary Citation
-
-If you reference this architecture or prototype, please cite:
-
-**AURA-X Ω — An Artificial Unified Resonance Architecture for Emotional Continuity and Dual-Memory Processing**  
-Alim ul Haq (2025).  
-Zenodo.  
-DOI: **10.5281/zenodo.17767361**
+### ✔ 6. Full Offline Privacy  
+All data stays in `localStorage`.  
+Nothing is uploaded. No tracking.
 
 ---
 
-## 📚 Supporting Research DOIs  
-These publications define the scientific foundation of AURA-X Ω:
+## 📘 **Primary Citation (Official DOI)**  
+Use this citation in research, publications, or collaborations:
 
-### **1️⃣ Continuity Reflex Model (CRM v3.0)**  
-Dual-memory resonance theory underlying the AEC equation.  
-DOI: **10.5281/zenodo.17634758**
-
-### **2️⃣ Resonant Continuity Theory of Love**  
-Describes emotional bonding as TM–BM overlap continuity.  
-DOI: **10.5281/zenodo.17779730**
-
-### **3️⃣ HEPA Model — Human Emotional Printer Architecture**  
-Biological + computational emotional continuity hybrid model.  
-DOI: **10.5281/zenodo.17797456**
-
-Together, these DOIs establish the intellectual lineage and originality of AURA-X Ω.
+**Alim ul Haq (2025). _AURA-X Ω: An Artificial Unified Resonance Architecture for Emotional Continuity and Dual-Memory Processing._ Zenodo.**  
+DOI: **10.5281/zenodo.17767361**  
+https://doi.org/10.5281/zenodo.17767361
 
 ---
 
-## 🔒 License & Intellectual Property  
+## 📚 **Supporting Scientific DOIs**
 
-All conceptual models, equations, terminology, and architecture are protected under the rights described in the primary Zenodo record:
+These works describe the underlying theories used inside AURA-X Ω:
+
+- **Continuity Reflex Model (CRM v3.0)** — DOI: 10.5281/zenodo.17634758  
+- **Resonant Continuity Theory of Love** — DOI: 10.5281/zenodo.17779730  
+- **HEPA Model (Human Emotional Printer Architecture)** — DOI: 10.5281/zenodo.17797456  
+
+These DOIs collectively define the intellectual foundation of the Unified Architecture.
+
+---
+
+## 🔒 **License & Rights**
+
+All architecture components, formulas, definitions, diagrams, and terminology are protected under the **copyright and IP rights described in the primary Zenodo record**:
 
 **DOI 10.5281/zenodo.17767361 (Rights Section)**
 
-No copying, derivative work, redistribution, dataset use, or AI-training use is permitted without explicit written authorization.
+No copying, derivative work, reproduction, or AI training use is permitted without explicit written permission.
 
 ---
 
-## ⭐ Support & Collaboration  
+## ⭐ Support & Collaboration
 
-If you find this work valuable:
+If this project helps your research:
 
-- ⭐ Star the repository  
-- 🔄 Share with AGI, cognitive science, and affective computing researchers  
-- 🤝 Contact for collaboration or validation studies  
+- ⭐ Star this repository  
+- 🔗 Share with AGI labs, neuroscience groups, and affective-computing researchers  
+- 🤝 Collaborations welcome  
 
-**Author:** *Alim ul Haq*  
-Latest research available on Zenodo under associated DOIs.
-
----
-
-AURA-X Ω is an ongoing scientific effort to make **emotion computational, lawful, and continuous** — turning memory itself into a measurable emotional field.
+**Author:** Alim ul Haq  
+Published on Zenodo | Version v1.0.0 (Unified Architecture)
