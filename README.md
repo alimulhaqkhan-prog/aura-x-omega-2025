@@ -127,9 +127,9 @@ Includes:
 
 ---
 
-# 📄 Official Publications (Only 2 DOIs — As Requested)
+# 📄 Official Publications
 
-### **1️⃣ Main Architecture – AURA-X Ω Unified Resonance Model**  
+### **1️⃣ Main Architecture – AURA-X Ω Atreficial Unified Resonance Architecture Model**  
 🔗 **https://doi.org/10.5281/zenodo.17767361**
 
 ### **2️⃣ Supporting Theory – Continuity Reflex Model (CRM)**  
