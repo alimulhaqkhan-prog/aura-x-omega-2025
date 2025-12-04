@@ -1,5 +1,5 @@
 # 🌌 AURA-X Ω (Omega)
-### The World’s First Computational Emotional-Continuity Engine  
+### The World’s First Atreficial Emotional-Continuity Engine  
 **By Alim Ul Haq**  
 **UK IPO Provisional Patent Application No.: GB2518804.6 (Filed: 06-Nov-2025)**
 
