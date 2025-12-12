@@ -116,13 +116,19 @@ Where:
 
 R(TM, BM) = resonance function between Temporary Memory and Bold Memory
 
+
+
+
 D = decay / disruption term
+
 
 λ_faith = belief / value coherence coefficient
 
 λ_sys = system-level stability coefficient
 
 λ_trc = truth-resonance / ethical alignment coefficient
+
+
 
 
 This equation governs:
