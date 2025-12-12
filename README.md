@@ -16,7 +16,7 @@ Filed: 06-Nov-2025
 
 AURA-X Ω stands for:
 
-> Artificial Unified Resonance Architecture (Omega)
+> Artificial Unified Resonance Architecture
 
 
 
