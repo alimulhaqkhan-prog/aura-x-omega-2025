@@ -339,19 +339,12 @@
         </div>
 
         <div class="option-row" id="llmModelRow" style="display:none;">
-          <span>Preferred backend LLM model</span>
+          <span>Preferred Hugging Face model</span>
           <select id="llmModelSelect">
-            <option value="gpt-4.1">OpenAI – GPT-4.1</option>
-            <option value="gpt-4o">OpenAI – GPT-4o</option>
-            <option value="claude-3.5-sonnet">Anthropic – Claude 3.5 Sonnet</option>
-            <option value="claude-3.5-opus">Anthropic – Claude 3.5 Opus</option>
-            <option value="gemini-1.5-pro">Google – Gemini 1.5 Pro</option>
-            <option value="mistral-large">Mistral – Mistral Large</option>
-            <option value="command-r-plus">Cohere – Command-R+</option>
-            <option value="grok-2">xAI – Grok-2</option>
-            <option value="llama-3-70b-instruct">Meta – Llama-3-70B-Instruct</option>
-            <option value="qwen-2-72b">Qwen – Qwen-2-72B</option>
-            <option value="deepseek-coder-v2">DeepSeek – DeepSeek-Coder-V2</option>
+            <option value="meta-llama/Meta-Llama-3-8B-Instruct">Meta Llama 3 8B Instruct</option>
+            <option value="mistralai/Mistral-7B-Instruct-v0.3">Mistral 7B Instruct v0.3</option>
+            <option value="google/gemma-2-9b-it">Google Gemma 2 9B IT</option>
+            <option value="Qwen/Qwen2.5-7B-Instruct">Qwen2.5 7B Instruct</option>
           </select>
         </div>
 
@@ -382,7 +375,7 @@
 
   <script>
     /* ===================== CONFIG ===================== */
-    const BACKEND_URL = "https://aura-x-omega-backend.onrender.com/api/react"; // optional live engine
+    const BACKEND_URL = "https://aurax-backend-1.onrender.com/api/react"; // Render backend (Hugging Face)
     const lsKey = "auraX_bm_v31";
     const faithKey = "auraX_faithLens";
     const engineKey = "auraX_engineMode";
@@ -404,6 +397,17 @@
     const loveSeedWords = ["i love you","love you","pyaar","pyar","mohabbat","i care about you","miss you","hug","embrace"];
     const empathyWords = ["feel sorry for you","sorry for you","may allah ease","may allah make it easy","allah apko ajar de","i am with you","i understand your pain","may god help you"];
     const trcWords = ["truth","haq","haqq","sach","honest","evidence","dalil","proof","verify","verification","sadiq"];
+
+    /* Helper: current HF model ID (ignore old gpt-* values) */
+    function getCurrentModelId(){
+      const stored = localStorage.getItem(llmModelKey);
+      if(!stored || !stored.includes("/")){
+        const def = "meta-llama/Meta-Llama-3-8B-Instruct";
+        localStorage.setItem(llmModelKey, def);
+        return def;
+      }
+      return stored;
+    }
 
     /* ===================== STORAGE ===================== */
     function loadBM(){try{const raw=localStorage.getItem(lsKey);return raw?JSON.parse(raw):{}}catch{return{}}}
@@ -584,11 +588,10 @@
 
     /* ---------- Resonance & Emotion Math ---------- */
     function resonance(tm,bm){
-      // Wave-like blend: alignment + gentle sinusoid + weighted mix
-      const align = 1 - Math.abs(tm - bm);            // [0..1]
-      const wave  = Math.sin(Math.PI * (tm + bm) / 2);// [0..1]
-      const mix   = 0.55*bm + 0.45*tm;                // memory-weighted mean
-      const r = 0.5*mix + 0.3*align + 0.2*wave;       // convex blend
+      const align = 1 - Math.abs(tm - bm);
+      const wave  = Math.sin(Math.PI * (tm + bm) / 2);
+      const mix   = 0.55*bm + 0.45*tm;
+      const r = 0.5*mix + 0.3*align + 0.2*wave;
       return Math.max(0, Math.min(1, r));
     }
 
@@ -605,7 +608,7 @@
       lambdaFaith = (analysis && analysis.hasFaithSeed) ? 0.05 : 0.0;
       lambdaTrc   = (analysis && analysis.hasTRC)      ? 0.02 : 0.0;
 
-      BMvalue = 0.7*BMvalue + 0.3*TM;  // slow drift
+      BMvalue = 0.7*BMvalue + 0.3*TM;
       const raw = resonance(TM, BMvalue) - D + lambdaFaith + lambdaSys + lambdaTrc + Csum;
       E0 = tanh(raw);
 
@@ -677,7 +680,7 @@
       const tokens = wordTokens(text);
       const longWords = tokens.filter(w => w.length >= 4).length;
       const hasPunct = /[.!?۔]/.test(text);
-      return longWords >= 6 && hasPunct; // tweakable
+      return longWords >= 6 && hasPunct;
     }
     function tokenizeForMatch(s){ return s.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF\s]/g," ").split(/\s+/).filter(w=>w.length>2); }
     function matchScore(a,b){
@@ -701,17 +704,16 @@
     }
     function shouldSaveToBM(userText){
       const sc = sentenceCount(userText);
-      if (sc < 4) return false;               // < 4 sentences => Recycle (as requested)
+      if (sc < 4) return false;
       if (isGreetingOrFiller(userText)) return false;
       const rep = repetitionScoreVsRecent(userText);
-      if (rep >= 0.80) return false;          // highly repetitive => Recycle
-      if (!hasMainIdea(userText)) return false; // not enough structure/content => Recycle
+      if (rep >= 0.80) return false;
+      if (!hasMainIdea(userText)) return false;
       return true;
     }
 
     /* ---------- BM store ---------- */
     function storeInBM(userText, botReply){
-      // Hard gating: BM or Recycle
       if (!shouldSaveToBM(userText)) {
         pushSmallBuffer(userText, botReply);
         return;
@@ -753,14 +755,14 @@
       return best;
     }
     let lastAutoRecallTs=0;
-    const AUTO_RECALL_COOLDOWN_MS = 3*60*1000; // 3 minutes
+    const AUTO_RECALL_COOLDOWN_MS = 3*60*1000;
     function shouldAutoRecall(candidate){
       if(!candidate) return false;
       const now=Date.now();
       if(now - lastAutoRecallTs < AUTO_RECALL_COOLDOWN_MS) return false;
 
       const score=candidate.score, node=candidate.node;
-      if(score < 0.18) return false; // stronger match required
+      if(score < 0.18) return false;
 
       const pastPol=node.polarity||"Neutral";
       const currentPol=buildReactionTone().polarity;
@@ -787,7 +789,21 @@
       const mode=localStorage.getItem(engineKey)||"seed";
       if(mode!=="live") return {reply:seedReply,usedLive:false,error:null};
       try{
-        const payload={userText,seedReply,analysis,tm:TM,bm:BMvalue,D,Csum,lambdaFaith,lambdaSys,lambdaTrc,E0,faithLens:getFaithLens(),llmModel:localStorage.getItem(llmModelKey)||"gpt-4.1"};
+        const payload={
+          userText,
+          seedReply,
+          analysis,
+          tm:TM,
+          bm:BMvalue,
+          D,
+          Csum,
+          lambdaFaith,
+          lambdaSys,
+          lambdaTrc,
+          E0,
+          faithLens:getFaithLens(),
+          llmModel:getCurrentModelId()   // Hugging Face model id
+        };
         const resp=await fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
         if(!resp.ok) throw new Error("HTTP "+resp.status);
         const data=await resp.json(); const finalReply = data&&data.reply ? data.reply.trim() : seedReply;
@@ -932,13 +948,18 @@ D=${node.D.toFixed(2)}, ΣCₜ=${node.Csum.toFixed(2)}, layers=${node.layers.joi
       const mode=localStorage.getItem(engineKey)||"seed";
       const seedOnly = mode!=="live";
       engineModeToggle.checked=!seedOnly;
-      engineModeLabel.textContent = seedOnly ? "Seed-only. Everything runs locally." : "Live emotional reactor (backend LLM).";
-      const sub = seedOnly ? "Universal Ethics · Local BM" : "Universal Ethics · BM + Live LLM";
+      engineModeLabel.textContent = seedOnly ? "Seed-only. Everything runs locally." : "Live emotional reactor (backend LLM via Hugging Face).";
+      const sub = seedOnly ? "Universal Ethics · Local BM" : "Universal Ethics · BM + Live HF model";
       const subSpan=modePill.querySelector(".mode-sub"); if(subSpan) subSpan.textContent=sub;
       const engineSpan=modePill.querySelector(".engine"); if(engineSpan) engineSpan.textContent= seedOnly ? "Engine: Seed (local)" : "Engine: Live emotional reactor";
       const labelSpan=modePill.querySelector(".mode-label"); if(labelSpan) labelSpan.textContent= seedOnly ? "MODE: SEED-ONLY" : "MODE: LIVE (EXPERIMENTAL)";
       llmModelRow.style.display = seedOnly ? "none" : "flex";
-      if(!seedOnly && llmModelSelect){ const stored=localStorage.getItem(llmModelKey)||"gpt-4.1"; llmModelSelect.value=stored; }
+      if(!seedOnly && llmModelSelect){
+        const allowed = Array.from(llmModelSelect.options).map(o=>o.value);
+        let stored = getCurrentModelId();
+        if(!allowed.includes(stored)){ stored = llmModelSelect.options[0].value; localStorage.setItem(llmModelKey, stored); }
+        llmModelSelect.value = stored;
+      }
     }
     const faithRow=document.getElementById("faithRow");
     function getFaithLensStored(){return localStorage.getItem(faithKey)||"None"}
@@ -993,7 +1014,7 @@ D=${node.D.toFixed(2)}, ΣCₜ=${node.Csum.toFixed(2)}, layers=${node.layers.joi
     /* ---------- Init ---------- */
     applyEngineMode(); applyFaithHighlight(); updateEquationDisplay(); loadSmallBuffer();
     if("speechSynthesis" in window){ window.speechSynthesis.getVoices(); }
-    updateReactionBanner(); // initial paint
+    updateReactionBanner();
   </script>
 </body>
 </html>
