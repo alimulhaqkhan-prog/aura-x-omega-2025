@@ -299,7 +299,7 @@
       font-family:"Courier New",monospace;
       color:#e5e7eb;
       box-shadow:0 16px 40px rgba(15,23,42,.65);
-      max-height:110px; /* MODIFIED: Half height from 220px to 110px */
+      max-height:110px; /* half height */
       display:flex;
       flex-direction:column;
       gap:6px;
@@ -321,7 +321,7 @@
       border:none;
       padding:0;
       height:auto;
-      max-height:180px;
+      max-height:90px; /* half height */
       overflow-y:auto;
     }
     .message{
@@ -368,16 +368,6 @@
       background:#020617;
       border-bottom-right-radius:3px;
       border:1px solid #1f2937;
-      /* MODIFIED: Add light yellow background for user message box */
-      background-color: #fefce8; 
-      border-color: #fde68a;
-      color: #0f172a;
-    }
-    .user-message .message-header{
-      color: #94a3b8;
-    }
-    .user-message .message-content{
-      color: #0f172a;
     }
     .message-content{color:#e5e7eb;}
     .typing-indicator{
@@ -439,7 +429,7 @@
       align-items: flex-end;
       width: 100%;
       max-width: 700px;
-      background: #ffffff;
+      background: #fffbea; /* light yellow */
       border: 1px solid #cbd5e1;
       border-radius: 26px;
       padding: 6px;
@@ -512,7 +502,7 @@
       opacity:0;
       transform:translateY(8px);
       pointer-events:none;
-      transition:opacity .25s ease-out,transform .25s ease-out;
+      transition:opacity .25s.ease-out,transform .25s ease-out;
       z-index:40;
     }
     .reaction-bubble.visible{
@@ -601,7 +591,6 @@
       color:#6b7280;
       padding:4px 6px;
     }
-    .modal-close:hover{color:#0f172a;}
     .modal-body{
       padding:10px 14px 12px;
       overflow-y:auto;
@@ -709,7 +698,7 @@
     @media(max-width:900px){
       .layout{grid-template-columns:1fr}
       .card{padding:14px 12px 14px}
-      .answer-box{max-height:150px;} /* Adjusted for mobile view */
+      .answer-box{max-height:110px;} /* keep small on mobile too */
       .input-shell{max-width:100%;}
     }
   </style>
@@ -800,9 +789,10 @@
         <div class="card-header">
           <div>
             <div class="card-title"><span class="emoji">💬</span><span>Emotional Continuity Console</span></div>
-            <div class="card-sub">AURA-X Ω answers + internal equations (hidden).</div>
+            <!-- middle subtitle removed as requested -->
           </div>
-          </div>
+          <div class="card-sub">Offline · English only · No small-talk in BM.</div>
+        </div>
         <div class="answer-shell">
           <div class="answer-box">
             <div class="equation-header">AURA-X Ω SYNTHETIC EMOTION CONSOLE</div>
@@ -884,13 +874,13 @@
 (function(){
   const BM_BANDS = ["Pain","Fear","Love","Identity","Belief","Hope","Wisdom"];
   const BAND_RGB = [
-    [239,68,68],   // Pain - red
-    [249,115,22],  // Fear - orange
-    [34,197,94],   // Love - green
-    [14,165,233],  // Identity - cyan/blue
-    [99,102,241],  // Belief - indigo
-    [234,179,8],   // Hope - yellow
-    [168,85,247]   // Wisdom - purple
+    [239,68,68],
+    [249,115,22],
+    [34,197,94],
+    [14,165,233],
+    [99,102,241],
+    [234,179,8],
+    [168,85,247]
   ];
   const IMAGE_GENERATOR_URL = "https://example.com/create?prompt=";
   const STORAGE_KEY = "auraXOmegaState_v1";
@@ -916,7 +906,7 @@
         this.continuityIndex = 0.8;
         this.lastResonance = 0.5;
       }
-      this.voiceOn = false;
+      this.voiceOn = (saved && typeof saved.voiceOn === "boolean") ? saved.voiceOn : false;
 
       this.seedRules = this.buildSeedRules();
       this.smallTalkPatterns = [
@@ -930,12 +920,12 @@
       ];
 
       this.cacheDom();
+      this.updateVoiceToggleLabel();
       this.bindEvents();
 
       if(this.tmHistory.length){
-        // Rebuild chat UI from saved history
         this.tmHistory.forEach(m=>{
-          this.addMessage(m.role, m.text, m.role==="ai", m.sentiment || null);
+          this.addMessage(m.role, m.text, m.role==="ai", m.sentiment || null, true); // no auto-speech on reload
         });
       }else{
         this.initChat();
@@ -979,12 +969,11 @@
           e0: this.e0,
           lastE0: this.lastE0,
           continuityIndex: this.continuityIndex,
-          lastResonance: this.lastResonance
+          lastResonance: this.lastResonance,
+          voiceOn: this.voiceOn
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      }catch(e){
-        // ignore storage errors
-      }
+      }catch(e){}
     }
 
     cacheDom(){
@@ -1028,6 +1017,11 @@
       window.addEventListener("resize",()=>this.resizeCanvas());
     }
 
+    updateVoiceToggleLabel(){
+      if(!this.voiceToggle) return;
+      this.voiceToggle.textContent = this.voiceOn ? "🔊 Voice: ON" : "🔈 Voice: OFF";
+    }
+
     bindEvents(){
       this.sendButton.addEventListener("click",()=>this.handleSend());
       this.messageInput.addEventListener("keydown",(e)=>{
@@ -1054,7 +1048,6 @@
       this.bmShell.addEventListener("click",()=>this.openBMModal());
       this.bmSearch.addEventListener("input",()=>this.renderBMList());
 
-      // BM item buttons: copy / generate / delete
       this.bmList.addEventListener("click",(e)=>{
         const btn = e.target.closest("button[data-action]");
         if(!btn) return;
@@ -1089,15 +1082,16 @@
         this.saveState();
       });
 
-      this.recallBubble.addEventListener("click",()=>this.openBMModal());
+      // recall bubble ab sirf info hai, click se BM نہیں کھلے گا
+      // this.recallBubble.addEventListener("click",()=>this.openBMModal());
 
       this.voiceToggle.addEventListener("click",()=>{
         this.voiceOn = !this.voiceOn;
-        this.voiceToggle.textContent = (this.voiceOn ? "🔊 Voice: ON" : "🔈 Voice: OFF");
+        this.updateVoiceToggleLabel();
+        this.saveState();
       });
 
-      // NOTE: swipe-to-clear and double-click clear removed
-      // تاکہ conversation accidently صاف نہ ہو۔
+      // swipe-to-clear وغیرہ پہلے ہی remove ہیں
     }
 
     clearAnswerBox(){
@@ -1330,7 +1324,7 @@
       this.bmStats.textContent = `Active layers: ${active}/${this.bmLayers.length} · System Online`;
     }
 
-    addMessage(role,text,isAI=false,sentiment=null){
+    addMessage(role,text,isAI=false,sentiment=null,skipSpeech=false){
       const msg = document.createElement("div");
       msg.className = "message "+(role==="ai"?"ai-message":"user-message");
       
@@ -1361,7 +1355,7 @@
       this.chatContainer.appendChild(msg);
       this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
 
-      if(role==="ai" && this.voiceOn){
+      if(role==="ai" && this.voiceOn && !skipSpeech){
         this.speak(text,sentiment);
       }
     }
@@ -1486,8 +1480,8 @@
       const filtered = this.bmEntries.filter(e=>e.text.toLowerCase().includes(q));
       filtered.forEach(entry=>{
         const div = document.createElement("div");
-        div.className="bm-item";
         const dateStr = entry.date.toISOString().slice(0,10);
+        div.className="bm-item";
         div.innerHTML = `
           <div class="bm-item-header">
             <span>${dateStr}</span>
@@ -1531,6 +1525,7 @@
       this.updateMetrics();
       this.saveState();
     }
+
     pruneOldBM(){
       this.bmEntries = this.bmEntries.filter(e=>e.timestampMs > (Date.now() - 48*3600000));
       this.saveState();
