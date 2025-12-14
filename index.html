@@ -1,3 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* RESET & BASICS */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:radial-gradient(circle at top,#e0f2ff 0,#f5f7fb 40%,#eef1f7 100%);
+      color:#0f172a;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:20px;
+    }
+    .app{
+      width:100%;
+      max-width:1100px;
+      background:#ffffffee;
+      border-radius:24px;
+      box-shadow:0 24px 60px rgba(15,23,42,.15);
+      padding:18px 20px 12px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      border:1px solid #e2e8f0;
+      position: relative;
+    }
+
+    /* ===================== HERO HEADER (COMPACT) ===================== */
+    .header{
+      position: relative;
+      border-radius: 24px;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+      align-items: center;
+      background: radial-gradient(1000px 320px at 30% 0%, rgba(56,189,248,.14), rgba(2,6,23,.9) 55%, rgba(2,6,23,.96) 100%);
+      border: 2px solid rgba(148,163,184,.25);
+      box-shadow:
+        0 18px 45px rgba(2,6,23,.55),
+        inset 0 1px 0 rgba(255,255,255,.08);
+      overflow: hidden;
+    }
+    .header::before{
+      content:"";
+      position:absolute; inset:-40px;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(56,189,248,.16), transparent 45%),
+        radial-gradient(circle at 80% 25%, rgba(34,211,238,.12), transparent 40%),
+        linear-gradient(90deg, rgba(56,189,248,.10), transparent 35%, rgba(34,211,238,.10));
+      opacity:.9;
+      pointer-events:none;
+    }
+    .header::after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        repeating-linear-gradient(90deg, rgba(56,189,248,.12) 0 2px, transparent 2px 26px);
+      opacity:.06;
+      pointer-events:none;
+    }
+
+    .title-block{position:relative; z-index:1;}
+    .title-block h1{
+      font-size: 1.6rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 800;
+      line-height: 1.05;
+    }
+    .title-block h1 span{
+      background: linear-gradient(90deg,#2563eb,#22d3ee);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero-line{
+      margin-top: 6px;
+      font-size: .9rem;
+      color: rgba(226,232,240,.92);
+      font-weight: 500;
+    }
+    .title-sub{
+      margin-top: 4px;
+      font-size: .8rem;
+      color: rgba(148,163,184,.95);
+      line-height: 1.35;
+    }
+
+    .badge-row{
+      margin-top: 10px;
+      display:flex;
+      flex-wrap:wrap;
+    }
+    .ethics-pill{
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(2,6,23,.40);
+      border: 1.5px solid rgba(250,204,21,.6);
+      box-shadow: 0 10px 30px rgba(2,6,23,.45);
+      max-width: 420px;
+    }
+    .ethics-pill-text{
+      color: rgba(250,204,21,.96);
+      font-weight: 600;
+      font-size: .8rem;
+      line-height: 1.4;
+    }
+
+    .header-right{
+      position:relative;
+      z-index:1;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:10px;
+    }
+    .mode-pill{
+      width: min(320px, 100%);
+      padding: 14px 14px;
+      border-radius: 22px;
+      border: 1px solid rgba(34,211,238,.55);
+      background:
+        radial-gradient(700px 210px at 20% 20%, rgba(34,211,238,.35), rgba(34,211,238,.18) 45%, rgba(2,6,23,.10) 100%),
+        linear-gradient(135deg, rgba(34,211,238,.35), rgba(6,182,212,.18));
+      color: rgba(240,253,250,.95);
+      font-size: .9rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      text-align: center;
+      box-shadow: 0 14px 40px rgba(34,211,238,.22);
+      position: relative;
+      overflow:hidden;
+    }
+    .mode-pill::before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(circle at 35% 65%, rgba(255,255,255,.18), transparent 55%),
+        radial-gradient(circle at 70% 35%, rgba(255,255,255,.12), transparent 60%);
+      opacity:.9;
+    }
+    .mode-pill::after{
+      content:"";
+      position:absolute; left:-10%; right:-10%; bottom:-30%;
+      height:70%;
+      background: rgba(255,255,255,.14);
+      border-radius: 999px;
+      transform: rotate(-6deg);
+      filter: blur(1px);
+      opacity:.35;
+    }
+    .header-controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .voice-toggle{
+      border:none;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: .85rem;
+      background: rgba(248,250,252,.96);
+      color: #0f172a;
+      border: 1px solid rgba(226,232,240,.9);
+      cursor: pointer;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      box-shadow: 0 10px 26px rgba(2,6,23,.3);
+    }
+    .voice-toggle:hover{filter: brightness(1.03);}
+
+    @media(max-width:900px){
+      .header{
+        grid-template-columns:1fr;
+        padding:12px 12px 14px;
+      }
+      .header-right{align-items:stretch}
+      .mode-pill{width:100%}
+      .header-controls{justify-content:flex-start;}
+    }
+
+    /* LAYOUT */
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+      gap:18px;
+      margin-top:4px;
+      margin-bottom: 20px;
+    }
+    .left-col,.right-col{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .card{
+      background:#f9fafb;
+      border-radius:18px;
+      padding:16px 16px 14px;
+      border:1px solid #e5e7eb;
+      box-shadow:0 10px 25px rgba(148,163,184,.16);
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+    }
+    .card-title{
+      font-size:.95rem;
+      font-weight:600;
+      color:#0f172a;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .card-title span.emoji{font-size:1.1rem;}
+    .card-sub{font-size:.75rem;color:#94a3b8;}
+
+    .metrics-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:4px;
+    }
+    .metric{
+      background:#ffffff;
+      border-radius:12px;
+      padding:10px 10px 9px;
+      border:1px solid #e5e7eb;
+    }
+    .metric-label{font-size:.7rem;color:#64748b;margin-bottom:4px;}
+    .metric-value{font-size:1.1rem;font-weight:700;color:#1d4ed8;}
+    .metric-note{font-size:.7rem;color:#9ca3af;margin-top:2px;}
+
+    .status-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:8px;
+      font-size:.72rem;
+      color:#6b7280;
+    }
+    .tag{
+      padding:4px 8px;
+      border-radius:999px;
+      background:#e5f4ff;
+      color:#1e3a8a;
+      border:1px solid #bfdbfe;
+      font-size:.68rem;
+    }
+
+    .bm-wrapper{margin-top:8px;}
+    .bm-canvas-shell{
+      background:radial-gradient(circle at top,#e0f2fe 0,#eff6ff 60%,#e2e8f0 100%);
+      border-radius:12px;
+      border:1px solid #dbeafe;
+      height:150px;
+      overflow:hidden;
+      position:relative;
+      cursor:pointer;
+    }
+    #bmCanvas{width:100%;height:100%;display:block;}
+    .bm-footer{
+      font-size:.72rem;
+      color:#6b7280;
+      margin-top:6px;
+      text-align:center;
+    }
+    .bm-overlay-btn{
+      position:absolute;
+      top:6px;
+      width:26px;height:26px;
+      border-radius:999px;
+      border:none;
+      font-size:.9rem;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      background:#f9fafbcc;
+      box-shadow:0 6px 14px rgba(15,23,42,.25);
+    }
+    .bm-overlay-btn.left{left:8px;}
+    .bm-overlay-btn.right{right:8px;}
+    .bm-overlay-btn:hover{background:#e5f0ff;}
+
+    .answer-card .card-header{margin-bottom:6px;}
+    .answer-shell{margin-top:4px;}
+    .answer-box{
+      background:#020617;
+      border-radius:12px;
+      padding:10px 10px 12px;
+      border:1px solid #020617;
+      font-family:"Courier New",monospace;
+      color:#e5e7eb;
+      box-shadow:0 16px 40px rgba(15,23,42,.65);
+      max-height:110px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .equation-header{
+      font-size:.75rem;
+      color:#60a5fa;
+      font-weight:600;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+    .equation-divider{
+      height:1px;
+      background:linear-gradient(90deg,rgba(148,163,184,.2),rgba(15,23,42,0),rgba(148,163,184,.2));
+      margin:2px 0 4px;
+    }
+    .chat-container{
+      background:transparent;
+      border:none;
+      padding:0;
+      height:auto;
+      max-height:90px;
+      overflow-y:auto;
+    }
+    .message{
+      max-width:100%;
+      padding:6px 7px;
+      margin-bottom:6px;
+      border-radius:8px;
+      font-size:.8rem;
+      line-height:1.5;
+      position:relative;
+      animation:fadeIn .2s ease-out;
+      white-space:pre-wrap;
+    }
+    .message-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:3px;
+      font-size:.7rem;
+      color:#9ca3af;
+      gap:6px;
+    }
+    .msg-right{
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    .voice-btn{
+      border:none;
+      border-radius:999px;
+      padding:1px 6px;
+      font-size:.7rem;
+      cursor:pointer;
+      background:#1f2937;
+      color:#e5e7eb;
+    }
+    .voice-btn:hover{background:#111827;}
+    .ai-message{
+      background:#020617;
+      border-bottom-left-radius:3px;
+      border:1px solid #111827;
+    }
+    .user-message{
+      background:#020617;
+      border-bottom-right-radius:3px;
+      border:1px solid #1f2937;
+    }
+    .message-content{color:#e5e7eb;}
+    .typing-indicator{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      background:#020617;
+      border-radius:999px;
+      padding:4px 8px;
+      width:fit-content;
+      margin:6px 0 2px;
+      border:1px solid #111827;
+    }
+    .typing-dot{
+      width:5px;height:5px;border-radius:999px;
+      background:#38bdf8;
+      animation:typing 1.2s infinite;
+    }
+    .typing-dot:nth-child(2){animation-delay:.18s}
+    .typing-dot:nth-child(3){animation-delay:.36s}
+    .typing-text{font-size:.7rem;color:#38bdf8;font-weight:500;}
+
+    .input-footer {
+      margin-top: 6px;
+      padding-top: 10px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      position: sticky;
+      bottom: 0;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(248,250,252,0.9) 15%);
+      padding-bottom: 10px;
+      z-index: 10;
+    }
+    .tm-formula-row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2px;
+    }
+    .tm-formula-pill {
+      font-size: .7rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #64748b;
+      font-family: "Courier New", monospace;
+      border: 1px solid #e2e8f0;
+    }
+    .input-row {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 0 10px;
+    }
+    .input-shell {
+      display: flex;
+      align-items: flex-end;
+      width: 100%;
+      max-width: 700px;
+      background: #fffbea; /* light yellow */
+      border: 1px solid #cbd5e1;
+      border-radius: 26px;
+      padding: 6px;
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.1);
+      transition: all 0.2s ease;
+    }
+    .input-shell:focus-within {
+      border-color: #3b82f6;
+      box-shadow: 0 12px 35px -5px rgba(59, 130, 246, 0.2);
+      transform: translateY(-2px);
+    }
+    .message-input {
+      flex: 1;
+      resize: none;
+      min-height: 24px;
+      max-height: 120px;
+      padding: 12px 14px;
+      border: none;
+      outline: none;
+      font-size: .95rem;
+      background: transparent;
+      color: #0f172a;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+    .message-input::placeholder {
+      color: #94a3b8;
+    }
+    .send-button {
+      border: none;
+      height: 40px;
+      padding: 0 20px;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: white;
+      font-weight: 600;
+      font-size: .85rem;
+      cursor: pointer;
+      border-radius: 20px;
+      flex-shrink: 0;
+      margin-left: 6px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      transition: filter 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .send-button:hover { filter: brightness(1.1); }
+    .send-button:active { transform: scale(0.96); }
+    .flow-caption{
+      margin-top:4px;
+      text-align:center;
+      font-size:.7rem;
+      color:#9ca3af;
+    }
+
+    .reaction-bubble{
+      position:fixed;
+      right:22px;
+      bottom:100px;
+      max-width:260px;
+      background:#0f172acc;
+      color:#e5e7eb;
+      padding:10px 12px;
+      border-radius:16px 16px 2px 16px;
+      font-size:.78rem;
+      box-shadow:0 18px 45px rgba(15,23,42,.6);
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      opacity:0;
+      transform:translateY(8px);
+      pointer-events:none;
+      transition:opacity .25s ease-out,transform .25s ease-out;
+      z-index:40;
+    }
+    .reaction-bubble.visible{
+      opacity:1;
+      transform:translateY(0);
+      pointer-events:auto;
+    }
+    .reaction-icon{font-size:1.1rem;margin-top:2px;}
+    .reaction-label{font-weight:600;margin-bottom:2px;}
+    .reaction-body{font-size:.76rem;color:#cbd5f5;}
+
+    .recall-bubble-container{
+      position:fixed;
+      left:22px;
+      bottom:100px;
+      z-index:35;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .recall-bubble{
+      max-width:280px;
+      background:#f9fafb;
+      border-radius:16px 16px 16px 2px;
+      border:1px solid #e5e7eb;
+      padding:9px 11px;
+      font-size:.78rem;
+      box-shadow:0 18px 40px rgba(148,163,184,.45);
+      cursor:pointer;
+      opacity:0;
+      transform:translateY(8px);
+      transition:opacity .3s ease-out,transform .3s ease-out,background .2s;
+    }
+    .recall-bubble.visible{
+      opacity:1;
+      transform:translateY(0);
+    }
+    .recall-bubble:hover{background:#eff6ff;}
+    .recall-title{font-weight:600;font-size:.76rem;color:#1e293b;margin-bottom:2px;}
+    .recall-body{color:#4b5563;margin-bottom:3px;}
+    .recall-meta{font-size:.68rem;color:#9ca3af;}
+
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:60;
+      backdrop-filter:blur(6px);
+    }
+    .modal-overlay.visible{display:flex;}
+    .modal-card{
+      background:#f9fafb;
+      border-radius:18px;
+      width:min(640px,96vw);
+      max-height:80vh;
+      box-shadow:0 24px 60px rgba(15,23,42,.6);
+      border:1px solid #e5e7eb;
+      display:flex;
+      flex-direction:column;
+    }
+    .modal-header{
+      padding:10px 14px 8px;
+      border-bottom:1px solid #e5e7eb;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+    .modal-title{
+      font-size:.9rem;
+      font-weight:600;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      color:#0f172a;
+    }
+    .modal-sub{font-size:.7rem;color:#94a3b8;margin-top:2px;}
+    .modal-close{
+      border:none;
+      background:transparent;
+      font-size:.9rem;
+      cursor:pointer;
+      color:#6b7280;
+      padding:4px 6px;
+    }
+    .modal-body{
+      padding:10px 14px 12px;
+      overflow-y:auto;
+      font-size:.8rem;
+    }
+    .modal-search{
+      width:100%;
+      padding:7px 9px;
+      border-radius:10px;
+      border:1px solid #cbd5f5;
+      font-size:.78rem;
+      margin:8px 0 10px;
+      outline:none;
+      background:#ffffff;
+    }
+    .modal-search:focus{
+      border-color:#2563eb;
+      box-shadow:0 0 0 1px rgba(37,99,235,.25);
+    }
+    .bm-item{
+      background:#ffffff;
+      border-radius:12px;
+      padding:7px 8px 8px;
+      border:1px solid #e5e7eb;
+      margin-bottom:8px;
+    }
+    .bm-item-header{
+      display:flex;
+      justify-content:space-between;
+      font-size:.7rem;
+      color:#64748b;
+      margin-bottom:4px;
+      gap:6px;
+    }
+    .bm-item-text{
+      color:#111827;
+      margin-bottom:6px;
+      font-size:.78rem;
+    }
+    .bm-item-buttons{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .btn-mini{
+      font-size:.7rem;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid #dbeafe;
+      background:#eff6ff;
+      cursor:pointer;
+      color:#1d4ed8;
+    }
+    .btn-mini:hover{background:#e0edff;}
+    .btn-danger{
+      border-color:#fecaca!important;
+      background:#fee2e2!important;
+      color:#b91c1c!important;
+    }
+    .btn-danger:hover{background:#fecaca!important;}
+
+    .conv-item{
+      background:#ffffff;
+      border-radius:12px;
+      border:1px solid #e5e7eb;
+      padding:7px 8px;
+      margin-bottom:7px;
+      font-size:.78rem;
+    }
+    .conv-header{
+      display:flex;
+      justify-content:space-between;
+      color:#64748b;
+      font-size:.7rem;
+      margin-bottom:3px;
+      gap:8px;
+    }
+    .conv-text{color:#111827;}
+    .conv-controls{
+      display:flex;
+      justify-content:flex-end;
+      gap:6px;
+      margin-bottom:8px;
+      flex-wrap:wrap;
+    }
+    .conv-btn{
+      font-size:.7rem;
+      padding:4px 7px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#f3f4f6;
+      cursor:pointer;
+      color:#374151;
+    }
+    .conv-btn:hover{background:#e5e7eb;}
+
+    /* Faith modal styling */
+    .faith-card{
+      background:#fefce8;
+    }
+    .faith-note{
+      font-size:.78rem;
+      color:#4b5563;
+      margin-bottom:6px;
+    }
+    .faith-chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+    }
+    .faith-chip{
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:.78rem;
+      border:1px solid #e5e7eb;
+      background:#fefce8;
+      cursor:pointer;
+    }
+    .faith-chip.active{
+      background:#0f172a;
+      color:#f9fafb;
+      border-color:#0f172a;
+    }
+
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(6px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    @keyframes typing{
+      0%,60%,100%{transform:translateY(0);opacity:.4}
+      30%{transform:translateY(-4px);opacity:1}
+    }
+    @media(max-width:900px){
+      .layout{grid-template-columns:1fr}
+      .card{padding:14px 12px 14px}
+      .answer-box{max-height:110px;}
+      .input-shell{max-width:100%;}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <div class="title-block">
+      <h1><span>AURA-X Ω</span></h1>
+      <div class="hero-line">World’s first synthetic emotions engine (prototype)</div>
+      <div class="title-sub">
+        Emotional continuity · dual memory · synthetic reactions · fully offline
+      </div>
+      <div class="badge-row">
+        <div class="ethics-pill">
+          <span class="ethics-pill-text">
+            Universal ethic: Avoid actions that grow negative emotions in you or others. Choose paths that gently increase shared positive emotion for everyone.
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="mode-pill">EMOTIONAL CONTINUITY ENGINE ACTIVE</div>
+      <div class="header-controls">
+        <button id="faithButton" class="voice-toggle">🔘 Faith: None</button>
+        <button id="voiceToggle" class="voice-toggle">🔈 Voice: OFF</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <div class="left-col">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><span class="emoji">🧪</span><span>Emotional Metrics</span></div>
+            <div class="card-sub">Synthetic state computed from TM ↔ BM resonance.</div>
+          </div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric">
+            <div class="metric-label">Emotional state E₀</div>
+            <div id="metricE0" class="metric-value">0.00</div>
+            <div class="metric-note">tanh-based, range [-1, +1]</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">TM activation</div>
+            <div id="metricTM" class="metric-value">0.00</div>
+            <div class="metric-note">Recent temporary memories</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">BM resonance</div>
+            <div id="metricBM" class="metric-value">0.00</div>
+            <div class="metric-note">Stored emotional events</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Continuity index</div>
+            <div id="metricCI" class="metric-value">0.80</div>
+            <div class="metric-note">Stability of emotional trajectory</div>
+          </div>
+        </div>
+        <div class="status-row">
+          <span id="tagValence" class="tag">VALENCE: neutral</span>
+          <span id="tagArousal" class="tag">AROUSAL: medium</span>
+          <span id="tagReaction" class="tag">REACTION: balanced</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><span class="emoji">🧠</span><span>Bold Memory Layers (240)</span></div>
+            <div class="card-sub">Grouped into emotional bands with tiny neuron-stars.</div>
+          </div>
+        </div>
+        <div class="bm-wrapper">
+          <div class="bm-canvas-shell" id="bmShell">
+            <button class="bm-overlay-btn left" id="bmOpenModal" title="Recall from BM">📁</button>
+            <button class="bm-overlay-btn right" id="convOpenModal" title="View conversations">◎</button>
+            <canvas id="bmCanvas"></canvas>
+          </div>
+          <div id="bmStats" class="bm-footer">
+            Active layers: 0/240 · Pain:– · Fear:– · Love:– · Identity:– · Belief:– · Hope:– · Wisdom:–
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="right-col">
+      <section class="card answer-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><span class="emoji">💬</span><span>Emotional Continuity Console</span></div>
+          </div>
+          <div class="card-sub">Offline · English only · No small-talk in BM.</div>
+        </div>
+        <div class="answer-shell">
+          <div class="answer-box">
+            <div class="equation-header">AURA-X Ω SYNTHETIC EMOTION CONSOLE</div>
+            <div class="equation-divider"></div>
+            <div id="chatContainer" class="chat-container"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="input-footer">
+    <div class="tm-formula-row">
+      <div class="tm-formula-pill">TM = Σ(User Inputs) + (Seed + LLM)</div>
+    </div>
+    <div class="input-row">
+      <div class="input-shell">
+        <textarea id="messageInput" class="message-input" rows="1" placeholder="Write to AURA-X Ω..."></textarea>
+        <button id="sendButton" class="send-button">Send</button>
+      </div>
+    </div>
+    <div class="flow-caption">Prototype flow: TM → analysis → hidden equations → BM save → reaction.</div>
+  </footer>
+</div>
+
+<div id="reactionBubble" class="reaction-bubble">
+  <div class="reaction-icon">💭</div>
+  <div>
+    <div id="reactionLabel" class="reaction-label">Reaction</div>
+    <div id="reactionText" class="reaction-body">…</div>
+  </div>
+</div>
+
+<div class="recall-bubble-container">
+  <div id="recallBubble" class="recall-bubble">
+    <div class="recall-title" id="recallTitle">Recall from BM</div>
+    <div class="recall-body" id="recallBody">…</div>
+    <div class="recall-meta" id="recallMeta">Tap to open memory window.</div>
+  </div>
+</div>
+
+<div id="bmModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">📁 Recall from BM</div>
+        <div class="modal-sub">Search bold memories by keyword.</div>
+      </div>
+      <button class="modal-close" data-close="bmModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input id="bmSearch" class="modal-search" placeholder='Search BM by keyword (e.g., "city", "mother", "court", "hope")'>
+      <div id="bmList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="convModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">◎ Conversation history</div>
+        <div class="modal-sub">Recent TM log (BM is not touched).</div>
+      </div>
+      <button class="modal-close" data-close="convModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="conv-controls">
+        <button id="clear24" class="conv-btn">🔘 Delete history last 24h</button>
+        <button id="clear48" class="conv-btn">🔘 Delete history last 48h</button>
+        <button id="clearAll" class="conv-btn">🔘 Delete all history</button>
+      </div>
+      <div id="convList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="faithModal" class="modal-overlay">
+  <div class="modal-card faith-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">⚙ AURA-X Ω options</div>
+        <div class="modal-sub">Optional faith lens for encouragement lines.</div>
+      </div>
+      <button class="modal-close" data-close="faithModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="faith-note">
+        Universal ethics are always active. You can optionally pick one or more faith lenses. Nothing is sent to any server.
+      </p>
+      <div id="faithChips" class="faith-chip-row">
+        <button class="faith-chip" data-faith="None">None</button>
+        <button class="faith-chip" data-faith="Islam">Islam</button>
+        <button class="faith-chip" data-faith="Christianity">Christianity</button>
+        <button class="faith-chip" data-faith="Hinduism">Hinduism</button>
+        <button class="faith-chip" data-faith="Buddhism">Buddhism</button>
+        <button class="faith-chip" data-faith="Sikhism">Sikhism</button>
+        <button class="faith-chip" data-faith="Judaism">Judaism</button>
+        <button class="faith-chip" data-faith="Atheism / Humanism">Atheism / Humanism</button>
+        <button class="faith-chip" data-faith="Other / Mixed">Other / Mixed</button>
+        <button class="faith-chip" data-faith="Indigenous / Traditional">Indigenous / Traditional</button>
+        <button class="faith-chip" data-faith="Eastern / Chinese">Eastern / Chinese</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   const BM_BANDS = ["Pain","Fear","Love","Identity","Belief","Hope","Wisdom"];
@@ -179,7 +1119,7 @@
       this.faithChips.querySelectorAll(".faith-chip").forEach(chip=>{
         const faith = chip.dataset.faith;
         if(faith === "None"){
-          chip.classList.toggle("active", this.faithsSelected.length===0);
+          chip.classToggle = chip.classList.toggle("active", this.faithsSelected.length===0);
         }else{
           chip.classList.toggle("active", this.faithsSelected.includes(faith));
         }
@@ -852,3 +1792,5 @@
   });
 })();
 </script>
+</body>
+</html>
