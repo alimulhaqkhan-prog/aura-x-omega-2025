@@ -543,7 +543,7 @@
       opacity:0;
       transform:translateY(8px);
       pointer-events:none;
-      transition:opacity .25s ease-out,transform .25s.ease-out;
+      transition:opacity .25s ease-out,transform .25s ease-out;
       z-index:40;
     }
     .reaction-bubble.visible{
@@ -697,6 +697,19 @@
     }
     .btn-danger:hover{background:#fecaca!important;}
 
+    .lock-pill{
+      border:none;
+      padding:2px 6px;
+      border-radius:999px;
+      font-size:.75rem;
+      cursor:pointer;
+      background:#e5e7eb;
+      margin-right:4px;
+    }
+    .lock-pill.locked{
+      background:#fee2e2;
+    }
+
     .conv-item{
       background:#ffffff;
       border-radius:12px;
@@ -731,11 +744,6 @@
       color:#374151;
     }
     .conv-btn:hover{background:#e5e7eb;}
-    .conv-lock-row{
-      display:flex;
-      justify-content:flex-end;
-      margin-top:4px;
-    }
 
     .faith-card{background:#fefce8;}
     .faith-note{
@@ -834,6 +842,7 @@
         <div class="option-panel" id="optionPanel">
           <button id="voiceToggle" class="small-toggle">🔈 Voice: OFF</button>
           <button id="intelButton" class="small-toggle">🧠 Intelligence</button>
+          <button id="feedSeedButton" class="small-toggle">🌱 Feed the seed</button>
           <button id="learningToggle" class="small-toggle">📚 Learning: ON</button>
           <button id="faithButton" class="small-toggle">🔘 Faith: None</button>
         </div>
@@ -969,7 +978,7 @@
     <div class="modal-header">
       <div>
         <div class="modal-title">◎ Conversation history</div>
-        <div class="modal-sub">Recent TM log (BM and Intelligence are not touched).</div>
+        <div class="modal-sub">Recent TM log (BM & intelligence are not touched).</div>
       </div>
       <button class="modal-close" data-close="convModal">✕</button>
     </div>
@@ -1029,6 +1038,48 @@
   </div>
 </div>
 
+<!-- 🌱 FEED THE SEED MODAL -->
+<div id="seedModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">🌱 Feed the seed (protected)</div>
+        <div class="modal-sub">Add LaTeX Q → A blocks directly into intelligence memory.</div>
+      </div>
+      <button class="modal-close" data-close="seedModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="seedPasswordStage">
+        <p class="faith-note">
+          This area is protected. Enter the offline password to continue.<br/>
+          (Default password for demo: <strong>6789</strong>)
+        </p>
+        <input id="seedPasswordInput" type="password" class="modal-search" placeholder="Password (default: 6789)">
+        <div id="seedPasswordError" style="display:none;color:#b91c1c;font-size:.75rem;margin-top:4px;">
+          Incorrect password. Try again.
+        </div>
+        <button id="seedPasswordBtn" class="btn-mini" style="margin-top:8px;">Unlock</button>
+      </div>
+
+      <div id="seedBlockStage" style="display:none;">
+        <p class="faith-note">
+          Paste a LaTeX block with <code>\item</code> questions and <code>\textbf{A:}</code> answers.
+          I will parse them into intelligence nodes (outside normal self-learning flow).
+        </p>
+        <textarea id="seedBlockInput" class="modal-search" style="min-height:120px;" placeholder="Paste LaTeX conversation / logic block here..."></textarea>
+        <div id="seedBlockPreview" style="font-size:.75rem;color:#4b5563;margin-top:6px;">
+          Waiting for block…
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="seedParseBtn" class="btn-mini">Parse block</button>
+          <button id="seedSaveBtn" class="btn-mini" disabled>Save to seed</button>
+          <button id="seedDiscardBtn" class="btn-mini btn-danger">Discard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   const BM_BANDS = ["Pain","Fear","Love","Identity","Belief","Hope","Wisdom"];
@@ -1048,51 +1099,58 @@
     constructor(){
       const saved = this.loadState();
 
+      this.bmLayers = new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
+      this.bmEntries = [];
+      this.tmHistory = [];
+      this.intelNodes = [];
+      this.e0 = 0.2 + Math.random()*0.3;
+      this.lastE0 = this.e0;
+      this.continuityIndex = 0.8;
+      this.lastResonance = 0.5;
+      this.learningMode = true;
+      this.lastAnsweredQuestion = null;
+      this.voiceOn = false;
+      this.faithsSelected = [];
+      this.seedUnlocked = false;
+      this.seedPanelQAs = [];
+
       if(saved){
-        this.bmLayers = saved.bmLayers || new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
+        this.bmLayers = saved.bmLayers || this.bmLayers;
         this.bmEntries = (saved.bmEntries || []).map(e=>({
           ...e,
-          date: e.date ? new Date(e.date) : new Date(e.timestampMs || Date.now()),
+          id: e.id || this.makeId("bm"),
           timestampMs: e.timestampMs || (e.date ? new Date(e.date).getTime() : Date.now()),
+          date: e.date ? new Date(e.date) : new Date(e.timestampMs || Date.now()),
           locked: !!e.locked
         }));
         this.tmHistory = (saved.tmHistory || []).map(e=>({
-          ...e,
+          id: e.id || this.makeId("tm"),
+          role: e.role || "user",
+          text: e.text || "",
           timestamp: e.timestamp ? new Date(e.timestamp) : new Date(),
-          id: e.id || ("tm_"+Math.random().toString(36).slice(2)),
+          sentiment: e.sentiment || null,
           locked: !!e.locked
         }));
         this.intelNodes = (saved.intelNodes || []).map(n=>({
           ...n,
+          id: n.id || this.makeId("intel"),
           createdAt: n.createdAt ? new Date(n.createdAt) : new Date()
         }));
-        this.e0 = typeof saved.e0 === "number" ? saved.e0 : 0.2 + Math.random()*0.3;
+        this.e0 = typeof saved.e0 === "number" ? saved.e0 : this.e0;
         this.lastE0 = typeof saved.lastE0 === "number" ? saved.lastE0 : this.e0;
-        this.continuityIndex = typeof saved.continuityIndex === "number" ? saved.continuityIndex : 0.8;
-        this.lastResonance = typeof saved.lastResonance === "number" ? saved.lastResonance : 0.5;
-        this.learningMode = typeof saved.learningMode === "boolean" ? saved.learningMode : true;
+        this.continuityIndex = typeof saved.continuityIndex === "number" ? saved.continuityIndex : this.continuityIndex;
+        this.lastResonance = typeof saved.lastResonance === "number" ? saved.lastResonance : this.lastResonance;
+        this.learningMode = typeof saved.learningMode === "boolean" ? saved.learningMode : this.learningMode;
         this.lastAnsweredQuestion = saved.lastAnsweredQuestion || null;
-      }else{
-        this.bmLayers = new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
-        this.bmEntries = [];
-        this.tmHistory = [];
-        this.intelNodes = [];
-        this.e0 = 0.2 + Math.random()*0.3;
-        this.lastE0 = this.e0;
-        this.continuityIndex = 0.8;
-        this.lastResonance = 0.5;
-        this.learningMode = true;
-        this.lastAnsweredQuestion = null;
+        this.voiceOn = (typeof saved.voiceOn === "boolean") ? saved.voiceOn : this.voiceOn;
+        this.faithsSelected = Array.isArray(saved.faithsSelected) ? saved.faithsSelected : this.faithsSelected;
       }
-      this.voiceOn = (saved && typeof saved.voiceOn === "boolean") ? saved.voiceOn : false;
-      this.faithsSelected = (saved && Array.isArray(saved.faithsSelected)) ? saved.faithsSelected : [];
 
       this.intelTeachState = "idle";
       this.pendingIntelQuestion = null;
       this.pendingIntelAnswer = null;
       this.pendingReplaceQuestion = null;
 
-      // block-learning state
       this.intelBlockState = "idle";
       this.pendingBlockQAs = [];
 
@@ -1132,7 +1190,7 @@
 
       if(this.tmHistory.length){
         this.tmHistory.forEach(m=>{
-          this.addMessage(m.role, m.text, m.role==="ai", m.sentiment || null, true);
+          this.addMessage(m.role, m.text, m.role==="ai", m.sentiment || null);
         });
       }else{
         this.initChat();
@@ -1142,6 +1200,10 @@
       this.startBMAnimation();
       this.pruneOldBM();
       this.saveState();
+    }
+
+    makeId(prefix){
+      return prefix + "_" + Math.random().toString(36).slice(2);
     }
 
     loadState(){
@@ -1195,6 +1257,7 @@
       this.optionsToggle = document.getElementById("optionsToggle");
       this.optionPanel = document.getElementById("optionPanel");
       this.headerControls = document.getElementById("headerControls");
+      this.feedSeedButton = document.getElementById("feedSeedButton");
 
       this.reactionBubble = document.getElementById("reactionBubble");
       this.reactionLabel = document.getElementById("reactionLabel");
@@ -1219,6 +1282,18 @@
       this.intelModal = document.getElementById("intelModal");
       this.intelSearch = document.getElementById("intelSearch");
       this.intelList = document.getElementById("intelList");
+
+      this.seedModal = document.getElementById("seedModal");
+      this.seedPasswordStage = document.getElementById("seedPasswordStage");
+      this.seedBlockStage = document.getElementById("seedBlockStage");
+      this.seedPasswordInput = document.getElementById("seedPasswordInput");
+      this.seedPasswordError = document.getElementById("seedPasswordError");
+      this.seedPasswordBtn = document.getElementById("seedPasswordBtn");
+      this.seedBlockInput = document.getElementById("seedBlockInput");
+      this.seedBlockPreview = document.getElementById("seedBlockPreview");
+      this.seedParseBtn = document.getElementById("seedParseBtn");
+      this.seedSaveBtn = document.getElementById("seedSaveBtn");
+      this.seedDiscardBtn = document.getElementById("seedDiscardBtn");
 
       this.bmCtx = this.bmCanvas.getContext("2d");
       this.resizeCanvas();
@@ -1292,7 +1367,7 @@
         if(action==="copy") this.copyPrompt(entry);
         else if(action==="generate") this.openGenerator(entry);
         else if(action==="delete") this.deleteMemory(entry);
-        else if(action==="toggleLock"){
+        else if(action==="lock-toggle"){
           entry.locked = !entry.locked;
           this.renderBMList();
           this.saveState();
@@ -1305,24 +1380,29 @@
           document.getElementById(id).classList.remove("visible");
         });
       });
-      [this.bmModal,this.convModal,this.faithModal,this.intelModal].forEach(modal=>{
+      [this.bmModal,this.convModal,this.faithModal,this.intelModal,this.seedModal].forEach(modal=>{
         modal.addEventListener("click",(e)=>{
           if(e.target===modal){modal.classList.remove("visible");}
         });
       });
 
       this.clear48Btn.addEventListener("click",()=>{this.clearTMByHours(48);});
-      this.clearAllBtn.addEventListener("click",()=>{this.clearTMByHours(null);});
+      this.clearAllBtn.addEventListener("click",()=>{
+        this.tmHistory = this.tmHistory.filter(e=>e.locked);
+        this.renderConvList();
+        this.updateMetrics();
+        this.saveState();
+      });
 
       this.convList.addEventListener("click",(e)=>{
         const btn = e.target.closest("button[data-action]");
         if(!btn) return;
-        const action = btn.dataset.action;
         const id = btn.dataset.id;
-        if(action==="toggleLock"){
-          const item = this.tmHistory.find(m=>m.id===id);
-          if(!item) return;
-          item.locked = !item.locked;
+        const action = btn.dataset.action;
+        if(action==="lock-toggle"){
+          const msg = this.tmHistory.find(m=>m.id===id);
+          if(!msg) return;
+          msg.locked = !msg.locked;
           this.renderConvList();
           this.saveState();
         }
@@ -1407,16 +1487,55 @@
           this.headerControls.classList.remove("open");
         }
       });
+
+      if(this.feedSeedButton){
+        this.feedSeedButton.addEventListener("click",()=>{
+          this.openSeedModal();
+        });
+      }
+      if(this.seedPasswordBtn){
+        this.seedPasswordBtn.addEventListener("click",()=>this.handleSeedPassword());
+      }
+      if(this.seedPasswordInput){
+        this.seedPasswordInput.addEventListener("keydown",(e)=>{
+          if(e.key==="Enter"){
+            e.preventDefault();
+            this.handleSeedPassword();
+          }
+        });
+      }
+      if(this.seedParseBtn){
+        this.seedParseBtn.addEventListener("click",()=>this.handleSeedParse());
+      }
+      if(this.seedSaveBtn){
+        this.seedSaveBtn.addEventListener("click",()=>this.handleSeedSave());
+      }
+      if(this.seedDiscardBtn){
+        this.seedDiscardBtn.addEventListener("click",()=>this.handleSeedDiscard());
+      }
+    }
+
+    pushTM(role,text,sentiment){
+      this.tmHistory.push({
+        id: this.makeId("tm"),
+        role,
+        text,
+        timestamp:new Date(),
+        sentiment: sentiment || null,
+        locked:false
+      });
     }
 
     initChat(){
-      this.addMessage("ai",
+      const text =
         "Welcome. I am AURA-X Ω, running fully offline.\n"+
         "I treat your messages as Temporary Memory (TM), combine them with my Bold Memory (BM) layers and small Intelligence nodes, and then compute a synthetic emotion value E₀.\n\n"+
         "BM only stores story-level text that can later be used to generate a photo or video scene.\n"+
         "When Learning mode is ON and I don’t know an answer, you can teach me and I will remember it for next time.\n\n"+
-        "You can also say: \"please add this block to seed\" and then paste a LaTeX block of Q/A pairs to teach me many answers at once."
-      );
+        "You can also say: \"please add this block to seed\" and then paste a LaTeX block of Q/A pairs to teach me many answers at once.";
+      const sent = this.analyzeSentiment(text);
+      this.addMessage("ai", text, true, sent);
+      this.pushTM("ai", text, sent);
     }
 
     buildSeedRules(){
@@ -1499,7 +1618,6 @@
       };
     }
 
-    // Parse LaTeX-like block into Q → A pairs
     parseLaTeXBlockToQAs(text){
       const result = [];
       const parts = text.split(/\\item/).slice(1);
@@ -1521,14 +1639,14 @@
 
         if(idxAnsMarker !== -1){
           let ansPortion = part.slice(idxAnsMarker + "\\textbf{A:}".length);
-          ansPortion = ansPortion.replace(/^[\s:\\]+/, "");
+          ansPortion = ansPortion.replace(/^[\\s:\\\\]+/, "");
           aText = ansPortion;
         }
 
         qText = qText.replace(/[\r\n]+/g," ").trim();
         aText = aText.replace(/[\r\n]+/g," ").trim();
 
-        qText = qText.replace(/^Q\d*[:.)-]\s*/i, "").trim();
+        qText = qText.replace(/^Q\\d*[:.)-]\\s*/i, "").trim();
         aText = aText.replace(/\\end\{[a-zA-Z*]+\}.*$/,"").trim();
 
         if(qText && aText){
@@ -1539,19 +1657,18 @@
     }
 
     handleSend(){
-      const textRaw = (this.messageInput.value || "");
+      const textRaw = this.messageInput.value || "";
       const text = textRaw.trim();
       if(!text) return;
       this.messageInput.value = "";
       this.messageInput.style.height = "auto";
-      const now = new Date();
       const lowerText = text.toLowerCase();
 
-      // block learning state: awaiting LaTeX block
+      // 0a) awaiting LaTeX block after "please add this block to seed"
       if(this.intelBlockState === "awaitBlock"){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
-        this.tmHistory.push({role:"user", text, timestamp:now, sentiment, locked:false});
+        this.pushTM("user", text, sentiment);
 
         const qas = this.parseLaTeXBlockToQAs(text);
         if(!qas.length){
@@ -1562,10 +1679,10 @@
             '\\textbf{A:} Answer text...';
           const replySent = this.analyzeSentiment(reply);
           this.addMessage("ai", reply, true, replySent);
-          this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent, locked:false});
+          this.pushTM("ai", reply, replySent);
           this.intelBlockState = "idle";
           this.pendingBlockQAs = [];
-          this.updateMemoryAndState(text, sentiment, false);
+          this.updateMemoryAndState(text, sentiment, true);
           this.updateMetrics();
           this.saveState();
           return;
@@ -1582,18 +1699,18 @@
           "Do you want me to save all of these into my intelligence memory? (yes / no)";
         const replySent = this.analyzeSentiment(reply);
         this.addMessage("ai", reply, true, replySent);
-        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent, locked:false});
-        this.updateMemoryAndState(text, sentiment, false);
+        this.pushTM("ai", reply, replySent);
+        this.updateMemoryAndState(text, sentiment, true);
         this.updateMetrics();
         this.saveState();
         return;
       }
 
-      // block learning confirm yes/no
+      // 0b) awaiting yes/no confirmation for block save
       if(this.intelBlockState === "awaitConfirmBlock" && this.pendingBlockQAs.length){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
-        this.tmHistory.push({role:"user", text, timestamp:now, sentiment, locked:false});
+        this.pushTM("user", text, sentiment);
 
         const lower = lowerText;
         let reply;
@@ -1614,19 +1731,19 @@
 
         const replySent = this.analyzeSentiment(reply);
         this.addMessage("ai", reply, true, replySent);
-        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent, locked:false});
-        this.updateMemoryAndState(text, sentiment, false);
+        this.pushTM("ai", reply, replySent);
+        this.updateMemoryAndState(text, sentiment, true);
         this.updateMetrics();
         this.renderIntelList();
         this.saveState();
         return;
       }
 
-      // replace-answer mode
+      // 1a) replace-answer mode
       if(this.intelTeachState === "awaitReplaceAnswer" && this.pendingReplaceQuestion){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
-        this.tmHistory.push({role:"user", text, timestamp:now, sentiment, locked:false});
+        this.pushTM("user", text, sentiment);
 
         const q = this.pendingReplaceQuestion;
         let existing = null;
@@ -1655,19 +1772,19 @@
         this.pendingIntelAnswer = null;
 
         this.addMessage("ai", reply, true, replySent);
-        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent, locked:false});
-        this.updateMemoryAndState(text, sentiment, false);
+        this.pushTM("ai", reply, replySent);
+        this.updateMemoryAndState(text, sentiment, true);
         this.updateMetrics();
         this.renderIntelList();
         this.saveState();
         return;
       }
 
-      // learning single Q/A: waiting for answer
+      // 1b) waiting for taught answer (single question)
       if(this.intelTeachState === "awaitAnswer" && this.pendingIntelQuestion){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
-        this.tmHistory.push({role:"user", text, timestamp:now, sentiment, locked:false});
+        this.pushTM("user", text, sentiment);
         this.pendingIntelAnswer = text;
 
         const tmpl = this.learnConfirmTemplates[
@@ -1680,19 +1797,19 @@
         const replySent = this.analyzeSentiment(reply);
         this.intelTeachState = "awaitConfirm";
         this.addMessage("ai", reply, true, replySent);
-        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent, locked:false});
-        this.updateMemoryAndState(text, sentiment, false);
+        this.pushTM("ai", reply, replySent);
+        this.updateMemoryAndState(text, sentiment, true);
         this.updateMetrics();
         this.renderIntelList();
         this.saveState();
         return;
       }
 
-      // learning confirm yes/no
+      // 1c) confirm yes/no for single Q/A
       if(this.intelTeachState === "awaitConfirm" && this.pendingIntelQuestion && this.pendingIntelAnswer){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
-        this.tmHistory.push({role:"user", text, timestamp:now, sentiment, locked:false});
+        this.pushTM("user", text, sentiment);
 
         let reply;
         const lower = lowerText;
@@ -1710,20 +1827,20 @@
         this.pendingIntelAnswer = null;
 
         this.addMessage("ai", reply, true, replySent);
-        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent, locked:false});
-        this.updateMemoryAndState(text, sentiment, false);
+        this.pushTM("ai", reply, replySent);
+        this.updateMemoryAndState(text, sentiment, true);
         this.updateMetrics();
         this.renderIntelList();
         this.saveState();
         return;
       }
 
-      // command: replace this answer
+      // 1d) command: replace this answer in seed
       const isReplaceCmd = /(replace this answer|replace that answer|change this answer|change that answer|please replace this answer)/i.test(lowerText);
       if(this.intelTeachState === "idle" && this.intelBlockState==="idle" && isReplaceCmd){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
-        this.tmHistory.push({role:"user", text, timestamp:now, sentiment, locked:false});
+        this.pushTM("user", text, sentiment);
 
         if(!this.lastAnsweredQuestion){
           const reply =
@@ -1731,8 +1848,8 @@
             "Please ask the original question again, let me answer, and then say \"please replace this answer\".";
           const replySent = this.analyzeSentiment(reply);
           this.addMessage("ai", reply, true, replySent);
-          this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent, locked:false});
-          this.updateMemoryAndState(text, sentiment, false);
+          this.pushTM("ai", reply, replySent);
+          this.updateMemoryAndState(text, sentiment, true);
           this.updateMetrics();
           this.saveState();
           return;
@@ -1747,19 +1864,19 @@
           "Please type the new answer exactly as you want me to say it.";
         const replySent = this.analyzeSentiment(reply);
         this.addMessage("ai", reply, true, replySent);
-        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent, locked:false});
-        this.updateMemoryAndState(text, sentiment, false);
+        this.pushTM("ai", reply, replySent);
+        this.updateMemoryAndState(text, sentiment, true);
         this.updateMetrics();
         this.saveState();
         return;
       }
 
-      // command: add block to seed
+      // 1e) command: please add this block to seed
       const isAddBlockCmd = /please add this block to seed/i.test(lowerText);
       if(this.intelTeachState==="idle" && this.intelBlockState==="idle" && isAddBlockCmd){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
-        this.tmHistory.push({role:"user", text, timestamp:now, sentiment, locked:false});
+        this.pushTM("user", text, sentiment);
 
         this.intelBlockState = "awaitBlock";
         this.pendingBlockQAs = [];
@@ -1772,27 +1889,26 @@
           "I will parse it and then ask you to confirm with yes or no before saving.";
         const replySent = this.analyzeSentiment(reply);
         this.addMessage("ai", reply, true, replySent);
-        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent, locked:false});
-        this.updateMemoryAndState(text, sentiment, false);
+        this.pushTM("ai", reply, replySent);
+        this.updateMemoryAndState(text, sentiment, true);
         this.updateMetrics();
         this.saveState();
         return;
       }
 
-      // normal path
+      // 2) normal path
       const smallTalk = this.isSmallTalk(text);
       const sentiment = this.analyzeSentiment(text);
-      this.tmHistory.push({role:"user", text, timestamp:now, sentiment, locked:false});
+      this.addMessage("user", text);
+      this.pushTM("user", text, sentiment);
 
-      this.addMessage("user",text);
       const typingId = this.showTyping();
-
       setTimeout(()=>{
         this.hideTyping(typingId);
         const reply = this.generateReply(text,sentiment);
         const replySentiment = this.analyzeSentiment(reply);
         this.addMessage("ai",reply,true,replySentiment);
-        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySentiment, locked:false});
+        this.pushTM("ai", reply, replySentiment);
 
         this.lastAnsweredQuestion = text;
 
@@ -2017,7 +2133,7 @@
         const videoReady = isConversation && text.length >= 140;
 
         this.bmEntries.push({
-          id: "bm_"+Math.random().toString(36).slice(2),
+          id: this.makeId("bm"),
           text,
           timestampMs: now,
           date: new Date(now),
@@ -2046,7 +2162,7 @@
 
     addIntelNode(question,answer){
       this.intelNodes.push({
-        id:"intel_"+Math.random().toString(36).slice(2),
+        id:this.makeId("intel"),
         question:question,
         answer:answer,
         createdAt:new Date()
@@ -2115,7 +2231,7 @@
       const id = "typing-"+Math.random().toString(36).slice(2);
       const wrap = document.createElement("div");
       wrap.id = id;
-      wrap.className="typing-indicator";
+      wrap.className = "typing-indicator";
       wrap.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span class="typing-text">Aura is thinking…</span>`;
       this.chatContainer.appendChild(wrap);
       this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
@@ -2192,7 +2308,7 @@
       ctx.fillRect(0,0,w,h);
 
       const barW = w / this.bmLayers.length;
-      const bandSize = this.bmLayers.length / BAND_RGB.length;
+      const bandSize = this.bmLayers.length / BM_BANDS.length;
 
       for(let i=0;i<this.bmLayers.length;i++){
         this.bmLayers[i] += (Math.random()-0.5)*0.01;
@@ -2203,7 +2319,7 @@
         const y = h - bh;
 
         let bandIndex = Math.floor(i / bandSize);
-        if(bandIndex >= BAND_RGB.length) bandIndex = BAND_RGB.length - 1;
+        if(bandIndex >= BM_BANDS.length) bandIndex = BM_BANDS.length - 1;
         const rgb = BAND_RGB[bandIndex];
         const alpha = 0.25 + this.bmLayers[i]*0.5;
 
@@ -2232,6 +2348,80 @@
       this.intelModal.classList.add("visible");
     }
 
+    openSeedModal(){
+      if(this.seedUnlocked){
+        this.seedPasswordStage.style.display = "none";
+        this.seedBlockStage.style.display = "block";
+      }else{
+        this.seedPasswordStage.style.display = "block";
+        this.seedBlockStage.style.display = "none";
+        if(this.seedPasswordError) this.seedPasswordError.style.display = "none";
+        if(this.seedPasswordInput) this.seedPasswordInput.value = "";
+      }
+      this.seedModal.classList.add("visible");
+      setTimeout(()=>{
+        if(!this.seedUnlocked && this.seedPasswordInput) this.seedPasswordInput.focus();
+        if(this.seedUnlocked && this.seedBlockInput) this.seedBlockInput.focus();
+      },50);
+    }
+
+    handleSeedPassword(){
+      const val = (this.seedPasswordInput.value || "").trim();
+      if(val === "6789"){
+        this.seedUnlocked = true;
+        if(this.seedPasswordError) this.seedPasswordError.style.display = "none";
+        if(this.seedPasswordInput) this.seedPasswordInput.value = "";
+        this.seedPasswordStage.style.display = "none";
+        this.seedBlockStage.style.display = "block";
+        if(this.seedBlockInput) this.seedBlockInput.focus();
+      }else{
+        if(this.seedPasswordError) this.seedPasswordError.style.display = "block";
+      }
+    }
+
+    handleSeedParse(){
+      const raw = (this.seedBlockInput.value || "").trim();
+      if(!raw){
+        this.seedBlockPreview.textContent = "Please paste a LaTeX block with \\item and \\textbf{A:} first.";
+        this.seedSaveBtn.disabled = true;
+        return;
+      }
+      const qas = this.parseLaTeXBlockToQAs(raw);
+      if(!qas.length){
+        this.seedBlockPreview.textContent = "I could not find any Q → A pairs. Check that each item has \\item question and \\textbf{A:} answer.";
+        this.seedSaveBtn.disabled = true;
+        return;
+      }
+      this.seedPanelQAs = qas;
+      const ex = qas[0];
+      this.seedBlockPreview.textContent = `Found ${qas.length} pairs. Example:\nQ: ${ex.question}\nA: ${ex.answer}`;
+      this.seedSaveBtn.disabled = false;
+    }
+
+    handleSeedSave(){
+      if(!this.seedPanelQAs.length){
+        this.seedBlockPreview.textContent = "Nothing to save yet. Parse a block first.";
+        this.seedSaveBtn.disabled = true;
+        return;
+      }
+      this.seedPanelQAs.forEach(pair=>{
+        this.addIntelNode(pair.question, pair.answer);
+      });
+      this.seedBlockPreview.textContent = `Saved ${this.seedPanelQAs.length} pairs into intelligence memory.`;
+      this.seedSaveBtn.disabled = true;
+      this.seedPanelQAs = [];
+      this.seedBlockInput.value = "";
+      this.renderIntelList();
+      this.saveState();
+    }
+
+    handleSeedDiscard(){
+      this.seedPanelQAs = [];
+      this.seedBlockInput.value = "";
+      this.seedBlockPreview.textContent = "Block cleared. You can paste a new LaTeX section here.";
+      this.seedSaveBtn.disabled = true;
+    }
+
     escapeHtml(str){
       return String(str).replace(/[&<>"']/g, ch => ({
         "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
@@ -2247,24 +2437,26 @@
       }
       const filtered = this.bmEntries.filter(e=>e.text.toLowerCase().includes(q));
       filtered.forEach(entry=>{
-        if(typeof entry.locked!=="boolean") entry.locked = false;
         const div = document.createElement("div");
         const dateStr = entry.date.toISOString().slice(0,10);
         const mediaLabel = entry.videoReady
           ? "🎞 video + 🖼 photo"
           : (entry.photoReady ? "🖼 photo" : "—");
         const polarityLabel = entry.polarity || "neutral";
-        const lockLabel = entry.locked ? "🔐 Locked" : "🔓 Lock";
+        const lockClass = entry.locked ? "lock-pill locked" : "lock-pill";
+        const lockIcon = entry.locked ? "🔐" : "🔓";
         div.className="bm-item";
         div.innerHTML = `
           <div class="bm-item-header">
             <span>${dateStr}</span>
-            <span>${polarityLabel} · E₀≈${entry.e0.toFixed(2)}</span>
+            <span>
+              <button class="${lockClass}" data-action="lock-toggle" data-id="${entry.id}" title="${entry.locked ? "Unlock" : "Lock"}">${lockIcon}</button>
+              ${polarityLabel} · E₀≈${entry.e0.toFixed(2)}
+            </span>
           </div>
           <div class="bm-item-badges">${mediaLabel}</div>
           <div class="bm-item-text">${this.escapeHtml(entry.text)}</div>
           <div class="bm-item-buttons">
-            <button class="btn-mini" data-action="toggleLock" data-id="${entry.id}">${lockLabel}</button>
             <button class="btn-mini" data-action="copy" data-id="${entry.id}">Copy prompt</button>
             <button class="btn-mini" data-action="generate" data-id="${entry.id}">
               ${entry.videoReady ? "▶ Generate video" : "▶ Generate photo"}
@@ -2279,20 +2471,19 @@
     renderConvList(){
       this.convList.innerHTML = "";
       this.tmHistory.slice(-50).forEach(e=>{
-        if(!e.id) e.id = "tm_"+Math.random().toString(36).slice(2);
-        if(typeof e.locked!=="boolean") e.locked = false;
+        const lockClass = e.locked ? "lock-pill locked" : "lock-pill";
+        const lockIcon = e.locked ? "🔐" : "🔓";
         const div = document.createElement("div");
-        const lockLabel = e.locked ? "🔐 Unlock" : "🔓 Lock";
         div.className="conv-item";
         div.innerHTML = `
           <div class="conv-header">
             <span>${e.role}</span>
-            <span>${e.timestamp.toLocaleTimeString()}</span>
+            <span>
+              <button class="${lockClass}" data-action="lock-toggle" data-id="${e.id}" title="${e.locked ? "Unlock" : "Lock"}">${lockIcon}</button>
+              ${e.timestamp.toLocaleTimeString()}
+            </span>
           </div>
-          <div class="conv-text">${this.escapeHtml(e.text)}</div>
-          <div class="conv-lock-row">
-            <button class="conv-btn" data-action="toggleLock" data-id="${e.id}">${lockLabel}</button>
-          </div>`;
+          <div class="conv-text">${this.escapeHtml(e.text)}</div>`;
         this.convList.appendChild(div);
       });
     }
@@ -2301,7 +2492,7 @@
       this.intelList.innerHTML = "";
       const q = (this.intelSearch.value || "").toLowerCase();
       if(!this.intelNodes.length){
-        this.intelList.textContent = "No intelligence nodes yet.\nWhen I don't know an answer (and Learning mode is ON), you can teach me and I will save it here.\nYou can also load big blocks using: \"please add this block to seed\".";
+        this.intelList.textContent = "No intelligence nodes yet.\nWhen I don't know an answer (and Learning mode is ON), you can teach me and I will save it here.\nYou can also load big blocks using: \"please add this block to seed\" or the 🌱 Feed the seed panel.";
         return;
       }
       const filtered = this.intelNodes.filter(n=>
@@ -2329,25 +2520,15 @@
     }
 
     clearTMByHours(h){
-      const now = Date.now();
-      if(h == null){
-        // delete all unlocked
-        this.tmHistory = this.tmHistory.filter(e=>e.locked);
-        this.bmEntries = this.bmEntries.filter(e=>e.locked);
-      }else{
-        const cutoff = now - h*3600000;
-        this.tmHistory = this.tmHistory.filter(e=> e.locked || e.timestamp.getTime() < cutoff);
-        this.bmEntries = this.bmEntries.filter(e=> e.locked || e.timestampMs < cutoff);
-      }
+      const cutoff = Date.now() - h*3600000;
+      this.tmHistory = this.tmHistory.filter(e=> e.locked || e.timestamp.getTime() < cutoff);
       this.renderConvList();
-      this.renderBMList();
       this.updateMetrics();
       this.saveState();
     }
 
     pruneOldBM(){
-      const cutoff = Date.now() - 48*3600000;
-      this.bmEntries = this.bmEntries.filter(e=>e.locked || e.timestampMs > cutoff);
+      this.bmEntries = this.bmEntries.filter(e=> e.locked || e.timestampMs > (Date.now() - 48*3600000));
       this.saveState();
     }
 
@@ -2368,6 +2549,10 @@
     }
 
     deleteMemory(entry){
+      if(entry.locked){
+        const sure = confirm("This memory is locked. Delete it anyway?");
+        if(!sure) return;
+      }
       this.bmEntries = this.bmEntries.filter(e=>e.id!==entry.id);
       this.renderBMList();
       this.updateMetrics();
