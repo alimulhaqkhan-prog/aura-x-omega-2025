@@ -33,7 +33,7 @@
       flex-direction:column;
       gap:14px;
       position: relative;
-      overflow:visible; /* allow dropdowns to overflow */
+      overflow:visible;
     }
     .app::before{
       content:"";
@@ -62,7 +62,7 @@
       box-shadow:
         0 26px 70px rgba(15,23,42,.9),
         inset 0 1px 0 rgba(255,255,255,.08);
-      z-index:5; /* keep header above cards */
+      z-index:5;
     }
     .header::before{
       content:"";
@@ -185,7 +185,7 @@
       justify-content:flex-end;
       position:relative;
       margin-top:4px;
-      z-index:20; /* dropdown above cards */
+      z-index:20;
     }
     .voice-toggle{
       border:none;
@@ -1288,6 +1288,8 @@
       this.startBMAnimation();
       this.pruneOldBM();
       this.saveState();
+
+      if(this.messageInput) this.messageInput.focus();
     }
 
     makeId(prefix){
@@ -1516,11 +1518,15 @@
         btn.addEventListener("click",()=>{
           const id = btn.getAttribute("data-close");
           document.getElementById(id).classList.remove("visible");
+          if(this.messageInput) this.messageInput.focus();
         });
       });
       [this.bmModal,this.convModal,this.faithModal,this.intelModal,this.seedModal,this.llmModal].forEach(modal=>{
         modal.addEventListener("click",(e)=>{
-          if(e.target===modal){modal.classList.remove("visible");}
+          if(e.target===modal){
+            modal.classList.remove("visible");
+            if(this.messageInput) this.messageInput.focus();
+          }
         });
       });
 
@@ -1843,191 +1849,214 @@
       return false;
     }
 
+    countSentences(text){
+      const parts = text
+        .split(/[.!?؟۔\n]+/)
+        .map(s=>s.trim())
+        .filter(Boolean);
+      return parts.length;
+    }
+
     async handleSend(){
-      const textRaw = this.messageInput.value || "";
-      const text = textRaw.trim();
-      if(!text) return;
-      this.messageInput.value = "";
-      this.messageInput.style.height = "auto";
-      const lowerText = text.toLowerCase();
+      try{
+        const textRaw = this.messageInput.value || "";
+        const text = textRaw.trim();
+        if(!text) return;
+        this.messageInput.value = "";
+        this.messageInput.style.height = "auto";
+        const lowerText = text.toLowerCase();
 
-      /* ---- multi-step teaching / seed modes handled first (these are offline-only; no LLM) ---- */
+        if(this.intelBlockState === "awaitBlock"){
+          this.addMessage("user", text);
+          const sentiment = this.analyzeSentiment(text);
+          this.pushTM("user", text, sentiment);
 
-      if(this.intelBlockState === "awaitBlock"){
-        this.addMessage("user", text);
-        const sentiment = this.analyzeSentiment(text);
-        this.pushTM("user", text, sentiment);
+          const qas = this.parseLaTeXBlockToQAs(text);
+          if(!qas.length){
+            const reply =
+              "I tried to read this block, but I could not find any clear question–answer pairs.\n\n"+
+              "Please check that each item looks like:\n"+
+              '\\item Question text? \\\\\n' +
+              '\\textbf{A:} Answer text...';
+            const replySent = this.analyzeSentiment(reply);
+            this.addMessage("ai", reply, true, replySent);
+            this.pushTM("ai", reply, replySent);
+            this.intelBlockState = "idle";
+            this.pendingBlockQAs = [];
+            this.updateMemoryAndState(text, sentiment, true, null);
+            this.updateMetrics();
+            this.saveState();
+            return;
+          }
 
-        const qas = this.parseLaTeXBlockToQAs(text);
-        if(!qas.length){
+          this.pendingBlockQAs = qas;
+          this.intelBlockState = "awaitConfirmBlock";
+
           const reply =
-            "I tried to read this block, but I could not find any clear question–answer pairs.\n\n"+
-            "Please check that each item looks like:\n"+
-            '\\item Question text? \\\\\n' +
-            '\\textbf{A:} Answer text...';
+            "I have parsed this block and found "+qas.length+" question–answer pairs.\n\n"+
+            "Example:\n"+
+            "Q: \""+qas[0].question+"\"\n"+
+            "A: \""+qas[0].answer+"\"\n\n"+
+            "Do you want me to save all of these into my intelligence memory? (yes / no)";
           const replySent = this.analyzeSentiment(reply);
           this.addMessage("ai", reply, true, replySent);
           this.pushTM("ai", reply, replySent);
+          this.updateMemoryAndState(text, sentiment, true, null);
+          this.updateMetrics();
+          this.saveState();
+          return;
+        }
+
+        if(this.intelBlockState === "awaitConfirmBlock" && this.pendingBlockQAs.length){
+          this.addMessage("user", text);
+          const sentiment = this.analyzeSentiment(text);
+          this.pushTM("user", text, sentiment);
+
+          const lower = lowerText;
+          let reply;
+          if(/^y(es)?\b/.test(lower)){
+            this.pendingBlockQAs.forEach(pair=>{
+              this.addIntelNode(pair.question, pair.answer);
+            });
+            reply =
+              "Saved "+this.pendingBlockQAs.length+" question–answer pairs into my intelligence memory.\n"+
+              "I will now answer those questions directly from this block.";
+          }else{
+            reply = "Okay. I will discard this block and not save anything from it.";
+          }
+
           this.intelBlockState = "idle";
           this.pendingBlockQAs = [];
+
+          const replySent = this.analyzeSentiment(reply);
+          this.addMessage("ai", reply, true, replySent);
+          this.pushTM("ai", reply, replySent);
           this.updateMemoryAndState(text, sentiment, true, null);
           this.updateMetrics();
+          this.renderIntelList();
           this.saveState();
           return;
         }
 
-        this.pendingBlockQAs = qas;
-        this.intelBlockState = "awaitConfirmBlock";
+        if(this.intelTeachState === "awaitReplaceAnswer" && this.pendingReplaceQuestion){
+          this.addMessage("user", text);
+          const sentiment = this.analyzeSentiment(text);
+          this.pushTM("user", text, sentiment);
 
-        const reply =
-          "I have parsed this block and found "+qas.length+" question–answer pairs.\n\n"+
-          "Example:\n"+
-          "Q: \""+qas[0].question+"\"\n"+
-          "A: \""+qas[0].answer+"\"\n\n"+
-          "Do you want me to save all of these into my intelligence memory? (yes / no)";
-        const replySent = this.analyzeSentiment(reply);
-        this.addMessage("ai", reply, true, replySent);
-        this.pushTM("ai", reply, replySent);
-        this.updateMemoryAndState(text, sentiment, true, null);
-        this.updateMetrics();
-        this.saveState();
-        return;
-      }
-
-      if(this.intelBlockState === "awaitConfirmBlock" && this.pendingBlockQAs.length){
-        this.addMessage("user", text);
-        const sentiment = this.analyzeSentiment(text);
-        this.pushTM("user", text, sentiment);
-
-        const lower = lowerText;
-        let reply;
-        if(/^y(es)?\b/.test(lower)){
-          this.pendingBlockQAs.forEach(pair=>{
-            this.addIntelNode(pair.question, pair.answer);
-          });
-          reply =
-            "Saved "+this.pendingBlockQAs.length+" question–answer pairs into my intelligence memory.\n"+
-            "I will now answer those questions directly from this block.";
-        }else{
-          reply = "Okay. I will discard this block and not save anything from it.";
-        }
-
-        this.intelBlockState = "idle";
-        this.pendingBlockQAs = [];
-
-        const replySent = this.analyzeSentiment(reply);
-        this.addMessage("ai", reply, true, replySent);
-        this.pushTM("ai", reply, replySent);
-        this.updateMemoryAndState(text, sentiment, true, null);
-        this.updateMetrics();
-        this.renderIntelList();
-        this.saveState();
-        return;
-      }
-
-      if(this.intelTeachState === "awaitReplaceAnswer" && this.pendingReplaceQuestion){
-        this.addMessage("user", text);
-        const sentiment = this.analyzeSentiment(text);
-        this.pushTM("user", text, sentiment);
-
-        const q = this.pendingReplaceQuestion;
-        let existing = null;
-        for(const n of this.intelNodes){
-          const sim = this.textSimilarity(q.toLowerCase(), n.question.toLowerCase());
-          if(sim > 0.75){
-            existing = n;
-            break;
+          const q = this.pendingReplaceQuestion;
+          let existing = null;
+          for(const n of this.intelNodes){
+            const sim = this.textSimilarity(q.toLowerCase(), n.question.toLowerCase());
+            if(sim > 0.75){
+              existing = n;
+              break;
+            }
           }
-        }
-        if(existing){
-          existing.answer = text;
-          existing.createdAt = new Date();
-        }else{
-          this.addIntelNode(q, text);
-        }
+          if(existing){
+            existing.answer = text;
+            existing.createdAt = new Date();
+          }else{
+            this.addIntelNode(q, text);
+          }
 
-        const reply =
-          "Okay. I have replaced my previous answer in my intelligence memory.\n\n"+
-          "Next time you ask \""+q+"\", I will use this new answer.";
-        const replySent = this.analyzeSentiment(reply);
-
-        this.intelTeachState = "idle";
-        this.pendingReplaceQuestion = null;
-        this.pendingIntelQuestion = null;
-        this.pendingIntelAnswer = null;
-
-        this.addMessage("ai", reply, true, replySent);
-        this.pushTM("ai", reply, replySent);
-        this.updateMemoryAndState(text, sentiment, true, null);
-        this.updateMetrics();
-        this.renderIntelList();
-        this.saveState();
-        return;
-      }
-
-      if(this.intelTeachState === "awaitAnswer" && this.pendingIntelQuestion){
-        this.addMessage("user", text);
-        const sentiment = this.analyzeSentiment(text);
-        this.pushTM("user", text, sentiment);
-        this.pendingIntelAnswer = text;
-
-        const tmpl = this.learnQuestionTemplates[
-          Math.floor(Math.random()*this.learnQuestionTemplates.length)
-        ];
-        const reply =
-          "Thank you.\n\n"+tmpl+
-          "\n\nQuestion:\n\""+this.pendingIntelQuestion+"\"";
-
-        const replySent = this.analyzeSentiment(reply);
-        this.intelTeachState = "awaitConfirm";
-        this.addMessage("ai", reply, true, replySent);
-        this.pushTM("ai", reply, replySent);
-        this.updateMemoryAndState(text, sentiment, true, null);
-        this.updateMetrics();
-        this.renderIntelList();
-        this.saveState();
-        return;
-      }
-
-      if(this.intelTeachState === "awaitConfirm" && this.pendingIntelQuestion && this.pendingIntelAnswer){
-        this.addMessage("user", text);
-        const sentiment = this.analyzeSentiment(text);
-        this.pushTM("user", text, sentiment);
-
-        let reply;
-        const lower = lowerText;
-        if(/^y(es)?\b/.test(lower)){
-          this.addIntelNode(this.pendingIntelQuestion, this.pendingIntelAnswer);
-          reply =
-            "Saved. Next time you ask \""+this.pendingIntelQuestion+"\", I will answer from my intelligence seed.";
-        }else{
-          reply =
-            "Understood. I will not save that answer. You can teach me a different reply any time.";
-        }
-        const replySent = this.analyzeSentiment(reply);
-        this.intelTeachState = "idle";
-        this.pendingIntelQuestion = null;
-        this.pendingIntelAnswer = null;
-
-        this.addMessage("ai", reply, true, replySent);
-        this.pushTM("ai", reply, replySent);
-        this.updateMemoryAndState(text, sentiment, true, null);
-        this.updateMetrics();
-        this.renderIntelList();
-        this.saveState();
-        return;
-      }
-
-      const isReplaceCmd = /(replace this answer|replace that answer|change this answer|change that answer|please replace this answer)/i.test(lowerText);
-      if(this.intelTeachState === "idle" && this.intelBlockState==="idle" && isReplaceCmd){
-        this.addMessage("user", text);
-        const sentiment = this.analyzeSentiment(text);
-        this.pushTM("user", text, sentiment);
-
-        if(!this.lastAnsweredQuestion){
           const reply =
-            "I don't have a previous question stored to replace.\n"+
-            "Please ask the original question again, let me answer, and then say \"please replace this answer\".";
+            "Okay. I have replaced my previous answer in my intelligence memory.\n\n"+
+            "Next time you ask \""+q+"\", I will use this new answer.";
+          const replySent = this.analyzeSentiment(reply);
+
+          this.intelTeachState = "idle";
+          this.pendingReplaceQuestion = null;
+          this.pendingIntelQuestion = null;
+          this.pendingIntelAnswer = null;
+
+          this.addMessage("ai", reply, true, replySent);
+          this.pushTM("ai", reply, replySent);
+          this.updateMemoryAndState(text, sentiment, true, null);
+          this.updateMetrics();
+          this.renderIntelList();
+          this.saveState();
+          return;
+        }
+
+        if(this.intelTeachState === "awaitAnswer" && this.pendingIntelQuestion){
+          this.addMessage("user", text);
+          const sentiment = this.analyzeSentiment(text);
+          this.pushTM("user", text, sentiment);
+          this.pendingIntelAnswer = text;
+
+          const tmpl = this.learnQuestionTemplates[
+            Math.floor(Math.random()*this.learnQuestionTemplates.length)
+          ];
+          const reply =
+            "Thank you.\n\n"+tmpl+
+            "\n\nQuestion:\n\""+this.pendingIntelQuestion+"\"";
+
+          const replySent = this.analyzeSentiment(reply);
+          this.intelTeachState = "awaitConfirm";
+          this.addMessage("ai", reply, true, replySent);
+          this.pushTM("ai", reply, replySent);
+          this.updateMemoryAndState(text, sentiment, true, null);
+          this.updateMetrics();
+          this.renderIntelList();
+          this.saveState();
+          return;
+        }
+
+        if(this.intelTeachState === "awaitConfirm" && this.pendingIntelQuestion && this.pendingIntelAnswer){
+          this.addMessage("user", text);
+          const sentiment = this.analyzeSentiment(text);
+          this.pushTM("user", text, sentiment);
+
+          let reply;
+          const lower = lowerText;
+          if(/^y(es)?\b/.test(lower)){
+            this.addIntelNode(this.pendingIntelQuestion, this.pendingIntelAnswer);
+            reply =
+              "Saved. Next time you ask \""+this.pendingIntelQuestion+"\", I will answer from my intelligence seed.";
+          }else{
+            reply =
+              "Understood. I will not save that answer. You can teach me a different reply any time.";
+          }
+          const replySent = this.analyzeSentiment(reply);
+          this.intelTeachState = "idle";
+          this.pendingIntelQuestion = null;
+          this.pendingIntelAnswer = null;
+
+          this.addMessage("ai", reply, true, replySent);
+          this.pushTM("ai", reply, replySent);
+          this.updateMemoryAndState(text, sentiment, true, null);
+          this.updateMetrics();
+          this.renderIntelList();
+          this.saveState();
+          return;
+        }
+
+        const isReplaceCmd = /(replace this answer|replace that answer|change this answer|change that answer|please replace this answer)/i.test(lowerText);
+        if(this.intelTeachState === "idle" && this.intelBlockState==="idle" && isReplaceCmd){
+          this.addMessage("user", text);
+          const sentiment = this.analyzeSentiment(text);
+          this.pushTM("user", text, sentiment);
+
+          if(!this.lastAnsweredQuestion){
+            const reply =
+              "I don't have a previous question stored to replace.\n"+
+              "Please ask the original question again, let me answer, and then say \"please replace this answer\".";
+            const replySent = this.analyzeSentiment(reply);
+            this.addMessage("ai", reply, true, replySent);
+            this.pushTM("ai", reply, replySent);
+            this.updateMemoryAndState(text, sentiment, true, null);
+            this.updateMetrics();
+            this.saveState();
+            return;
+          }
+
+          this.intelTeachState = "awaitReplaceAnswer";
+          this.pendingReplaceQuestion = this.lastAnsweredQuestion;
+
+          const reply =
+            "Okay, I'll replace this answer in my intelligence memory for next time.\n\n"+
+            "Question:\n\""+this.pendingReplaceQuestion+"\"\n\n"+
+            "Please type the new answer exactly as you want me to say it.";
           const replySent = this.analyzeSentiment(reply);
           this.addMessage("ai", reply, true, replySent);
           this.pushTM("ai", reply, replySent);
@@ -2037,121 +2066,113 @@
           return;
         }
 
-        this.intelTeachState = "awaitReplaceAnswer";
-        this.pendingReplaceQuestion = this.lastAnsweredQuestion;
+        const isAddBlockCmd = /please add this block to seed/i.test(lowerText);
+        if(this.intelTeachState==="idle" && this.intelBlockState==="idle" && isAddBlockCmd){
+          this.addMessage("user", text);
+          const sentiment = this.analyzeSentiment(text);
+          this.pushTM("user", text, sentiment);
 
-        const reply =
-          "Okay, I'll replace this answer in my intelligence memory for next time.\n\n"+
-          "Question:\n\""+this.pendingReplaceQuestion+"\"\n\n"+
-          "Please type the new answer exactly as you want me to say it.";
-        const replySent = this.analyzeSentiment(reply);
-        this.addMessage("ai", reply, true, replySent);
-        this.pushTM("ai", reply, replySent);
-        this.updateMemoryAndState(text, sentiment, true, null);
-        this.updateMetrics();
-        this.saveState();
-        return;
-      }
+          this.intelBlockState = "awaitBlock";
+          this.pendingBlockQAs = [];
 
-      const isAddBlockCmd = /please add this block to seed/i.test(lowerText);
-      if(this.intelTeachState==="idle" && this.intelBlockState==="idle" && isAddBlockCmd){
-        this.addMessage("user", text);
+          const reply =
+            "Okay. I am ready to learn a block.\n\n"+
+            "In your next message, paste the full block of questions and answers (for example LaTeX like:\n"+
+            '\\item Where is the reception desk? \\\\\n'+
+            '\\textbf{A:} It’s right at the main entrance, on your left.\n\n'+
+            "I will parse it and then ask you to confirm with yes or no before saving.";
+          const replySent = this.analyzeSentiment(reply);
+          this.addMessage("ai", reply, true, replySent);
+          this.pushTM("ai", reply, replySent);
+          this.updateMemoryAndState(text, sentiment, true, null);
+          this.updateMetrics();
+          this.saveState();
+          return;
+        }
+
+        const timeReq = this.isTimeRequest(text);
+        const newsReq = this.isNewsRequest(text);
+        if(timeReq || newsReq){
+          const sentiment = this.analyzeSentiment(text);
+          const smallTalk = true;
+
+          this.addMessage("user", text);
+          this.pushTM("user", text, sentiment);
+
+          const typingId = this.showTyping();
+          setTimeout(()=>{
+            this.hideTyping(typingId);
+
+            if(timeReq){
+              const now = new Date();
+              const timeStr = now.toLocaleTimeString(undefined,{
+                hour:"2-digit",
+                minute:"2-digit",
+                second:"2-digit"
+              });
+              const dateStr = now.toLocaleDateString(undefined,{
+                weekday:"long",
+                year:"numeric",
+                month:"short",
+                day:"numeric"
+              });
+              const reply =
+                "Current browser time (according to this device):\n"+
+                timeStr+"\n\n"+
+                "Date: "+dateStr+".";
+              const replySent = this.analyzeSentiment(reply);
+              this.addMessage("ai", reply, true, replySent);
+              this.pushTM("ai", reply, replySent);
+              this.showTimeBubble(timeStr+" · "+dateStr);
+              this.updateMemoryAndState(text, replySent, smallTalk, null);
+            } else if(newsReq){
+              const htmlReply =
+                "Here are some trusted news homepages (opens in a new tab):<br><br>"+
+                "• <a href=\"https://www.bbc.com/news\" target=\"_blank\" rel=\"noopener noreferrer\">BBC News</a><br>"+
+                "• <a href=\"https://www.aljazeera.com\" target=\"_blank\" rel=\"noopener noreferrer\">Al Jazeera</a><br>"+
+                "• <a href=\"https://www.geo.tv\" target=\"_blank\" rel=\"noopener noreferrer\">Geo News</a><br>"+
+                "• <a href=\"https://www.dawn.com\" target=\"_blank\" rel=\"noopener noreferrer\">Dawn</a><br>"+
+                "• <a href=\"https://www.washingtonpost.com\" target=\"_blank\" rel=\"noopener noreferrer\">The Washington Post</a>";
+              const replySent = this.analyzeSentiment(htmlReply.replace(/<[^>]+>/g,""));
+              this.addMessage("ai", htmlReply, true, replySent, false, true);
+              const plain = htmlReply.replace(/<[^>]+>/g,"");
+              this.pushTM("ai", plain, replySent);
+              this.updateMemoryAndState(text, replySent, smallTalk, null);
+            }
+
+            this.updateMetrics();
+            this.renderBMList();
+            this.renderConvList();
+            this.renderIntelList();
+            this.saveState();
+          }, 400 + Math.random()*600);
+          return;
+        }
+
+        const smallTalk = this.isSmallTalk(text);  // TM = user input only
         const sentiment = this.analyzeSentiment(text);
-        this.pushTM("user", text, sentiment);
-
-        this.intelBlockState = "awaitBlock";
-        this.pendingBlockQAs = [];
-
-        const reply =
-          "Okay. I am ready to learn a block.\n\n"+
-          "In your next message, paste the full block of questions and answers (for example LaTeX like:\n"+
-          '\\item Where is the reception desk? \\\\\n'+
-          '\\textbf{A:} It’s right at the main entrance, on your left.\n\n'+
-          "I will parse it and then ask you to confirm with yes or no before saving.";
-        const replySent = this.analyzeSentiment(reply);
-        this.addMessage("ai", reply, true, replySent);
-        this.pushTM("ai", reply, replySent);
-        this.updateMemoryAndState(text, sentiment, true, null);
-        this.updateMetrics();
-        this.saveState();
-        return;
-      }
-
-      const timeReq = this.isTimeRequest(text);
-      const newsReq = this.isNewsRequest(text);
-      if(timeReq || newsReq){
-        const sentiment = this.analyzeSentiment(text);
-        const smallTalk = true;
+        const sentenceCount = this.countSentences(text);
+        const bmStoryOnly = !smallTalk && text.length >= 80 && sentenceCount >= 5;
 
         this.addMessage("user", text);
         this.pushTM("user", text, sentiment);
 
         const typingId = this.showTyping();
-        setTimeout(()=>{
-          this.hideTyping(typingId);
-
-          if(timeReq){
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString(undefined,{
-              hour:"2-digit",
-              minute:"2-digit",
-              second:"2-digit"
-            });
-            const dateStr = now.toLocaleDateString(undefined,{
-              weekday:"long",
-              year:"numeric",
-              month:"short",
-              day:"numeric"
-            });
-            const reply =
-              "Current browser time (according to this device):\n"+
-              timeStr+"\n\n"+
-              "Date: "+dateStr+".";
-            const replySent = this.analyzeSentiment(reply);
-            this.addMessage("ai", reply, true, replySent);
-            this.pushTM("ai", reply, replySent);
-            this.showTimeBubble(timeStr+" · "+dateStr);
-            this.updateMemoryAndState(text, replySent, smallTalk, null);
-          } else if(newsReq){
-            const htmlReply =
-              "Here are some trusted news homepages (opens in a new tab):<br><br>"+
-              "• <a href=\"https://www.bbc.com/news\" target=\"_blank\" rel=\"noopener noreferrer\">BBC News</a><br>"+
-              "• <a href=\"https://www.aljazeera.com\" target=\"_blank\" rel=\"noopener noreferrer\">Al Jazeera</a><br>"+
-              "• <a href=\"https://www.geo.tv\" target=\"_blank\" rel=\"noopener noreferrer\">Geo News</a><br>"+
-              "• <a href=\"https://www.dawn.com\" target=\"_blank\" rel=\"noopener noreferrer\">Dawn</a><br>"+
-              "• <a href=\"https://www.washingtonpost.com\" target=\"_blank\" rel=\"noopener noreferrer\">The Washington Post</a>";
-            const replySent = this.analyzeSentiment(htmlReply.replace(/<[^>]+>/g,""));
-            this.addMessage("ai", htmlReply, true, replySent, false, true);
-            const plain = htmlReply.replace(/<[^>]+>/g,"");
-            this.pushTM("ai", plain, replySent);
-            this.updateMemoryAndState(text, replySent, smallTalk, null);
-          }
-
-          this.updateMetrics();
-          this.renderBMList();
-          this.renderConvList();
-          this.renderIntelList();
-          this.saveState();
-        }, 400 + Math.random()*600);
-        return;
+        await this.processNormalMessage(text, sentiment, smallTalk, bmStoryOnly, typingId);
+      }catch(err){
+        console.error("handleSend error", err);
+        alert("Internal engine error occurred. Please try again.");
+      }finally{
+        if(this.messageInput){
+          this.messageInput.focus();
+        }
       }
-
-      /* -------- normal path: TM (user input) colliding with BM + Intel + LLM -------- */
-
-      const smallTalk = this.isSmallTalk(text);  // TM = user input only
-      const sentiment = this.analyzeSentiment(text);
-
-      this.addMessage("user", text);
-      this.pushTM("user", text, sentiment);
-
-      const typingId = this.showTyping();
-      await this.processNormalMessage(text, sentiment, smallTalk, typingId);
     }
 
-    async processNormalMessage(text, sentiment, smallTalk, typingId){
+    async processNormalMessage(text, sentiment, smallTalk, bmStoryOnly, typingId){
       let llmAnswer = null;
 
-      if(this.llmEnabled && this.llmConfig.apiKey){
+      if(!bmStoryOnly && this.llmEnabled && this.llmConfig.apiKey){
         try{
           llmAnswer = await this.callLLM(text);
         }catch(e){
@@ -2162,7 +2183,7 @@
 
       this.hideTyping(typingId);
 
-      const reply = this.generateReply(text, sentiment, llmAnswer);
+      const reply = this.generateReply(text, sentiment, llmAnswer, {smallTalk, bmStoryOnly});
       const replySentiment = this.analyzeSentiment(reply);
 
       this.addMessage("ai", reply, true, replySentiment);
@@ -2281,7 +2302,7 @@
       return null;
     }
 
-    generateReply(text,sentiment,llmAnswer){
+    generateReply(text,sentiment,llmAnswer,opts={}){
       const mathResult = this.tryEvalMath(text);
       if(mathResult !== null){
         return "Mathematical evaluation from TM (your input only): "+text+" = "+mathResult;
@@ -2290,8 +2311,13 @@
       const intel = this.matchIntelNode(text);
       const seed = this.matchSeedRule(text);
 
-      // If LLM is available, prioritise LLM as semantic core,
-      // then add emotional commentary around it.
+      if(opts.bmStoryOnly){
+        const ts = new Date().toLocaleString();
+        return "I treated this as a long story for Bold Memory (more than four sentences).\n\n"+
+               "Your input has been saved in BM with timestamp: "+ts+".\n"+
+               "Later it can influence E₀ and help generate photo/video scenes, but I will not ask you for a formal answer here.";
+      }
+
       if(llmAnswer){
         const emoLabel = sentiment.polarity;
         const intro =
@@ -2397,7 +2423,7 @@
 
       const D = 0.15 + 0.25*(1 - this.continuityIndex);
       const lambdaFaith = this.faithsSelected.length ? (0.08 + 0.02*Math.min(this.faithsSelected.length,3)) : 0;
-      const lambdaSys = 0.10; // system / architecture baseline
+      const lambdaSys = 0.10;
       const strongTruthCats = ["love","hope","wisdom"];
       const lambdaTrc = strongTruthCats.includes(sentiment.category) ? 0.06 : 0;
 
