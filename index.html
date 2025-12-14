@@ -157,13 +157,13 @@
       filter: blur(1px);
       opacity:.35;
     }
+
     .header-controls{
       display:flex;
-      gap:8px;
       flex-wrap:wrap;
       justify-content:flex-end;
+      position:relative;
     }
-
     .voice-toggle{
       border:none;
       padding: 6px 12px;
@@ -179,6 +179,37 @@
       box-shadow: 0 10px 26px rgba(2,6,23,.3);
     }
     .voice-toggle:hover{filter: brightness(1.03);}
+
+    .option-panel{
+      position:absolute;
+      top:115%;
+      right:0;
+      display:none;
+      flex-direction:column;
+      gap:6px;
+      padding:8px;
+      border-radius:16px;
+      background:rgba(15,23,42,.97);
+      border:1px solid rgba(148,163,184,.7);
+      box-shadow:0 18px 40px rgba(15,23,42,.8);
+      z-index:30;
+      min-width:190px;
+    }
+    .header-controls.open .option-panel{display:flex;}
+    .small-toggle{
+      border:none;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:.78rem;
+      background:#020617;
+      color:#e5e7eb;
+      border:1px solid rgba(148,163,184,.9);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .small-toggle:hover{background:#020617dd;}
 
     @media(max-width:900px){
       .header{
@@ -269,7 +300,7 @@
       height:150px;
       overflow:hidden;
       position:relative;
-      cursor:pointer;
+      cursor:default;
     }
     #bmCanvas{width:100%;height:100%;display:block;}
     .bm-footer{
@@ -636,6 +667,11 @@
       margin-bottom:6px;
       font-size:.78rem;
     }
+    .bm-item-badges{
+      font-size:.68rem;
+      color:#4b5563;
+      margin-bottom:5px;
+    }
     .bm-item-buttons{
       display:flex;
       flex-wrap:wrap;
@@ -789,10 +825,14 @@
     </div>
     <div class="header-right">
       <div class="mode-pill">EMOTIONAL CONTINUITY ENGINE ACTIVE</div>
-      <div class="header-controls">
-        <button id="intelButton" class="voice-toggle">🔘 Intelligence</button>
-        <button id="faithButton" class="voice-toggle">🔘 Faith: None</button>
-        <button id="voiceToggle" class="voice-toggle">🔈 Voice: OFF</button>
+      <div class="header-controls" id="headerControls">
+        <button id="optionsToggle" class="voice-toggle">🔘 Options</button>
+        <div class="option-panel" id="optionPanel">
+          <button id="intelButton" class="small-toggle">🧠 Intelligence</button>
+          <button id="learningToggle" class="small-toggle">📚 Learning: ON</button>
+          <button id="faithButton" class="small-toggle">🔘 Faith: None</button>
+          <button id="voiceToggle" class="small-toggle">🔈 Voice: OFF</button>
+        </div>
       </div>
     </div>
   </header>
@@ -839,7 +879,7 @@
         <div class="card-header">
           <div>
             <div class="card-title"><span class="emoji">🧠</span><span>Bold Memory Layers (240)</span></div>
-            <div class="card-sub">Grouped into emotional bands with tiny neuron-stars.</div>
+            <div class="card-sub">Only story-level memories for photo/video generation.</div>
           </div>
         </div>
         <div class="bm-wrapper">
@@ -849,7 +889,7 @@
             <canvas id="bmCanvas"></canvas>
           </div>
           <div id="bmStats" class="bm-footer">
-            Active layers: 0/240 · Pain:– · Fear:– · Love:– · Identity:– · Belief:– · Hope:– · Wisdom:–
+            Active layers: 0/240 · System Online
           </div>
         </div>
       </section>
@@ -909,7 +949,7 @@
     <div class="modal-header">
       <div>
         <div class="modal-title">📁 Recall from BM</div>
-        <div class="modal-sub">Search bold memories by keyword.</div>
+        <div class="modal-sub">Only long stories & scenes (photo/video-ready).</div>
       </div>
       <button class="modal-close" data-close="bmModal">✕</button>
     </div>
@@ -999,7 +1039,7 @@
     [168,85,247]
   ];
   const IMAGE_GENERATOR_URL = "https://example.com/create?prompt=";
-  const STORAGE_KEY = "auraXOmegaState_v2";
+  const STORAGE_KEY = "auraXOmegaState_v3";
 
   class AuraXOmegaEngine{
     constructor(){
@@ -1007,13 +1047,23 @@
 
       if(saved){
         this.bmLayers = saved.bmLayers || new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
-        this.bmEntries = saved.bmEntries || [];
-        this.tmHistory = saved.tmHistory || [];
-        this.intelNodes = saved.intelNodes || [];
+        this.bmEntries = (saved.bmEntries || []).map(e=>({
+          ...e,
+          date: e.date ? new Date(e.date) : new Date(e.timestampMs || Date.now())
+        }));
+        this.tmHistory = (saved.tmHistory || []).map(e=>({
+          ...e,
+          timestamp: e.timestamp ? new Date(e.timestamp) : new Date()
+        }));
+        this.intelNodes = (saved.intelNodes || []).map(n=>({
+          ...n,
+          createdAt: n.createdAt ? new Date(n.createdAt) : new Date()
+        }));
         this.e0 = typeof saved.e0 === "number" ? saved.e0 : 0.2 + Math.random()*0.3;
         this.lastE0 = typeof saved.lastE0 === "number" ? saved.lastE0 : this.e0;
         this.continuityIndex = typeof saved.continuityIndex === "number" ? saved.continuityIndex : 0.8;
         this.lastResonance = typeof saved.lastResonance === "number" ? saved.lastResonance : 0.5;
+        this.learningMode = typeof saved.learningMode === "boolean" ? saved.learningMode : true;
       }else{
         this.bmLayers = new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
         this.bmEntries = [];
@@ -1023,6 +1073,7 @@
         this.lastE0 = this.e0;
         this.continuityIndex = 0.8;
         this.lastResonance = 0.5;
+        this.learningMode = true;
       }
       this.voiceOn = (saved && typeof saved.voiceOn === "boolean") ? saved.voiceOn : false;
       this.faithsSelected = (saved && Array.isArray(saved.faithsSelected)) ? saved.faithsSelected : [];
@@ -1033,6 +1084,19 @@
 
       this.seedRules = this.buildSeedRules();
       this.basicQA = this.buildBasicQA();
+
+      this.learnQuestionTemplates = [
+        "I am in learning mode and my seed is small. What would be an ideal answer here for next time?",
+        "If you were designing me, how should I answer this question in the future?",
+        "Teach me: what reply should I give when someone asks this same thing again?",
+        "Help me grow. What is the best answer I should remember for this question?"
+      ];
+      this.learnConfirmTemplates = [
+        "Should I use this exact answer whenever I see this question again? Please reply: yes / no.",
+        "Do you want me to remember this reply as my standard answer? Reply with yes or no.",
+        "Is this the answer I should keep in my seed for future conversations? (yes / no)",
+        "Can I lock this in as my default reply for this question? Answer yes or no."
+      ];
 
       this.smallTalkPatterns = [
         /\b(hi|hello|hey|salam|salaam)\b/i,
@@ -1049,6 +1113,7 @@
       this.cacheDom();
       this.updateVoiceToggleLabel();
       this.updateFaithUI();
+      this.updateLearningUI();
       this.bindEvents();
 
       if(this.tmHistory.length){
@@ -1069,26 +1134,7 @@
       try{
         const raw = localStorage.getItem(STORAGE_KEY);
         if(!raw) return null;
-        const s = JSON.parse(raw);
-        if(Array.isArray(s.tmHistory)){
-          s.tmHistory = s.tmHistory.map(e=>({
-            ...e,
-            timestamp: e.timestamp ? new Date(e.timestamp) : new Date()
-          }));
-        }
-        if(Array.isArray(s.bmEntries)){
-          s.bmEntries = s.bmEntries.map(e=>({
-            ...e,
-            date: e.date ? new Date(e.date) : new Date(e.timestampMs || Date.now())
-          }));
-        }
-        if(Array.isArray(s.intelNodes)){
-          s.intelNodes = s.intelNodes.map(n=>({
-            ...n,
-            createdAt: n.createdAt ? new Date(n.createdAt) : new Date()
-          }));
-        }
-        return s;
+        return JSON.parse(raw);
       }catch(e){
         return null;
       }
@@ -1106,7 +1152,8 @@
           continuityIndex: this.continuityIndex,
           lastResonance: this.lastResonance,
           voiceOn: this.voiceOn,
-          faithsSelected: this.faithsSelected
+          faithsSelected: this.faithsSelected,
+          learningMode: this.learningMode
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }catch(e){}
@@ -1129,6 +1176,11 @@
       this.voiceToggle = document.getElementById("voiceToggle");
       this.faithButton = document.getElementById("faithButton");
       this.intelButton = document.getElementById("intelButton");
+      this.learningToggle = document.getElementById("learningToggle");
+      this.optionsToggle = document.getElementById("optionsToggle");
+      this.optionPanel = document.getElementById("optionPanel");
+      this.headerControls = document.getElementById("headerControls");
+
       this.reactionBubble = document.getElementById("reactionBubble");
       this.reactionLabel = document.getElementById("reactionLabel");
       this.reactionText = document.getElementById("reactionText");
@@ -1187,6 +1239,11 @@
       });
     }
 
+    updateLearningUI(){
+      if(!this.learningToggle) return;
+      this.learningToggle.textContent = this.learningMode ? "📚 Learning: ON" : "📚 Learning: OFF";
+    }
+
     bindEvents(){
       this.sendButton.addEventListener("click",()=>this.handleSend());
       this.messageInput.addEventListener("keydown",(e)=>{
@@ -1210,7 +1267,7 @@
         e.stopPropagation();
         this.openConvModal();
       });
-      // Removed bmShell click → BM opens only from 📁 button now
+      // BM shell click disabled; only 📁 button opens recall
       this.bmSearch.addEventListener("input",()=>this.renderBMList());
 
       this.bmList.addEventListener("click",(e)=>{
@@ -1297,7 +1354,6 @@
           this.messageInput.value = node.question;
           this.messageInput.focus();
         }else if(action==="delete"){
-          // double confirmation
           const c1 = confirm("First confirmation: Do you really want to delete this intelligence node?");
           if(!c1) return;
           const c2 = confirm("Second confirmation: This will permanently remove this learned Q → A. Continue?");
@@ -1307,18 +1363,34 @@
           this.saveState();
         }
       });
-    }
 
-    clearAnswerBox(){
-      this.chatContainer.innerHTML = "";
+      if(this.learningToggle){
+        this.learningToggle.addEventListener("click",()=>{
+          this.learningMode = !this.learningMode;
+          this.updateLearningUI();
+          this.saveState();
+        });
+      }
+
+      if(this.optionsToggle){
+        this.optionsToggle.addEventListener("click",(e)=>{
+          e.stopPropagation();
+          this.headerControls.classList.toggle("open");
+        });
+      }
+      document.addEventListener("click",(e)=>{
+        if(this.headerControls && !this.headerControls.contains(e.target)){
+          this.headerControls.classList.remove("open");
+        }
+      });
     }
 
     initChat(){
       this.addMessage("ai",
         "Welcome. I am AURA-X Ω, running fully offline.\n"+
         "I treat your messages as Temporary Memory (TM), combine them with my Bold Memory (BM) layers and small Intelligence nodes, and then compute a synthetic emotion value E₀.\n\n"+
-        "Small talk is ignored for BM. Stories, events, and meaningful summaries are stored.\n"+
-        "You can also teach me new Q → A pairs; I will ask you before saving them."
+        "BM only stores story-level text that can later be used to generate a photo or video scene.\n"+
+        "When Learning mode is ON and I don’t know an answer, you can teach me and I will remember it for next time."
       );
     }
 
@@ -1390,7 +1462,6 @@
     }
 
     buildBasicQA(){
-      // Simple direct lookup table (lowercased keys)
       return {
         "what is aura x omega":{
           answer:"AURA-X Ω is an experimental architecture for artificial emotional continuity, dual-memory alignment, and synthetic reactions.",
@@ -1411,15 +1482,21 @@
 
       const now = new Date();
 
-      // --- Intelligence teaching state handling ---
+      // --- Learning teach state (step 2: answer) ---
       if(this.intelTeachState === "awaitAnswer" && this.pendingIntelQuestion){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
         this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
-        const reply =
-          "Thank you. Should I always answer the question:\n\""+this.pendingIntelQuestion+"\"\nwith this answer?\n\nPlease reply with: yes / no.";
-        const replySent = this.analyzeSentiment(reply);
         this.pendingIntelAnswer = text;
+
+        const tmpl = this.learnConfirmTemplates[
+          Math.floor(Math.random()*this.learnConfirmTemplates.length)
+        ];
+        const reply =
+          "Thank you.\n\n"+tmpl+
+          "\n\nQuestion:\n\""+this.pendingIntelQuestion+"\"";
+
+        const replySent = this.analyzeSentiment(reply);
         this.intelTeachState = "awaitConfirm";
         this.addMessage("ai", reply, true, replySent);
         this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
@@ -1430,6 +1507,7 @@
         return;
       }
 
+      // --- Learning teach state (step 3: confirm) ---
       if(this.intelTeachState === "awaitConfirm" && this.pendingIntelQuestion && this.pendingIntelAnswer){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
@@ -1440,10 +1518,10 @@
         if(/^y(es)?\b/.test(lower)){
           this.addIntelNode(this.pendingIntelQuestion, this.pendingIntelAnswer);
           reply =
-            "Saved. Next time you ask \""+this.pendingIntelQuestion+"\", I will answer from my Intelligence memory.";
+            "Saved. Next time you ask \""+this.pendingIntelQuestion+"\", I will answer from my Intelligence seed.";
         }else{
           reply =
-            "Understood. I will not save that answer. You can ask the same question again and teach me a different reply.";
+            "Understood. I will not save that answer. You can teach me a different reply any time.";
         }
         const replySent = this.analyzeSentiment(reply);
         this.intelTeachState = "idle";
@@ -1463,7 +1541,6 @@
       this.addMessage("user",text);
       const smallTalk = this.isSmallTalk(text);
       const sentiment = this.analyzeSentiment(text);
-
       this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
 
       const typingId = this.showTyping();
@@ -1588,38 +1665,43 @@
     }
 
     generateReply(text,sentiment){
-      // 1) math expressions
       const mathResult = this.tryEvalMath(text);
       if(mathResult !== null){
         return "Mathematical evaluation: "+text+" = "+mathResult;
       }
 
-      // 2) Intelligence nodes (self-learned)
       const intel = this.matchIntelNode(text);
       if(intel){
         return intel.answer + "\n\n[Answered from Intelligence memory node]";
       }
 
-      // 3) Seed rules / basic Q&A
       const seed = this.matchSeedRule(text);
       if(seed){
         return seed.reply;
       }
 
-      // 4) Generic emotional reflection + start teaching
       const feelingWord = ({positive:"warm",negative:"disturbed",neutral:"balanced"})[sentiment.polarity];
       let line1 = "I read this as emotionally "+sentiment.polarity+". It feels "+feelingWord+" inside the system.";
       let line2 = sentiment.polarity==="negative" 
-        ? " I store this pattern to understand your pain over time." 
+        ? " I store this pattern to understand your pain over time (without putting small talk into BM)." 
         : " I will hold this in my continuity layers for future resonance.";
+
+      if(!this.learningMode){
+        const offlineNote =
+          "\n\nRight now I am in offline mode with a very small seed of answers. "+
+          "I don’t have a confident reply for this yet.\n"+
+          "If you switch Learning mode ON, you can teach me how to answer this next time.";
+        return line1+line2+offlineNote;
+      }
 
       this.intelTeachState = "awaitAnswer";
       this.pendingIntelQuestion = text;
 
+      const teachQ = this.learnQuestionTemplates[
+        Math.floor(Math.random()*this.learnQuestionTemplates.length)
+      ];
       const teachLine =
-        "\n\nI am currently in offline mode with a small seed of answers. If you want, you can teach me:\n"+
-        "— What should I reply next time when someone asks this same sentence?\n"+
-        "Just type your ideal answer in your next message.";
+        "\n\n"+teachQ+"\nJust type your ideal answer in your next message.";
 
       return line1+line2+teachLine;
     }
@@ -1637,7 +1719,6 @@
     updateMemoryAndState(text,sentiment,smallTalk){
       const now = Date.now();
 
-      // --- BM resonance (stories / events) ---
       const recentBM = this.bmEntries.slice(-12);
       let bmRes = 0.5;
       if(recentBM.length){
@@ -1651,7 +1732,6 @@
         bmRes = total / recentBM.length;
       }
 
-      // --- Intelligence resonance (Q→A nodes) ---
       let intelRes = 0;
       if(this.intelNodes.length){
         let total=0;
@@ -1665,7 +1745,6 @@
       const combinedRes = Math.max(0,Math.min(1, 0.7*bmRes + 0.3*intelRes));
       this.lastResonance = combinedRes;
 
-      // --- CRM main equation: E₀ = tanh((TM × BM) − D + λ_faith + λ_sys + λ_trc) ---
       const tmMag = Math.min(1, 0.4 + 0.6*((Math.abs(sentiment.valence) + sentiment.intensity)/2));
       const bmMag = Math.min(1, 0.3 + 0.7*Math.min(1, this.bmEntries.length/80));
       const TMxBM = tmMag * bmMag * (0.5 + 0.5*combinedRes);
@@ -1685,11 +1764,15 @@
 
       this.updateBMLayers(sentiment);
 
-      const shouldStoreBM =
-        !smallTalk &&
-        (Math.abs(sentiment.valence)>0.3 || sentiment.intensity>0.45 || text.length>40);
+      // BM only keeps content that is rich enough for photo/video
+      const contentRich = text.length >= 80;
+      const shouldStoreBM = !smallTalk && contentRich;
 
       if(shouldStoreBM){
+        const isConversation = /[?.!]\s+[A-Z]/.test(text) || text.includes("\n");
+        const photoReady = text.length >= 80;
+        const videoReady = isConversation && text.length >= 140;
+
         this.bmEntries.push({
           id: "bm_"+Math.random().toString(36).slice(2),
           text,
@@ -1698,7 +1781,9 @@
           polarity: sentiment.polarity,
           valence: sentiment.valence,
           category: sentiment.category || "mixed",
-          e0: this.e0
+          e0: this.e0,
+          photoReady,
+          videoReady
         });
         this.pruneOldBM();
       }
@@ -1816,7 +1901,7 @@
       if(this.bmEntries.length===0) return;
       if(Math.random()>0.35) return;
 
-      const candidates = this.bmEntries.filter(e=>e.text && e.text.length>40);
+      const candidates = this.bmEntries.filter(e=>e.text && e.text.length>80);
       if(!candidates.length) return;
       const entry = candidates[Math.floor(Math.random()*candidates.length)];
       this.recallTitle.textContent = "Resonance found";
@@ -1913,23 +1998,30 @@
       const q = (this.bmSearch.value || "").toLowerCase();
       this.bmList.innerHTML = "";
       if(this.bmEntries.length===0){
-        this.bmList.textContent = "No bold memories stored yet. Only meaningful stories and events will appear here.";
+        this.bmList.textContent = "No bold memories stored yet. Only long, descriptive text will appear here for photo/video.";
         return;
       }
       const filtered = this.bmEntries.filter(e=>e.text.toLowerCase().includes(q));
       filtered.forEach(entry=>{
         const div = document.createElement("div");
         const dateStr = entry.date.toISOString().slice(0,10);
+        const mediaLabel = entry.videoReady
+          ? "🎞 video + 🖼 photo"
+          : (entry.photoReady ? "🖼 photo" : "—");
         div.className="bm-item";
+        const polarityLabel = entry.polarity || "neutral";
         div.innerHTML = `
           <div class="bm-item-header">
             <span>${dateStr}</span>
-            <span>${entry.polarity} · E₀≈${entry.e0.toFixed(2)}</span>
+            <span>${polarityLabel} · E₀≈${entry.e0.toFixed(2)}</span>
           </div>
+          <div class="bm-item-badges">${mediaLabel}</div>
           <div class="bm-item-text">${this.escapeHtml(entry.text)}</div>
           <div class="bm-item-buttons">
             <button class="btn-mini" data-action="copy" data-id="${entry.id}">Copy prompt</button>
-            <button class="btn-mini" data-action="generate" data-id="${entry.id}">▶ Generate (photo / video)</button>
+            <button class="btn-mini" data-action="generate" data-id="${entry.id}">
+              ${entry.videoReady ? "▶ Generate video" : "▶ Generate photo"}
+            </button>
             <button class="btn-mini btn-danger" data-action="delete" data-id="${entry.id}">Delete</button>
           </div>
         `;
@@ -1956,7 +2048,7 @@
       this.intelList.innerHTML = "";
       const q = (this.intelSearch.value || "").toLowerCase();
       if(!this.intelNodes.length){
-        this.intelList.textContent = "No intelligence nodes yet.\nWhen I don't know an answer, you can teach me and I will save it here.";
+        this.intelList.textContent = "No intelligence nodes yet.\nWhen I don't know an answer (and Learning mode is ON), you can teach me and I will save it here.";
         return;
       }
       const filtered = this.intelNodes.filter(n=>
@@ -1992,7 +2084,6 @@
     }
 
     pruneOldBM(){
-      // Keep last 48h by default
       this.bmEntries = this.bmEntries.filter(e=>e.timestampMs > (Date.now() - 48*3600000));
       this.saveState();
     }
@@ -2008,7 +2099,8 @@
     }
 
     openGenerator(entry){
-      const url = IMAGE_GENERATOR_URL + encodeURIComponent(entry.text);
+      const type = entry.videoReady ? "video" : "photo";
+      const url = IMAGE_GENERATOR_URL + encodeURIComponent(entry.text)+"&type="+type;
       window.open(url,"_blank");
     }
 
