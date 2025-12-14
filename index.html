@@ -575,7 +575,7 @@
       cursor:default;
       opacity:0;
       transform:translateY(8px);
-      transition:opacity .3s.ease-out,transform .3s ease-out,background .2s;
+      transition:opacity .3s.ease-out,transform .3s.ease-out,background .2s;
     }
     .recall-bubble.visible{
       opacity:1;
@@ -1038,7 +1038,7 @@
     [168,85,247]
   ];
   const IMAGE_GENERATOR_URL = "https://example.com/create?prompt=";
-  const STORAGE_KEY = "auraXOmegaState_v4";
+  const STORAGE_KEY = "auraXOmegaState_v5";
 
   class AuraXOmegaEngine{
     constructor(){
@@ -1083,6 +1083,10 @@
       this.pendingIntelQuestion = null;
       this.pendingIntelAnswer = null;
       this.pendingReplaceQuestion = null;
+
+      // 🔁 New: block-learning state
+      this.intelBlockState = "idle";
+      this.pendingBlockQAs = [];
 
       this.seedRules = this.buildSeedRules();
       this.basicQA = this.buildBasicQA();
@@ -1390,7 +1394,8 @@
         "Welcome. I am AURA-X Ω, running fully offline.\n"+
         "I treat your messages as Temporary Memory (TM), combine them with my Bold Memory (BM) layers and small Intelligence nodes, and then compute a synthetic emotion value E₀.\n\n"+
         "BM only stores story-level text that can later be used to generate a photo or video scene.\n"+
-        "When Learning mode is ON and I don’t know an answer, you can teach me and I will remember it for next time."
+        "When Learning mode is ON and I don’t know an answer, you can teach me and I will remember it for next time.\n\n"+
+        "You can also say: \"please add this block to seed\" and then paste a LaTeX block of Q/A pairs to teach me many answers at once."
       );
     }
 
@@ -1474,21 +1479,144 @@
       };
     }
 
+    // 🔍 Parse LaTeX-like block into Q → A pairs
+    parseLaTeXBlockToQAs(text){
+      const result = [];
+      // split by \item
+      const parts = text.split(/\\item/).slice(1);
+      for(const rawPart of parts){
+        let part = rawPart.trim();
+        if(!part) continue;
+
+        // Question: until first "\\" if present, otherwise until \textbf{A:}
+        let qText = "";
+        let aText = "";
+
+        const idxBackslash = part.indexOf("\\\\");
+        const idxAnsMarker = part.indexOf("\\textbf{A:}");
+
+        if(idxBackslash !== -1){
+          qText = part.slice(0, idxBackslash);
+        }else if(idxAnsMarker !== -1){
+          qText = part.slice(0, idxAnsMarker);
+        }
+
+        if(idxAnsMarker !== -1){
+          let ansPortion = part.slice(idxAnsMarker + "\\textbf{A:}".length);
+          ansPortion = ansPortion.replace(/^[\s:\\]+/, "");
+          aText = ansPortion;
+        }
+
+        qText = qText.replace(/[\r\n]+/g," ").trim();
+        aText = aText.replace(/[\r\n]+/g," ").trim();
+
+        // remove leading labels like "Q1:" inside question
+        qText = qText.replace(/^Q\d*[:.)-]\s*/i, "").trim();
+        // remove trailing LaTeX artifacts
+        aText = aText.replace(/\\end\{[a-zA-Z*]+\}.*$/,"").trim();
+
+        if(qText && aText){
+          result.push({question:qText, answer:aText});
+        }
+      }
+      return result;
+    }
+
     handleSend(){
-      const text = (this.messageInput.value || "").trim();
+      const textRaw = (this.messageInput.value || "");
+      const text = textRaw.trim();
       if(!text) return;
       this.messageInput.value = "";
       this.messageInput.style.height = "auto";
       const now = new Date();
+      const lowerText = text.toLowerCase();
 
-      /* 1) If we are in "replace answer" mode and now user is giving new answer */
+      /* 0) BLOCK LEARNING STATES */
+
+      // 0a) Awaiting LaTeX block after "please add this block to seed"
+      if(this.intelBlockState === "awaitBlock"){
+        this.addMessage("user", text);
+        const sentiment = this.analyzeSentiment(text);
+        this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
+
+        const qas = this.parseLaTeXBlockToQAs(text);
+        if(!qas.length){
+          const reply =
+            "I tried to read this block, but I could not find any clear question–answer pairs.\n\n"+
+            "Please check that each item looks like:\n"+
+            '\\item Question text? \\\\\n' +
+            '\\textbf{A:} Answer text...';
+          const replySent = this.analyzeSentiment(reply);
+          this.addMessage("ai", reply, true, replySent);
+          this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
+          this.intelBlockState = "idle";
+          this.pendingBlockQAs = [];
+          this.updateMemoryAndState(text, sentiment, false);
+          this.updateMetrics();
+          this.saveState();
+          return;
+        }
+
+        this.pendingBlockQAs = qas;
+        this.intelBlockState = "awaitConfirmBlock";
+
+        const reply =
+          "I have parsed this block and found "+qas.length+" question–answer pairs.\n\n"+
+          "Example:\n"+
+          "Q: \""+qas[0].question+"\"\n"+
+          "A: \""+qas[0].answer+"\"\n\n"+
+          "Do you want me to save all of these into my intelligence memory? (yes / no)";
+        const replySent = this.analyzeSentiment(reply);
+        this.addMessage("ai", reply, true, replySent);
+        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
+        this.updateMemoryAndState(text, sentiment, false);
+        this.updateMetrics();
+        this.saveState();
+        return;
+      }
+
+      // 0b) Awaiting yes/no confirmation for block save
+      if(this.intelBlockState === "awaitConfirmBlock" && this.pendingBlockQAs.length){
+        this.addMessage("user", text);
+        const sentiment = this.analyzeSentiment(text);
+        this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
+
+        const lower = lowerText;
+        let reply;
+        if(/^y(es)?\b/.test(lower)){
+          this.pendingBlockQAs.forEach(pair=>{
+            this.addIntelNode(pair.question, pair.answer);
+          });
+          reply =
+            "Saved "+this.pendingBlockQAs.length+" question–answer pairs into my intelligence memory.\n"+
+            "I will now answer those questions directly from this block.";
+        }else{
+          reply =
+            "Okay. I will discard this block and not save anything from it.";
+        }
+
+        this.intelBlockState = "idle";
+        this.pendingBlockQAs = [];
+
+        const replySent = this.analyzeSentiment(reply);
+        this.addMessage("ai", reply, true, replySent);
+        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
+        this.updateMemoryAndState(text, sentiment, false);
+        this.updateMetrics();
+        this.renderIntelList();
+        this.saveState();
+        return;
+      }
+
+      /* 1) Existing special states for single Q/A learning and replace */
+
+      // 1a) Replace-answer mode: waiting for new answer text
       if(this.intelTeachState === "awaitReplaceAnswer" && this.pendingReplaceQuestion){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
         this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
 
         const q = this.pendingReplaceQuestion;
-        // try to find existing node for this question
         let existing = null;
         for(const n of this.intelNodes){
           const sim = this.textSimilarity(q.toLowerCase(), n.question.toLowerCase());
@@ -1516,7 +1644,6 @@
 
         this.addMessage("ai", reply, true, replySent);
         this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
-
         this.updateMemoryAndState(text, sentiment, false);
         this.updateMetrics();
         this.renderIntelList();
@@ -1524,7 +1651,7 @@
         return;
       }
 
-      /* 2) Learning-mode teaching: waiting for answer after unknown question */
+      // 1b) Learning-mode block for single unknown question: waiting for answer
       if(this.intelTeachState === "awaitAnswer" && this.pendingIntelQuestion){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
@@ -1549,14 +1676,14 @@
         return;
       }
 
-      /* 3) Learning-mode teaching: waiting for yes/no confirm */
+      // 1c) Learning-mode confirm yes/no for single Q/A
       if(this.intelTeachState === "awaitConfirm" && this.pendingIntelQuestion && this.pendingIntelAnswer){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
         this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
 
         let reply;
-        const lower = text.trim().toLowerCase();
+        const lower = lowerText;
         if(/^y(es)?\b/.test(lower)){
           this.addIntelNode(this.pendingIntelQuestion, this.pendingIntelAnswer);
           reply =
@@ -1579,11 +1706,9 @@
         return;
       }
 
-      /* 4) User command: "replace this answer in seed" (or similar) */
-      const lowerText = text.toLowerCase();
+      // 1d) Command: replace this answer in seed
       const isReplaceCmd = /(replace this answer|replace that answer|change this answer|change that answer|please replace this answer)/i.test(lowerText);
-      if(this.intelTeachState === "idle" && isReplaceCmd){
-        // log this command as normal user message
+      if(this.intelTeachState === "idle" && this.intelBlockState==="idle" && isReplaceCmd){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
         this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
@@ -1617,7 +1742,33 @@
         return;
       }
 
-      /* 5) Normal path */
+      // 1e) Command: please add this block to seed
+      const isAddBlockCmd = /please add this block to seed/i.test(lowerText);
+      if(this.intelTeachState==="idle" && this.intelBlockState==="idle" && isAddBlockCmd){
+        this.addMessage("user", text);
+        const sentiment = this.analyzeSentiment(text);
+        this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
+
+        this.intelBlockState = "awaitBlock";
+        this.pendingBlockQAs = [];
+
+        const reply =
+          "Okay. I am ready to learn a block.\n\n"+
+          "In your next message, paste the full block of questions and answers (for example LaTeX like:\n"+
+          '\\item Where is the reception desk? \\\\\n'+
+          '\\textbf{A:} It’s right at the main entrance, on your left.\n\n'+
+          "I will parse it and then ask you to confirm with yes or no before saving.";
+        const replySent = this.analyzeSentiment(reply);
+        this.addMessage("ai", reply, true, replySent);
+        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
+        this.updateMemoryAndState(text, sentiment, false);
+        this.updateMetrics();
+        this.saveState();
+        return;
+      }
+
+      /* 2) Normal path */
+
       const smallTalk = this.isSmallTalk(text);
       const sentiment = this.analyzeSentiment(text);
       this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
@@ -1632,7 +1783,6 @@
         this.addMessage("ai",reply,true,replySentiment);
         this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySentiment});
 
-        // آخری سوال محفوظ کریں تاکہ "replace this answer" اسے override کر سکے
         this.lastAnsweredQuestion = text;
 
         this.updateMemoryAndState(text,sentiment,smallTalk);
@@ -1755,7 +1905,6 @@
 
       const intel = this.matchIntelNode(text);
       if(intel){
-        // ✅ اب کوئی extra tag نہیں لگے گا
         return intel.answer;
       }
 
@@ -2131,7 +2280,7 @@
       this.intelList.innerHTML = "";
       const q = (this.intelSearch.value || "").toLowerCase();
       if(!this.intelNodes.length){
-        this.intelList.textContent = "No intelligence nodes yet.\nWhen I don't know an answer (and Learning mode is ON), you can teach me and I will save it here.";
+        this.intelList.textContent = "No intelligence nodes yet.\nWhen I don't know an answer (and Learning mode is ON), you can teach me and I will save it here.\nYou can also load big blocks using: \"please add this block to seed\".";
         return;
       }
       const filtered = this.intelNodes.filter(n=>
