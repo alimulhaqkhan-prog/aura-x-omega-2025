@@ -873,17 +873,39 @@
 <script>
 (function(){
   const BM_BANDS = ["Pain","Fear","Love","Identity","Belief","Hope","Wisdom"];
+  const BAND_RGB = [
+    [239,68,68],   // Pain - red
+    [249,115,22],  // Fear - orange
+    [34,197,94],   // Love - green
+    [14,165,233],  // Identity - cyan/blue
+    [99,102,241],  // Belief - indigo
+    [234,179,8],   // Hope - yellow
+    [168,85,247]   // Wisdom - purple
+  ];
   const IMAGE_GENERATOR_URL = "https://example.com/create?prompt=";
+  const STORAGE_KEY = "auraXOmegaState_v1";
 
   class AuraXOmegaEngine{
     constructor(){
-      this.bmLayers = new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
-      this.bmEntries = [];
-      this.tmHistory = [];
-      this.e0 = 0.2 + Math.random()*0.3;
-      this.lastE0 = this.e0;
-      this.continuityIndex = 0.8;
-      this.lastResonance = 0.5;
+      const saved = this.loadState();
+
+      if(saved){
+        this.bmLayers = saved.bmLayers || new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
+        this.bmEntries = saved.bmEntries || [];
+        this.tmHistory = saved.tmHistory || [];
+        this.e0 = typeof saved.e0 === "number" ? saved.e0 : 0.2 + Math.random()*0.3;
+        this.lastE0 = typeof saved.lastE0 === "number" ? saved.lastE0 : this.e0;
+        this.continuityIndex = typeof saved.continuityIndex === "number" ? saved.continuityIndex : 0.8;
+        this.lastResonance = typeof saved.lastResonance === "number" ? saved.lastResonance : 0.5;
+      }else{
+        this.bmLayers = new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
+        this.bmEntries = [];
+        this.tmHistory = [];
+        this.e0 = 0.2 + Math.random()*0.3;
+        this.lastE0 = this.e0;
+        this.continuityIndex = 0.8;
+        this.lastResonance = 0.5;
+      }
       this.voiceOn = false;
 
       this.seedRules = this.buildSeedRules();
@@ -899,10 +921,60 @@
 
       this.cacheDom();
       this.bindEvents();
-      this.initChat();
+
+      if(this.tmHistory.length){
+        // Rebuild chat UI from saved history
+        this.tmHistory.forEach(m=>{
+          this.addMessage(m.role, m.text, m.role==="ai", m.sentiment || null);
+        });
+      }else{
+        this.initChat();
+      }
+
       this.updateMetrics();
       this.startBMAnimation();
       this.pruneOldBM();
+      this.saveState();
+    }
+
+    loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return null;
+        const s = JSON.parse(raw);
+        if(Array.isArray(s.tmHistory)){
+          s.tmHistory = s.tmHistory.map(e=>({
+            ...e,
+            timestamp: e.timestamp ? new Date(e.timestamp) : new Date()
+          }));
+        }
+        if(Array.isArray(s.bmEntries)){
+          s.bmEntries = s.bmEntries.map(e=>({
+            ...e,
+            date: e.date ? new Date(e.date) : new Date(e.timestampMs || Date.now())
+          }));
+        }
+        return s;
+      }catch(e){
+        return null;
+      }
+    }
+
+    saveState(){
+      try{
+        const state = {
+          bmLayers: this.bmLayers,
+          bmEntries: this.bmEntries,
+          tmHistory: this.tmHistory,
+          e0: this.e0,
+          lastE0: this.lastE0,
+          continuityIndex: this.continuityIndex,
+          lastResonance: this.lastResonance
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }catch(e){
+        // ignore storage errors
+      }
     }
 
     cacheDom(){
@@ -1000,7 +1072,12 @@
 
       this.clear24Btn.addEventListener("click",()=>{this.clearBMByHours(24);});
       this.clear48Btn.addEventListener("click",()=>{this.clearBMByHours(48);});
-      this.clearAllBtn.addEventListener("click",()=>{this.bmEntries=[];this.updateMetrics();this.renderBMList();});
+      this.clearAllBtn.addEventListener("click",()=>{
+        this.bmEntries=[];
+        this.updateMetrics();
+        this.renderBMList();
+        this.saveState();
+      });
 
       this.recallBubble.addEventListener("click",()=>this.openBMModal());
 
@@ -1009,28 +1086,8 @@
         this.voiceToggle.textContent = (this.voiceOn ? "🔊 Voice: ON" : "🔈 Voice: OFF");
       });
 
-      // Swipe to clear answer box (mobile)
-      let touchStartY=null, touchStartX=null;
-      this.appRoot.addEventListener("touchstart",(e)=>{
-        const t = e.touches[0];
-        touchStartY = t.clientY;
-        touchStartX = t.clientX;
-      });
-      this.appRoot.addEventListener("touchend",(e)=>{
-        if(touchStartY===null) return;
-        const t = e.changedTouches[0];
-        const dy = t.clientY - touchStartY;
-        const dx = t.clientX - touchStartX;
-        if(Math.abs(dy) > 80 && Math.abs(dy) > Math.abs(dx)){
-          this.clearAnswerBox();
-        }
-        touchStartY = touchStartX = null;
-      });
-
-      // Double-click on console to clear (desktop)
-      if(this.answerBox){
-        this.answerBox.addEventListener("dblclick",()=>this.clearAnswerBox());
-      }
+      // NOTE: swipe-to-clear and double-click clear removed
+      // تاکہ conversation accidently صاف نہ ہو۔
     }
 
     clearAnswerBox(){
@@ -1115,6 +1172,7 @@
         this.updateMetrics();
         this.renderBMList();
         this.renderConvList();
+        this.saveState();
       },600 + Math.random()*600);
     }
 
@@ -1377,6 +1435,8 @@
       ctx.fillRect(0,0,w,h);
 
       const barW = w / this.bmLayers.length;
+      const bandSize = this.bmLayers.length / BAND_RGB.length;
+
       for(let i=0;i<this.bmLayers.length;i++){
         this.bmLayers[i] += (Math.random()-0.5)*0.01;
         this.bmLayers[i] = this.clamp(this.bmLayers[i],0.05,0.95);
@@ -1384,8 +1444,13 @@
         const bh = this.bmLayers[i]*h*0.8;
         const x = i*barW;
         const y = h - bh;
-        
-        ctx.fillStyle = `rgba(37,99,235,${0.2+this.bmLayers[i]*0.5})`;
+
+        let bandIndex = Math.floor(i / bandSize);
+        if(bandIndex >= BAND_RGB.length) bandIndex = BAND_RGB.length - 1;
+        const rgb = BAND_RGB[bandIndex];
+        const alpha = 0.25 + this.bmLayers[i]*0.5;
+
+        ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
         ctx.fillRect(x,y,barW,bh);
       }
     }
@@ -1454,9 +1519,11 @@
       this.bmEntries = this.bmEntries.filter(e=>e.timestampMs<cutoff);
       this.renderBMList();
       this.updateMetrics();
+      this.saveState();
     }
     pruneOldBM(){
       this.bmEntries = this.bmEntries.filter(e=>e.timestampMs > (Date.now() - 48*3600000));
+      this.saveState();
     }
 
     copyPrompt(entry){
@@ -1478,6 +1545,7 @@
       this.bmEntries = this.bmEntries.filter(e=>e.id!==entry.id);
       this.renderBMList();
       this.updateMetrics();
+      this.saveState();
     }
   }
 
