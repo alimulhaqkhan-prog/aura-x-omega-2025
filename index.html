@@ -543,7 +543,7 @@
       opacity:0;
       transform:translateY(8px);
       pointer-events:none;
-      transition:opacity .25s ease-out,transform .25s ease-out;
+      transition:opacity .25s ease-out,transform .25s.ease-out;
       z-index:40;
     }
     .reaction-bubble.visible{
@@ -933,7 +933,7 @@
     </div>
     <div class="input-row">
       <div class="input-shell">
-        <textarea id="messageInput" class="message-input" rows="1" placeholder="Write to AURA-X Ω... (math like 2+2 also works)"></textarea>
+        <textarea id="messageInput" class="message-input" rows="1" placeholder="Write to AURA-X Ω... (math like 2+2 also works, or ask for current time / fresh news)"></textarea>
         <button id="sendButton" class="send-button">Send</button>
       </div>
     </div>
@@ -1532,7 +1532,8 @@
         "I treat your messages as Temporary Memory (TM), combine them with my Bold Memory (BM) layers and small Intelligence nodes, and then compute a synthetic emotion value E₀.\n\n"+
         "BM only stores story-level text that can later be used to generate a photo or video scene.\n"+
         "When Learning mode is ON and I don’t know an answer, you can teach me and I will remember it for next time.\n\n"+
-        "You can also say: \"please add this block to seed\" and then paste a LaTeX block of Q/A pairs to teach me many answers at once.";
+        "You can also say: \"please add this block to seed\" and then paste a LaTeX block of Q/A pairs to teach me many answers at once.\n"+
+        "You can ask: \"what is the time?\" or \"fresh news\" to see browser time and news links.";
       const sent = this.analyzeSentiment(text);
       this.addMessage("ai", text, true, sent);
       this.pushTM("ai", text, sent);
@@ -1654,6 +1655,24 @@
         }
       }
       return result;
+    }
+
+    isTimeRequest(text){
+      const lower = text.toLowerCase().trim();
+      if(!lower.includes("time")) return false;
+      if(lower === "time" || lower === "current time") return true;
+      if(/what/.test(lower) || /tell/.test(lower) || /current/.test(lower) || /browser/.test(lower)){
+        return true;
+      }
+      return false;
+    }
+
+    isNewsRequest(text){
+      const lower = text.toLowerCase().trim();
+      if(!lower.includes("news")) return false;
+      if(/fresh|frish|latest|today|update|updates|breaking/.test(lower)) return true;
+      if(lower === "news") return true;
+      return false;
     }
 
     handleSend(){
@@ -1787,8 +1806,8 @@
         this.pushTM("user", text, sentiment);
         this.pendingIntelAnswer = text;
 
-        const tmpl = this.learnConfirmTemplates[
-          Math.floor(Math.random()*this.learnConfirmTemplates.length)
+        const tmpl = this.learnQuestionTemplates[
+          Math.floor(Math.random()*this.learnQuestionTemplates.length)
         ];
         const reply =
           "Thank you.\n\n"+tmpl+
@@ -1893,6 +1912,66 @@
         this.updateMemoryAndState(text, sentiment, true);
         this.updateMetrics();
         this.saveState();
+        return;
+      }
+
+      // ✅ SPECIAL: TIME / NEWS REQUESTS (before normal path)
+      const timeReq = this.isTimeRequest(text);
+      const newsReq = this.isNewsRequest(text);
+      if(timeReq || newsReq){
+        const sentiment = this.analyzeSentiment(text);
+        const smallTalk = true;
+
+        this.addMessage("user", text);
+        this.pushTM("user", text, sentiment);
+
+        const typingId = this.showTyping();
+        setTimeout(()=>{
+          this.hideTyping(typingId);
+
+          if(timeReq){
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString(undefined,{
+              hour:"2-digit",
+              minute:"2-digit",
+              second:"2-digit"
+            });
+            const dateStr = now.toLocaleDateString(undefined,{
+              weekday:"long",
+              year:"numeric",
+              month:"short",
+              day:"numeric"
+            });
+            const reply =
+              "Current browser time (according to this device):\n"+
+              timeStr+"\n\n"+
+              "Date: "+dateStr+".";
+            const replySent = this.analyzeSentiment(reply);
+            this.addMessage("ai", reply, true, replySent);
+            this.pushTM("ai", reply, replySent);
+            this.showTimeBubble(timeStr+" · "+dateStr);
+            this.updateMemoryAndState(text, replySent, smallTalk);
+          } else if(newsReq){
+            const htmlReply =
+              "Here are some trusted news homepages (opens in a new tab):<br><br>"+
+              "• <a href=\"https://www.bbc.com/news\" target=\"_blank\" rel=\"noopener noreferrer\">BBC News</a><br>"+
+              "• <a href=\"https://www.aljazeera.com\" target=\"_blank\" rel=\"noopener noreferrer\">Al Jazeera</a><br>"+
+              "• <a href=\"https://www.geo.tv\" target=\"_blank\" rel=\"noopener noreferrer\">Geo News</a><br>"+
+              "• <a href=\"https://www.dawn.com\" target=\"_blank\" rel=\"noopener noreferrer\">Dawn</a><br>"+
+              "• <a href=\"https://www.washingtonpost.com\" target=\"_blank\" rel=\"noopener noreferrer\">The Washington Post</a>";
+            const replySent = this.analyzeSentiment(htmlReply.replace(/<[^>]+>/g,""));
+            this.addMessage("ai", htmlReply, true, replySent, false, true);
+            const plain = htmlReply.replace(/<[^>]+>/g,"");
+            this.pushTM("ai", plain, replySent);
+            this.updateMemoryAndState(text, replySent, smallTalk);
+          }
+
+          this.updateMetrics();
+          this.renderBMList();
+          this.renderConvList();
+          this.renderIntelList();
+          this.saveState();
+        }, 400 + Math.random()*600);
         return;
       }
 
@@ -2061,7 +2140,8 @@
         Math.floor(Math.random()*this.learnQuestionTemplates.length)
       ];
       const teachLine =
-        "\n\n"+teachQ+"\nJust type your ideal answer in your next message.";
+        "\n\n"+teachQ+
+        "\nJust type your ideal answer in your next message.";
 
       return line1+line2+teachLine;
     }
@@ -2191,7 +2271,7 @@
       this.bmStats.textContent = `Active layers: ${active}/${this.bmLayers.length} · System Online`;
     }
 
-    addMessage(role,text,isAI=false,sentiment=null,skipSpeech=false){
+    addMessage(role,text,isAI=false,sentiment=null,skipSpeech=false,isHtml=false){
       const msg = document.createElement("div");
       msg.className = "message "+(role==="ai"?"ai-message":"user-message");
       
@@ -2215,7 +2295,11 @@
 
       const body = document.createElement("div");
       body.className="message-content";
-      body.textContent = text;
+      if(isHtml){
+        body.innerHTML = text;
+      }else{
+        body.textContent = text;
+      }
 
       msg.appendChild(header);
       msg.appendChild(body);
@@ -2257,6 +2341,16 @@
       setTimeout(()=>bubble.classList.remove("visible"),4000);
     }
 
+    showTimeBubble(formatted){
+      const bubble = this.reactionBubble;
+      if(!bubble) return;
+      bubble.querySelector(".reaction-icon").textContent = "⏰";
+      this.reactionLabel.textContent = "Browser time";
+      this.reactionText.textContent = formatted.replace(/\n/g,"  ");
+      bubble.classList.add("visible");
+      setTimeout(()=>bubble.classList.remove("visible"),8000);
+    }
+
     maybeShowRecallBubble(sentiment){
       if(this.bmEntries.length===0) return;
       if(Math.random()>0.35) return;
@@ -2273,7 +2367,8 @@
     speak(text,sentiment){
       if(!("speechSynthesis" in window)) return;
       window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text.replace(/\[internals[^\]]*\]/gi,""));
+      const clean = text.replace(/<[^>]+>/g,"").replace(/\[internals[^\]]*\]/gi,"");
+      const utter = new SpeechSynthesisUtterance(clean);
       if(sentiment && sentiment.polarity==="positive") utter.pitch = 1.1;
       if(sentiment && sentiment.polarity==="negative") utter.pitch = 0.9;
       window.speechSynthesis.speak(utter);
