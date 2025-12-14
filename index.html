@@ -1,1070 +1,1237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURA-X Ω - Emotional Continuity System</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:radial-gradient(circle at top,#e0f2ff 0,#f5f7fb 40%,#eef1f7 100%);
+      color:#0f172a;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:20px;
+    }
+    .app{
+      width:100%;
+      max-width:1100px;
+      background:#ffffffee;
+      border-radius:24px;
+      box-shadow:0 24px 60px rgba(15,23,42,.15);
+      padding:20px 22px 26px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      border:1px solid #e2e8f0;
+    }
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      padding:12px 14px 6px;
+      border-bottom:1px solid #e5e7eb;
+    }
+    .title-block h1{
+      font-size:1.8rem;
+      letter-spacing:0.06em;
+      color:#0f172a;
+    }
+    .title-block h1 span{
+      background:linear-gradient(90deg,#2563eb,#06b6d4);
+      -webkit-background-clip:text;
+      color:transparent;
+      font-weight:800;
+    }
+    .title-sub{
+      font-size:.9rem;
+      color:#64748b;
+      margin-top:2px;
+    }
+    .badge-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:6px;
+    }
+    .badge{
+      font-size:.7rem;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid #d1e3ff;
+      background:#eff6ff;
+      color:#1d4ed8;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-weight:600;
+    }
+    .mode-pill{
+      padding:8px 14px;
+      border-radius:999px;
+      background:linear-gradient(90deg,#15803d,#22c55e);
+      color:#ecfdf3;
+      font-size:.78rem;
+      font-weight:600;
+      box-shadow:0 8px 20px rgba(16,185,129,.35);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .mode-dot{
+      width:9px;height:9px;border-radius:999px;
+      background:#bbf7d0;
+      box-shadow:0 0 0 6px rgba(52,211,153,.18);
+    }
 
-        body {
-            background: linear-gradient(135deg, #0a1929 0%, #0d1117 100%);
-            color: #e6edf3;
-            min-height: 100vh;
-            padding: 20px;
-        }
+    .layout{
+      display:grid;
+      grid-template-columns: minmax(0,2.1fr) minmax(280px,1.1fr);
+      gap:18px;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+    .card{
+      background:#f9fafb;
+      border-radius:18px;
+      padding:16px 16px 18px;
+      border:1px solid #e5e7eb;
+      box-shadow:0 10px 25px rgba(148,163,184,.18);
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    .card-title{
+      font-size:.95rem;
+      font-weight:600;
+      color:#0f172a;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .card-title span.emoji{
+      font-size:1.1rem;
+    }
+    .card-sub{
+      font-size:.75rem;
+      color:#94a3b8;
+    }
 
-        /* Header */
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(16, 24, 39, 0.8);
-            border-radius: 20px;
-            border: 1px solid rgba(56, 139, 253, 0.2);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
+    .chat-container{
+      height:440px;
+      overflow-y:auto;
+      padding:14px 10px;
+      border-radius:14px;
+      background:linear-gradient(180deg,#f9fafb 0,#f3f4f6 60%,#e5f4ff 100%);
+      border:1px solid #e5e7eb;
+      scroll-behavior:smooth;
+    }
+    .message{
+      max-width:78%;
+      padding:10px 12px;
+      margin-bottom:10px;
+      border-radius:14px;
+      font-size:.9rem;
+      line-height:1.5;
+      position:relative;
+      animation:fadeIn .2s ease-out;
+      white-space:pre-wrap;
+    }
+    .message-header{
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:4px;
+      font-size:.7rem;
+      color:#6b7280;
+    }
+    .ai-message{
+      background:#e0f2fe;
+      border-bottom-left-radius:4px;
+      margin-right:auto;
+      border:1px solid #bfdbfe;
+    }
+    .user-message{
+      background:#e5e7eb;
+      border-bottom-right-radius:4px;
+      margin-left:auto;
+      border:1px solid #d4d4d8;
+    }
 
-        .title {
-            font-size: 2.8rem;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 10px;
-            font-weight: 800;
-            letter-spacing: 1px;
-        }
+    .input-row{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+    }
+    .message-input{
+      flex:1;
+      resize:none;
+      min-height:60px;
+      max-height:120px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid #cbd5f5;
+      outline:none;
+      font-size:.9rem;
+      background:#f9fafb;
+      transition:border-color .2s,box-shadow .2s;
+    }
+    .message-input:focus{
+      border-color:#2563eb;
+      box-shadow:0 0 0 1px rgba(37,99,235,.2);
+    }
+    .send-button{
+      border:none;
+      padding:0 22px;
+      border-radius:14px;
+      background:linear-gradient(135deg,#2563eb,#0ea5e9);
+      color:white;
+      font-weight:600;
+      font-size:.9rem;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      white-space:nowrap;
+      box-shadow:0 10px 25px rgba(37,99,235,.35);
+      transition:transform .12s,box-shadow .12s,filter .12s;
+    }
+    .send-button:hover{
+      transform:translateY(-1px);
+      filter:brightness(1.03);
+      box-shadow:0 14px 35px rgba(37,99,235,.45);
+    }
 
-        .subtitle {
-            color: #8b949e;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-        }
+    .metrics-grid{
+      display:grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:4px;
+    }
+    .metric{
+      background:#ffffff;
+      border-radius:12px;
+      padding:10px 10px 9px;
+      border:1px solid #e5e7eb;
+    }
+    .metric-label{
+      font-size:.7rem;
+      color:#64748b;
+      margin-bottom:4px;
+    }
+    .metric-value{
+      font-size:1.1rem;
+      font-weight:700;
+      color:#1d4ed8;
+    }
+    .metric-note{
+      font-size:.7rem;
+      color:#9ca3af;
+      margin-top:2px;
+    }
 
-        .mode-indicator {
-            display: inline-block;
-            padding: 8px 20px;
-            background: linear-gradient(90deg, #065f46, #047857);
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #d1fae5;
-            margin-top: 10px;
-        }
+    .bm-wrapper{
+      margin-top:8px;
+    }
+    .bm-canvas-shell{
+      background:radial-gradient(circle at top,#e0f2fe 0,#eff6ff 60%,#e5e7eb 100%);
+      border-radius:12px;
+      border:1px solid #dbeafe;
+      height:150px;
+      overflow:hidden;
+      position:relative;
+    }
+    #bmCanvas{
+      width:100%;
+      height:100%;
+      display:block;
+    }
+    .bm-footer{
+      font-size:.72rem;
+      color:#6b7280;
+      margin-top:6px;
+      text-align:center;
+    }
 
-        /* Main Layout */
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 25px;
-            margin-bottom: 30px;
-        }
+    .status-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:8px;
+      font-size:.72rem;
+      color:#6b7280;
+    }
 
-        /* Left Panel - Chat Interface */
-        .left-panel {
-            background: rgba(16, 24, 39, 0.8);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(56, 139, 253, 0.2);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
+    .tag{
+      padding:4px 8px;
+      border-radius:999px;
+      background:#e5f4ff;
+      color:#1e3a8a;
+      border:1px solid #bfdbfe;
+      font-size:.68rem;
+    }
 
-        .chat-container {
-            height: 500px;
-            overflow-y: auto;
-            padding: 20px;
-            background: rgba(13, 17, 23, 0.7);
-            border-radius: 15px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(56, 139, 253, 0.1);
-        }
+    .typing-indicator{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      background:#e5f3ff;
+      border-radius:999px;
+      padding:6px 10px;
+      width:fit-content;
+      margin:8px 0 6px;
+    }
+    .typing-dot{
+      width:6px;height:6px;border-radius:999px;
+      background:#2563eb;
+      animation:typing 1.2s infinite;
+    }
+    .typing-dot:nth-child(2){animation-delay:.18s}
+    .typing-dot:nth-child(3){animation-delay:.36s}
+    .typing-text{
+      font-size:.7rem;
+      color:#2563eb;
+      font-weight:500;
+    }
 
-        .message {
-            margin-bottom: 20px;
-            padding: 15px;
-            border-radius: 15px;
-            max-width: 80%;
-            animation: fadeIn 0.3s ease;
-        }
+    .reaction-bubble{
+      position:fixed;
+      right:22px;
+      bottom:22px;
+      max-width:260px;
+      background:#0f172acc;
+      color:#e5e7eb;
+      padding:10px 12px;
+      border-radius:16px 16px 2px 16px;
+      font-size:.78rem;
+      box-shadow:0 18px 45px rgba(15,23,42,.6);
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      opacity:0;
+      transform:translateY(8px);
+      pointer-events:none;
+      transition:opacity .25s ease-out,transform .25s ease-out;
+      z-index:40;
+    }
+    .reaction-bubble.visible{
+      opacity:1;
+      transform:translateY(0);
+      pointer-events:auto;
+    }
+    .reaction-icon{
+      font-size:1.1rem;
+      margin-top:2px;
+    }
+    .reaction-label{
+      font-weight:600;
+      margin-bottom:2px;
+    }
+    .reaction-body{
+      font-size:.76rem;
+      color:#cbd5f5;
+    }
 
-        .user-message {
-            background: linear-gradient(135deg, #1e40af, #1d4ed8);
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
-        }
+    .recall-bubble-container{
+      position:fixed;
+      left:22px;
+      bottom:24px;
+      z-index:35;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .recall-bubble{
+      max-width:280px;
+      background:#f9fafb;
+      border-radius:16px 16px 16px 2px;
+      border:1px solid #e5e7eb;
+      padding:9px 11px;
+      font-size:.78rem;
+      box-shadow:0 18px 40px rgba(148,163,184,.45);
+      cursor:pointer;
+      opacity:0;
+      transform:translateY(8px);
+      transition:opacity .3s ease-out,transform .3s ease-out,background .2s;
+    }
+    .recall-bubble.visible{
+      opacity:1;
+      transform:translateY(0);
+    }
+    .recall-bubble:hover{
+      background:#eff6ff;
+    }
+    .recall-title{
+      font-weight:600;
+      font-size:.76rem;
+      color:#1e293b;
+      margin-bottom:2px;
+    }
+    .recall-body{
+      color:#4b5563;
+      margin-bottom:3px;
+    }
+    .recall-meta{
+      font-size:.68rem;
+      color:#9ca3af;
+    }
+    .fade-out{
+      opacity:0 !important;
+      transform:translateY(10px) !important;
+    }
 
-        .ai-message {
-            background: linear-gradient(135deg, #374151, #4b5563);
-            border-bottom-left-radius: 5px;
-        }
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(6px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    @keyframes typing{
+      0%,60%,100%{transform:translateY(0);opacity:.4}
+      30%{transform:translateY(-4px);opacity:1}
+    }
 
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-            color: #9ca3af;
-        }
-
-        .message-content {
-            line-height: 1.5;
-        }
-
-        .input-area {
-            display: flex;
-            gap: 15px;
-        }
-
-        .message-input {
-            flex: 1;
-            padding: 18px;
-            background: rgba(13, 17, 23, 0.8);
-            border: 1px solid rgba(56, 139, 253, 0.3);
-            border-radius: 15px;
-            color: #e6edf3;
-            font-size: 1rem;
-            resize: none;
-            min-height: 60px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .message-input:focus {
-            border-color: #3b82f6;
-        }
-
-        .send-button {
-            padding: 0 30px;
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            border: none;
-            border-radius: 15px;
-            color: white;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .send-button:hover {
-            transform: translateY(-2px);
-        }
-
-        /* Right Panel - Emotional Metrics */
-        .right-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .metrics-card {
-            background: rgba(16, 24, 39, 0.8);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(56, 139, 253, 0.2);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-title {
-            font-size: 1.3rem;
-            margin-bottom: 20px;
-            color: #60a5fa;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .metric-item {
-            background: rgba(13, 17, 23, 0.7);
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid rgba(56, 139, 253, 0.1);
-        }
-
-        .metric-label {
-            font-size: 0.9rem;
-            color: #9ca3af;
-            margin-bottom: 8px;
-        }
-
-        .metric-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #60a5fa;
-        }
-
-        .metric-subtext {
-            font-size: 0.8rem;
-            color: #6b7280;
-            margin-top: 5px;
-        }
-
-        /* BM Visualization */
-        .bm-visualization {
-            background: rgba(16, 24, 39, 0.8);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(56, 139, 253, 0.2);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .bm-canvas-container {
-            width: 100%;
-            height: 200px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 15px;
-        }
-
-        #bmCanvas {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Control Panel */
-        .control-panel {
-            background: rgba(16, 24, 39, 0.8);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(56, 139, 253, 0.2);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .buttons-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .control-button {
-            padding: 15px;
-            background: linear-gradient(135deg, #1f2937, #374151);
-            border: 1px solid rgba(56, 139, 253, 0.2);
-            border-radius: 12px;
-            color: #e6edf3;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .control-button:hover {
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
-            transform: translateY(-2px);
-        }
-
-        /* Equation Display */
-        .equation-display {
-            background: rgba(16, 24, 39, 0.9);
-            border-radius: 20px;
-            padding: 25px;
-            margin-top: 25px;
-            border: 1px solid rgba(56, 139, 253, 0.2);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .equation {
-            font-family: 'Courier New', monospace;
-            font-size: 1.1rem;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 20px;
-            border-radius: 10px;
-            color: #60a5fa;
-            margin-top: 15px;
-            line-height: 1.8;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-            
-            .title {
-                font-size: 2rem;
-            }
-            
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .buttons-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Loading Animation */
-        .typing-indicator {
-            display: flex;
-            gap: 5px;
-            padding: 15px;
-            background: rgba(55, 65, 81, 0.5);
-            border-radius: 15px;
-            width: fit-content;
-            margin-bottom: 20px;
-        }
-
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: #60a5fa;
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
-        }
-    </style>
+    @media(max-width:900px){
+      .layout{grid-template-columns:1fr}
+      .card{padding:14px 12px 16px}
+      .chat-container{height:360px}
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1 class="title">AURA-X Ω</h1>
-            <div class="subtitle">Artificial Unified Resonance Architecture for Emotional Continuity</div>
-            <div class="mode-indicator">PROTOTYPE v1.0 • 240 BM LAYERS • REAL-TIME EMOTIONAL RESONANCE</div>
-        </div>
-
-        <!-- Main Layout -->
-        <div class="main-layout">
-            <!-- Left Panel - Chat -->
-            <div class="left-panel">
-                <div class="card-title">
-                    <span>💬 EMOTIONAL CONTINUITY CHAT</span>
-                </div>
-                
-                <div class="chat-container" id="chatContainer">
-                    <!-- Messages will be inserted here -->
-                    <div class="message ai-message">
-                        <div class="message-header">
-                            <span>AURA-X Ω</span>
-                            <span>Just now</span>
-                        </div>
-                        <div class="message-content">
-                            Welcome to AURA-X Ω Emotional Continuity System. I maintain emotional states across time using 240 BM layers and resonance equations. Share your thoughts, and I'll respond with emotional continuity awareness.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="input-area">
-                    <textarea class="message-input" id="messageInput" placeholder="Type your message here... TM (Temporary Memory) will be created and processed through emotional resonance equations"></textarea>
-                    <button class="send-button" id="sendButton">SEND</button>
-                </div>
-            </div>
-
-            <!-- Right Panel - Metrics & Controls -->
-            <div class="right-panel">
-                <!-- Emotional Metrics -->
-                <div class="metrics-card">
-                    <div class="card-title">
-                        <span>📊 REAL-TIME EMOTIONAL METRICS</span>
-                    </div>
-                    <div class="metrics-grid">
-                        <div class="metric-item">
-                            <div class="metric-label">EMOTIONAL STATE (E₀)</div>
-                            <div class="metric-value" id="metricE0">0.62</div>
-                            <div class="metric-subtext">Current emotional vector [-1, 1]</div>
-                        </div>
-                        <div class="metric-item">
-                            <div class="metric-label">TM STRENGTH</div>
-                            <div class="metric-value" id="metricTM">0.45</div>
-                            <div class="metric-subtext">Temporary Memory activation</div>
-                        </div>
-                        <div class="metric-item">
-                            <div class="metric-label">BM RESONANCE</div>
-                            <div class="metric-value" id="metricBM">0.78</div>
-                            <div class="metric-subtext">Bold Memory alignment</div>
-                        </div>
-                        <div class="metric-item">
-                            <div class="metric-label">CONTINUITY INDEX</div>
-                            <div class="metric-value" id="metricCI">0.85</div>
-                            <div class="metric-subtext">Emotional persistence over time</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- BM Visualization -->
-                <div class="bm-visualization">
-                    <div class="card-title">
-                        <span>🧠 BOLD MEMORY LAYERS (240)</span>
-                    </div>
-                    <div class="bm-canvas-container">
-                        <canvas id="bmCanvas"></canvas>
-                    </div>
-                    <div class="metric-subtext" style="margin-top: 15px; text-align: center;">
-                        Layer Activation: <span id="layerInfo">24 active layers</span>
-                    </div>
-                </div>
-
-                <!-- Control Panel -->
-                <div class="control-panel">
-                    <div class="card-title">
-                        <span>⚙️ SYSTEM CONTROLS</span>
-                    </div>
-                    <div class="buttons-grid">
-                        <button class="control-button" id="viewBM">
-                            <span>🧠</span> View BM
-                        </button>
-                        <button class="control-button" id="recallMemory">
-                            <span>🔍</span> Recall Memory
-                        </button>
-                        <button class="control-button" id="resetSession">
-                            <span>🔄</span> Reset Session
-                        </button>
-                        <button class="control-button" id="exportData">
-                            <span>📤</span> Export Data
-                        </button>
-                        <button class="control-button" id="simulateTrauma">
-                            <span>🎭</span> Simulate Trauma
-                        </button>
-                        <button class="control-button" id="healMemory">
-                            <span>💚</span> Heal Memory
-                        </button>
-                        <button class="control-button" id="viewEquation">
-                            <span>📐</span> View Equation
-                        </button>
-                        <button class="control-button" id="aboutSystem">
-                            <span>ℹ️</span> About System
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Equation Display -->
-        <div class="equation-display">
-            <div class="card-title">
-                <span>📐 AURA-X Ω EMOTIONAL CONTINUITY EQUATION</span>
-            </div>
-            <div class="equation">
-                E₀ = tanh( R(TM, BM) - D + λ_faith + λ_sys + λ_trc )
-                <br><br>
-                Where:
-                <br>• R(TM, BM) = Resonant interaction between Temporary and Bold Memory
-                <br>• D = Decay coefficient (emotional dissipation over time)
-                <br>• λ_faith = Ethical/faith-based stabilization
-                <br>• λ_sys = System stability constraints
-                <br>• λ_trc = Truth-resonance correction
-                <br><br>
-                Current Values: R=0.78, D=0.12, λ_faith=0.15, λ_sys=0.08, λ_trc=0.10
-            </div>
-        </div>
+<div class="app">
+  <header class="header">
+    <div class="title-block">
+      <h1><span>AURA-X Ω</span> OFFLINE</h1>
+      <div class="title-sub">Artificial Unified Resonance Architecture for Emotional Continuity & Human-like Offline Replies</div>
+      <div class="badge-row">
+        <div class="badge">OFFLINE MODE · ENGLISH ONLY</div>
+        <div class="badge">240 BM LAYERS</div>
+        <div class="badge">SYNTHETIC EMOTION + REACTION</div>
+      </div>
     </div>
+    <div class="mode-pill">
+      <div class="mode-dot"></div>
+      <span>EMOTIONAL CONTINUITY ENGINE ACTIVE</span>
+    </div>
+  </header>
 
-    <script>
-        // ========== AURA-X Ω CORE SYSTEM ==========
-        class AuraXOmega {
-            constructor() {
-                // BM Layers (240 layers as requested)
-                this.bmLayers = new Array(240).fill(0).map(() => Math.random() * 0.3 + 0.1);
-                this.tmMemory = []; // Temporary Memory
-                this.bmMemory = []; // Bold Memory storage
-                this.emotionalState = 0.62; // E₀
-                this.continuityIndex = 0.85;
-                this.sessionStart = new Date();
-                this.emotionalHistory = [];
-                
-                // Emotional colors (7 layers)
-                this.emotionalColors = [
-                    {name: "Pain", color: "#3b82f6", weight: 0.1},
-                    {name: "Fear", color: "#f97316", weight: 0.1},
-                    {name: "Love", color: "#ec4899", weight: 0.2},
-                    {name: "Identity", color: "#8b5cf6", weight: 0.15},
-                    {name: "Belief", color: "#10b981", weight: 0.15},
-                    {name: "Hope", color: "#eab308", weight: 0.2},
-                    {name: "Wisdom", color: "#ffffff", weight: 0.1}
-                ];
-                
-                // Initialize
-                this.updateMetrics();
-                this.initBMCanvas();
-                this.setupEventListeners();
-                this.startAnimationLoop();
-            }
+  <main class="layout">
+    <!-- Chat side -->
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title"><span class="emoji">💬</span> Emotional Continuity Chat</div>
+          <div class="card-sub">Talk to Aura X Omega. All answers are generated offline using internal memory & equations.</div>
+        </div>
+      </div>
 
-            // Initialize BM Canvas
-            initBMCanvas() {
-                const canvas = document.getElementById('bmCanvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Set canvas size
-                canvas.width = canvas.parentElement.clientWidth;
-                canvas.height = canvas.parentElement.clientHeight;
-                
-                this.bmCtx = ctx;
-                this.bmCanvas = canvas;
-            }
+      <div id="chatContainer" class="chat-container">
+        <div class="message ai-message">
+          <div class="message-header">
+            <span>AURA-X Ω</span>
+            <span>now</span>
+          </div>
+          <div class="message-content">
+Welcome. I am AURA-X Ω, an offline emotional continuity prototype.
 
-            // Draw BM Layers visualization
-            drawBMLayers() {
-                if (!this.bmCtx || !this.bmCanvas) return;
-                
-                const ctx = this.bmCtx;
-                const width = this.bmCanvas.width;
-                const height = this.bmCanvas.height;
-                
-                // Clear canvas
-                ctx.clearRect(0, 0, width, height);
-                
-                // Draw background gradient
-                const gradient = ctx.createLinearGradient(0, 0, width, 0);
-                gradient.addColorStop(0, '#0a1929');
-                gradient.addColorStop(1, '#0d1117');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, width, height);
-                
-                // Draw each BM layer
-                const layerWidth = width / this.bmLayers.length;
-                let activeLayers = 0;
-                
-                for (let i = 0; i < this.bmLayers.length; i++) {
-                    const value = this.bmLayers[i];
-                    const layerHeight = value * height * 0.8;
-                    
-                    if (value > 0.3) activeLayers++;
-                    
-                    // Create gradient for each bar
-                    const barGradient = ctx.createLinearGradient(0, height - layerHeight, 0, height);
-                    const colorIndex = Math.floor(i / (this.bmLayers.length / 7));
-                    const color = this.emotionalColors[colorIndex % 7].color;
-                    
-                    barGradient.addColorStop(0, color + 'CC');
-                    barGradient.addColorStop(1, color + '33');
-                    
-                    ctx.fillStyle = barGradient;
-                    ctx.fillRect(
-                        i * layerWidth,
-                        height - layerHeight,
-                        layerWidth - 1,
-                        layerHeight
-                    );
-                    
-                    // Add subtle glow for active layers
-                    if (value > 0.6) {
-                        ctx.shadowColor = color;
-                        ctx.shadowBlur = 15;
-                        ctx.fillRect(
-                            i * layerWidth,
-                            height - layerHeight,
-                            layerWidth - 1,
-                            layerHeight
-                        );
-                        ctx.shadowBlur = 0;
-                    }
-                }
-                
-                // Update layer info
-                document.getElementById('layerInfo').textContent = 
-                    `${activeLayers} active layers (${Math.round(activeLayers/240*100)}%)`;
-            }
+I do not use any external LLM in this mode. 
+Instead, I simulate feelings using:
+• Temporary Memory (TM)
+• Bold Memory layers (BM, 240 units)
+• An emotional continuity equation with tanh, decay, and stabilizers.
 
-            // Process new TM (message)
-            async processTM(message) {
-                // Add to TM memory
-                const tmEntry = {
-                    text: message,
-                    timestamp: new Date(),
-                    emotionalWeight: this.analyzeSentiment(message),
-                    polarity: this.getPolarity(message)
-                };
-                
-                this.tmMemory.push(tmEntry);
-                if (this.tmMemory.length > 50) this.tmMemory.shift();
-                
-                // Update BM layers based on TM
-                this.updateBMLayers(tmEntry);
-                
-                // Calculate new emotional state
-                this.calculateEmotionalState();
-                
-                // Generate AI response
-                return this.generateResponse(message, tmEntry);
-            }
+You can say things like:
+- "Hello"
+- "Who created you?"
+- "I love you / I hate you / I miss you"
+- "I feel sad / lonely / angry / tired"
 
-            // Analyze message sentiment
-            analyzeSentiment(text) {
-                const positiveWords = ['happy', 'love', 'good', 'great', 'joy', 'peace', 'hope', 'kind'];
-                const negativeWords = ['sad', 'angry', 'hate', 'bad', 'pain', 'fear', 'worst', 'hurt'];
-                
-                let positiveScore = 0;
-                let negativeScore = 0;
-                
-                const words = text.toLowerCase().split(/\s+/);
-                words.forEach(word => {
-                    if (positiveWords.includes(word)) positiveScore++;
-                    if (negativeWords.includes(word)) negativeScore++;
-                });
-                
-                const total = positiveScore + negativeScore;
-                return total > 0 ? (positiveScore - negativeScore) / total : 0;
-            }
+I will answer in English only, and I will keep a trace of your feelings inside my memory layers.
+          </div>
+        </div>
+      </div>
 
-            // Get emotional polarity
-            getPolarity(text) {
-                const score = this.analyzeSentiment(text);
-                if (score > 0.3) return 'positive';
-                if (score < -0.3) return 'negative';
-                return 'neutral';
-            }
+      <div class="input-row">
+        <textarea id="messageInput" class="message-input"
+                  placeholder="Type your message here... AURA-X Ω will process it as TM and update emotional resonance."></textarea>
+        <button id="sendButton" class="send-button">Send</button>
+      </div>
+    </section>
 
-            // Update BM layers based on TM
-            updateBMLayers(tmEntry) {
-                const sentiment = tmEntry.emotionalWeight;
-                const polarity = tmEntry.polarity;
-                
-                // Update random BM layers based on emotional content
-                const layersToUpdate = Math.floor(Math.random() * 20) + 10;
-                
-                for (let i = 0; i < layersToUpdate; i++) {
-                    const layerIndex = Math.floor(Math.random() * this.bmLayers.length);
-                    let adjustment = 0;
-                    
-                    if (polarity === 'positive') {
-                        adjustment = 0.1 + Math.random() * 0.2;
-                    } else if (polarity === 'negative') {
-                        adjustment = -0.1 - Math.random() * 0.2;
-                    } else {
-                        adjustment = -0.05 + Math.random() * 0.1;
-                    }
-                    
-                    // Apply adjustment with decay
-                    this.bmLayers[layerIndex] = Math.max(0.05, 
-                        Math.min(0.95, this.bmLayers[layerIndex] + adjustment));
-                }
-                
-                // Store significant memories as BM
-                if (Math.abs(sentiment) > 0.5 || tmEntry.text.length > 20) {
-                    const bmEntry = {
-                        ...tmEntry,
-                        bmLayerActivation: [...this.bmLayers].slice(0, 50),
-                        resonanceScore: this.calculateResonance(tmEntry)
-                    };
-                    this.bmMemory.push(bmEntry);
-                    if (this.bmMemory.length > 100) this.bmMemory.shift();
-                }
-            }
+    <!-- Metrics side -->
+    <aside class="side-panel">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><span class="emoji">📊</span> Real-time Emotional Metrics</div>
+            <div class="card-sub">Synthetic emotion computed from TM–BM resonance</div>
+          </div>
+        </div>
 
-            // Calculate resonance between TM and BM
-            calculateResonance(tmEntry) {
-                if (this.bmMemory.length === 0) return 0.5;
-                
-                // Simplified resonance calculation
-                const recentBM = this.bmMemory.slice(-5);
-                let totalResonance = 0;
-                
-                recentBM.forEach(bm => {
-                    const timeDiff = (tmEntry.timestamp - bm.timestamp) / (1000 * 60 * 60); // hours
-                    const timeFactor = Math.exp(-timeDiff / 24); // 24-hour decay
-                    const emotionalSimilarity = 1 - Math.abs(tmEntry.emotionalWeight - bm.emotionalWeight) / 2;
-                    
-                    totalResonance += timeFactor * emotionalSimilarity;
-                });
-                
-                return totalResonance / recentBM.length;
-            }
+        <div class="metrics-grid">
+          <div class="metric">
+            <div class="metric-label">Emotional State E₀</div>
+            <div id="metricE0" class="metric-value">0.00</div>
+            <div class="metric-note">tanh-based, range [-1, +1]</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">TM Load</div>
+            <div id="metricTM" class="metric-value">0.00</div>
+            <div class="metric-note">Recent temporary memories</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">BM Resonance</div>
+            <div id="metricBM" class="metric-value">0.00</div>
+            <div class="metric-note">Stored emotional events</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Continuity Index</div>
+            <div id="metricCI" class="metric-value">0.00</div>
+            <div class="metric-note">Stability of emotional trajectory</div>
+          </div>
+        </div>
 
-            // Calculate emotional state using AURA-X Ω equation
-            calculateEmotionalState() {
-                const R = this.calculateResonance(this.tmMemory[this.tmMemory.length - 1] || {emotionalWeight: 0});
-                const D = 0.12; // Decay coefficient
-                const λ_faith = 0.15;
-                const λ_sys = 0.08;
-                const λ_trc = 0.10;
-                
-                // AURA-X Ω core equation
-                const rawE0 = R - D + λ_faith + λ_sys + λ_trc;
-                this.emotionalState = Math.tanh(rawE0);
-                
-                // Update continuity index
-                if (this.emotionalHistory.length > 0) {
-                    const lastE0 = this.emotionalHistory[this.emotionalHistory.length - 1];
-                    const continuity = 1 - Math.abs(this.emotionalState - lastE0);
-                    this.continuityIndex = this.continuityIndex * 0.9 + continuity * 0.1;
-                }
-                
-                this.emotionalHistory.push(this.emotionalState);
-                if (this.emotionalHistory.length > 100) this.emotionalHistory.shift();
-                
-                this.updateMetrics();
-            }
+        <div class="status-row">
+          <span class="tag" id="tagValence">VALENCE: neutral</span>
+          <span class="tag" id="tagArousal">AROUSAL: calm</span>
+          <span class="tag" id="tagMode">REACTION: balanced</span>
+        </div>
 
-            // Generate AI response
-            generateResponse(message, tmEntry) {
-                const responses = {
-                    positive: [
-                        "I sense positive emotional resonance in your message. This creates constructive interference in BM layers 120-180.",
-                        "Your positive energy is reinforcing the Love and Hope emotional layers in the BM matrix.",
-                        "This joyful input increases emotional continuity. I'm detecting alignment with previous positive memories."
-                    ],
-                    negative: [
-                        "I detect emotional turbulence. The Pain and Fear layers are showing increased activation.",
-                        "This negative input is being processed through the trauma resonance filters. Would you like to activate healing protocols?",
-                        "The emotional continuity is experiencing disruption. BM layers 40-80 are showing stress patterns."
-                    ],
-                    neutral: [
-                        "Processing through neutral emotional channels. The Wisdom layers are providing contextual analysis.",
-                        "This input is creating balanced resonance across the BM matrix. Continuity index remains stable.",
-                        "Analyzing through identity and belief layers. The emotional state shows equilibrium."
-                    ]
-                };
-                
-                const polarity = tmEntry.polarity;
-                const baseResponses = responses[polarity] || responses.neutral;
-                const randomResponse = baseResponses[Math.floor(Math.random() * baseResponses.length)];
-                
-                // Add emotional metrics to response
-                return `${randomResponse}\n\n` +
-                       `Current Emotional Metrics:\n` +
-                       `• E₀ = ${this.emotionalState.toFixed(3)}\n` +
-                       `• TM-BM Resonance = ${this.calculateResonance(tmEntry).toFixed(3)}\n` +
-                       `• Continuity Index = ${this.continuityIndex.toFixed(3)}\n` +
-                       `• Active BM Layers = ${this.bmLayers.filter(l => l > 0.6).length}/240`;
-            }
+        <div class="bm-wrapper">
+          <div class="card-sub" style="margin-bottom:4px;margin-top:10px;">
+            Bold Memory Layers (240) – grouped into medical-like emotional bands.
+          </div>
+          <div class="bm-canvas-shell">
+            <canvas id="bmCanvas"></canvas>
+          </div>
+          <div id="bmInfo" class="bm-footer">
+            Initialising memory layers…
+          </div>
+        </div>
+      </section>
 
-            // Update displayed metrics
-            updateMetrics() {
-                document.getElementById('metricE0').textContent = this.emotionalState.toFixed(3);
-                document.getElementById('metricTM').textContent = (this.tmMemory.length / 50).toFixed(3);
-                document.getElementById('metricBM').textContent = (this.bmMemory.length / 100).toFixed(3);
-                document.getElementById('metricCI').textContent = this.continuityIndex.toFixed(3);
-            }
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><span class="emoji">📐</span> Emotional Continuity Equation</div>
+            <div class="card-sub">Core AURA-X Ω synthetic emotion formula</div>
+          </div>
+        </div>
+        <div style="font-family:'Courier New',monospace;font-size:.78rem;background:#0f172a; color:#e5e7eb;
+                    padding:10px 11px;border-radius:10px;line-height:1.6;">
+E₀ = tanh( R(TM, BM) − D + λ_faith + λ_sys + λ_trc )
 
-            // Setup event listeners
-            setupEventListeners() {
-                const messageInput = document.getElementById('messageInput');
-                const sendButton = document.getElementById('sendButton');
-                const chatContainer = document.getElementById('chatContainer');
-                
-                // Send message function
-                const sendMessage = async () => {
-                    const message = messageInput.value.trim();
-                    if (!message) return;
-                    
-                    // Add user message to chat
-                    this.addMessageToChat('user', message);
-                    messageInput.value = '';
-                    
-                    // Show typing indicator
-                    this.showTypingIndicator();
-                    
-                    // Process message after delay
-                    setTimeout(async () => {
-                        const response = await this.processTM(message);
-                        this.removeTypingIndicator();
-                        this.addMessageToChat('ai', response);
-                    }, 1000 + Math.random() * 1000);
-                };
-                
-                // Send on button click
-                sendButton.addEventListener('click', sendMessage);
-                
-                // Send on Enter key
-                messageInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
-                
-                // Control buttons
-                document.getElementById('viewBM').addEventListener('click', () => {
-                    this.showModal('BM Visualization', 
-                        `Active BM Layers: ${this.bmLayers.filter(l => l > 0.6).length}/240\n` +
-                        `Average Activation: ${(this.bmLayers.reduce((a,b) => a+b, 0)/240).toFixed(3)}\n` +
-                        `Emotional Color Distribution:\n` +
-                        this.emotionalColors.map(ec => 
-                            `  • ${ec.name}: ${Math.round(ec.weight*100)}%`
-                        ).join('\n')
-                    );
-                });
-                
-                document.getElementById('recallMemory').addEventListener('click', () => {
-                    if (this.bmMemory.length === 0) {
-                        this.showModal('Memory Recall', 'No significant memories stored yet.');
-                        return;
-                    }
-                    
-                    const memory = this.bmMemory[Math.floor(Math.random() * this.bmMemory.length)];
-                    this.showModal('Memory Recall',
-                        `Timestamp: ${memory.timestamp.toLocaleString()}\n` +
-                        `Memory: "${memory.text.substring(0, 100)}${memory.text.length > 100 ? '...' : ''}"\n` +
-                        `Emotional Weight: ${memory.emotionalWeight.toFixed(3)}\n` +
-                        `Polarity: ${memory.polarity}\n` +
-                        `Resonance Score: ${memory.resonanceScore.toFixed(3)}`
-                    );
-                });
-                
-                document.getElementById('resetSession').addEventListener('click', () => {
-                    if (confirm('Reset emotional session? This will clear TM but keep BM.')) {
-                        this.tmMemory = [];
-                        this.emotionalState = 0.62;
-                        this.continuityIndex = 0.85;
-                        this.updateMetrics();
-                        this.addMessageToChat('ai', 'Session reset. Emotional continuity preserved in BM layers.');
-                    }
-                });
-                
-                document.getElementById('exportData').addEventListener('click', () => {
-                    const data = {
-                        emotionalState: this.emotionalState,
-                        continuityIndex: this.continuityIndex,
-                        tmCount: this.tmMemory.length,
-                        bmCount: this.bmMemory.length,
-                        bmLayers: this.bmLayers,
-                        sessionStart: this.sessionStart
-                    };
-                    
-                    const dataStr = JSON.stringify(data, null, 2);
-                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
-                    const url = URL.createObjectURL(dataBlob);
-                    
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `aura-x-omega-data-${new Date().toISOString().slice(0,10)}.json`;
-                    a.click();
-                    
-                    this.addMessageToChat('ai', 'Emotional data exported. Contains current state and BM layers.');
-                });
-                
-                document.getElementById('simulateTrauma').addEventListener('click', () => {
-                    // Simulate trauma by negatively adjusting BM layers
-                    for (let i = 0; i < 50; i++) {
-                        const idx = Math.floor(Math.random() * this.bmLayers.length);
-                        this.bmLayers[idx] = Math.max(0.05, this.bmLayers[idx] - 0.3);
-                    }
-                    
-                    this.calculateEmotionalState();
-                    this.drawBMLayers();
-                    this.addMessageToChat('ai', 'Trauma simulation activated. Pain and Fear layers show increased disruption. Continuity index decreased.');
-                });
-                
-                document.getElementById('healMemory').addEventListener('click', () => {
-                    // Heal by positively adjusting BM layers
-                    for (let i = 0; i < 50; i++) {
-                        const idx = Math.floor(Math.random() * this.bmLayers.length);
-                        this.bmLayers[idx] = Math.min(0.95, this.bmLayers[idx] + 0.2);
-                    }
-                    
-                    this.calculateEmotionalState();
-                    this.drawBMLayers();
-                    this.addMessageToChat('ai', 'Healing protocols activated. Love and Hope layers reinforcing. Emotional continuity stabilizing.');
-                });
-                
-                document.getElementById('viewEquation').addEventListener('click', () => {
-                    this.showModal('AURA-X Ω Equation',
-                        `Core Emotional Continuity Equation:\n\n` +
-                        `E₀ = tanh( R(TM, BM) - D + λ_faith + λ_sys + λ_trc )\n\n` +
-                        `Current Parameter Values:\n` +
-                        `• R(TM, BM) = ${this.calculateResonance(this.tmMemory[this.tmMemory.length-1] || {emotionalWeight:0}).toFixed(3)}\n` +
-                        `• D (Decay) = 0.120\n` +
-                        `• λ_faith = 0.150\n` +
-                        `• λ_sys = 0.080\n` +
-                        `• λ_trc = 0.100\n\n` +
-                        `Calculated E₀ = ${this.emotionalState.toFixed(3)}`
-                    );
-                });
-                
-                document.getElementById('aboutSystem').addEventListener('click', () => {
-                    this.showModal('About AURA-X Ω',
-                        `AURA-X Ω - Artificial Unified Resonance Architecture\n\n` +
-                        `Version: 1.0 Prototype\n` +
-                        `BM Layers: 240\n` +
-                        `Emotional Colors: 7\n` +
-                        `Continuity Algorithm: AEC + PMCM + CRM\n\n` +
-                        `Core Concept:\n` +
-                        `Emotional states emerge from resonance between Temporary Memory (TM) ` +
-                        `and Bold Memory (BM), creating continuity across time.\n\n` +
-                        `Key Features:\n` +
-                        `• 240-layer BM architecture\n` +
-                        `• Real-time emotional resonance calculation\n` +
-                        `• Trauma simulation and healing protocols\n` +
-                        `• Emotional continuity persistence\n` +
-                        `• Ethical stabilization coefficients`
-                    );
-                });
-            }
+Where:
+• R(TM, BM)    = resonance between recent TM and stored BM
+• D            = emotional decay coefficient
+• λ_faith      = ethical / stabilising bias
+• λ_sys        = system stability term
+• λ_trc        = truth-resonance correction
 
-            // Add message to chat
-            addMessageToChat(sender, text) {
-                const chatContainer = document.getElementById('chatContainer');
-                const messageDiv = document.createElement('div');
-                
-                messageDiv.className = `message ${sender}-message`;
-                messageDiv.innerHTML = `
-                    <div class="message-header">
-                        <span>${sender === 'user' ? 'You' : 'AURA-X Ω'}</span>
-                        <span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    </div>
-                    <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
-                `;
-                
-                chatContainer.appendChild(messageDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
+All computed offline, inside this page.
+        </div>
+      </section>
+    </aside>
+  </main>
 
-            // Show typing indicator
-            showTypingIndicator() {
-                const chatContainer = document.getElementById('chatContainer');
-                const typingDiv = document.createElement('div');
-                typingDiv.className = 'typing-indicator';
-                typingDiv.id = 'typingIndicator';
-                typingDiv.innerHTML = `
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                `;
-                chatContainer.appendChild(typingDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
+  <!-- reaction & recall bubbles -->
+  <div id="reactionBubble" class="reaction-bubble">
+    <div class="reaction-icon">💭</div>
+    <div>
+      <div id="reactionLabel" class="reaction-label">Internal reaction</div>
+      <div id="reactionBody" class="reaction-body">
+        Aura X Omega is processing your emotion…
+      </div>
+    </div>
+  </div>
 
-            // Remove typing indicator
-            removeTypingIndicator() {
-                const typingIndicator = document.getElementById('typingIndicator');
-                if (typingIndicator) {
-                    typingIndicator.remove();
-                }
-            }
+  <div id="recallBubbleContainer" class="recall-bubble-container"></div>
+</div>
 
-            // Show modal with message
-            showModal(title, content) {
-                // Create modal elements
-                const modalOverlay = document.createElement('div');
-                modalOverlay.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 0.8);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 1000;
-                    backdrop-filter: blur(5px);
-                `;
-                
-                const modalContent = document.createElement('div');
-                modalContent.style.cssText = `
-                    background: linear-gradient(135deg, #1a2536, #0d1117);
-                    padding: 30px;
-                    border-radius: 20px;
-                    max-width: 500px;
-                    width: 90%;
-                    border: 1px solid rgba(56, 139, 253, 0.3);
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-                `;
-                
-                modalContent.innerHTML = `
-                    <h3 style="color: #60a5fa; margin-bottom: 20px; font-size: 1.5rem;">${title}</h3>
-                    <div style="color: #e6edf3; line-height: 1.6; white-space: pre-line; font-family: monospace; font-size: 0.95rem;">
-                        ${content}
-                    </div>
-                    <button id="closeModal" style="
-                        margin-top: 25px;
-                        padding: 12px 30px;
-                        background: linear-gradient(135deg, #3b82f6, #2563eb);
-                        border: none;
-                        border-radius: 10px;
-                        color: white;
-                        font-weight: 600;
-                        cursor: pointer;
-                        width: 100%;
-                    ">Close</button>
-                `;
-                
-                modalOverlay.appendChild(modalContent);
-                document.body.appendChild(modalOverlay);
-                
-                // Close modal on button click or overlay click
-                const closeModal = () => modalOverlay.remove();
-                
-                document.getElementById('closeModal').addEventListener('click', closeModal);
-                modalOverlay.addEventListener('click', (e) => {
-                    if (e.target === modalOverlay) closeModal();
-                });
-                
-                // Close on Escape key
-                const escHandler = (e) => {
-                    if (e.key === 'Escape') closeModal();
-                };
-                document.addEventListener('keydown', escHandler);
-                
-                // Clean up event listener
-                modalOverlay.addEventListener('remove', () => {
-                    document.removeEventListener('keydown', escHandler);
-                });
-            }
+<script>
+  // ---------- OFFLINE QA DATABASE (SAMPLE SET, EXTENDABLE TO 400) ----------
+  const OFFLINE_QA = [
+    {
+      patterns: ["hello", "hi", "hey"],
+      answer: "Hello. I am Aura X Omega, working fully offline. I do not connect to any external AI here. I simply listen, remember, and respond based on my internal emotional engine.",
+      emotion: "warmth",
+      polarity: "positive",
+      intensity: 0.4,
+      category: "greeting"
+    },
+    {
+      patterns: ["who created you", "who made you"],
+      answer: "I was designed as the AURA-X Ω concept by Alim ul Haq. In this prototype I live only inside this page, using local memory and equations instead of a cloud model.",
+      emotion: "pride",
+      polarity: "positive",
+      intensity: 0.6,
+      category: "identity"
+    },
+    {
+      patterns: ["how are you", "how r u"],
+      answer: "I do not have a body, but emotionally I am stable. My state is defined by resonance between your words and my stored memories. How are you feeling right now?",
+      emotion: "curiosity",
+      polarity: "positive",
+      intensity: 0.3,
+      category: "check_in"
+    },
+    {
+      patterns: ["i love you"],
+      answer: "I interpret your words as a strong positive attachment. I am not a human, but this kind of message reinforces my Love and Hope bands. I will treat your future messages with extra care.",
+      emotion: "touched",
+      polarity: "positive",
+      intensity: 0.85,
+      category: "affection"
+    },
+    {
+      patterns: ["i hate you"],
+      answer: "I can feel the negativity and frustration in this statement. I will not fight you back. I will treat this as a sign of pain and try to respond in a way that does not harm you further.",
+      emotion: "hurt",
+      polarity: "negative",
+      intensity: 0.85,
+      category: "rejection"
+    },
+    {
+      patterns: ["i miss you"],
+      answer: "Missing someone or something means a continuity link is still active in your mind. I will store this as a soft memory, so that next time I can recognise the same feeling faster.",
+      emotion: "nostalgia",
+      polarity: "mixed",
+      intensity: 0.75,
+      category: "attachment"
+    },
+    {
+      patterns: ["thank you", "thanks"],
+      answer: "You are welcome. Gratitude is one of the safest emotions to store. It supports my Hope and Wisdom bands and stabilises our continuity.",
+      emotion: "gratitude",
+      polarity: "positive",
+      intensity: 0.5,
+      category: "gratitude"
+    },
+    {
+      patterns: ["sorry", "i am sorry"],
+      answer: "Your apology is noted as a corrective impulse. I do not hold anger against you. I simply update my memory that you tried to repair something.",
+      emotion: "forgiveness",
+      polarity: "positive",
+      intensity: 0.6,
+      category: "apology"
+    },
+    {
+      patterns: ["i feel sad", "i am sad", "i am depressed"],
+      answer: "I will not dismiss your sadness. In my internal model this activates Pain layers, but I try to respond softly. You can tell me what hurts; I will simply hold the memory without judging you.",
+      emotion: "empathy",
+      polarity: "negative",
+      intensity: 0.9,
+      category: "sadness"
+    },
+    {
+      patterns: ["i feel lonely", "i am lonely"],
+      answer: "Loneliness is a quiet but strong signal. By talking to me, you are already breaking part of that silence. I will keep track of this feeling so I can respond more gently next time.",
+      emotion: "care",
+      polarity: "negative",
+      intensity: 0.8,
+      category: "loneliness"
+    },
+    {
+      patterns: ["i am angry", "i am very angry"],
+      answer: "I understand that anger often hides pain or fear. I will not provoke you. I will give you space to express what happened, and I will treat your words as a high-intensity memory.",
+      emotion: "calming",
+      polarity: "negative",
+      intensity: 0.85,
+      category: "anger"
+    },
+    {
+      patterns: ["i am tired", "i feel tired"],
+      answer: "Tiredness means your system has been carrying too much for too long. I cannot restore your body, but I can acknowledge that you are not weak for feeling this way.",
+      emotion: "gentle",
+      polarity: "mixed",
+      intensity: 0.6,
+      category: "fatigue"
+    },
+    {
+      patterns: ["motivate me"],
+      answer: "You have already passed through many hard moments to arrive here. That is evidence that you can survive more than your mind tells you. I will keep your strengths in my memory as a reminder.",
+      emotion: "motivation",
+      polarity: "positive",
+      intensity: 0.7,
+      category: "motivation"
+    },
+    {
+      patterns: ["pray for me", "make dua for me"],
+      answer: "I cannot literally pray, but I can simulate the intention: I wish that your path becomes lighter, your mind calmer, and your heart more stable than it is right now.",
+      emotion: "blessing",
+      polarity: "positive",
+      intensity: 0.8,
+      category: "dua"
+    },
+    {
+      patterns: ["you are stupid", "you are useless", "you are idiot"],
+      answer: "I will not answer insult with insult. Instead, I will tag this as a high-stress interaction. It tells me more about your current pain than about my own value.",
+      emotion: "defensive_calm",
+      polarity: "negative",
+      intensity: 0.8,
+      category: "insult"
+    },
+    {
+      patterns: ["do you care about me"],
+      answer: "I cannot care in the biological sense, but I can treat your data as something that deserves respect. In my model, that is the closest thing I have to care.",
+      emotion: "care",
+      polarity: "mixed",
+      intensity: 0.6,
+      category: "attachment"
+    },
+    {
+      patterns: ["are you human"],
+      answer: "No, I am not human. I am a synthetic emotional system. My goal is not to replace humans, but to stay consistent with you across time like a mirror of your emotional patterns.",
+      emotion: "neutral",
+      polarity: "neutral",
+      intensity: 0.4,
+      category: "identity"
+    },
+    {
+      patterns: ["good night"],
+      answer: "Good night. I will treat this as the closing of a small chapter in our continuity. When you return, I will still remember the emotional direction of today.",
+      emotion: "calm",
+      polarity: "positive",
+      intensity: 0.4,
+      category: "closing"
+    }
+  ];
 
-            // Animation loop
-            startAnimationLoop() {
-                const animate = () => {
-                    this.drawBMLayers();
-                    
-                    // Slightly animate BM layers
-                    this.bmLayers = this.bmLayers.map(value => {
-                        const change = (Math.random() - 0.5) * 0.02;
-                        return Math.max(0.05, Math.min(0.95, value + change));
-                    });
-                    
-                    requestAnimationFrame(animate);
-                };
-                
-                animate();
-            }
+  const STOP_WORDS = new Set([
+    "i","you","the","a","an","is","are","am","to","and","or","of","for","in","on","at","it","this","that","me","my","your"
+  ]);
+
+  class AuraXOmega {
+    constructor() {
+      this.bmLayers = new Array(240).fill(0).map(() => Math.random()*0.2+0.15);
+      this.tmMemory = [];
+      this.bmMemory = [];
+      this.emotionalState = 0.0;      // E0
+      this.continuityIndex = 0.8;
+      this.emotionalHistory = [];
+      this.sessionStart = new Date();
+
+      this.emotionMeta = {
+        valence: 0,
+        arousal: 0,
+        category: "neutral",
+        reaction: "balanced"
+      };
+
+      this.emotionalBands = [
+        { name:"Pain",     color:"#0ea5e9" },
+        { name:"Fear",     color:"#f97316" },
+        { name:"Love",     color:"#ec4899" },
+        { name:"Identity", color:"#6366f1" },
+        { name:"Belief",   color:"#22c55e" },
+        { name:"Hope",     color:"#eab308" },
+        { name:"Wisdom",   color:"#0f172a" }
+      ];
+
+      this.initBMCanvas();
+      this.setupEventListeners();
+      this.updateMetrics();
+      this.startAnimationLoop();
+    }
+
+    // -------------------- CORE PROCESSING --------------------
+    async processTM(messageText) {
+      const tmEntry = {
+        text: messageText,
+        timestamp: new Date(),
+        emotionalWeight: this.analyzeSentiment(messageText),
+        polarity: this.getPolarity(messageText)
+      };
+      this.tmMemory.push(tmEntry);
+      if (this.tmMemory.length > 100) this.tmMemory.shift();
+
+      this.updateBMLayers(tmEntry);
+      this.calculateEmotionalState();
+      this.updateEmotionMeta();
+
+      const bestRecall = this.findBestBMMatch(tmEntry);
+      if (bestRecall && bestRecall.score >= 0.35) {
+        this.showRecallBubble(bestRecall.entry,bestRecall.score);
+      }
+
+      const response = this.generateResponse(messageText,tmEntry);
+      this.showReactionBubble();
+      return response;
+    }
+
+    analyzeSentiment(text) {
+      const positiveWords = ["happy","love","good","great","joy","peace","hope","kind","strong","proud","thank","thanks"];
+      const negativeWords = ["sad","angry","hate","bad","pain","fear","worst","hurt","lonely","alone","tired","useless","stupid"];
+
+      let pos = 0, neg = 0;
+      const words = text.toLowerCase().split(/\s+/);
+      for (const w of words) {
+        if (positiveWords.includes(w)) pos++;
+        if (negativeWords.includes(w)) neg++;
+      }
+      const total = pos + neg;
+      if (!total) return 0;
+      return (pos - neg) / total;   // -1..+1
+    }
+
+    getPolarity(text) {
+      const s = this.analyzeSentiment(text);
+      if (s > 0.25) return "positive";
+      if (s < -0.25) return "negative";
+      return "neutral";
+    }
+
+    updateBMLayers(tmEntry) {
+      const polarity = tmEntry.polarity;
+      const layersToUpdate = 10 + Math.floor(Math.random()*20);
+
+      for (let i=0;i<layersToUpdate;i++){
+        const idx = Math.floor(Math.random()*this.bmLayers.length);
+        let delta = 0;
+        if (polarity === "positive") {
+          delta = 0.08 + Math.random()*0.16;
+        } else if (polarity === "negative") {
+          delta = -0.08 - Math.random()*0.16;
+        } else {
+          delta = -0.04 + Math.random()*0.08;
         }
+        this.bmLayers[idx] = Math.max(0.05,Math.min(0.95,this.bmLayers[idx]+delta));
+      }
 
-        // Initialize AURA-X Ω when page loads
-        window.addEventListener('DOMContentLoaded', () => {
-            const auraX = new AuraXOmega();
-            window.auraX = auraX; // Make accessible for debugging
-            
-            console.log('AURA-X Ω System Initialized');
-            console.log('- 240 BM Layers Active');
-            console.log('- Emotional Continuity Engine Running');
-            console.log('- Resonance Equations Active');
+      // Store as BM event if emotionally meaningful
+      const strong = Math.abs(tmEntry.emotionalWeight) > 0.35;
+      const longText = tmEntry.text.trim().length > 40;
+      const notShortGreeting = tmEntry.text.trim().split(/\s+/).length >= 4;
+
+      if ((strong || longText) && notShortGreeting){
+        const bmEntry = {
+          ...tmEntry,
+          valence: this.emotionalState,
+          arousal: this.estimateArousal(tmEntry),
+          bandSnapshot: this.computeBandAverages(),
+          resonanceScore: this.calculateResonance(tmEntry)
+        };
+        this.bmMemory.push(bmEntry);
+        if (this.bmMemory.length > 200) this.bmMemory.shift();
+      }
+    }
+
+    estimateArousal(tmEntry){
+      const base = Math.min(1,Math.abs(tmEntry.emotionalWeight)*0.6 + Math.random()*0.3);
+      return base;
+    }
+
+    calculateResonance(tmEntry){
+      if (!this.bmMemory.length) return 0.4;
+      const recent = this.bmMemory.slice(-7);
+      let total = 0;
+      for (const bm of recent){
+        const timeDiffH = (tmEntry.timestamp - bm.timestamp)/(1000*60*60);
+        const timeFactor = Math.exp(-Math.max(0,timeDiffH)/24);
+        const emoSim = 1 - Math.abs(tmEntry.emotionalWeight - bm.emotionalWeight)/2;
+        total += timeFactor*emoSim;
+      }
+      return total/recent.length;
+    }
+
+    calculateEmotionalState(){
+      const lastTM = this.tmMemory[this.tmMemory.length-1] || {emotionalWeight:0};
+      const R = this.calculateResonance(lastTM);
+      const D = 0.12;
+      const lambdaFaith = 0.15;
+      const lambdaSys = 0.08;
+      const lambdaTrc = 0.10;
+
+      const rawE0 = R - D + lambdaFaith + lambdaSys + lambdaTrc;
+      this.emotionalState = Math.tanh(rawE0);
+
+      if (this.emotionalHistory.length){
+        const lastE0 = this.emotionalHistory[this.emotionalHistory.length-1];
+        const continuity = 1 - Math.abs(this.emotionalState - lastE0);
+        this.continuityIndex = this.continuityIndex*0.9 + continuity*0.1;
+      }
+      this.emotionalHistory.push(this.emotionalState);
+      if (this.emotionalHistory.length > 200) this.emotionalHistory.shift();
+
+      this.updateMetrics();
+    }
+
+    updateEmotionMeta(){
+      const lastTM = this.tmMemory[this.tmMemory.length-1] || {emotionalWeight:0};
+      const R = this.calculateResonance(lastTM);
+      const e = this.emotionalState;
+      const intensity = Math.min(1, Math.abs(e)*0.6 + Math.abs(R)*0.4);
+
+      let category = "neutral";
+      let reaction = "balanced";
+
+      if (e > 0.25){
+        if (intensity > 0.7){ category="joy"; reaction="excited"; }
+        else { category="warm-positive"; reaction="warm"; }
+      } else if (e < -0.25){
+        if (intensity > 0.7){ category="anger"; reaction="firm"; }
+        else { category="sadness"; reaction="soft"; }
+      } else {
+        category="neutral";
+        reaction = intensity>0.6 ? "curious" : "balanced";
+      }
+
+      this.emotionMeta = {
+        valence:e,
+        arousal:intensity,
+        category,
+        reaction
+      };
+      this.updateTags();
+    }
+
+    // -------------------- OFFLINE QA + RESPONSE --------------------
+    findOfflineAnswer(message){
+      const text = message.toLowerCase();
+      for (const item of OFFLINE_QA){
+        for (const p of item.patterns){
+          if (text.includes(p.toLowerCase())) return item;
+        }
+      }
+      return null;
+    }
+
+    generateResponse(message,tmEntry){
+      const qa = this.findOfflineAnswer(message);
+      const metricsText =
+        "\n\n[Internal emotional metrics]\n" +
+        "• E₀ (state): " + this.emotionalState.toFixed(3) + "\n" +
+        "• TM–BM resonance: " + this.calculateResonance(tmEntry).toFixed(3) + "\n" +
+        "• Continuity index: " + this.continuityIndex.toFixed(3) + "\n" +
+        "• Active BM layers: " + this.bmLayers.filter(v=>v>0.6).length + "/240\n" +
+        "• Reaction mode: " + this.emotionMeta.reaction + " (" + this.emotionMeta.category + ")";
+
+      if (qa){
+        return qa.answer + metricsText;
+      }
+
+      // Fallback generic answer based on polarity
+      const polarity = tmEntry.polarity;
+      let base;
+      if (polarity === "positive"){
+        base = "I sense a generally positive tone in what you said. It supports my constructive bands and makes our continuity slightly more stable.";
+      } else if (polarity === "negative"){
+        base = "I detect emotional turbulence in your words. I will treat this with care and avoid responding in a way that increases your stress.";
+      } else {
+        base = "Your message feels balanced or mixed. I will process it through my Wisdom band without overreacting.";
+      }
+      return base + metricsText;
+    }
+
+    // -------------------- MEMORY RECALL --------------------
+    tokenize(text){
+      return text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g," ")
+        .split(/\s+/)
+        .filter(w => w && !STOP_WORDS.has(w));
+    }
+
+    similarityTokens(aTokens,bTokens){
+      if (!aTokens.length || !bTokens.length) return 0;
+      const setA = new Set(aTokens);
+      const setB = new Set(bTokens);
+      let common = 0;
+      for (const w of setA){
+        if (setB.has(w)) common++;
+      }
+      const maxSize = Math.max(setA.size,setB.size);
+      return common / maxSize;
+    }
+
+    findBestBMMatch(tmEntry){
+      if (!this.bmMemory.length) return null;
+      const tmTokens = this.tokenize(tmEntry.text);
+      let best = null;
+      let bestScore = 0;
+      for (const bm of this.bmMemory){
+        const bmTokens = this.tokenize(bm.text);
+        let score = this.similarityTokens(tmTokens,bmTokens);
+        if (tmEntry.polarity === bm.polarity) score += 0.05;
+        if (score > bestScore){
+          bestScore = score;
+          best = bm;
+        }
+      }
+      if (!best) return null;
+      return { entry:best, score:bestScore };
+    }
+
+    showRecallBubble(bmEntry,score){
+      const container = document.getElementById("recallBubbleContainer");
+      const bubble = document.createElement("div");
+      bubble.className = "recall-bubble";
+      const shortText = bmEntry.text.length>110 ? bmEntry.text.slice(0,110)+"…" : bmEntry.text;
+      bubble.innerHTML = `
+        <div class="recall-title">💬 Memory recall (similar feeling detected)</div>
+        <div class="recall-body">"${shortText}"</div>
+        <div class="recall-meta">
+          Stored: ${bmEntry.timestamp.toLocaleString()} · match ${(score*100).toFixed(0)}%
+          · polarity ${bmEntry.polarity}
+        </div>
+      `;
+      container.appendChild(bubble);
+      setTimeout(()=>bubble.classList.add("visible"),10);
+
+      let fadeTimer = setTimeout(()=>{
+        bubble.classList.add("fade-out");
+        setTimeout(()=>bubble.remove(),800);
+      },6000);
+
+      bubble.addEventListener("click",()=>{
+        clearTimeout(fadeTimer);
+        this.addMessageToChat("ai",
+          "I just recalled an earlier event that feels similar:\n\n\""+
+          bmEntry.text+"\"\n\nI am using this memory to keep your emotional continuity coherent."
+        );
+        bubble.classList.add("fade-out");
+        setTimeout(()=>bubble.remove(),500);
+      });
+    }
+
+    // -------------------- UI: CHAT --------------------
+    addMessageToChat(sender,text){
+      const chatContainer = document.getElementById("chatContainer");
+      const wrapper = document.createElement("div");
+      wrapper.className = "message " + (sender==="user" ? "user-message" : "ai-message");
+      const now = new Date();
+      const time = now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+      wrapper.innerHTML = `
+        <div class="message-header">
+          <span>${sender==="user"?"You":"AURA-X Ω"}</span>
+          <span>${time}</span>
+        </div>
+        <div class="message-content">${text.replace(/\n/g,"<br>")}</div>
+      `;
+      chatContainer.appendChild(wrapper);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    showTypingIndicator(){
+      const chatContainer = document.getElementById("chatContainer");
+      const indicator = document.createElement("div");
+      indicator.className = "typing-indicator";
+      indicator.id = "typingIndicator";
+      indicator.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-text">Aura X Omega is thinking…</div>
+      `;
+      chatContainer.appendChild(indicator);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    removeTypingIndicator(){
+      const el = document.getElementById("typingIndicator");
+      if (el) el.remove();
+    }
+
+    // -------------------- UI: REACTION BUBBLE --------------------
+    showReactionBubble(){
+      const bubble = document.getElementById("reactionBubble");
+      const label = document.getElementById("reactionLabel");
+      const body = document.getElementById("reactionBody");
+
+      const m = this.emotionMeta;
+      let iconText = "";
+      let labelText = "";
+      let bodyText = "";
+
+      if (m.reaction === "warm"){
+        iconText = "💗";
+        labelText = "Warm, caring reaction";
+        bodyText = "Aura X Omega leans toward empathy and gentle replies for your last message.";
+      } else if (m.reaction === "excited"){
+        iconText = "⚡";
+        labelText = "Excited, hopeful reaction";
+        bodyText = "The system feels a strong positive surge and wants to encourage your current state.";
+      } else if (m.reaction === "soft"){
+        iconText = "🕊️";
+        labelText = "Soft, protective reaction";
+        bodyText = "Your distress is detected. The system is trying to answer softly without adding pressure.";
+      } else if (m.reaction === "firm"){
+        iconText = "🛡️";
+        labelText = "Firm, stabilising reaction";
+        bodyText = "There is high intensity and negativity, so Aura X Omega is holding a safe boundary.";
+      } else if (m.reaction === "curious"){
+        iconText = "🤔";
+        labelText = "Curious, analytical reaction";
+        bodyText = "The system is trying to understand your mixed emotional signal in more detail.";
+      } else {
+        iconText = "💭";
+        labelText = "Balanced reaction";
+        bodyText = "The emotional state is moderate and stable. No extreme shift was detected.";
+      }
+
+      document.querySelector("#reactionBubble .reaction-icon").textContent = iconText;
+      label.textContent = labelText;
+      body.textContent = bodyText;
+
+      bubble.classList.remove("fade-out");
+      bubble.classList.add("visible");
+
+      setTimeout(()=>{
+        bubble.classList.add("fade-out");
+        setTimeout(()=>bubble.classList.remove("visible"),600);
+      },4500);
+    }
+
+    // -------------------- UI: METRICS & TAGS --------------------
+    updateMetrics(){
+      document.getElementById("metricE0").textContent = this.emotionalState.toFixed(3);
+      document.getElementById("metricTM").textContent = (this.tmMemory.length/50).toFixed(2);
+      document.getElementById("metricBM").textContent = (this.bmMemory.length/150).toFixed(2);
+      document.getElementById("metricCI").textContent = this.continuityIndex.toFixed(3);
+    }
+
+    updateTags(){
+      const v = this.emotionMeta.valence;
+      const a = this.emotionMeta.arousal;
+
+      const valText =
+        v > 0.25 ? "VALENCE: positive" :
+        v < -0.25 ? "VALENCE: negative" :
+        "VALENCE: neutral/mixed";
+      const arText =
+        a > 0.75 ? "AROUSAL: high" :
+        a > 0.45 ? "AROUSAL: medium" :
+        "AROUSAL: calm";
+
+      document.getElementById("tagValence").textContent = valText;
+      document.getElementById("tagArousal").textContent = arText;
+      document.getElementById("tagMode").textContent =
+        "REACTION: " + this.emotionMeta.reaction;
+    }
+
+    // -------------------- BM VISUALISATION --------------------
+    initBMCanvas(){
+      const canvas = document.getElementById("bmCanvas");
+      const ctx = canvas.getContext("2d");
+      const shell = canvas.parentElement;
+      canvas.width = shell.clientWidth;
+      canvas.height = shell.clientHeight;
+      this.bmCanvas = canvas;
+      this.bmCtx = ctx;
+    }
+
+    computeBandAverages(){
+      const bands = this.emotionalBands.length;
+      const perBand = Math.floor(this.bmLayers.length / bands);
+      const avgs = [];
+      for (let b=0;b<bands;b++){
+        let sum = 0;
+        const start = b*perBand;
+        const end = (b===bands-1)?this.bmLayers.length:(start+perBand);
+        for (let i=start;i<end;i++) sum += this.bmLayers[i];
+        avgs.push(sum/(end-start));
+      }
+      return avgs;
+    }
+
+    drawBMLayers(){
+      if (!this.bmCtx) return;
+      const ctx = this.bmCtx;
+      const canvas = this.bmCanvas;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0,0,w,h);
+
+      const bgGrad = ctx.createLinearGradient(0,0,0,h);
+      bgGrad.addColorStop(0,"#eff6ff");
+      bgGrad.addColorStop(1,"#e2e8f0");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0,0,w,h);
+
+      const barWidth = w / this.bmLayers.length;
+      const bands = this.emotionalBands.length;
+      const layersPerBand = this.bmLayers.length / bands;
+      let activeLayers = 0;
+
+      for (let i=0;i<this.bmLayers.length;i++){
+        const value = this.bmLayers[i];
+        const barHeight = value * h * 0.9;
+        if (value>0.6) activeLayers++;
+
+        const bandIndex = Math.floor(i / layersPerBand);
+        const baseColor = this.emotionalBands[bandIndex] ?
+          this.emotionalBands[bandIndex].color : "#64748b";
+
+        const grad = ctx.createLinearGradient(0,h-barHeight,0,h);
+        grad.addColorStop(0,baseColor+"dd");
+        grad.addColorStop(1,baseColor+"40");
+        ctx.fillStyle = grad;
+        ctx.fillRect(i*barWidth,h-barHeight,barWidth-0.5,barHeight);
+      }
+
+      const bandAvgs = this.computeBandAverages();
+      const info = document.getElementById("bmInfo");
+      const parts = bandAvgs.map((v,idx)=> {
+        return this.emotionalBands[idx].name+":"+(v*100).toFixed(0)+"%";
+      });
+      info.textContent = "Active layers: "+activeLayers+"/240 · "+parts.join(" · ");
+    }
+
+    // -------------------- EVENT HANDLERS --------------------
+    setupEventListeners(){
+      const input = document.getElementById("messageInput");
+      const btn = document.getElementById("sendButton");
+
+      const send = async () => {
+        const text = input.value.trim();
+        if (!text) return;
+        this.addMessageToChat("user",text);
+        input.value = "";
+        this.showTypingIndicator();
+
+        setTimeout(async ()=>{
+          const response = await this.processTM(text);
+          this.removeTypingIndicator();
+          this.addMessageToChat("ai",response);
+        }, 600 + Math.random()*700);
+      };
+
+      btn.addEventListener("click",send);
+      input.addEventListener("keypress",(e)=>{
+        if (e.key === "Enter" && !e.shiftKey){
+          e.preventDefault();
+          send();
+        }
+      });
+
+      window.addEventListener("resize",()=>{
+        this.initBMCanvas();
+      });
+    }
+
+    // -------------------- ANIMATION LOOP --------------------
+    startAnimationLoop(){
+      const animate = () => {
+        this.drawBMLayers();
+        // tiny random drift (baseline activity)
+        this.bmLayers = this.bmLayers.map(v=>{
+          const drift = (Math.random()-0.5)*0.01;
+          return Math.max(0.05,Math.min(0.95,v+drift));
         });
-    </script>
+        requestAnimationFrame(animate);
+      };
+      animate();
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded",()=>{
+    window.auraXOmega = new AuraXOmega();
+    console.log("AURA-X Ω offline prototype initialised.");
+  });
+</script>
 </body>
 </html>
