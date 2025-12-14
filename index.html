@@ -9,7 +9,7 @@
     *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      /* darker, more cinematic background like the screenshot */
+      /* darker, more cinematic background */
       background:
         radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
         radial-gradient(circle at 80% 0%, #0ea5e9 0, transparent 40%),
@@ -35,7 +35,8 @@
       flex-direction:column;
       gap:14px;
       position: relative;
-      overflow:hidden;
+      /* FIX: allow option-panel to overflow outside */
+      overflow:visible;
     }
     .app::before{
       content:"";
@@ -52,7 +53,6 @@
     /* ===================== HERO HEADER ===================== */
     .header{
       position: relative;
-      z-index: 20; /* ✅ dropdown ko neeche wale cards se upar rakhne ke liye */
       border-radius: 24px;
       padding: 16px 18px 14px;
       display: grid;
@@ -396,7 +396,7 @@
       font-size:.8rem;
       line-height:1.5;
       position:relative;
-      animation:fadeIn .2s.ease-out;
+      animation:fadeIn .2s ease-out;
       white-space:pre-wrap;
     }
     .message-header{
@@ -490,7 +490,7 @@
     }
     .input-shell {
       display: flex;
-      align-items: flex-end;
+      align-items: center; /* cursor not “hanging” at bottom */
       width: 100%;
       max-width: 700px;
       background: #fffbea;
@@ -498,8 +498,8 @@
       border-radius: 26px;
       padding: 6px;
       box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.5);
-      transition: all 0.2s.ease;
-      cursor: text; /* ✅ poori shell ko text-area jaisa feel */
+      transition: all 0.2s ease;
+      cursor:text; /* whole shell feels like input */
     }
     .input-shell:focus-within {
       border-color: #3b82f6;
@@ -511,7 +511,7 @@
       resize: none;
       min-height: 24px;
       max-height: 120px;
-      padding: 12px 14px;
+      padding: 8px 10px;
       border: none;
       outline: none;
       font-size: .95rem;
@@ -519,6 +519,7 @@
       color: #0f172a;
       font-family: inherit;
       line-height: 1.4;
+      text-align:left;
     }
     .message-input::placeholder {
       color: #94a3b8;
@@ -567,7 +568,7 @@
       opacity:0;
       transform:translateY(8px);
       pointer-events:none;
-      transition:opacity .25s.ease-out,transform .25s.ease-out;
+      transition:opacity .25s ease-out,transform .25s ease-out;
       z-index:40;
     }
     .reaction-bubble.visible{
@@ -599,7 +600,7 @@
       cursor:default;
       opacity:0;
       transform:translateY(8px);
-      transition:opacity .3s.ease-out,transform .3s.ease-out,background .2s;
+      transition:opacity .3s ease-out,transform .3s ease-out,background .2s;
     }
     .recall-bubble.visible{
       opacity:1;
@@ -869,6 +870,8 @@
           <button id="feedSeedButton" class="small-toggle">🌱 Feed the seed</button>
           <button id="learningToggle" class="small-toggle">📚 Learning: ON</button>
           <button id="faithButton" class="small-toggle">🔘 Faith: None</button>
+          <!-- 🤖 LLM LINK BUTTON -->
+          <button id="llmSettingsButton" class="small-toggle">🤖 LLM link</button>
         </div>
       </div>
     </div>
@@ -961,7 +964,7 @@
         <button id="sendButton" class="send-button">Send</button>
       </div>
     </div>
-    <div class="flow-caption">Prototype flow: TM → analysis → hidden equations → BM & Intelligence update → reaction.</div>
+    <div class="flow-caption">Prototype flow: TM → analysis → hidden equations → BM & Intelligence update → reaction (+ optional LLM).</div>
   </footer>
 </div>
 
@@ -1104,6 +1107,73 @@
   </div>
 </div>
 
+<!-- 🤖 LLM SETTINGS MODAL (protected with 6789) -->
+<div id="llmModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">🤖 LLM connection</div>
+        <div class="modal-sub">
+          OpenAI (یا compatible) key صرف اسی device میں localStorage میں رہے گی.
+          Public website پر یہ طریقہ use نہ کریں.
+        </div>
+      </div>
+      <button class="modal-close" data-close="llmModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Stage 1: password -->
+      <div id="llmPasswordStage">
+        <p class="faith-note">
+          یہ LLM link area protected ہے.<br/>
+          Demo password: <strong>6789</strong>
+        </p>
+        <input id="llmPasswordInput" type="password" class="modal-search"
+               placeholder="Password (default: 6789)">
+        <div id="llmPasswordError"
+             style="display:none;color:#b91c1c;font-size:.75rem;margin-top:4px;">
+          غلط password ہے، دوبارہ کوشش کریں۔
+        </div>
+        <button id="llmPasswordBtn" class="btn-mini" style="margin-top:8px;">
+          🗝️ Unlock LLM settings
+        </button>
+      </div>
+
+      <!-- Stage 2: actual LLM settings -->
+      <div id="llmSettingsStage" style="display:none;">
+        <p class="faith-note">
+          TM = user input + seed + LLM answer.<br/>
+          میں TM صرف اسی tab کے اندر use کروں گا، کوئی data server پر نہیں جائے گا
+          سوائے اس text کے جو آپ LLM کو بھیجیں گے.
+        </p>
+
+        <label style="font-size:.78rem;color:#4b5563;display:block;margin-bottom:4px;">
+          OpenAI API key
+        </label>
+        <input id="llmApiKeyInput" type="password" class="modal-search" placeholder="sk-..." />
+
+        <label style="font-size:.78rem;color:#4b5563;display:block;margin:8px 0 4px;">
+          Model (مثلاً: gpt-4.1-mini یا gpt-4o-mini)
+        </label>
+        <input id="llmModelInput" type="text" class="modal-search" placeholder="gpt-4.1-mini" />
+
+        <p style="font-size:.7rem;color:#9ca3af;margin-top:4px;">
+          اگر آپ custom proxy یا self-hosted compatible API use کریں تو
+          base URL بھی add کیا جا سکتا ہے، ابھی default OpenAI URL use ہو گا.
+        </p>
+
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="llmSaveBtn" class="btn-mini">💾 Save</button>
+          <button id="llmClearBtn" class="btn-mini btn-danger">🗑 Clear key</button>
+        </div>
+
+        <div id="llmStatusText" style="font-size:.75rem;color:#4b5563;margin-top:8px;">
+          No key saved yet.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   const BM_BANDS = ["Pain","Fear","Love","Identity","Belief","Hope","Wisdom"];
@@ -1118,6 +1188,7 @@
   ];
   const IMAGE_GENERATOR_URL = "https://example.com/create?prompt=";
   const STORAGE_KEY = "auraXOmegaState_v5";
+  const LLM_CONFIG_KEY = "auraXOmegaLLMConfig_v1";
 
   class AuraXOmegaEngine{
     constructor(){
@@ -1137,6 +1208,7 @@
       this.faithsSelected = [];
       this.seedUnlocked = false;
       this.seedPanelQAs = [];
+      this.llmUnlocked = false;
 
       if(saved){
         this.bmLayers = saved.bmLayers || this.bmLayers;
@@ -1180,6 +1252,7 @@
 
       this.seedRules = this.buildSeedRules();
       this.basicQA = this.buildBasicQA();
+      this.llmConfig = this.loadLlmConfig();
 
       this.learnQuestionTemplates = [
         "I am in learning mode and my seed is small. What would be an ideal answer here for next time?",
@@ -1211,6 +1284,7 @@
       this.updateFaithUI();
       this.updateLearningUI();
       this.bindEvents();
+      this.updateLlmStatusText();
 
       if(this.tmHistory.length){
         this.tmHistory.forEach(m=>{
@@ -1274,7 +1348,6 @@
       this.chatContainer = document.getElementById("chatContainer");
       this.messageInput = document.getElementById("messageInput");
       this.sendButton = document.getElementById("sendButton");
-      this.inputShell = document.querySelector(".input-shell"); // ✅ poori shell ka reference
       this.voiceToggle = document.getElementById("voiceToggle");
       this.faithButton = document.getElementById("faithButton");
       this.intelButton = document.getElementById("intelButton");
@@ -1283,6 +1356,7 @@
       this.optionPanel = document.getElementById("optionPanel");
       this.headerControls = document.getElementById("headerControls");
       this.feedSeedButton = document.getElementById("feedSeedButton");
+      this.inputShell = document.querySelector(".input-shell");
 
       this.reactionBubble = document.getElementById("reactionBubble");
       this.reactionLabel = document.getElementById("reactionLabel");
@@ -1319,6 +1393,20 @@
       this.seedParseBtn = document.getElementById("seedParseBtn");
       this.seedSaveBtn = document.getElementById("seedSaveBtn");
       this.seedDiscardBtn = document.getElementById("seedDiscardBtn");
+
+      // LLM DOM
+      this.llmModal = document.getElementById("llmModal");
+      this.llmSettingsButton = document.getElementById("llmSettingsButton");
+      this.llmPasswordStage = document.getElementById("llmPasswordStage");
+      this.llmSettingsStage = document.getElementById("llmSettingsStage");
+      this.llmPasswordInput = document.getElementById("llmPasswordInput");
+      this.llmPasswordError = document.getElementById("llmPasswordError");
+      this.llmPasswordBtn = document.getElementById("llmPasswordBtn");
+      this.llmApiKeyInput = document.getElementById("llmApiKeyInput");
+      this.llmModelInput = document.getElementById("llmModelInput");
+      this.llmSaveBtn = document.getElementById("llmSaveBtn");
+      this.llmClearBtn = document.getElementById("llmClearBtn");
+      this.llmStatusText = document.getElementById("llmStatusText");
 
       this.bmCtx = this.bmCanvas.getContext("2d");
       this.resizeCanvas();
@@ -1364,20 +1452,19 @@
         }
       });
 
-      // ✅ poori yellow shell pe tap se textbox focus hoga (left side bhi)
-      if(this.inputShell){
-        this.inputShell.addEventListener("click",(e)=>{
-          const target = e.target;
-          if(target.closest(".message-input") || target.closest(".send-button")) return;
-          this.messageInput.focus();
-        });
-      }
-
       this.messageInput.addEventListener("input", function() {
         this.style.height = "auto";
         this.style.height = (this.scrollHeight) + "px";
         if(this.value === "") this.style.height = "auto";
       });
+
+      // FIX: click anywhere in input-shell (left side) focuses textarea
+      if(this.inputShell){
+        this.inputShell.addEventListener("click",(e)=>{
+          if(e.target === this.sendButton) return;
+          this.messageInput.focus();
+        });
+      }
 
       document.getElementById("bmOpenModal").addEventListener("click",(e)=>{
         e.stopPropagation();
@@ -1411,10 +1498,12 @@
       document.querySelectorAll(".modal-close").forEach(btn=>{
         btn.addEventListener("click",()=>{
           const id = btn.getAttribute("data-close");
-          document.getElementById(id).classList.remove("visible");
+          const modal = document.getElementById(id);
+          if(modal) modal.classList.remove("visible");
         });
       });
-      [this.bmModal,this.convModal,this.faithModal,this.intelModal,this.seedModal].forEach(modal=>{
+      [this.bmModal,this.convModal,this.faithModal,this.intelModal,this.seedModal,this.llmModal].forEach(modal=>{
+        if(!modal) return;
         modal.addEventListener("click",(e)=>{
           if(e.target===modal){modal.classList.remove("visible");}
         });
@@ -1546,6 +1635,40 @@
       }
       if(this.seedDiscardBtn){
         this.seedDiscardBtn.addEventListener("click",()=>this.handleSeedDiscard());
+      }
+
+      // LLM settings button + password
+      if(this.llmSettingsButton){
+        this.llmSettingsButton.addEventListener("click",()=>{
+          this.openLlmModal();
+        });
+      }
+      if(this.llmPasswordBtn){
+        this.llmPasswordBtn.addEventListener("click",()=>{
+          this.handleLlmPassword();
+        });
+      }
+      if(this.llmPasswordInput){
+        this.llmPasswordInput.addEventListener("keydown",(e)=>{
+          if(e.key==="Enter"){
+            e.preventDefault();
+            this.handleLlmPassword();
+          }
+        });
+      }
+      if(this.llmSaveBtn){
+        this.llmSaveBtn.addEventListener("click",()=>{
+          const apiKey = (this.llmApiKeyInput.value || "").trim();
+          const model  = (this.llmModelInput.value || "").trim() || "gpt-4.1-mini";
+          this.saveLlmConfig({ apiKey, model });
+        });
+      }
+      if(this.llmClearBtn){
+        this.llmClearBtn.addEventListener("click",()=>{
+          const c = confirm("LLM key کو localStorage سے delete کرنا ہے؟");
+          if(!c) return;
+          this.saveLlmConfig({ apiKey:"", model:"gpt-4.1-mini" });
+        });
       }
     }
 
@@ -2009,15 +2132,17 @@
         return;
       }
 
-      // 2) normal path
+      // 2) normal path (seed + optional LLM)
       const smallTalk = this.isSmallTalk(text);
       const sentiment = this.analyzeSentiment(text);
       this.addMessage("user", text);
       this.pushTM("user", text, sentiment);
 
       const typingId = this.showTyping();
-      setTimeout(()=>{
+      setTimeout(async ()=>{
         this.hideTyping(typingId);
+
+        // 2.1 offline / seed-based جواب (pure AURA-X Ω logic)
         const reply = this.generateReply(text,sentiment);
         const replySentiment = this.analyzeSentiment(reply);
         this.addMessage("ai",reply,true,replySentiment);
@@ -2025,6 +2150,7 @@
 
         this.lastAnsweredQuestion = text;
 
+        // user input + seed جواب پر E₀ / BM update
         this.updateMemoryAndState(text,sentiment,smallTalk);
         this.maybeShowRecallBubble(sentiment);
         this.updateMetrics();
@@ -2032,6 +2158,27 @@
         this.renderConvList();
         this.renderIntelList();
         this.saveState();
+
+        // 2.2 اگر LLM connected ہے تو اس سے بھی answer لیں
+        if(this.llmConfig && this.llmConfig.apiKey){
+          const llmTypingId = this.showTyping();
+          const llmAnswer = await this.callLLM(text);
+          this.hideTyping(llmTypingId);
+
+          if(llmAnswer){
+            const sent2 = this.analyzeSentiment(llmAnswer);
+            this.addMessage("ai","[LLM] " + llmAnswer,true,sent2);
+            this.pushTM("ai", llmAnswer, sent2);
+
+            // TM = user + seed + LLM answer → دوبارہ mathematical filter
+            this.updateMemoryAndState(llmAnswer, sent2, false);
+            this.updateMetrics();
+            this.renderBMList();
+            this.renderConvList();
+            this.renderIntelList();
+            this.saveState();
+          }
+        }
       },600 + Math.random()*600);
     }
 
@@ -2549,6 +2696,141 @@
       this.seedBlockInput.value = "";
       this.seedBlockPreview.textContent = "Block cleared. You can paste a new LaTeX section here.";
       this.seedSaveBtn.disabled = true;
+    }
+
+    // LLM config helpers
+    loadLlmConfig(){
+      try{
+        const raw = localStorage.getItem(LLM_CONFIG_KEY);
+        if(!raw) return { apiKey:"", model:"gpt-4.1-mini" };
+        const cfg = JSON.parse(raw);
+        return {
+          apiKey: cfg.apiKey || "",
+          model: cfg.model || "gpt-4.1-mini"
+        };
+      }catch(e){
+        return { apiKey:"", model:"gpt-4.1-mini" };
+      }
+    }
+
+    saveLlmConfig(config){
+      this.llmConfig = {
+        apiKey: config.apiKey || "",
+        model: config.model || "gpt-4.1-mini"
+      };
+      try{
+        localStorage.setItem(LLM_CONFIG_KEY, JSON.stringify(this.llmConfig));
+      }catch(e){}
+      this.updateLlmStatusText();
+    }
+
+    updateLlmStatusText(){
+      if(!this.llmStatusText) return;
+      if(this.llmConfig && this.llmConfig.apiKey){
+        this.llmStatusText.textContent = 
+          "LLM connected ("+(this.llmConfig.model || "gpt-4.1-mini")+"). " +
+          "Key صرف اسی browser میں localStorage میں محفوظ ہے.";
+      }else{
+        this.llmStatusText.textContent = 
+          "No key saved yet. Prototype pure offline mode پر چل رہا ہے.";
+      }
+    }
+
+    openLlmModal(){
+      if(this.llmUnlocked){
+        if(this.llmPasswordStage) this.llmPasswordStage.style.display = "none";
+        if(this.llmSettingsStage) this.llmSettingsStage.style.display = "block";
+
+        if(this.llmApiKeyInput){
+          this.llmApiKeyInput.value = this.llmConfig.apiKey || "";
+        }
+        if(this.llmModelInput){
+          this.llmModelInput.value = this.llmConfig.model || "gpt-4.1-mini";
+        }
+        this.updateLlmStatusText();
+        this.llmModal.classList.add("visible");
+
+        setTimeout(()=>{
+          if(this.llmApiKeyInput) this.llmApiKeyInput.focus();
+        },50);
+      }else{
+        if(this.llmPasswordStage) this.llmPasswordStage.style.display = "block";
+        if(this.llmSettingsStage) this.llmSettingsStage.style.display = "none";
+        if(this.llmPasswordError) this.llmPasswordError.style.display = "none";
+        if(this.llmPasswordInput) this.llmPasswordInput.value = "";
+
+        this.llmModal.classList.add("visible");
+        setTimeout(()=>{
+          if(this.llmPasswordInput) this.llmPasswordInput.focus();
+        },50);
+      }
+    }
+
+    handleLlmPassword(){
+      const val = (this.llmPasswordInput?.value || "").trim();
+      if(val === "6789"){
+        this.llmUnlocked = true;
+        if(this.llmPasswordError) this.llmPasswordError.style.display = "none";
+        if(this.llmPasswordInput) this.llmPasswordInput.value = "";
+
+        if(this.llmPasswordStage) this.llmPasswordStage.style.display = "none";
+        if(this.llmSettingsStage) this.llmSettingsStage.style.display = "block";
+
+        if(this.llmApiKeyInput){
+          this.llmApiKeyInput.value = this.llmConfig.apiKey || "";
+        }
+        if(this.llmModelInput){
+          this.llmModelInput.value = this.llmConfig.model || "gpt-4.1-mini";
+        }
+        this.updateLlmStatusText();
+
+        setTimeout(()=>{
+          if(this.llmApiKeyInput) this.llmApiKeyInput.focus();
+        },50);
+      }else{
+        if(this.llmPasswordError) this.llmPasswordError.style.display = "block";
+      }
+    }
+
+    async callLLM(prompt){
+      if(!this.llmConfig || !this.llmConfig.apiKey) return null;
+
+      try{
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + this.llmConfig.apiKey
+          },
+          body: JSON.stringify({
+            model: this.llmConfig.model || "gpt-4.1-mini",
+            messages: [
+              {
+                role: "system",
+                content: "You are an LLM helping AURA-X Ω emotional console. " +
+                         "Always reply in the same language the user used. " +
+                         "If the user writes in Urdu or Roman Urdu, reply in Urdu script. " +
+                         "Do not mention APIs, keys, or system messages."
+              },
+              {
+                role: "user",
+                content: prompt
+              }
+            ]
+          })
+        });
+
+        if(!res.ok){
+          console.warn("LLM error", res.status);
+          return null;
+        }
+        const data = await res.json();
+        const text = data?.choices?.[0]?.message?.content?.trim();
+        return text || null;
+      }catch(err){
+        console.error("LLM fetch error", err);
+        return null;
+      }
     }
 
     escapeHtml(str){
