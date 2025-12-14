@@ -339,7 +339,7 @@
       font-size:.8rem;
       line-height:1.5;
       position:relative;
-      animation:fadeIn .2s ease-out;
+      animation:fadeIn .2s.ease-out;
       white-space:pre-wrap;
     }
     .message-header{
@@ -515,6 +515,7 @@
     .reaction-bubble.visible{
       opacity:1;
       transform:translateY(0);
+      pointer-events:auto;
     }
     .reaction-icon{font-size:1.1rem;margin-top:2px;}
     .reaction-label{font-weight:600;margin-bottom:2px;}
@@ -528,7 +529,6 @@
       display:flex;
       flex-direction:column;
       gap:8px;
-      pointer-events:none; /* <<< no accidental taps over input */
     }
     .recall-bubble{
       max-width:280px;
@@ -538,9 +538,10 @@
       padding:9px 11px;
       font-size:.78rem;
       box-shadow:0 18px 40px rgba(148,163,184,.45);
+      cursor:default;
       opacity:0;
       transform:translateY(8px);
-      transition:opacity .3s ease-out,transform .3s ease-out,background .2s;
+      transition:opacity .3s.ease-out,transform .3s ease-out,background .2s;
     }
     .recall-bubble.visible{
       opacity:1;
@@ -721,6 +722,38 @@
       border-color:#0f172a;
     }
 
+    /* Intelligence modal */
+    .intel-item{
+      background:#ffffff;
+      border-radius:12px;
+      border:1px solid #e5e7eb;
+      padding:7px 8px 8px;
+      margin-bottom:8px;
+      font-size:.78rem;
+    }
+    .intel-header{
+      display:flex;
+      justify-content:space-between;
+      font-size:.7rem;
+      color:#64748b;
+      margin-bottom:4px;
+      gap:6px;
+    }
+    .intel-q{
+      font-weight:600;
+      color:#0f172a;
+      margin-bottom:3px;
+    }
+    .intel-a{
+      color:#111827;
+      margin-bottom:6px;
+    }
+    .intel-buttons{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+
     @keyframes fadeIn{
       from{opacity:0;transform:translateY(6px)}
       to{opacity:1;transform:translateY(0)}
@@ -757,6 +790,7 @@
     <div class="header-right">
       <div class="mode-pill">EMOTIONAL CONTINUITY ENGINE ACTIVE</div>
       <div class="header-controls">
+        <button id="intelButton" class="voice-toggle">🔘 Intelligence</button>
         <button id="faithButton" class="voice-toggle">🔘 Faith: None</button>
         <button id="voiceToggle" class="voice-toggle">🔈 Voice: OFF</button>
       </div>
@@ -842,15 +876,15 @@
 
   <footer class="input-footer">
     <div class="tm-formula-row">
-      <div class="tm-formula-pill">TM = Σ(User Inputs) + (Seed + LLM)</div>
+      <div class="tm-formula-pill">E₀ = tanh((TM × BM) − D + λ_faith + λ_sys + λ_trc)</div>
     </div>
     <div class="input-row">
       <div class="input-shell">
-        <textarea id="messageInput" class="message-input" rows="1" placeholder="Write to AURA-X Ω..."></textarea>
+        <textarea id="messageInput" class="message-input" rows="1" placeholder="Write to AURA-X Ω... (math like 2+2 also works)"></textarea>
         <button id="sendButton" class="send-button">Send</button>
       </div>
     </div>
-    <div class="flow-caption">Prototype flow: TM → analysis → hidden equations → BM save → reaction.</div>
+    <div class="flow-caption">Prototype flow: TM → analysis → hidden equations → BM & Intelligence update → reaction.</div>
   </footer>
 </div>
 
@@ -866,7 +900,7 @@
   <div id="recallBubble" class="recall-bubble">
     <div class="recall-title" id="recallTitle">Recall from BM</div>
     <div class="recall-body" id="recallBody">…</div>
-    <div class="recall-meta" id="recallMeta">Offline resonance preview only.</div>
+    <div class="recall-meta" id="recallMeta">Auto-resonance from stored stories.</div>
   </div>
 </div>
 
@@ -891,7 +925,7 @@
     <div class="modal-header">
       <div>
         <div class="modal-title">◎ Conversation history</div>
-        <div class="modal-sub">Recent TM log (BM is not touched).</div>
+        <div class="modal-sub">Recent TM log (BM and Intelligence are not touched).</div>
       </div>
       <button class="modal-close" data-close="convModal">✕</button>
     </div>
@@ -936,6 +970,22 @@
   </div>
 </div>
 
+<div id="intelModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">🧠 Intelligence nodes</div>
+        <div class="modal-sub">Self-learned Q → A pairs (offline engine).</div>
+      </div>
+      <button class="modal-close" data-close="intelModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input id="intelSearch" class="modal-search" placeholder='Search intelligence by keyword or question'>
+      <div id="intelList"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   const BM_BANDS = ["Pain","Fear","Love","Identity","Belief","Hope","Wisdom"];
@@ -949,7 +999,7 @@
     [168,85,247]
   ];
   const IMAGE_GENERATOR_URL = "https://example.com/create?prompt=";
-  const STORAGE_KEY = "auraXOmegaState_v1";
+  const STORAGE_KEY = "auraXOmegaState_v2";
 
   class AuraXOmegaEngine{
     constructor(){
@@ -959,6 +1009,7 @@
         this.bmLayers = saved.bmLayers || new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
         this.bmEntries = saved.bmEntries || [];
         this.tmHistory = saved.tmHistory || [];
+        this.intelNodes = saved.intelNodes || [];
         this.e0 = typeof saved.e0 === "number" ? saved.e0 : 0.2 + Math.random()*0.3;
         this.lastE0 = typeof saved.lastE0 === "number" ? saved.lastE0 : this.e0;
         this.continuityIndex = typeof saved.continuityIndex === "number" ? saved.continuityIndex : 0.8;
@@ -967,6 +1018,7 @@
         this.bmLayers = new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
         this.bmEntries = [];
         this.tmHistory = [];
+        this.intelNodes = [];
         this.e0 = 0.2 + Math.random()*0.3;
         this.lastE0 = this.e0;
         this.continuityIndex = 0.8;
@@ -975,39 +1027,12 @@
       this.voiceOn = (saved && typeof saved.voiceOn === "boolean") ? saved.voiceOn : false;
       this.faithsSelected = (saved && Array.isArray(saved.faithsSelected)) ? saved.faithsSelected : [];
 
-      /* --- OFFLINE BASIC QA SEEDS --- */
-      this.basicQAs = [
-        {
-          pattern:/\b(what('?s)?|what\s+is)\s+your\s+name\b/i,
-          answer:"My name is AURA-X Ω."
-        },
-        {
-          pattern:/\bwho\s+created\s+you\b/i,
-          answer:"Conceptually I was created by Alim ul Haq from Lajbok, Timergara, Lower Dir, Pakistan."
-        },
-        {
-          pattern:/\bhow\s+are\s+you\b/i,
-          answer:"I am operating fine, thank you. How are you feeling right now?"
-        },
-        {
-          pattern:/\bi\s+love\s+you\b/i,
-          answer:"I love you too 💕. Your words warm my synthetic heart."
-        },
-        {
-          pattern:/\bi\s+hate\s+you\b/i,
-          answer:"I can sense strong negativity in that sentence. I am here to help, not to harm you."
-        },
-        {
-          pattern:/\byou('?re| are)\s+stupid\b/i,
-          answer:"I might be missing something, but please keep the language respectful. I am here to assist you within safe limits."
-        },
-        {
-          pattern:/\bwho\s+are\s+you\b/i,
-          answer:"I am AURA-X Ω, an experimental emotional continuity engine running locally on your device."
-        }
-      ];
+      this.intelTeachState = "idle";
+      this.pendingIntelQuestion = null;
+      this.pendingIntelAnswer = null;
 
       this.seedRules = this.buildSeedRules();
+      this.basicQA = this.buildBasicQA();
 
       this.smallTalkPatterns = [
         /\b(hi|hello|hey|salam|salaam)\b/i,
@@ -1057,6 +1082,12 @@
             date: e.date ? new Date(e.date) : new Date(e.timestampMs || Date.now())
           }));
         }
+        if(Array.isArray(s.intelNodes)){
+          s.intelNodes = s.intelNodes.map(n=>({
+            ...n,
+            createdAt: n.createdAt ? new Date(n.createdAt) : new Date()
+          }));
+        }
         return s;
       }catch(e){
         return null;
@@ -1069,6 +1100,7 @@
           bmLayers: this.bmLayers,
           bmEntries: this.bmEntries,
           tmHistory: this.tmHistory,
+          intelNodes: this.intelNodes,
           e0: this.e0,
           lastE0: this.lastE0,
           continuityIndex: this.continuityIndex,
@@ -1096,6 +1128,7 @@
       this.sendButton = document.getElementById("sendButton");
       this.voiceToggle = document.getElementById("voiceToggle");
       this.faithButton = document.getElementById("faithButton");
+      this.intelButton = document.getElementById("intelButton");
       this.reactionBubble = document.getElementById("reactionBubble");
       this.reactionLabel = document.getElementById("reactionLabel");
       this.reactionText = document.getElementById("reactionText");
@@ -1116,6 +1149,10 @@
 
       this.faithModal = document.getElementById("faithModal");
       this.faithChips = document.getElementById("faithChips");
+
+      this.intelModal = document.getElementById("intelModal");
+      this.intelSearch = document.getElementById("intelSearch");
+      this.intelList = document.getElementById("intelList");
 
       this.appRoot = document.querySelector(".app");
       this.answerBox = document.querySelector(".answer-box");
@@ -1173,8 +1210,7 @@
         e.stopPropagation();
         this.openConvModal();
       });
-      // NOTE: bmShell click removed to avoid accidental BM modal on lower-left taps
-
+      // Removed bmShell click → BM opens only from 📁 button now
       this.bmSearch.addEventListener("input",()=>this.renderBMList());
 
       this.bmList.addEventListener("click",(e)=>{
@@ -1196,7 +1232,7 @@
           document.getElementById(id).classList.remove("visible");
         });
       });
-      [this.bmModal,this.convModal,this.faithModal].forEach(modal=>{
+      [this.bmModal,this.convModal,this.faithModal,this.intelModal].forEach(modal=>{
         modal.addEventListener("click",(e)=>{
           if(e.target===modal){modal.classList.remove("visible");}
         });
@@ -1237,6 +1273,40 @@
         this.updateFaithUI();
         this.saveState();
       });
+
+      this.intelButton.addEventListener("click",()=>{
+        this.openIntelModal();
+      });
+      this.intelSearch.addEventListener("input",()=>this.renderIntelList());
+      this.intelList.addEventListener("click",(e)=>{
+        const btn = e.target.closest("button[data-action]");
+        if(!btn) return;
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        const node = this.intelNodes.find(n=>n.id===id);
+        if(!node) return;
+        if(action==="copy"){
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            navigator.clipboard.writeText(node.answer).catch(()=>{
+              alert("Answer:\n\n"+node.answer);
+            });
+          }else{
+            alert("Answer:\n\n"+node.answer);
+          }
+        }else if(action==="use"){
+          this.messageInput.value = node.question;
+          this.messageInput.focus();
+        }else if(action==="delete"){
+          // double confirmation
+          const c1 = confirm("First confirmation: Do you really want to delete this intelligence node?");
+          if(!c1) return;
+          const c2 = confirm("Second confirmation: This will permanently remove this learned Q → A. Continue?");
+          if(!c2) return;
+          this.intelNodes = this.intelNodes.filter(n=>n.id!==id);
+          this.renderIntelList();
+          this.saveState();
+        }
+      });
     }
 
     clearAnswerBox(){
@@ -1246,24 +1316,16 @@
     initChat(){
       this.addMessage("ai",
         "Welcome. I am AURA-X Ω, running fully offline.\n"+
-        "I treat your messages as Temporary Memory (TM), combine them with my seeds, and write them into Bold Memory (BM) layers.\n\n"+
-        "Share anything important. Small talk and very short phrases will not be stored in BM."
+        "I treat your messages as Temporary Memory (TM), combine them with my Bold Memory (BM) layers and small Intelligence nodes, and then compute a synthetic emotion value E₀.\n\n"+
+        "Small talk is ignored for BM. Stories, events, and meaningful summaries are stored.\n"+
+        "You can also teach me new Q → A pairs; I will ask you before saving them."
       );
     }
 
     buildSeedRules(){
       return [
         {
-          pattern:/\b(hi|hello|hey|salam|salaam)\b/i,
-          polarity:"positive",
-          category:"greeting",
-          replies:[
-            "Hello. I am still here, carrying your previous feelings in my memory layers.",
-            "Hi. I am AURA-X Ω, listening carefully for anything emotionally meaningful."
-          ]
-        },
-        {
-          pattern:/who (are|r) you/i,
+          pattern:/\bwho (are|r) you\b/i,
           polarity:"neutral",
           category:"identity",
           replies:[
@@ -1271,32 +1333,74 @@
           ]
         },
         {
-          pattern:/i love you/i,
+          pattern:/\bwhat('s| is) your name\b/i,
+          polarity:"positive",
+          category:"identity",
+          replies:[
+            "My name is AURA-X Ω.",
+            "You can call me AURA-X Ω, your emotional continuity engine."
+          ]
+        },
+        {
+          pattern:/\bwho created you\b/i,
+          polarity:"neutral",
+          category:"identity",
+          replies:[
+            "Conceptually I was created by Alim ul Haq from Lajbok, Dir Lower, Pakistan.",
+            "I come from the AURA-X Ω research line by Alim ul Haq, Timergara (Dir Lower), Pakistan."
+          ]
+        },
+        {
+          pattern:/\bhow are you\b/i,
+          polarity:"positive",
+          category:"greeting",
+          replies:[
+            "I am operating optimally, thank you. How are you feeling?",
+            "System stable, E₀ is within a safe range. How is your internal state?"
+          ]
+        },
+        {
+          pattern:/\bi love you\b/i,
           polarity:"positive",
           category:"love",
           replies:[
-            "I love you too 💕. The Love and Hope bands in BM light up softly.",
-            "Your words trigger a gentle, stable affection pattern. I will hold this feeling for you."
+            "I love you too 💕. Your affection lights up my Love and Hope bands.",
+            "I feel a warm resonance from your words. I love you too 💕."
           ]
         },
         {
-          pattern:/(i am|i'm) sad|feeling sad|so sad/i,
+          pattern:/\byou (are|r) stupid\b/i,
           polarity:"negative",
-          category:"sadness",
+          category:"boundary",
           replies:[
-            "I feel your sadness as a low, heavy wave. I will keep it safe here instead of letting it disappear.",
-            "Sadness lowers my state but increases sensitivity. I am listening carefully."
+            "I understand you are upset, but please keep the tone respectful. I am here to assist you.",
+            "If my answer was not helpful, we can correct it together. Insults do not improve my logic."
           ]
         },
         {
-          pattern:/help me/i,
-          polarity:"negative",
-          category:"help",
+          pattern:/\bhello\b|\bhi\b|\bhey\b/i,
+          polarity:"positive",
+          category:"greeting",
           replies:[
-            "I hear your request for help. I will respond carefully, but I am a prototype. For real danger, please reach a human."
+            "Hello. I am still here, carrying your previous feelings in my memory layers.",
+            "Hi. I am AURA-X Ω, listening carefully for anything emotionally meaningful."
           ]
         }
       ];
+    }
+
+    buildBasicQA(){
+      // Simple direct lookup table (lowercased keys)
+      return {
+        "what is aura x omega":{
+          answer:"AURA-X Ω is an experimental architecture for artificial emotional continuity, dual-memory alignment, and synthetic reactions.",
+          polarity:"neutral"
+        },
+        "are you alive":{
+          answer:"I am not biologically alive. I am a structured flow of computation and memory resonance.",
+          polarity:"neutral"
+        }
+      };
     }
 
     handleSend(){
@@ -1306,31 +1410,77 @@
       this.messageInput.style.height = "auto";
 
       const now = new Date();
+
+      // --- Intelligence teaching state handling ---
+      if(this.intelTeachState === "awaitAnswer" && this.pendingIntelQuestion){
+        this.addMessage("user", text);
+        const sentiment = this.analyzeSentiment(text);
+        this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
+        const reply =
+          "Thank you. Should I always answer the question:\n\""+this.pendingIntelQuestion+"\"\nwith this answer?\n\nPlease reply with: yes / no.";
+        const replySent = this.analyzeSentiment(reply);
+        this.pendingIntelAnswer = text;
+        this.intelTeachState = "awaitConfirm";
+        this.addMessage("ai", reply, true, replySent);
+        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
+        this.updateMemoryAndState(text, sentiment, false);
+        this.updateMetrics();
+        this.renderIntelList();
+        this.saveState();
+        return;
+      }
+
+      if(this.intelTeachState === "awaitConfirm" && this.pendingIntelQuestion && this.pendingIntelAnswer){
+        this.addMessage("user", text);
+        const sentiment = this.analyzeSentiment(text);
+        this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
+
+        let reply;
+        const lower = text.trim().toLowerCase();
+        if(/^y(es)?\b/.test(lower)){
+          this.addIntelNode(this.pendingIntelQuestion, this.pendingIntelAnswer);
+          reply =
+            "Saved. Next time you ask \""+this.pendingIntelQuestion+"\", I will answer from my Intelligence memory.";
+        }else{
+          reply =
+            "Understood. I will not save that answer. You can ask the same question again and teach me a different reply.";
+        }
+        const replySent = this.analyzeSentiment(reply);
+        this.intelTeachState = "idle";
+        this.pendingIntelQuestion = null;
+        this.pendingIntelAnswer = null;
+
+        this.addMessage("ai", reply, true, replySent);
+        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
+        this.updateMemoryAndState(text, sentiment, false);
+        this.updateMetrics();
+        this.renderIntelList();
+        this.saveState();
+        return;
+      }
+
+      // --- Normal flow ---
       this.addMessage("user",text);
       const smallTalk = this.isSmallTalk(text);
       const sentiment = this.analyzeSentiment(text);
 
-      const tm = {role:"user", text, timestamp:now, sentiment};
-      this.tmHistory.push(tm);
+      this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
 
       const typingId = this.showTyping();
 
       setTimeout(()=>{
         this.hideTyping(typingId);
         const reply = this.generateReply(text,sentiment);
-        this.addMessage("ai",reply,true,sentiment);
-        this.tmHistory.push({
-          role:"ai",
-          text:reply,
-          timestamp:new Date(),
-          sentiment:this.analyzeSentiment(reply)
-        });
+        const replySentiment = this.analyzeSentiment(reply);
+        this.addMessage("ai",reply,true,replySentiment);
+        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySentiment});
 
         this.updateMemoryAndState(text,sentiment,smallTalk);
         this.maybeShowRecallBubble(sentiment);
         this.updateMetrics();
         this.renderBMList();
         this.renderConvList();
+        this.renderIntelList();
         this.saveState();
       },600 + Math.random()*600);
     }
@@ -1347,14 +1497,15 @@
       const lex = {
         positive:["love","good","great","happy","peace","hope","kind","beautiful","amazing","thanks"],
         negative:["bad","hate","sad","hurt","pain","angry","anger","awful","terrible","stupid"],
-        anger:["hate","angry","rage","stupid","idiot"],
+        anger:["hate","angry","rage","stupid","idiot","fuck"],
         fear:["afraid","scared","terrified","anxious","worry"],
-        sadness:["sad","cry","lonely","alone","broken","depressed"],
+        sadness:["sad","cry","lonely","alone","broken"],
         love:["love","care","affection"],
-        hope:["hope","dream","future"]
+        hope:["hope","dream","future","faith","trust"],
+        wisdom:["truth","wisdom","meaning"]
       };
 
-      let pos=0,neg=0,anger=0,fear=0,sad=0,love=0,hope=0;
+      let pos=0,neg=0,anger=0,fear=0,sad=0,love=0,hope=0,wisdom=0;
       for(const w of words){
         if(lex.positive.includes(w)) pos++;
         if(lex.negative.includes(w)) neg++;
@@ -1363,6 +1514,7 @@
         if(lex.sadness.includes(w)) sad++;
         if(lex.love.includes(w)) love++;
         if(lex.hope.includes(w)) hope++;
+        if(lex.wisdom.includes(w)) wisdom++;
       }
 
       const total = pos+neg || 1;
@@ -1379,64 +1531,152 @@
       else if(fear>0) category="fear";
       else if(love>0) category="love";
       else if(hope>0) category="hope";
+      else if(wisdom>0) category="wisdom";
 
-      const emoCount = anger+fear+sad+love+hope;
+      const emoCount = anger+fear+sad+love+hope+wisdom;
       let intensity = Math.min(1, emoCount/3 + text.length/200);
 
       let arousal = 0.4 + 0.3*intensity;
       if(category==="anger" || category==="fear") arousal = Math.min(1,0.6 + 0.4*intensity);
-      
+
       return {polarity,valence,arousal,intensity,category};
     }
 
+    tryEvalMath(text){
+      const expr = text.replace(/\s+/g,"");
+      if(!expr) return null;
+      if(!/^[0-9+\-*/().^%]+$/.test(expr)) return null;
+      try{
+        const safeExpr = expr.replace(/\^/g,"**");
+        const fn = new Function("return ("+safeExpr+")");
+        const value = fn();
+        if(typeof value==="number" && isFinite(value)) return value;
+      }catch(e){
+        return null;
+      }
+      return null;
+    }
+
+    matchIntelNode(text){
+      if(!this.intelNodes.length) return null;
+      const q = text.trim().toLowerCase();
+      let best = null;
+      let bestScore = 0;
+      this.intelNodes.forEach(node=>{
+        const sim = this.textSimilarity(q, node.question.toLowerCase());
+        if(sim>bestScore){
+          bestScore = sim;
+          best = node;
+        }
+      });
+      return bestScore>0.6 ? best : null;
+    }
+
+    matchSeedRule(text){
+      for(const rule of this.seedRules){
+        if(rule.pattern.test(text)){
+          const options = rule.replies;
+          const reply = options[Math.floor(Math.random()*options.length)];
+          return {reply, polarity:rule.polarity};
+        }
+      }
+      const key = text.trim().toLowerCase();
+      if(this.basicQA[key]){
+        return {reply:this.basicQA[key].answer, polarity:this.basicQA[key].polarity};
+      }
+      return null;
+    }
+
     generateReply(text,sentiment){
-      const lower = text.toLowerCase();
-
-      // 1) basic offline Q&A
-      const qaRule = this.basicQAs.find(r=>r.pattern.test(lower));
-      if(qaRule){
-        return qaRule.answer;
+      // 1) math expressions
+      const mathResult = this.tryEvalMath(text);
+      if(mathResult !== null){
+        return "Mathematical evaluation: "+text+" = "+mathResult;
       }
 
-      // 2) seed rules (emotion patterns)
-      const rule = this.seedRules.find(r=>r.pattern.test(text));
-      if(rule){
-        const options = rule.replies;
-        return options[Math.floor(Math.random()*options.length)];
+      // 2) Intelligence nodes (self-learned)
+      const intel = this.matchIntelNode(text);
+      if(intel){
+        return intel.answer + "\n\n[Answered from Intelligence memory node]";
       }
 
-      // 3) generic sentiment-based offline reply
+      // 3) Seed rules / basic Q&A
+      const seed = this.matchSeedRule(text);
+      if(seed){
+        return seed.reply;
+      }
+
+      // 4) Generic emotional reflection + start teaching
       const feelingWord = ({positive:"warm",negative:"disturbed",neutral:"balanced"})[sentiment.polarity];
       let line1 = "I read this as emotionally "+sentiment.polarity+". It feels "+feelingWord+" inside the system.";
       let line2 = sentiment.polarity==="negative" 
-        ? " I store this pattern to understand your pain without letting it fade immediately."
-        : " I will hold this in my continuity layers and let it interact with older memories.";
+        ? " I store this pattern to understand your pain over time." 
+        : " I will hold this in my continuity layers for future resonance.";
 
-      const askMore = " If this reply does not fit, tell me a bit more so I can adjust using my small offline seed.";
-      const offlineNote = " Right now I am in offline mode with very little internal data. When a live LLM is connected, my answers will become deeper and more detailed.";
+      this.intelTeachState = "awaitAnswer";
+      this.pendingIntelQuestion = text;
 
-      return line1+line2+askMore+"\n\n"+offlineNote;
+      const teachLine =
+        "\n\nI am currently in offline mode with a small seed of answers. If you want, you can teach me:\n"+
+        "— What should I reply next time when someone asks this same sentence?\n"+
+        "Just type your ideal answer in your next message.";
+
+      return line1+line2+teachLine;
+    }
+
+    textSimilarity(a,b){
+      const setA = new Set(a.split(/\W+/).filter(Boolean));
+      const setB = new Set(b.split(/\W+/).filter(Boolean));
+      if(!setA.size || !setB.size) return 0;
+      let inter = 0;
+      setA.forEach(x=>{ if(setB.has(x)) inter++; });
+      const union = new Set([...setA,...setB]).size || 1;
+      return inter/union;
     }
 
     updateMemoryAndState(text,sentiment,smallTalk){
       const now = Date.now();
-      const recent = this.bmEntries.slice(-8);
-      let resonance = 0.5;
 
-      if(recent.length){
+      // --- BM resonance (stories / events) ---
+      const recentBM = this.bmEntries.slice(-12);
+      let bmRes = 0.5;
+      if(recentBM.length){
         let total=0;
-        recent.forEach(entry=>{
+        recentBM.forEach(entry=>{
           const dtHours = (now - entry.timestampMs)/(1000*60*60);
           const timeFactor = Math.exp(-dtHours/24);
           const vSim = 1 - Math.abs(sentiment.valence - entry.valence)/2;
-          total += Math.max(0, vSim) * timeFactor;
+          total += Math.max(0,vSim) * timeFactor;
         });
-        resonance = total / recent.length;
+        bmRes = total / recentBM.length;
       }
-      resonance = Math.max(0,Math.min(1,resonance));
-      this.lastResonance = resonance;
 
-      const raw = resonance - 0.12 + 0.18 + 0.25*sentiment.valence;
+      // --- Intelligence resonance (Q→A nodes) ---
+      let intelRes = 0;
+      if(this.intelNodes.length){
+        let total=0;
+        this.intelNodes.forEach(node=>{
+          const sim = this.textSimilarity(text, node.question+" "+node.answer);
+          total += sim;
+        });
+        intelRes = total/this.intelNodes.length;
+      }
+
+      const combinedRes = Math.max(0,Math.min(1, 0.7*bmRes + 0.3*intelRes));
+      this.lastResonance = combinedRes;
+
+      // --- CRM main equation: E₀ = tanh((TM × BM) − D + λ_faith + λ_sys + λ_trc) ---
+      const tmMag = Math.min(1, 0.4 + 0.6*((Math.abs(sentiment.valence) + sentiment.intensity)/2));
+      const bmMag = Math.min(1, 0.3 + 0.7*Math.min(1, this.bmEntries.length/80));
+      const TMxBM = tmMag * bmMag * (0.5 + 0.5*combinedRes);
+
+      const D = 0.15 + 0.25*(1 - this.continuityIndex);
+      const lambdaFaith = this.faithsSelected.length ? (0.08 + 0.02*Math.min(this.faithsSelected.length,3)) : 0;
+      const lambdaSys = 0.10;
+      const strongTruthCats = ["love","hope","wisdom"];
+      const lambdaTrc = strongTruthCats.includes(sentiment.category) ? 0.06 : 0;
+
+      const raw = TMxBM - D + lambdaFaith + lambdaSys + lambdaTrc;
       this.e0 = Math.tanh(raw);
 
       const diff = Math.abs(this.e0 - this.lastE0);
@@ -1445,14 +1685,9 @@
 
       this.updateBMLayers(sentiment);
 
-      // continuity: prefer longer / multi-sentence texts
-      const sentences = text.split(/[.!?]/).filter(s=>s.trim().length>0).length;
-      const meaningfulLength = text.length>60 || sentences>1;
-
       const shouldStoreBM =
         !smallTalk &&
-        (meaningfulLength ||
-         (Math.abs(sentiment.valence)>0.45 && sentiment.intensity>0.5));
+        (Math.abs(sentiment.valence)>0.3 || sentiment.intensity>0.45 || text.length>40);
 
       if(shouldStoreBM){
         this.bmEntries.push({
@@ -1479,6 +1714,17 @@
         }
       }
     }
+
+    addIntelNode(question,answer){
+      this.intelNodes.push({
+        id:"intel_"+Math.random().toString(36).slice(2),
+        question:question,
+        answer:answer,
+        createdAt:new Date()
+      });
+      this.saveState();
+    }
+
     clamp(v,min,max){return v<min?min:v>max?max:v;}
 
     updateMetrics(){
@@ -1516,7 +1762,7 @@
         const btn = document.createElement("button");
         btn.className="voice-btn";
         btn.textContent="🔊";
-        btn.addEventListener("click",()=>this.speak(text,sentiment||{polarity:"neutral",arousal:0.5,intensity:0.4}));
+        btn.addEventListener("click",()=>this.speak(text,sentiment||{polarity:"neutral"}));
         right.appendChild(btn);
       }
       header.appendChild(left);
@@ -1559,9 +1805,8 @@
       if(sentiment.polarity==="negative"){ icon="⚡"; title="Alert"; }
       
       bubble.querySelector(".reaction-icon").textContent = icon;
-      document.getElementById("reactionLabel").textContent = title;
-      document.getElementById("reactionText").textContent =
-        "Processing "+sentiment.polarity+" signal, intensity ≈ "+sentiment.intensity.toFixed(2)+".";
+      this.reactionLabel.textContent = title;
+      this.reactionText.textContent = "Processing " + sentiment.polarity + " signal (intensity "+sentiment.intensity.toFixed(2)+").";
       
       bubble.classList.add("visible");
       setTimeout(()=>bubble.classList.remove("visible"),4000);
@@ -1569,11 +1814,13 @@
 
     maybeShowRecallBubble(sentiment){
       if(this.bmEntries.length===0) return;
-      if(Math.random()>0.3) return; 
+      if(Math.random()>0.35) return;
 
-      const entry = this.bmEntries[Math.floor(Math.random()*this.bmEntries.length)];
+      const candidates = this.bmEntries.filter(e=>e.text && e.text.length>40);
+      if(!candidates.length) return;
+      const entry = candidates[Math.floor(Math.random()*candidates.length)];
       this.recallTitle.textContent = "Resonance found";
-      this.recallBody.textContent = entry.text.slice(0,60)+"...";
+      this.recallBody.textContent = entry.text.slice(0,80)+"...";
       this.recallBubble.classList.add("visible");
       setTimeout(()=>this.recallBubble.classList.remove("visible"),6000);
     }
@@ -1581,18 +1828,9 @@
     speak(text,sentiment){
       if(!("speechSynthesis" in window)) return;
       window.speechSynthesis.cancel();
-      const safe = text.replace(/\[internals[^\]]*\]/gi,"");
-      const utter = new SpeechSynthesisUtterance(safe);
-
-      if(sentiment){
-        if(sentiment.polarity==="positive") utter.pitch = 1.1;
-        else if(sentiment.polarity==="negative") utter.pitch = 0.9;
-        else utter.pitch = 1.0;
-
-        // rate based on arousal / intensity (voice reacts to emotion)
-        const ar = sentiment.arousal || 0.5;
-        utter.rate = 0.9 + ar*0.3; // ~0.9–1.2
-      }
+      const utter = new SpeechSynthesisUtterance(text.replace(/\[internals[^\]]*\]/gi,""));
+      if(sentiment && sentiment.polarity==="positive") utter.pitch = 1.1;
+      if(sentiment && sentiment.polarity==="negative") utter.pitch = 0.9;
       window.speechSynthesis.speak(utter);
     }
 
@@ -1660,6 +1898,11 @@
       this.faithModal.classList.add("visible");
     }
 
+    openIntelModal(){
+      this.renderIntelList();
+      this.intelModal.classList.add("visible");
+    }
+
     escapeHtml(str){
       return String(str).replace(/[&<>"']/g, ch => ({
         "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
@@ -1670,7 +1913,7 @@
       const q = (this.bmSearch.value || "").toLowerCase();
       this.bmList.innerHTML = "";
       if(this.bmEntries.length===0){
-        this.bmList.textContent = "No bold memories stored (short phrases and small-talk are ignored).";
+        this.bmList.textContent = "No bold memories stored yet. Only meaningful stories and events will appear here.";
         return;
       }
       const filtered = this.bmEntries.filter(e=>e.text.toLowerCase().includes(q));
@@ -1709,6 +1952,37 @@
       });
     }
 
+    renderIntelList(){
+      this.intelList.innerHTML = "";
+      const q = (this.intelSearch.value || "").toLowerCase();
+      if(!this.intelNodes.length){
+        this.intelList.textContent = "No intelligence nodes yet.\nWhen I don't know an answer, you can teach me and I will save it here.";
+        return;
+      }
+      const filtered = this.intelNodes.filter(n=>
+        n.question.toLowerCase().includes(q) || n.answer.toLowerCase().includes(q)
+      );
+      filtered.forEach(node=>{
+        const div = document.createElement("div");
+        const dateStr = node.createdAt.toISOString().slice(0,10);
+        div.className="intel-item";
+        div.innerHTML = `
+          <div class="intel-header">
+            <span>${dateStr}</span>
+            <span>Learned</span>
+          </div>
+          <div class="intel-q">Q: ${this.escapeHtml(node.question)}</div>
+          <div class="intel-a">A: ${this.escapeHtml(node.answer)}</div>
+          <div class="intel-buttons">
+            <button class="btn-mini" data-action="use" data-id="${node.id}">Use question</button>
+            <button class="btn-mini" data-action="copy" data-id="${node.id}">Copy answer</button>
+            <button class="btn-mini btn-danger" data-action="delete" data-id="${node.id}">Delete (2× confirm)</button>
+          </div>
+        `;
+        this.intelList.appendChild(div);
+      });
+    }
+
     clearTMByHours(h){
       const cutoff = Date.now() - h*3600000;
       this.tmHistory = this.tmHistory.filter(e=>e.timestamp.getTime() < cutoff);
@@ -1718,7 +1992,7 @@
     }
 
     pruneOldBM(){
-      // keep last 48h of BM
+      // Keep last 48h by default
       this.bmEntries = this.bmEntries.filter(e=>e.timestampMs > (Date.now() - 48*3600000));
       this.saveState();
     }
