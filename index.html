@@ -31,7 +31,7 @@
       position: relative;
     }
 
-    /* ===================== HERO HEADER (COMPACT) ===================== */
+    /* ===================== HERO HEADER ===================== */
     .header{
       position: relative;
       border-radius: 24px;
@@ -45,7 +45,6 @@
       box-shadow:
         0 18px 45px rgba(2,6,23,.55),
         inset 0 1px 0 rgba(255,255,255,.08);
-      /* overflow: hidden;  ← یہ وجہ تھی menu کے نہ دکھنے کی، اب ہٹا دیا */
     }
     .header::before{
       content:"";
@@ -62,7 +61,7 @@
       content:"";
       position:absolute; inset:0;
       background:
-        repeating-linear-gradient(90deg, rgba(56,189,248,.12) 0 2px, transparent 2px 26px);
+        repeating-linear-gradient(90deg,rgba(56,189,248,.12)0 2px,transparent 2px 26px);
       opacity:.06;
       pointer-events:none;
       z-index:0;
@@ -471,7 +470,7 @@
       align-items: flex-end;
       width: 100%;
       max-width: 700px;
-      background: #fffbea; /* light yellow */
+      background: #fffbea;
       border: 1px solid #cbd5e1;
       border-radius: 26px;
       padding: 6px;
@@ -511,7 +510,7 @@
       cursor: pointer;
       border-radius: 20px;
       flex-shrink: 0;
-      margin-left: 6px;  /* صرف gap ہے، کوئی | لائن نہیں */
+      margin-left: 6px;
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
       transition: filter 0.2s, transform 0.1s;
       display: flex;
@@ -733,10 +732,7 @@
     }
     .conv-btn:hover{background:#e5e7eb;}
 
-    /* Faith modal styling */
-    .faith-card{
-      background:#fefce8;
-    }
+    .faith-card{background:#fefce8;}
     .faith-note{
       font-size:.78rem;
       color:#4b5563;
@@ -762,7 +758,6 @@
       border-color:#0f172a;
     }
 
-    /* Intelligence modal */
     .intel-item{
       background:#ffffff;
       border-radius:12px;
@@ -1043,7 +1038,7 @@
     [168,85,247]
   ];
   const IMAGE_GENERATOR_URL = "https://example.com/create?prompt=";
-  const STORAGE_KEY = "auraXOmegaState_v3";
+  const STORAGE_KEY = "auraXOmegaState_v4";
 
   class AuraXOmegaEngine{
     constructor(){
@@ -1068,6 +1063,7 @@
         this.continuityIndex = typeof saved.continuityIndex === "number" ? saved.continuityIndex : 0.8;
         this.lastResonance = typeof saved.lastResonance === "number" ? saved.lastResonance : 0.5;
         this.learningMode = typeof saved.learningMode === "boolean" ? saved.learningMode : true;
+        this.lastAnsweredQuestion = saved.lastAnsweredQuestion || null;
       }else{
         this.bmLayers = new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
         this.bmEntries = [];
@@ -1078,6 +1074,7 @@
         this.continuityIndex = 0.8;
         this.lastResonance = 0.5;
         this.learningMode = true;
+        this.lastAnsweredQuestion = null;
       }
       this.voiceOn = (saved && typeof saved.voiceOn === "boolean") ? saved.voiceOn : false;
       this.faithsSelected = (saved && Array.isArray(saved.faithsSelected)) ? saved.faithsSelected : [];
@@ -1085,6 +1082,7 @@
       this.intelTeachState = "idle";
       this.pendingIntelQuestion = null;
       this.pendingIntelAnswer = null;
+      this.pendingReplaceQuestion = null;
 
       this.seedRules = this.buildSeedRules();
       this.basicQA = this.buildBasicQA();
@@ -1157,7 +1155,8 @@
           lastResonance: this.lastResonance,
           voiceOn: this.voiceOn,
           faithsSelected: this.faithsSelected,
-          learningMode: this.learningMode
+          learningMode: this.learningMode,
+          lastAnsweredQuestion: this.lastAnsweredQuestion
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }catch(e){}
@@ -1268,7 +1267,7 @@
         e.stopPropagation();
         this.openConvModal();
       });
-      // BM shell click disabled; صرف 📁 سے recall کھلے گا
+
       this.bmSearch.addEventListener("input",()=>this.renderBMList());
 
       this.bmList.addEventListener("click",(e)=>{
@@ -1419,7 +1418,7 @@
           polarity:"neutral",
           category:"identity",
           replies:[
-            "Conceptually I was created by Alim ul Haq from Lajbok, Dir Lower, Pakistan.",
+            "Conceptually I was created by Alimulhaq from Lajbok, Dir Lower, Pakistan.",
             "I come from the AURA-X Ω research line by Alim ul Haq, Timergara (Dir Lower), Pakistan."
           ]
         },
@@ -1480,9 +1479,52 @@
       if(!text) return;
       this.messageInput.value = "";
       this.messageInput.style.height = "auto";
-
       const now = new Date();
 
+      /* 1) If we are in "replace answer" mode and now user is giving new answer */
+      if(this.intelTeachState === "awaitReplaceAnswer" && this.pendingReplaceQuestion){
+        this.addMessage("user", text);
+        const sentiment = this.analyzeSentiment(text);
+        this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
+
+        const q = this.pendingReplaceQuestion;
+        // try to find existing node for this question
+        let existing = null;
+        for(const n of this.intelNodes){
+          const sim = this.textSimilarity(q.toLowerCase(), n.question.toLowerCase());
+          if(sim > 0.75){
+            existing = n;
+            break;
+          }
+        }
+        if(existing){
+          existing.answer = text;
+          existing.createdAt = new Date();
+        }else{
+          this.addIntelNode(q, text);
+        }
+
+        const reply =
+          "Okay. I have replaced my previous answer in my intelligence memory.\n\n"+
+          "Next time you ask \""+q+"\", I will use this new answer.";
+        const replySent = this.analyzeSentiment(reply);
+
+        this.intelTeachState = "idle";
+        this.pendingReplaceQuestion = null;
+        this.pendingIntelQuestion = null;
+        this.pendingIntelAnswer = null;
+
+        this.addMessage("ai", reply, true, replySent);
+        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
+
+        this.updateMemoryAndState(text, sentiment, false);
+        this.updateMetrics();
+        this.renderIntelList();
+        this.saveState();
+        return;
+      }
+
+      /* 2) Learning-mode teaching: waiting for answer after unknown question */
       if(this.intelTeachState === "awaitAnswer" && this.pendingIntelQuestion){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
@@ -1507,6 +1549,7 @@
         return;
       }
 
+      /* 3) Learning-mode teaching: waiting for yes/no confirm */
       if(this.intelTeachState === "awaitConfirm" && this.pendingIntelQuestion && this.pendingIntelAnswer){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
@@ -1517,7 +1560,7 @@
         if(/^y(es)?\b/.test(lower)){
           this.addIntelNode(this.pendingIntelQuestion, this.pendingIntelAnswer);
           reply =
-            "Saved. Next time you ask \""+this.pendingIntelQuestion+"\", I will answer from my Intelligence seed.";
+            "Saved. Next time you ask \""+this.pendingIntelQuestion+"\", I will answer from my intelligence seed.";
         }else{
           reply =
             "Understood. I will not save that answer. You can teach me a different reply any time.";
@@ -1536,6 +1579,45 @@
         return;
       }
 
+      /* 4) User command: "replace this answer in seed" (or similar) */
+      const lowerText = text.toLowerCase();
+      const isReplaceCmd = /(replace this answer|replace that answer|change this answer|change that answer|please replace this answer)/i.test(lowerText);
+      if(this.intelTeachState === "idle" && isReplaceCmd){
+        // log this command as normal user message
+        this.addMessage("user", text);
+        const sentiment = this.analyzeSentiment(text);
+        this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
+
+        if(!this.lastAnsweredQuestion){
+          const reply =
+            "I don't have a previous question stored to replace.\n"+
+            "Please ask the original question again, let me answer, and then say \"please replace this answer\".";
+          const replySent = this.analyzeSentiment(reply);
+          this.addMessage("ai", reply, true, replySent);
+          this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
+          this.updateMemoryAndState(text, sentiment, false);
+          this.updateMetrics();
+          this.saveState();
+          return;
+        }
+
+        this.intelTeachState = "awaitReplaceAnswer";
+        this.pendingReplaceQuestion = this.lastAnsweredQuestion;
+
+        const reply =
+          "Okay, I'll replace this answer in my intelligence memory for next time.\n\n"+
+          "Question:\n\""+this.pendingReplaceQuestion+"\"\n\n"+
+          "Please type the new answer exactly as you want me to say it.";
+        const replySent = this.analyzeSentiment(reply);
+        this.addMessage("ai", reply, true, replySent);
+        this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySent});
+        this.updateMemoryAndState(text, sentiment, false);
+        this.updateMetrics();
+        this.saveState();
+        return;
+      }
+
+      /* 5) Normal path */
       const smallTalk = this.isSmallTalk(text);
       const sentiment = this.analyzeSentiment(text);
       this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
@@ -1549,6 +1631,9 @@
         const replySentiment = this.analyzeSentiment(reply);
         this.addMessage("ai",reply,true,replySentiment);
         this.tmHistory.push({role:"ai", text:reply, timestamp:new Date(), sentiment:replySentiment});
+
+        // آخری سوال محفوظ کریں تاکہ "replace this answer" اسے override کر سکے
+        this.lastAnsweredQuestion = text;
 
         this.updateMemoryAndState(text,sentiment,smallTalk);
         this.maybeShowRecallBubble(sentiment);
@@ -1670,7 +1755,8 @@
 
       const intel = this.matchIntelNode(text);
       if(intel){
-        return intel.answer + "\n\n[Answered from Intelligence memory node]";
+        // ✅ اب کوئی extra tag نہیں لگے گا
+        return intel.answer;
       }
 
       const seed = this.matchSeedRule(text);
@@ -1852,7 +1938,7 @@
 
       const body = document.createElement("div");
       body.className="message-content";
-      body.textContent = text; 
+      body.textContent = text;
 
       msg.appendChild(header);
       msg.appendChild(body);
