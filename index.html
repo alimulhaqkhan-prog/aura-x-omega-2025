@@ -138,6 +138,11 @@
       box-shadow: 0 20px 55px rgba(34,211,238,.18);
       position: relative;
       overflow:hidden;
+      animation: pulseGlow 3s infinite ease-in-out; /* NEW: Subtle Pulse */
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(34, 211, 238, 0.4), 0 20px 55px rgba(34,211,238,.18); }
+      50% { box-shadow: 0 0 25px rgba(34, 211, 238, 0.6), 0 20px 55px rgba(34,211,238,.35); }
     }
     .mode-pill::before{
       content:"";
@@ -171,8 +176,9 @@
       align-items:center;
       gap:10px;
       box-shadow: 0 14px 40px rgba(2,6,23,.25);
+      transition: all .2s ease; /* Added transition */
     }
-    .voice-toggle:hover{filter: brightness(1.03);}
+    .voice-toggle:hover{filter: brightness(1.03); transform: translateY(-1px);}
 
     @media(max-width:900px){
       .header{grid-template-columns:1fr; padding:18px}
@@ -231,7 +237,18 @@
       border:1px solid #e5e7eb;
     }
     .metric-label{font-size:.7rem;color:#64748b;margin-bottom:4px;}
-    .metric-value{font-size:1.1rem;font-weight:700;color:#1d4ed8;}
+    
+    /* Dynamic Metric Color */
+    .metric-value{
+      font-size:1.1rem;
+      font-weight:700;
+      color:#1d4ed8; /* Default to blue */
+      transition: color .3s ease-out; /* NEW: smooth color change */
+    }
+    .metric-value.positive{color:#10b981;} /* Green for positive */
+    .metric-value.negative{color:#ef4444;} /* Red for negative */
+    .metric-value.neutral{color:#64748b;}  /* Gray for neutral/low */
+
     .metric-note{font-size:.7rem;color:#9ca3af;margin-top:2px;}
 
     .status-row{
@@ -712,14 +729,14 @@
       <div class="badge-row">
         <div class="ethics-pill">
           <span class="ethics-pill-text">
-            Universal ethic: Avoid negativity, cultivate positions that create positivity for All.
+            Universal ethic: **Avoid actions that create negative emotions in you or others. Do actions that move towards creating positive emotions in everyone.**
           </span>
         </div>
       </div>
     </div>
     <div class="header-right">
       <div class="mode-pill">EMOTIONAL CONTINUITY ENGINE ACTIVE</div>
-      <button id="voiceToggle" class="voice-toggle">🔈 Voice: OFF</button>
+      <button id="voiceToggle" class="voice-toggle" aria-label="Toggle voice output">🔈 Voice: OFF</button>
     </div>
   </header>
 
@@ -769,9 +786,9 @@
           </div>
         </div>
         <div class="bm-wrapper">
-          <div class="bm-canvas-shell" id="bmShell">
-            <button class="bm-overlay-btn left" id="bmOpenModal" title="Recall from BM">📁</button>
-            <button class="bm-overlay-btn right" id="convOpenModal" title="View conversations">◎</button>
+          <div class="bm-canvas-shell" id="bmShell" aria-label="Bold Memory Visualization. Click to open Memory Window.">
+            <button class="bm-overlay-btn left" id="bmOpenModal" title="Recall from BM" aria-label="Open Bold Memory Recall Window">📁</button>
+            <button class="bm-overlay-btn right" id="convOpenModal" title="View conversations" aria-label="Open Conversation History Window">◎</button>
             <canvas id="bmCanvas"></canvas>
           </div>
           <div id="bmStats" class="bm-footer">
@@ -791,7 +808,7 @@
           <div class="card-sub">Offline · English only · No small-talk in BM.</div>
         </div>
         <div class="answer-shell">
-          <div class="answer-box">
+          <div class="answer-box" role="log" aria-live="polite">
             <div class="equation-header">AURA-X Ω SYNTHETIC EMOTION CONSOLE</div>
             <div class="equation-divider"></div>
             <div id="chatContainer" class="chat-container"></div>
@@ -807,15 +824,15 @@
     </div>
     <div class="input-row">
       <div class="input-shell">
-        <textarea id="messageInput" class="message-input" rows="1" placeholder="Write to AURA-X Ω..."></textarea>
-        <button id="sendButton" class="send-button">Send</button>
+        <textarea id="messageInput" class="message-input" rows="1" placeholder="Write to AURA-X Ω..." aria-label="Message input"></textarea>
+        <button id="sendButton" class="send-button" aria-label="Send message">Send</button>
       </div>
     </div>
     <div class="flow-caption">Prototype flow: TM → analysis → hidden equations → BM save → reaction.</div>
   </footer>
 </div>
 
-<div id="reactionBubble" class="reaction-bubble">
+<div id="reactionBubble" class="reaction-bubble" role="status">
   <div class="reaction-icon">💭</div>
   <div>
     <div id="reactionLabel" class="reaction-label">Reaction</div>
@@ -824,43 +841,43 @@
 </div>
 
 <div class="recall-bubble-container">
-  <div id="recallBubble" class="recall-bubble">
+  <div id="recallBubble" class="recall-bubble" aria-live="polite">
     <div class="recall-title" id="recallTitle">Recall from BM</div>
     <div class="recall-body" id="recallBody">…</div>
     <div class="recall-meta" id="recallMeta">Tap to open memory window.</div>
   </div>
 </div>
 
-<div id="bmModal" class="modal-overlay">
+<div id="bmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="bmModalTitle">
   <div class="modal-card">
     <div class="modal-header">
       <div>
-        <div class="modal-title">📁 Recall from BM</div>
+        <div class="modal-title" id="bmModalTitle">📁 Recall from BM</div>
         <div class="modal-sub">Search bold memories by keyword.</div>
       </div>
-      <button class="modal-close" data-close="bmModal">✕</button>
+      <button class="modal-close" data-close="bmModal" aria-label="Close Bold Memory Window">✕</button>
     </div>
     <div class="modal-body">
-      <input id="bmSearch" class="modal-search" placeholder='Search BM by keyword (e.g., "city", "mother", "court", "hope")'>
+      <input id="bmSearch" class="modal-search" placeholder='Search BM by keyword (e.g., "city", "mother", "court", "hope")' aria-label="Search Bold Memories">
       <div id="bmList"></div>
     </div>
   </div>
 </div>
 
-<div id="convModal" class="modal-overlay">
+<div id="convModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="convModalTitle">
   <div class="modal-card">
     <div class="modal-header">
       <div>
-        <div class="modal-title">◎ Conversation history</div>
+        <div class="modal-title" id="convModalTitle">◎ Conversation history</div>
         <div class="modal-sub">Recent TM log.</div>
       </div>
-      <button class="modal-close" data-close="convModal">✕</button>
+      <button class="modal-close" data-close="convModal" aria-label="Close Conversation History Window">✕</button>
     </div>
     <div class="modal-body">
       <div class="conv-controls">
-        <button id="clear24" class="conv-btn">Delete BM last 24h</button>
-        <button id="clear48" class="conv-btn">Delete BM last 48h</button>
-        <button id="clearAll" class="conv-btn">Delete all BM</button>
+        <button id="clear24" class="conv-btn" aria-label="Delete all Bold Memories from the last 24 hours">Delete BM last 24h</button>
+        <button id="clear48" class="conv-btn" aria-label="Delete all Bold Memories from the last 48 hours">Delete BM last 48h</button>
+        <button id="clearAll" class="conv-btn" aria-label="Delete all Bold Memories">Delete all BM</button>
       </div>
       <div id="convList"></div>
     </div>
@@ -1178,9 +1195,11 @@
 
       const feelingWord = ({positive:"warm",negative:"disturbed",neutral:"balanced"})[sentiment.polarity];
       let line1 = "I read this as emotionally "+sentiment.polarity+". It feels "+feelingWord+" inside the system.";
+      
+      // Applying Universal Ethics (Negative emotions are handled, but the system must 'strive' for positivity)
       let line2 = sentiment.polarity==="negative" 
-        ? " I store this pattern to understand your pain." 
-        : " I will hold this in my continuity layers.";
+        ? " I store this pattern to understand your discomfort, but the system is striving toward a positive trajectory." 
+        : " I will hold this in my continuity layers, which promotes overall positive system stability.";
       
       return line1+line2+"\n\nIf you want, write this as a scene description and I can mark it as a visual memory.";
     }
@@ -1255,6 +1274,13 @@
       this.tagArousal.textContent = "AROUSAL: "+arLabel;
       this.tagReaction.textContent = "REACTION: "+(valLabel==="negative"?"tense":"balanced");
 
+      // NEW: Apply CSS class based on E0 for visual feedback
+      this.metricE0.classList.remove("positive","negative","neutral");
+      if(val > 0.3) this.metricE0.classList.add("positive");
+      else if(val < -0.3) this.metricE0.classList.add("negative");
+      else this.metricE0.classList.add("neutral");
+
+
       const active = this.bmLayers.filter(v=>v>0.6).length;
       this.bmStats.textContent = `Active layers: ${active}/${this.bmLayers.length} · System Online`;
     }
@@ -1314,12 +1340,14 @@
       const bubble = this.reactionBubble;
       let icon = "💭";
       let title = "Balanced";
-      if(sentiment.polarity==="positive"){ icon="💚"; title="Warmth"; }
-      if(sentiment.polarity==="negative"){ icon="⚡"; title="Alert"; }
+      let reactionText = "Processing " + sentiment.polarity + " signal.";
+      
+      if(sentiment.polarity==="positive"){ icon="💚"; title="Warmth"; reactionText = "Positive reinforcement logged."; }
+      if(sentiment.polarity==="negative"){ icon="⚡"; title="Alert"; reactionText = "Negative signal detected. Priming for positive trajectory."; }
       
       bubble.querySelector(".reaction-icon").textContent = icon;
       document.getElementById("reactionLabel").textContent = title;
-      document.getElementById("reactionText").textContent = "Processing " + sentiment.polarity + " signal.";
+      document.getElementById("reactionText").textContent = reactionText;
       
       bubble.classList.add("visible");
       setTimeout(()=>bubble.classList.remove("visible"),4000);
