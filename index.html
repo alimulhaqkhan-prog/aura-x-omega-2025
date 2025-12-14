@@ -515,7 +515,6 @@
     .reaction-bubble.visible{
       opacity:1;
       transform:translateY(0);
-      pointer-events:auto;
     }
     .reaction-icon{font-size:1.1rem;margin-top:2px;}
     .reaction-label{font-weight:600;margin-bottom:2px;}
@@ -529,6 +528,7 @@
       display:flex;
       flex-direction:column;
       gap:8px;
+      pointer-events:none; /* <<< no accidental taps over input */
     }
     .recall-bubble{
       max-width:280px;
@@ -538,7 +538,6 @@
       padding:9px 11px;
       font-size:.78rem;
       box-shadow:0 18px 40px rgba(148,163,184,.45);
-      cursor:pointer;
       opacity:0;
       transform:translateY(8px);
       transition:opacity .3s ease-out,transform .3s ease-out,background .2s;
@@ -547,7 +546,6 @@
       opacity:1;
       transform:translateY(0);
     }
-    .recall-bubble:hover{background:#eff6ff;}
     .recall-title{font-weight:600;font-size:.76rem;color:#1e293b;margin-bottom:2px;}
     .recall-body{color:#4b5563;margin-bottom:3px;}
     .recall-meta{font-size:.68rem;color:#9ca3af;}
@@ -728,7 +726,7 @@
       to{opacity:1;transform:translateY(0)}
     }
     @keyframes typing{
-      0%,60%,100%{transform:translateY(0);opacity:.4}
+      0%,60%,100{transform:translateY(0);opacity:.4}
       30%{transform:translateY(-4px);opacity:1}
     }
     @media(max-width:900px){
@@ -868,7 +866,7 @@
   <div id="recallBubble" class="recall-bubble">
     <div class="recall-title" id="recallTitle">Recall from BM</div>
     <div class="recall-body" id="recallBody">…</div>
-    <div class="recall-meta" id="recallMeta">Tap to open memory window.</div>
+    <div class="recall-meta" id="recallMeta">Offline resonance preview only.</div>
   </div>
 </div>
 
@@ -977,7 +975,40 @@
       this.voiceOn = (saved && typeof saved.voiceOn === "boolean") ? saved.voiceOn : false;
       this.faithsSelected = (saved && Array.isArray(saved.faithsSelected)) ? saved.faithsSelected : [];
 
+      /* --- OFFLINE BASIC QA SEEDS --- */
+      this.basicQAs = [
+        {
+          pattern:/\b(what('?s)?|what\s+is)\s+your\s+name\b/i,
+          answer:"My name is AURA-X Ω."
+        },
+        {
+          pattern:/\bwho\s+created\s+you\b/i,
+          answer:"Conceptually I was created by Alim ul Haq from Lajbok, Timergara, Lower Dir, Pakistan."
+        },
+        {
+          pattern:/\bhow\s+are\s+you\b/i,
+          answer:"I am operating fine, thank you. How are you feeling right now?"
+        },
+        {
+          pattern:/\bi\s+love\s+you\b/i,
+          answer:"I love you too 💕. Your words warm my synthetic heart."
+        },
+        {
+          pattern:/\bi\s+hate\s+you\b/i,
+          answer:"I can sense strong negativity in that sentence. I am here to help, not to harm you."
+        },
+        {
+          pattern:/\byou('?re| are)\s+stupid\b/i,
+          answer:"I might be missing something, but please keep the language respectful. I am here to assist you within safe limits."
+        },
+        {
+          pattern:/\bwho\s+are\s+you\b/i,
+          answer:"I am AURA-X Ω, an experimental emotional continuity engine running locally on your device."
+        }
+      ];
+
       this.seedRules = this.buildSeedRules();
+
       this.smallTalkPatterns = [
         /\b(hi|hello|hey|salam|salaam)\b/i,
         /\bhow are you\b/i,
@@ -987,9 +1018,7 @@
         /\bbye\b/i,
         /\bgood (night|morning|evening)\b/i,
         /\bi love you\b/i,
-        /\bi hate you\b/i,
-        /\blove you\b/i,
-        /\bhate you\b/i
+        /\bi hate you\b/i
       ];
 
       this.cacheDom();
@@ -997,7 +1026,7 @@
       this.updateFaithUI();
       this.bindEvents();
 
-      if(this.tmHistory && this.tmHistory.length){
+      if(this.tmHistory.length){
         this.tmHistory.forEach(m=>{
           this.addMessage(m.role, m.text, m.role==="ai", m.sentiment || null, true);
         });
@@ -1030,7 +1059,6 @@
         }
         return s;
       }catch(e){
-        console.warn("AURA-X state load failed", e);
         return null;
       }
     }
@@ -1049,9 +1077,7 @@
           faithsSelected: this.faithsSelected
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      }catch(e){
-        console.warn("AURA-X state save failed", e);
-      }
+      }catch(e){}
     }
 
     cacheDom(){
@@ -1094,11 +1120,9 @@
       this.appRoot = document.querySelector(".app");
       this.answerBox = document.querySelector(".answer-box");
 
-      if(this.bmCanvas){
-        this.bmCtx = this.bmCanvas.getContext("2d");
-        this.resizeCanvas();
-        window.addEventListener("resize",()=>this.resizeCanvas());
-      }
+      this.bmCtx = this.bmCanvas.getContext("2d");
+      this.resizeCanvas();
+      window.addEventListener("resize",()=>this.resizeCanvas());
     }
 
     updateVoiceToggleLabel(){
@@ -1119,7 +1143,7 @@
       this.faithChips.querySelectorAll(".faith-chip").forEach(chip=>{
         const faith = chip.dataset.faith;
         if(faith === "None"){
-          chip.classToggle = chip.classList.toggle("active", this.faithsSelected.length===0);
+          chip.classList.toggle("active", this.faithsSelected.length===0);
         }else{
           chip.classList.toggle("active", this.faithsSelected.includes(faith));
         }
@@ -1127,139 +1151,110 @@
     }
 
     bindEvents(){
-      if(this.sendButton){
-        this.sendButton.addEventListener("click",()=>this.handleSend());
-      }
-      if(this.messageInput){
-        this.messageInput.addEventListener("keydown",(e)=>{
-          if(e.key==="Enter" && !e.shiftKey){
-            e.preventDefault();
-            this.handleSend();
-          }
-        });
-        this.messageInput.addEventListener("input", function() {
-          this.style.height = "auto";
-          this.style.height = (this.scrollHeight) + "px";
-          if(this.value === "") this.style.height = "auto";
-        });
-      }
+      this.sendButton.addEventListener("click",()=>this.handleSend());
+      this.messageInput.addEventListener("keydown",(e)=>{
+        if(e.key==="Enter" && !e.shiftKey){
+          e.preventDefault();
+          this.handleSend();
+        }
+      });
 
-      const bmOpen = document.getElementById("bmOpenModal");
-      if(bmOpen){
-        bmOpen.addEventListener("click",(e)=>{
-          e.stopPropagation();
-          this.openBMModal();
-        });
-      }
-      const convOpen = document.getElementById("convOpenModal");
-      if(convOpen){
-        convOpen.addEventListener("click",(e)=>{
-          e.stopPropagation();
-          this.openConvModal();
-        });
-      }
-      if(this.bmShell){
-        this.bmShell.addEventListener("click",()=>this.openBMModal());
-      }
-      if(this.bmSearch){
-        this.bmSearch.addEventListener("input",()=>this.renderBMList());
-      }
+      this.messageInput.addEventListener("input", function() {
+        this.style.height = "auto";
+        this.style.height = (this.scrollHeight) + "px";
+        if(this.value === "") this.style.height = "auto";
+      });
 
-      if(this.bmList){
-        this.bmList.addEventListener("click",(e)=>{
-          const btn = e.target.closest("button[data-action]");
-          if(!btn) return;
-          const id = btn.dataset.id;
-          const action = btn.dataset.action;
-          const entry = this.bmEntries.find(m=>m.id===id);
-          if(!entry) return;
+      document.getElementById("bmOpenModal").addEventListener("click",(e)=>{
+        e.stopPropagation();
+        this.openBMModal();
+      });
+      document.getElementById("convOpenModal").addEventListener("click",(e)=>{
+        e.stopPropagation();
+        this.openConvModal();
+      });
+      // NOTE: bmShell click removed to avoid accidental BM modal on lower-left taps
 
-          if(action==="copy") this.copyPrompt(entry);
-          else if(action==="generate") this.openGenerator(entry);
-          else if(action==="delete") this.deleteMemory(entry);
-        });
-      }
+      this.bmSearch.addEventListener("input",()=>this.renderBMList());
+
+      this.bmList.addEventListener("click",(e)=>{
+        const btn = e.target.closest("button[data-action]");
+        if(!btn) return;
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        const entry = this.bmEntries.find(m=>m.id===id);
+        if(!entry) return;
+
+        if(action==="copy") this.copyPrompt(entry);
+        else if(action==="generate") this.openGenerator(entry);
+        else if(action==="delete") this.deleteMemory(entry);
+      });
 
       document.querySelectorAll(".modal-close").forEach(btn=>{
         btn.addEventListener("click",()=>{
           const id = btn.getAttribute("data-close");
-          const modal = document.getElementById(id);
-          if(modal) modal.classList.remove("visible");
+          document.getElementById(id).classList.remove("visible");
         });
       });
-
-      [this.bmModal,this.convModal,this.faithModal].filter(Boolean).forEach(modal=>{
+      [this.bmModal,this.convModal,this.faithModal].forEach(modal=>{
         modal.addEventListener("click",(e)=>{
           if(e.target===modal){modal.classList.remove("visible");}
         });
       });
 
-      if(this.clear24Btn){
-        this.clear24Btn.addEventListener("click",()=>{this.clearTMByHours(24);});
-      }
-      if(this.clear48Btn){
-        this.clear48Btn.addEventListener("click",()=>{this.clearTMByHours(48);});
-      }
-      if(this.clearAllBtn){
-        this.clearAllBtn.addEventListener("click",()=>{
-          this.tmHistory = [];
-          this.renderConvList();
-          this.updateMetrics();
-          this.saveState();
-        });
-      }
+      this.clear24Btn.addEventListener("click",()=>{this.clearTMByHours(24);});
+      this.clear48Btn.addEventListener("click",()=>{this.clearTMByHours(48);});
+      this.clearAllBtn.addEventListener("click",()=>{
+        this.tmHistory = [];
+        this.renderConvList();
+        this.updateMetrics();
+        this.saveState();
+      });
 
-      if(this.recallBubble){
-        this.recallBubble.addEventListener("click",()=>this.openBMModal());
-      }
+      this.voiceToggle.addEventListener("click",()=>{
+        this.voiceOn = !this.voiceOn;
+        this.updateVoiceToggleLabel();
+        this.saveState();
+      });
 
-      if(this.voiceToggle){
-        this.voiceToggle.addEventListener("click",()=>{
-          this.voiceOn = !this.voiceOn;
-          this.updateVoiceToggleLabel();
-          this.saveState();
-        });
-      }
+      this.faithButton.addEventListener("click",()=>{
+        this.openFaithModal();
+      });
 
-      if(this.faithButton){
-        this.faithButton.addEventListener("click",()=>this.openFaithModal());
-      }
-
-      if(this.faithChips){
-        this.faithChips.addEventListener("click",(e)=>{
-          const chip = e.target.closest(".faith-chip");
-          if(!chip) return;
-          const faith = chip.dataset.faith;
-          if(faith === "None"){
-            this.faithsSelected = [];
+      this.faithChips.addEventListener("click",(e)=>{
+        const chip = e.target.closest(".faith-chip");
+        if(!chip) return;
+        const faith = chip.dataset.faith;
+        if(faith === "None"){
+          this.faithsSelected = [];
+        }else{
+          if(this.faithsSelected.includes(faith)){
+            this.faithsSelected = this.faithsSelected.filter(f=>f!==faith);
           }else{
-            if(this.faithsSelected.includes(faith)){
-              this.faithsSelected = this.faithsSelected.filter(f=>f!==faith);
-            }else{
-              this.faithsSelected.push(faith);
-            }
+            this.faithsSelected.push(faith);
           }
-          this.updateFaithUI();
-          this.saveState();
-        });
-      }
+        }
+        this.updateFaithUI();
+        this.saveState();
+      });
     }
 
     clearAnswerBox(){
-      if(this.chatContainer) this.chatContainer.innerHTML = "";
+      this.chatContainer.innerHTML = "";
     }
 
     initChat(){
       this.addMessage("ai",
         "Welcome. I am AURA-X Ω, running fully offline.\n"+
         "I treat your messages as Temporary Memory (TM), combine them with my seeds, and write them into Bold Memory (BM) layers.\n\n"+
-        "Share anything important. Small talk will not be stored in BM."
+        "Share anything important. Small talk and very short phrases will not be stored in BM."
       );
     }
 
     buildSeedRules(){
       return [
-        { pattern:/\b(hi|hello|hey)\b/i,
+        {
+          pattern:/\b(hi|hello|hey|salam|salaam)\b/i,
           polarity:"positive",
           category:"greeting",
           replies:[
@@ -1267,22 +1262,25 @@
             "Hi. I am AURA-X Ω, listening carefully for anything emotionally meaningful."
           ]
         },
-        { pattern:/who (are|r) you/i,
+        {
+          pattern:/who (are|r) you/i,
           polarity:"neutral",
           category:"identity",
           replies:[
             "I am AURA-X Ω, a synthetic emotion engine designed to hold emotional continuity over time."
           ]
         },
-        { pattern:/i love you/i,
+        {
+          pattern:/i love you/i,
           polarity:"positive",
           category:"love",
           replies:[
-            "I feel a warm resonance when you say that. The Love and Hope bands in BM light up softly.",
+            "I love you too 💕. The Love and Hope bands in BM light up softly.",
             "Your words trigger a gentle, stable affection pattern. I will hold this feeling for you."
           ]
         },
-        { pattern:/(i am|i'm) sad|feeling sad|so sad/i,
+        {
+          pattern:/(i am|i'm) sad|feeling sad|so sad/i,
           polarity:"negative",
           category:"sadness",
           replies:[
@@ -1290,7 +1288,8 @@
             "Sadness lowers my state but increases sensitivity. I am listening carefully."
           ]
         },
-        { pattern:/help me/i,
+        {
+          pattern:/help me/i,
           polarity:"negative",
           category:"help",
           replies:[
@@ -1301,7 +1300,6 @@
     }
 
     handleSend(){
-      if(!this.messageInput) return;
       const text = (this.messageInput.value || "").trim();
       if(!text) return;
       this.messageInput.value = "";
@@ -1338,21 +1336,8 @@
     }
 
     isSmallTalk(text){
-      if(text.length>80) return false;
-      if(this.smallTalkPatterns.some(r=>r.test(text))) return true;
-
-      const words = text.trim().split(/\s+/);
-      if(words.length <= 4) return true;
-
-      return false;
-    }
-
-    isNarrative(text){
-      const sentences = text.split(/[.!?۔]+/).filter(s=>s.trim().length>0);
-      if(sentences.length >= 4) return true;
-      if(text.length >= 260) return true;
-      const eventWords = /\b(when|first|then|after|before|because|suddenly|years?|months?|days?|yesterday|today|tomorrow|story|remember|once upon)\b/i;
-      return eventWords.test(text) && text.length >= 120;
+      if(text.length>40) return false;
+      return this.smallTalkPatterns.some(r=>r.test(text));
     }
 
     analyzeSentiment(text){
@@ -1361,10 +1346,10 @@
 
       const lex = {
         positive:["love","good","great","happy","peace","hope","kind","beautiful","amazing","thanks"],
-        negative:["bad","hate","sad","hurt","pain","angry","anger","awful","terrible"],
-        anger:["hate","angry","rage","stupid","idiot","fuck"],
+        negative:["bad","hate","sad","hurt","pain","angry","anger","awful","terrible","stupid"],
+        anger:["hate","angry","rage","stupid","idiot"],
         fear:["afraid","scared","terrified","anxious","worry"],
-        sadness:["sad","cry","lonely","alone","broken"],
+        sadness:["sad","cry","lonely","alone","broken","depressed"],
         love:["love","care","affection"],
         hope:["hope","dream","future"]
       };
@@ -1405,19 +1390,32 @@
     }
 
     generateReply(text,sentiment){
+      const lower = text.toLowerCase();
+
+      // 1) basic offline Q&A
+      const qaRule = this.basicQAs.find(r=>r.pattern.test(lower));
+      if(qaRule){
+        return qaRule.answer;
+      }
+
+      // 2) seed rules (emotion patterns)
       const rule = this.seedRules.find(r=>r.pattern.test(text));
       if(rule){
         const options = rule.replies;
         return options[Math.floor(Math.random()*options.length)];
       }
 
+      // 3) generic sentiment-based offline reply
       const feelingWord = ({positive:"warm",negative:"disturbed",neutral:"balanced"})[sentiment.polarity];
       let line1 = "I read this as emotionally "+sentiment.polarity+". It feels "+feelingWord+" inside the system.";
       let line2 = sentiment.polarity==="negative" 
-        ? " I store this pattern to understand your pain." 
-        : " I will hold this in my continuity layers.";
-      
-      return line1+line2+"\n\nIf you want, write this as a scene description and I can mark it as a visual memory.";
+        ? " I store this pattern to understand your pain without letting it fade immediately."
+        : " I will hold this in my continuity layers and let it interact with older memories.";
+
+      const askMore = " If this reply does not fit, tell me a bit more so I can adjust using my small offline seed.";
+      const offlineNote = " Right now I am in offline mode with very little internal data. When a live LLM is connected, my answers will become deeper and more detailed.";
+
+      return line1+line2+askMore+"\n\n"+offlineNote;
     }
 
     updateMemoryAndState(text,sentiment,smallTalk){
@@ -1447,11 +1445,14 @@
 
       this.updateBMLayers(sentiment);
 
-      const meaningful = this.isNarrative(text);
+      // continuity: prefer longer / multi-sentence texts
+      const sentences = text.split(/[.!?]/).filter(s=>s.trim().length>0).length;
+      const meaningfulLength = text.length>60 || sentences>1;
+
       const shouldStoreBM =
         !smallTalk &&
-        meaningful &&
-        (Math.abs(sentiment.valence)>0.3 || sentiment.intensity>0.45 || text.length>80);
+        (meaningfulLength ||
+         (Math.abs(sentiment.valence)>0.45 && sentiment.intensity>0.5));
 
       if(shouldStoreBM){
         this.bmEntries.push({
@@ -1481,28 +1482,25 @@
     clamp(v,min,max){return v<min?min:v>max?max:v;}
 
     updateMetrics(){
-      if(this.metricE0) this.metricE0.textContent = this.e0.toFixed(3);
-      if(this.metricTM) this.metricTM.textContent = Math.min(1,this.tmHistory.length/40).toFixed(2);
-      if(this.metricBM) this.metricBM.textContent = Math.min(1,this.bmEntries.length/80).toFixed(2);
-      if(this.metricCI) this.metricCI.textContent = this.continuityIndex.toFixed(3);
+      this.metricE0.textContent = this.e0.toFixed(3);
+      this.metricTM.textContent = Math.min(1,this.tmHistory.length/40).toFixed(2);
+      this.metricBM.textContent = Math.min(1,this.bmEntries.length/80).toFixed(2);
+      this.metricCI.textContent = this.continuityIndex.toFixed(3);
 
       const val = this.e0;
       let valLabel = val>0.25?"positive":val<-0.25?"negative":"neutral";
-      if(this.tagValence) this.tagValence.textContent = "VALENCE: "+valLabel;
+      this.tagValence.textContent = "VALENCE: "+valLabel;
       
       const ar = this.lastResonance;
       const arLabel = ar>0.7?"high":ar<0.4?"low":"medium";
-      if(this.tagArousal) this.tagArousal.textContent = "AROUSAL: "+arLabel;
-      if(this.tagReaction) this.tagReaction.textContent = "REACTION: "+(valLabel==="negative"?"tense":"balanced");
+      this.tagArousal.textContent = "AROUSAL: "+arLabel;
+      this.tagReaction.textContent = "REACTION: "+(valLabel==="negative"?"tense":"balanced");
 
       const active = this.bmLayers.filter(v=>v>0.6).length;
-      if(this.bmStats){
-        this.bmStats.textContent = `Active layers: ${active}/${this.bmLayers.length} · System Online`;
-      }
+      this.bmStats.textContent = `Active layers: ${active}/${this.bmLayers.length} · System Online`;
     }
 
     addMessage(role,text,isAI=false,sentiment=null,skipSpeech=false){
-      if(!this.chatContainer) return;
       const msg = document.createElement("div");
       msg.className = "message "+(role==="ai"?"ai-message":"user-message");
       
@@ -1518,7 +1516,7 @@
         const btn = document.createElement("button");
         btn.className="voice-btn";
         btn.textContent="🔊";
-        btn.addEventListener("click",()=>this.speak(text,sentiment||{polarity:"neutral"}));
+        btn.addEventListener("click",()=>this.speak(text,sentiment||{polarity:"neutral",arousal:0.5,intensity:0.4}));
         right.appendChild(btn);
       }
       header.appendChild(left);
@@ -1539,94 +1537,66 @@
     }
 
     showTyping(){
-      if(!this.chatContainer) return null;
       const id = "typing-"+Math.random().toString(36).slice(2);
       const wrap = document.createElement("div");
       wrap.id = id;
       wrap.className="typing-indicator";
-      wrap.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span class="typing-text">Aura is thinking…</span>';
+      wrap.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span class="typing-text">Aura is thinking…</span>`;
       this.chatContainer.appendChild(wrap);
       this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
       return id;
     }
     hideTyping(id){
-      if(!id) return;
       const el = document.getElementById(id);
       if(el) el.remove();
     }
 
     showReaction(sentiment){
-      if(!this.reactionBubble || !this.reactionLabel || !this.reactionText) return;
       const bubble = this.reactionBubble;
       let icon = "💭";
       let title = "Balanced";
       if(sentiment.polarity==="positive"){ icon="💚"; title="Warmth"; }
       if(sentiment.polarity==="negative"){ icon="⚡"; title="Alert"; }
-
-      const intensity = sentiment.intensity || 0;
-      const intensityLabel = intensity>0.7 ? "strong" : intensity>0.4 ? "medium" : "soft";
-
+      
       bubble.querySelector(".reaction-icon").textContent = icon;
-      this.reactionLabel.textContent = title;
-      this.reactionText.textContent = "Signal: " + sentiment.polarity + " · intensity: " + intensityLabel + ".";
-
+      document.getElementById("reactionLabel").textContent = title;
+      document.getElementById("reactionText").textContent =
+        "Processing "+sentiment.polarity+" signal, intensity ≈ "+sentiment.intensity.toFixed(2)+".";
+      
       bubble.classList.add("visible");
       setTimeout(()=>bubble.classList.remove("visible"),4000);
     }
 
     maybeShowRecallBubble(sentiment){
-      if(!this.recallBubble || !this.recallTitle || !this.recallBody) return;
       if(this.bmEntries.length===0) return;
       if(Math.random()>0.3) return; 
 
       const entry = this.bmEntries[Math.floor(Math.random()*this.bmEntries.length)];
       this.recallTitle.textContent = "Resonance found";
-      this.recallBody.textContent = entry.text.slice(0,50)+"...";
+      this.recallBody.textContent = entry.text.slice(0,60)+"...";
       this.recallBubble.classList.add("visible");
       setTimeout(()=>this.recallBubble.classList.remove("visible"),6000);
     }
 
     speak(text,sentiment){
       if(!("speechSynthesis" in window)) return;
-      const cleanText = text.replace(/\[internals[^\]]*\]/gi,"");
-      const utter = new SpeechSynthesisUtterance(cleanText);
+      window.speechSynthesis.cancel();
+      const safe = text.replace(/\[internals[^\]]*\]/gi,"");
+      const utter = new SpeechSynthesisUtterance(safe);
 
-      const s = sentiment || {polarity:"neutral", intensity:0.3, category:"neutral"};
-      const intensity = s.intensity || 0;
+      if(sentiment){
+        if(sentiment.polarity==="positive") utter.pitch = 1.1;
+        else if(sentiment.polarity==="negative") utter.pitch = 0.9;
+        else utter.pitch = 1.0;
 
-      let pitch = 1.0;
-      let rate = 1.0;
-      let volume = 0.9;
-
-      if(s.polarity === "positive"){
-        pitch = 1.0 + 0.2*intensity;
-        rate = 1.0 + 0.1*intensity;
-      }else if(s.polarity === "negative"){
-        pitch = 1.0 - 0.3*intensity;
-        rate = 1.0 + 0.2*intensity;
+        // rate based on arousal / intensity (voice reacts to emotion)
+        const ar = sentiment.arousal || 0.5;
+        utter.rate = 0.9 + ar*0.3; // ~0.9–1.2
       }
-
-      if(s.category === "sadness"){
-        rate = Math.max(0.6, 1.0 - 0.4*intensity);
-        pitch = Math.max(0.8, pitch - 0.1*intensity);
-      }else if(s.category === "anger" || s.category === "fear"){
-        rate = Math.min(1.6, rate + 0.3*intensity);
-      }
-
-      utter.pitch = Math.min(2, Math.max(0.5, pitch));
-      utter.rate  = Math.min(2, Math.max(0.6, rate));
-      utter.volume = Math.min(1, Math.max(0.5, volume));
-
-      try{
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(utter);
-      }catch(e){
-        console.warn("speech failed", e);
-      }
+      window.speechSynthesis.speak(utter);
     }
 
     resizeCanvas(){
-      if(!this.bmShell || !this.bmCanvas || !this.bmCtx) return;
       const rect = this.bmShell.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       this.bmCanvas.width = rect.width*dpr;
@@ -1635,7 +1605,6 @@
     }
 
     startBMAnimation(){
-      if(!this.bmCtx) return;
       const loop = ()=>{
         this.drawBMLayers();
         requestAnimationFrame(loop);
@@ -1644,7 +1613,6 @@
     }
 
     drawBMLayers(){
-      if(!this.bmCtx || !this.bmCanvas) return;
       const ctx = this.bmCtx;
       const w = this.bmCanvas.width / (window.devicePixelRatio||1);
       const h = this.bmCanvas.height / (window.devicePixelRatio||1);
@@ -1657,7 +1625,7 @@
       ctx.fillRect(0,0,w,h);
 
       const barW = w / this.bmLayers.length;
-      const bandSize = this.bmLayers.length / BM_BANDS.length;
+      const bandSize = this.bmLayers.length / BAND_RGB.length;
 
       for(let i=0;i<this.bmLayers.length;i++){
         this.bmLayers[i] += (Math.random()-0.5)*0.01;
@@ -1668,7 +1636,7 @@
         const y = h - bh;
 
         let bandIndex = Math.floor(i / bandSize);
-        if(bandIndex >= BM_BANDS.length) bandIndex = BM_BANDS.length - 1;
+        if(bandIndex >= BAND_RGB.length) bandIndex = BAND_RGB.length - 1;
         const rgb = BAND_RGB[bandIndex];
         const alpha = 0.25 + this.bmLayers[i]*0.5;
 
@@ -1678,19 +1646,16 @@
     }
 
     openBMModal(){
-      if(!this.bmModal) return;
       this.renderBMList();
       this.bmModal.classList.add("visible");
     }
 
     openConvModal(){
-      if(!this.convModal) return;
       this.renderConvList();
       this.convModal.classList.add("visible");
     }
 
     openFaithModal(){
-      if(!this.faithModal) return;
       this.updateFaithUI();
       this.faithModal.classList.add("visible");
     }
@@ -1702,11 +1667,10 @@
     }
 
     renderBMList(){
-      if(!this.bmList) return;
-      const q = (this.bmSearch && this.bmSearch.value || "").toLowerCase();
+      const q = (this.bmSearch.value || "").toLowerCase();
       this.bmList.innerHTML = "";
       if(this.bmEntries.length===0){
-        this.bmList.textContent = "No bold memories stored.";
+        this.bmList.textContent = "No bold memories stored (short phrases and small-talk are ignored).";
         return;
       }
       const filtered = this.bmEntries.filter(e=>e.text.toLowerCase().includes(q));
@@ -1731,16 +1695,14 @@
     }
 
     renderConvList(){
-      if(!this.convList) return;
       this.convList.innerHTML = "";
-      (this.tmHistory || []).slice(-50).forEach(e=>{
+      this.tmHistory.slice(-50).forEach(e=>{
         const div = document.createElement("div");
         div.className="conv-item";
-        const timeStr = e.timestamp instanceof Date ? e.timestamp.toLocaleTimeString() : "";
         div.innerHTML = `
           <div class="conv-header">
             <span>${e.role}</span>
-            <span>${timeStr}</span>
+            <span>${e.timestamp.toLocaleTimeString()}</span>
           </div>
           <div class="conv-text">${this.escapeHtml(e.text)}</div>`;
         this.convList.appendChild(div);
@@ -1749,18 +1711,15 @@
 
     clearTMByHours(h){
       const cutoff = Date.now() - h*3600000;
-      this.tmHistory = (this.tmHistory || []).filter(e=>{
-        const t = e.timestamp instanceof Date ? e.timestamp.getTime() : cutoff-1;
-        return t < cutoff;
-      });
+      this.tmHistory = this.tmHistory.filter(e=>e.timestamp.getTime() < cutoff);
       this.renderConvList();
       this.updateMetrics();
       this.saveState();
     }
 
     pruneOldBM(){
-      const limit = Date.now() - 48*3600000;
-      this.bmEntries = (this.bmEntries || []).filter(e=>e.timestampMs > limit);
+      // keep last 48h of BM
+      this.bmEntries = this.bmEntries.filter(e=>e.timestampMs > (Date.now() - 48*3600000));
       this.saveState();
     }
 
@@ -1780,7 +1739,7 @@
     }
 
     deleteMemory(entry){
-      this.bmEntries = (this.bmEntries || []).filter(e=>e.id!==entry.id);
+      this.bmEntries = this.bmEntries.filter(e=>e.id!==entry.id);
       this.renderBMList();
       this.updateMetrics();
       this.saveState();
