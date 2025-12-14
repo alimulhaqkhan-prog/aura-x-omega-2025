@@ -45,7 +45,7 @@
       box-shadow:
         0 18px 45px rgba(2,6,23,.55),
         inset 0 1px 0 rgba(255,255,255,.08);
-      overflow: hidden;
+      /* overflow: hidden;  ← یہ وجہ تھی menu کے نہ دکھنے کی، اب ہٹا دیا */
     }
     .header::before{
       content:"";
@@ -56,6 +56,7 @@
         linear-gradient(90deg, rgba(56,189,248,.10), transparent 35%, rgba(34,211,238,.10));
       opacity:.9;
       pointer-events:none;
+      z-index:0;
     }
     .header::after{
       content:"";
@@ -64,6 +65,7 @@
         repeating-linear-gradient(90deg, rgba(56,189,248,.12) 0 2px, transparent 2px 26px);
       opacity:.06;
       pointer-events:none;
+      z-index:0;
     }
 
     .title-block{position:relative; z-index:1;}
@@ -177,6 +179,8 @@
       align-items:center;
       gap:8px;
       box-shadow: 0 10px 26px rgba(2,6,23,.3);
+      position: relative;
+      z-index: 2;
     }
     .voice-toggle:hover{filter: brightness(1.03);}
 
@@ -507,7 +511,7 @@
       cursor: pointer;
       border-radius: 20px;
       flex-shrink: 0;
-      margin-left: 6px;
+      margin-left: 6px;  /* صرف gap ہے، کوئی | لائن نہیں */
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
       transition: filter 0.2s, transform 0.1s;
       display: flex;
@@ -828,10 +832,10 @@
       <div class="header-controls" id="headerControls">
         <button id="optionsToggle" class="voice-toggle">🔘 Options</button>
         <div class="option-panel" id="optionPanel">
+          <button id="voiceToggle" class="small-toggle">🔈 Voice: OFF</button>
           <button id="intelButton" class="small-toggle">🧠 Intelligence</button>
           <button id="learningToggle" class="small-toggle">📚 Learning: ON</button>
           <button id="faithButton" class="small-toggle">🔘 Faith: None</button>
-          <button id="voiceToggle" class="small-toggle">🔈 Voice: OFF</button>
         </div>
       </div>
     </div>
@@ -1206,9 +1210,6 @@
       this.intelSearch = document.getElementById("intelSearch");
       this.intelList = document.getElementById("intelList");
 
-      this.appRoot = document.querySelector(".app");
-      this.answerBox = document.querySelector(".answer-box");
-
       this.bmCtx = this.bmCanvas.getContext("2d");
       this.resizeCanvas();
       window.addEventListener("resize",()=>this.resizeCanvas());
@@ -1267,7 +1268,7 @@
         e.stopPropagation();
         this.openConvModal();
       });
-      // BM shell click disabled; only 📁 button opens recall
+      // BM shell click disabled; صرف 📁 سے recall کھلے گا
       this.bmSearch.addEventListener("input",()=>this.renderBMList());
 
       this.bmList.addEventListener("click",(e)=>{
@@ -1482,7 +1483,6 @@
 
       const now = new Date();
 
-      // --- Learning teach state (step 2: answer) ---
       if(this.intelTeachState === "awaitAnswer" && this.pendingIntelQuestion){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
@@ -1507,7 +1507,6 @@
         return;
       }
 
-      // --- Learning teach state (step 3: confirm) ---
       if(this.intelTeachState === "awaitConfirm" && this.pendingIntelQuestion && this.pendingIntelAnswer){
         this.addMessage("user", text);
         const sentiment = this.analyzeSentiment(text);
@@ -1537,12 +1536,11 @@
         return;
       }
 
-      // --- Normal flow ---
-      this.addMessage("user",text);
       const smallTalk = this.isSmallTalk(text);
       const sentiment = this.analyzeSentiment(text);
       this.tmHistory.push({role:"user", text, timestamp:now, sentiment});
 
+      this.addMessage("user",text);
       const typingId = this.showTyping();
 
       setTimeout(()=>{
@@ -1764,7 +1762,6 @@
 
       this.updateBMLayers(sentiment);
 
-      // BM only keeps content that is rich enough for photo/video
       const contentRich = text.length >= 80;
       const shouldStoreBM = !smallTalk && contentRich;
 
@@ -2008,8 +2005,8 @@
         const mediaLabel = entry.videoReady
           ? "🎞 video + 🖼 photo"
           : (entry.photoReady ? "🖼 photo" : "—");
-        div.className="bm-item";
         const polarityLabel = entry.polarity || "neutral";
+        div.className="bm-item";
         div.innerHTML = `
           <div class="bm-item-header">
             <span>${dateStr}</span>
