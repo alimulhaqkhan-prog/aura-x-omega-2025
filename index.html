@@ -45,7 +45,8 @@
       box-shadow:
         0 18px 45px rgba(2,6,23,.55),
         inset 0 1px 0 rgba(255,255,255,.08);
-      overflow: hidden;
+      /* IMPORTANT: allow Options dropdown to overflow */
+      overflow: visible;
     }
     .header::before{
       content:"";
@@ -378,7 +379,7 @@
       font-size:.8rem;
       line-height:1.5;
       position:relative;
-      animation:fadeIn .2s ease-out;
+      animation:fadeIn .2s.ease-out;
       white-space:pre-wrap;
     }
     .message-header{
@@ -580,7 +581,7 @@
       cursor:pointer;
       opacity:0;
       transform:translateY(8px);
-      transition:opacity .3s.ease-out,transform .3s ease-out,background .2s;
+      transition:opacity .3s ease-out,transform .3s ease-out,background .2s;
     }
     .recall-bubble.visible{
       opacity:1;
@@ -944,7 +945,7 @@
     </div>
     <div class="modal-body">
       <div class="conv-controls">
-        <button id="clear24" class="conv-btn">🔘 Delete history last 24h</button>
+        <!-- 24h button removed – only 48h + all -->
         <button id="clear48" class="conv-btn">🔘 Delete history last 48h</button>
         <button id="clearAll" class="conv-btn">🔘 Delete all history</button>
       </div>
@@ -1033,11 +1034,11 @@
 
       this.buildDefaultIntelligenceIfNeeded();
 
-      this.intelTeachState = "idle";          // idle | awaitSingleTeach | awaitBlockLatex | awaitBlockConfirm | awaitReplaceAnswer
+      this.intelTeachState = "idle";          
       this.pendingTeachQuestion = null;
       this.pendingBlockNodes = null;
       this.pendingReplaceQuestion = null;
-      this.lastSeedHit = null;                // {type:"intel", index, questionText}
+      this.lastSeedHit = null;                
       this.replaceTimerId = null;
 
       this.smallTalkPatterns = [
@@ -1107,7 +1108,6 @@
           }
         ];
       }
-      // normalize
       this.intelNodes.forEach(n=>{
         if(!n.id) n.id = "intel_"+Math.random().toString(36).slice(2);
         n.qNorm = (n.question || "").toLowerCase().trim();
@@ -1177,7 +1177,6 @@
 
       this.convModal = document.getElementById("convModal");
       this.convList = document.getElementById("convList");
-      this.clear24Btn = document.getElementById("clear24");
       this.clear48Btn = document.getElementById("clear48");
       this.clearAllBtn = document.getElementById("clearAll");
 
@@ -1270,7 +1269,6 @@
         });
       });
 
-      this.clear24Btn.addEventListener("click",()=>{this.clearTMByHours(24);});
       this.clear48Btn.addEventListener("click",()=>{this.clearTMByHours(48);});
       this.clearAllBtn.addEventListener("click",()=>{
         this.tmHistory = [];
@@ -1367,7 +1365,6 @@
 
       const now = new Date();
 
-      // Global cancel for any learning mode (* or cancel)
       if(this.intelTeachState !== "idle" && /^(\*|cancel)$/i.test(text)){
         this.addMessage("user", text);
         const sUser = this.analyzeSentiment(text);
@@ -1383,7 +1380,6 @@
         return;
       }
 
-      // SPECIAL MODES FIRST
       if(this.intelTeachState === "awaitReplaceAnswer" && this.pendingReplaceQuestion && this.lastSeedHit){
         this.addMessage("user", text);
         const sUser = this.analyzeSentiment(text);
@@ -1416,12 +1412,10 @@
         return;
       }
 
-      // NORMAL FLOW
       this.addMessage("user", text);
       const sentiment = this.analyzeSentiment(text);
       this.tmHistory.push({role:"user", text, timestamp: now, sentiment});
 
-      // Commands: add block to seed
       if(/please add this block to seed/i.test(text)){
         if(!this.learningOn){
           const reply = "Learning mode is OFF. Turn it ON in Options before adding a LaTeX block to seed.";
@@ -1440,7 +1434,6 @@
         return;
       }
 
-      // Command: change last seed answer
       if(/please change this answer in seed/i.test(text)){
         if(!this.lastSeedHit || this.lastSeedHit.type!=="intel"){
           const reply = "I don’t know which seed answer to change. Ask a question first, let me answer from intelligence, then say this command.";
@@ -1459,7 +1452,6 @@
         return;
       }
 
-      // Math expressions
       if(this.isMathExpression(text)){
         const result = this.evalMath(text);
         if(result !== null){
@@ -1478,7 +1470,6 @@
         }
       }
 
-      // Generate normal reply (with intelligence + learning)
       const gen = this.generateReply(text, sentiment);
       const reply = gen.reply;
       const replySent = this.analyzeSentiment(reply);
@@ -1645,8 +1636,6 @@
 
     evalMath(str){
       try{
-        // very restricted eval
-        // eslint-disable-next-line no-new-func
         const fn = new Function("return ("+str+")");
         const result = fn();
         if(typeof result === "number" && isFinite(result)) return result;
@@ -1678,7 +1667,6 @@
         return {reply:match.answer};
       }
 
-      // Learning mode: ask user for ideal reply if we have no seed
       if(this.learningOn){
         this.intelTeachState = "awaitSingleTeach";
         this.pendingTeachQuestion = text;
@@ -1691,7 +1679,6 @@
         return {reply:prompt};
       }
 
-      // Generic emotional reply
       const feelingWord = ({positive:"warm",negative:"disturbed",neutral:"balanced"})[sentiment.polarity];
       let line1 = "I read this as emotionally "+sentiment.polarity+". It feels "+feelingWord+" inside the system.";
       let line2 = sentiment.polarity==="negative" 
