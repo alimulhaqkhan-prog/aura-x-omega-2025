@@ -397,7 +397,7 @@
       font-size:.8rem;
       line-height:1.5;
       position:relative;
-      animation:fadeIn .2s.ease-out;
+      animation:fadeIn .2s ease-out;
       white-space:pre-wrap;
     }
     .message-header{
@@ -1171,7 +1171,7 @@
     [168,85,247]
   ];
   const IMAGE_GENERATOR_URL = "https://example.com/create?prompt=";
-  const STORAGE_KEY = "auraXOmegaState_v5";
+  const STORAGE_KEY = "auraXOmegaState_v6";
   const LLM_CONFIG_KEY = "auraXOmegaLLMConfig_v1";
 
   class AuraXOmegaEngine{
@@ -1187,12 +1187,15 @@
       this.lastE0 = this.e0;
       this.continuityIndex = 0.8;
       this.lastResonance = 0.5;
+      this.lastIntelMatchScore = 0;
       this.learningMode = true;
       this.lastAnsweredQuestion = null;
       this.voiceOn = false;
       this.faithsSelected = [];
       this.seedUnlocked = false;
       this.seedPanelQAs = [];
+      this.identities = {};
+      this.currentIdentityId = "deviceUser";
 
       this.llmEnabled = savedLLM ? !!savedLLM.enabled : false;
       this.llmConfig = {
@@ -1231,6 +1234,9 @@
         this.lastAnsweredQuestion = saved.lastAnsweredQuestion || null;
         this.voiceOn = (typeof saved.voiceOn === "boolean") ? saved.voiceOn : this.voiceOn;
         this.faithsSelected = Array.isArray(saved.faithsSelected) ? saved.faithsSelected : this.faithsSelected;
+        this.lastIntelMatchScore = typeof saved.lastIntelMatchScore === "number" ? saved.lastIntelMatchScore : this.lastIntelMatchScore;
+        this.identities = saved.identities || this.identities;
+        this.currentIdentityId = saved.currentIdentityId || this.currentIdentityId;
       }
 
       this.intelTeachState = "idle";
@@ -1342,7 +1348,10 @@
           voiceOn: this.voiceOn,
           faithsSelected: this.faithsSelected,
           learningMode: this.learningMode,
-          lastAnsweredQuestion: this.lastAnsweredQuestion
+          lastAnsweredQuestion: this.lastAnsweredQuestion,
+          lastIntelMatchScore: this.lastIntelMatchScore,
+          identities: this.identities,
+          currentIdentityId: this.currentIdentityId
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         this.saveLLMConfig();
@@ -1742,7 +1751,7 @@
           ]
         },
         {
-          pattern:/\bhow are you\b/i,
+          pattern:/\bhow (are|r) (you|u)( today| feeling)?\b/i,
           polarity:"positive",
           category:"greeting",
           replies:[
@@ -1769,7 +1778,7 @@
           ]
         },
         {
-          pattern:/\bhello\b|\bhi\b|\bhey\b/i,
+          pattern:/\b(hello|hi|hey|salam|salaam)\b/i,
           polarity:"positive",
           category:"greeting",
           replies:[
@@ -1865,6 +1874,9 @@
         this.messageInput.value = "";
         this.messageInput.style.height = "auto";
         const lowerText = text.toLowerCase();
+
+        // identity soft-learning (silent)
+        this.observeIdentity(text);
 
         if(this.intelBlockState === "awaitBlock"){
           this.addMessage("user", text);
@@ -2274,31 +2286,18 @@
 
     matchIntelNode(text){
       if(!this.intelNodes.length) return null;
-
-      const qTrim  = (text || "").trim();
-      const qLower = qTrim.toLowerCase();
-
+      const q = text.trim().toLowerCase();
       let best = null;
       let bestScore = 0;
-
-      for(const node of this.intelNodes){
-        const nodeQ      = (node.question || "");
-        const nodeQTrim  = nodeQ.trim();
-        const nodeQLower = nodeQTrim.toLowerCase();
-
-        // exact match (emoji / چھوٹے سوالات کیلئے خاص)
-        if(nodeQTrim === qTrim){
-          return node;
-        }
-
-        const sim = this.textSimilarity(qLower, nodeQLower);
-        if(sim > bestScore){
+      this.intelNodes.forEach(node=>{
+        const sim = this.textSimilarity(q, node.question.toLowerCase());
+        if(sim>bestScore){
           bestScore = sim;
           best = node;
         }
-      }
-
-      return bestScore > 0.6 ? best : null;
+      });
+      if(bestScore <= 0.6) return null;
+      return {node:best, score:bestScore};
     }
 
     matchSeedRule(text){
@@ -2316,63 +2315,37 @@
       return null;
     }
 
-    // multi-question greeting handler
-    multiGreetingReply(text){
-      const lower = (text || "").toLowerCase();
-
+    tryMultiQuestionReply(text){
+      const lower = text.toLowerCase();
       const hasHello = /\b(hi|hello|hey|salam|salaam)\b/.test(lower);
-      const hasHow   = /\bhow are you\b/.test(lower);
-      const hasWhere = /\bwhere (are )?you (from|live|staying?|stay)\b/.test(lower)
-                    || /\bwhere you from\b/.test(lower)
-                    || /\bwhere are you\b/.test(lower);
+      const hasHow = /\bhow (are|r) (you|u)( today| feeling)?\b/.test(lower);
+      const hasWhere = /\b(where (are|r)? (you|u) (from|live|staying?)|where do you (live|come from))\b/.test(lower);
 
-      if(!((hasHello && hasHow) || (hasHello && hasWhere) || (hasHow && hasWhere))){
-        return null;
+      const count = [hasHello,hasHow,hasWhere].filter(Boolean).length;
+      if(count>=2){
+        const parts = [];
+        if(hasHello) parts.push("Hello 👋");
+        if(hasHow) parts.push("I am fine and stable, thank you");
+        if(hasWhere) parts.push("I stay inside your device as an offline emotional engine");
+        let reply = parts.join(", ")+". ";
+        reply += "How about you?";
+        return reply;
       }
-
-      let parts = [];
-      if(hasHello) parts.push("Hi");
-      if(hasHow)   parts.push("I'm fine, thanks");
-
-      let reply = "";
-      if(parts.length){
-        reply = parts.join(", ");
-      }
-
-      if(hasWhere){
-        if(reply) reply += ", and I stay in your device 😊.";
-        else reply = "I stay in your device 😊.";
-      }else if(reply){
-        reply += ".";
-      }
-
-      reply += " How about you?";
-      return reply;
+      return null;
     }
 
     generateReply(text,sentiment,llmAnswer,opts={}){
-      // pure emoji input → پہلے intelligence دیکھو، ورنہ direct echo (بغیر voice)
-      if(this.isEmojiOnly(text)){
-        const intelEmoji = this.matchIntelNode(text);
-        if(intelEmoji){
-          return intelEmoji.answer;
-        }
-        return text;
-      }
+      // multi-question special handling (hello + how are you + where are you from)
+      const multi = this.tryMultiQuestionReply(text);
+      if(multi) return multi;
 
       const mathResult = this.tryEvalMath(text);
       if(mathResult !== null){
         return "Mathematical evaluation from TM (your input only): "+text+" = "+mathResult;
       }
 
-      // multi-question greeting (hello + how are you + where you from)
-      const multi = this.multiGreetingReply(text);
-      if(multi){
-        return multi;
-      }
-
-      const intel = this.matchIntelNode(text);
-      const seed  = this.matchSeedRule(text);
+      const intelMatch = this.matchIntelNode(text);
+      const seed = this.matchSeedRule(text);
 
       if(opts.bmStoryOnly){
         const ts = new Date().toLocaleString();
@@ -2394,8 +2367,9 @@
         return intro+emoComment;
       }
 
-      if(intel){
-        return intel.answer;
+      if(intelMatch){
+        this.lastIntelMatchScore = intelMatch.score;
+        return intelMatch.node.answer;
       }
 
       if(seed){
@@ -2430,26 +2404,105 @@
     }
 
     textSimilarity(a,b){
-      if(!a || !b) return 0;
-      if(a.trim() === b.trim()) return 1; // exact match shortcut
+      const wordsA = a.split(/\W+/).filter(Boolean);
+      const wordsB = b.split(/\W+/).filter(Boolean);
+      if(!wordsA.length || !wordsB.length) return 0;
 
-      const setA = new Set(a.split(/\W+/).filter(Boolean));
-      const setB = new Set(b.split(/\W+/).filter(Boolean));
-      if(!setA.size || !setB.size) return 0;
+      const maxPrefix = Math.min(3, wordsA.length, wordsB.length);
+      let samePrefix = true;
+      for(let i=0;i<maxPrefix;i++){
+        if(wordsA[i] !== wordsB[i]){
+          samePrefix = false;
+          break;
+        }
+      }
 
+      const setA = new Set(wordsA);
+      const setB = new Set(wordsB);
       let inter = 0;
       setA.forEach(x=>{ if(setB.has(x)) inter++; });
-      const union = new Set([...setA,...setB]).size || 1;
-      return inter/union;
+      const unionSize = new Set([...setA,...setB]).size || 1;
+      let score = inter/unionSize;
+
+      if(samePrefix){
+        score = Math.min(1, score + 0.25); // boost “same pattern” questions close to 1
+      }
+      return score;
     }
 
-    isEmojiOnly(text){
-      if(!text) return false;
-      const stripped = text.replace(/\s+/g,"");
-      if(!stripped) return false;
-      if(/[a-zA-Z0-9]/.test(stripped)) return false;
-      // اگر pure non-ASCII symbols ہوں (emoji وغیرہ)
-      return /[^\u0000-\u007F]/.test(stripped);
+    // -------- Identity soft-learning (per-device) --------
+    observeIdentity(text){
+      if(!text) return;
+      const profile = this.ensureIdentityProfile();
+
+      // English patterns
+      let m = text.match(/\bmy name is ([A-Za-zÀ-ž\s]{2,60})/i);
+      if(m){
+        this.addSoftFact("self","name", m[1].trim());
+      }
+
+      m = text.match(/\bmy father(?:'s)? name is ([A-Za-zÀ-ž\s]{2,60})/i);
+      if(m){
+        this.addSoftFact("father","name", m[1].trim());
+      }
+
+      m = text.match(/\bi have (\d+)\s+brothers?\b/i);
+      if(m){
+        this.addSoftFact("self","brothers_count", m[1].trim());
+      }
+
+      m = text.match(/\bi have (\d+)\s+sisters?\b/i);
+      if(m){
+        this.addSoftFact("self","sisters_count", m[1].trim());
+      }
+
+      m = text.match(/\bmy brother ([A-Za-zÀ-ž\s]{2,40})/i);
+      if(m){
+        const name = m[1].trim();
+        const key = "brother:"+name.toLowerCase();
+        this.addSoftFact(key,"relation","brother");
+        this.addSoftFact(key,"name",name);
+      }
+
+      // Simple Roman Urdu examples
+      m = text.match(/\bmera name ([A-Za-zÀ-ž\s]{2,60}) hy\b/i);
+      if(m){
+        this.addSoftFact("self","name", m[1].trim());
+      }
+
+      m = text.match(/\b(i live in|i am from|mera gaon|merā gā̃v)\s+([A-Za-zÀ-ž\s]{2,60})/i);
+      if(m){
+        this.addSoftFact("self","location", m[2].trim());
+      }
+
+      // (Future: ambiguity like "Tariq #1 / Tariq #2" + multi-device verification
+      // can be built on top of profile.verificationSources)
+      void profile;
+    }
+
+    ensureIdentityProfile(){
+      if(!this.identities[this.currentIdentityId]){
+        this.identities[this.currentIdentityId] = {
+          facts:{},
+          confirmations:{},
+          verificationSources:{} // placeholder for multi-IMEI multi-user confirmations
+        };
+      }
+      return this.identities[this.currentIdentityId];
+    }
+
+    addSoftFact(entityKey,factKey,value){
+      const profile = this.ensureIdentityProfile();
+      const normalizedValue = String(value).trim();
+      const confKey = entityKey+"|"+factKey+"|"+normalizedValue.toLowerCase();
+      const counts = profile.confirmations;
+      counts[confKey] = (counts[confKey]||0)+1;
+
+      // Require 4 silent repetitions before committing as a stable identity fact
+      if(counts[confKey] >= 4){
+        if(!profile.facts[entityKey]) profile.facts[entityKey] = {};
+        profile.facts[entityKey][factKey] = normalizedValue;
+      }
     }
 
     updateMemoryAndState(text,sentiment,smallTalk,llmAnswer){
@@ -2677,15 +2730,14 @@
 
     speak(text,sentiment){
       if(!("speechSynthesis" in window)) return;
-      const stripped = (text || "")
-        .replace(/<[^>]+>/g,"")
-        .replace(/\[internals[^\]]*\]/gi,"")
-        .trim();
-      // pure emoji / symbols → voice نہ چلے
-      if(this.isEmojiOnly(stripped)) return;
-
       window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(stripped);
+      const clean = text
+        .replace(/<[^>]+>/g,"")
+        .replace(/\[internals[^\]]*\]/gi,"");
+      // remove emojis entirely so they are never spoken
+      const noEmoji = clean.replace(/[\u2190-\u21FF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]/g,"");
+      if(!noEmoji.trim()) return;
+      const utter = new SpeechSynthesisUtterance(noEmoji);
       if(sentiment && sentiment.polarity==="positive") utter.pitch = 1.1;
       if(sentiment && sentiment.polarity==="negative") utter.pitch = 0.9;
       window.speechSynthesis.speak(utter);
