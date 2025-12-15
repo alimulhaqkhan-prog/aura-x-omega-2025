@@ -397,7 +397,7 @@
       font-size:.8rem;
       line-height:1.5;
       position:relative;
-      animation:fadeIn .2s ease-out;
+      animation:fadeIn .2s.ease-out;
       white-space:pre-wrap;
     }
     .message-header{
@@ -597,7 +597,7 @@
       cursor:default;
       opacity:0;
       transform:translateY(8px);
-      transition:opacity .3s ease-out,transform .3s.ease-out,background .2s;
+      transition:opacity .3s ease-out,transform .3s ease-out,background .2s;
     }
     .recall-bubble.visible{
       opacity:1;
@@ -2149,7 +2149,7 @@
           return;
         }
 
-        const smallTalk = this.isSmallTalk(text);  // TM = user input only
+        const smallTalk = this.isSmallTalk(text);
         const sentiment = this.analyzeSentiment(text);
         const sentenceCount = this.countSentences(text);
         const bmStoryOnly = !smallTalk && text.length >= 80 && sentenceCount >= 5;
@@ -2274,17 +2274,31 @@
 
     matchIntelNode(text){
       if(!this.intelNodes.length) return null;
-      const q = text.trim().toLowerCase();
+
+      const qTrim  = (text || "").trim();
+      const qLower = qTrim.toLowerCase();
+
       let best = null;
       let bestScore = 0;
-      this.intelNodes.forEach(node=>{
-        const sim = this.textSimilarity(q, node.question.toLowerCase());
-        if(sim>bestScore){
+
+      for(const node of this.intelNodes){
+        const nodeQ      = (node.question || "");
+        const nodeQTrim  = nodeQ.trim();
+        const nodeQLower = nodeQTrim.toLowerCase();
+
+        // exact match (emoji / چھوٹے سوالات کیلئے خاص)
+        if(nodeQTrim === qTrim){
+          return node;
+        }
+
+        const sim = this.textSimilarity(qLower, nodeQLower);
+        if(sim > bestScore){
           bestScore = sim;
           best = node;
         }
-      });
-      return bestScore>0.6 ? best : null;
+      }
+
+      return bestScore > 0.6 ? best : null;
     }
 
     matchSeedRule(text){
@@ -2302,14 +2316,63 @@
       return null;
     }
 
+    // multi-question greeting handler
+    multiGreetingReply(text){
+      const lower = (text || "").toLowerCase();
+
+      const hasHello = /\b(hi|hello|hey|salam|salaam)\b/.test(lower);
+      const hasHow   = /\bhow are you\b/.test(lower);
+      const hasWhere = /\bwhere (are )?you (from|live|staying?|stay)\b/.test(lower)
+                    || /\bwhere you from\b/.test(lower)
+                    || /\bwhere are you\b/.test(lower);
+
+      if(!((hasHello && hasHow) || (hasHello && hasWhere) || (hasHow && hasWhere))){
+        return null;
+      }
+
+      let parts = [];
+      if(hasHello) parts.push("Hi");
+      if(hasHow)   parts.push("I'm fine, thanks");
+
+      let reply = "";
+      if(parts.length){
+        reply = parts.join(", ");
+      }
+
+      if(hasWhere){
+        if(reply) reply += ", and I stay in your device 😊.";
+        else reply = "I stay in your device 😊.";
+      }else if(reply){
+        reply += ".";
+      }
+
+      reply += " How about you?";
+      return reply;
+    }
+
     generateReply(text,sentiment,llmAnswer,opts={}){
+      // pure emoji input → پہلے intelligence دیکھو، ورنہ direct echo (بغیر voice)
+      if(this.isEmojiOnly(text)){
+        const intelEmoji = this.matchIntelNode(text);
+        if(intelEmoji){
+          return intelEmoji.answer;
+        }
+        return text;
+      }
+
       const mathResult = this.tryEvalMath(text);
       if(mathResult !== null){
         return "Mathematical evaluation from TM (your input only): "+text+" = "+mathResult;
       }
 
+      // multi-question greeting (hello + how are you + where you from)
+      const multi = this.multiGreetingReply(text);
+      if(multi){
+        return multi;
+      }
+
       const intel = this.matchIntelNode(text);
-      const seed = this.matchSeedRule(text);
+      const seed  = this.matchSeedRule(text);
 
       if(opts.bmStoryOnly){
         const ts = new Date().toLocaleString();
@@ -2367,13 +2430,26 @@
     }
 
     textSimilarity(a,b){
+      if(!a || !b) return 0;
+      if(a.trim() === b.trim()) return 1; // exact match shortcut
+
       const setA = new Set(a.split(/\W+/).filter(Boolean));
       const setB = new Set(b.split(/\W+/).filter(Boolean));
       if(!setA.size || !setB.size) return 0;
+
       let inter = 0;
       setA.forEach(x=>{ if(setB.has(x)) inter++; });
       const union = new Set([...setA,...setB]).size || 1;
       return inter/union;
+    }
+
+    isEmojiOnly(text){
+      if(!text) return false;
+      const stripped = text.replace(/\s+/g,"");
+      if(!stripped) return false;
+      if(/[a-zA-Z0-9]/.test(stripped)) return false;
+      // اگر pure non-ASCII symbols ہوں (emoji وغیرہ)
+      return /[^\u0000-\u007F]/.test(stripped);
     }
 
     updateMemoryAndState(text,sentiment,smallTalk,llmAnswer){
@@ -2601,9 +2677,15 @@
 
     speak(text,sentiment){
       if(!("speechSynthesis" in window)) return;
+      const stripped = (text || "")
+        .replace(/<[^>]+>/g,"")
+        .replace(/\[internals[^\]]*\]/gi,"")
+        .trim();
+      // pure emoji / symbols → voice نہ چلے
+      if(this.isEmojiOnly(stripped)) return;
+
       window.speechSynthesis.cancel();
-      const clean = text.replace(/<[^>]+>/g,"").replace(/\[internals[^\]]*\]/gi,"");
-      const utter = new SpeechSynthesisUtterance(clean);
+      const utter = new SpeechSynthesisUtterance(stripped);
       if(sentiment && sentiment.polarity==="positive") utter.pitch = 1.1;
       if(sentiment && sentiment.polarity==="negative") utter.pitch = 0.9;
       window.speechSynthesis.speak(utter);
