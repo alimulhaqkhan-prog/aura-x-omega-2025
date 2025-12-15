@@ -565,7 +565,7 @@
       opacity:0;
       transform:translateY(8px);
       pointer-events:none;
-      transition:opacity .25s ease-out,transform .25s ease-out;
+      transition:opacity .25s.ease-out,transform .25s.ease-out;
       z-index:40;
     }
     .reaction-bubble.visible{
@@ -597,7 +597,7 @@
       cursor:default;
       opacity:0;
       transform:translateY(8px);
-      transition:opacity .3s ease-out,transform .3s ease-out,background .2s;
+      transition:opacity .3s ease-out,transform .3s.ease-out,background .2s;
     }
     .recall-bubble.visible{
       opacity:1;
@@ -822,6 +822,28 @@
       display:flex;
       flex-wrap:wrap;
       gap:6px;
+    }
+
+    /* Seed mode chips */
+    .seed-mode-row{
+      display:flex;
+      gap:6px;
+      margin:6px 0 8px;
+      flex-wrap:wrap;
+    }
+    .seed-mode-chip{
+      font-size:.75rem;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid #dbeafe;
+      background:#eff6ff;
+      cursor:pointer;
+      color:#1e293b;
+    }
+    .seed-mode-chip.active{
+      background:#0f172a;
+      color:#f9fafb;
+      border-color:#0f172a;
     }
 
     @keyframes fadeIn{
@@ -1076,7 +1098,7 @@
     <div class="modal-header">
       <div>
         <div class="modal-title">🌱 Feed the seed (protected)</div>
-        <div class="modal-sub">Add LaTeX Q → A blocks directly into intelligence memory.</div>
+        <div class="modal-sub">Add LaTeX Q → A or Identity blocks directly into intelligence / identity memory.</div>
       </div>
       <button class="modal-close" data-close="seedModal">✕</button>
     </div>
@@ -1095,10 +1117,18 @@
 
       <div id="seedBlockStage" style="display:none;">
         <p class="faith-note">
-          Paste a LaTeX block with <code>\item</code> questions and <code>\textbf{A:}</code> answers.
-          I will parse them into intelligence nodes (outside normal self-learning flow).
+          Choose mode:<br>
+          • <strong>Q/A block:</strong> LaTeX with <code>\item</code> and <code>\textbf{A:}</code> → intelligence nodes.<br>
+          • <strong>Identity block:</strong> simple lines like <code>Name: Alim ul Haq</code>, <code>Father name: Fazal Haq</code>, etc.
         </p>
-        <textarea id="seedBlockInput" class="modal-search" style="min-height:120px;" placeholder="Paste LaTeX conversation / logic block here..."></textarea>
+
+        <div id="seedModeRow" class="seed-mode-row">
+          <button id="seedModeQA" class="seed-mode-chip active">Q/A block</button>
+          <button id="seedModeIdentity" class="seed-mode-chip">Identity block</button>
+        </div>
+
+        <textarea id="seedBlockInput" class="modal-search" style="min-height:120px;"
+          placeholder="Paste LaTeX conversation / logic block here..."></textarea>
         <div id="seedBlockPreview" style="font-size:.75rem;color:#4b5563;margin-top:6px;">
           Waiting for block…
         </div>
@@ -1183,19 +1213,19 @@
       this.bmEntries = [];
       this.tmHistory = [];
       this.intelNodes = [];
+      this.identityFacts = [];
       this.e0 = 0.2 + Math.random()*0.3;
       this.lastE0 = this.e0;
       this.continuityIndex = 0.8;
       this.lastResonance = 0.5;
-      this.lastIntelMatchScore = 0;
       this.learningMode = true;
       this.lastAnsweredQuestion = null;
       this.voiceOn = false;
       this.faithsSelected = [];
       this.seedUnlocked = false;
       this.seedPanelQAs = [];
-      this.identities = {};
-      this.currentIdentityId = "deviceUser";
+      this.seedPanelIdentities = [];
+      this.seedMode = "qa";
 
       this.llmEnabled = savedLLM ? !!savedLLM.enabled : false;
       this.llmConfig = {
@@ -1226,6 +1256,11 @@
           id: n.id || this.makeId("intel"),
           createdAt: n.createdAt ? new Date(n.createdAt) : new Date()
         }));
+        this.identityFacts = (saved.identityFacts || []).map(f=>({
+          ...f,
+          id: f.id || this.makeId("id"),
+          createdAt: f.createdAt ? new Date(f.createdAt) : new Date()
+        }));
         this.e0 = typeof saved.e0 === "number" ? saved.e0 : this.e0;
         this.lastE0 = typeof saved.lastE0 === "number" ? saved.lastE0 : this.e0;
         this.continuityIndex = typeof saved.continuityIndex === "number" ? saved.continuityIndex : this.continuityIndex;
@@ -1234,9 +1269,6 @@
         this.lastAnsweredQuestion = saved.lastAnsweredQuestion || null;
         this.voiceOn = (typeof saved.voiceOn === "boolean") ? saved.voiceOn : this.voiceOn;
         this.faithsSelected = Array.isArray(saved.faithsSelected) ? saved.faithsSelected : this.faithsSelected;
-        this.lastIntelMatchScore = typeof saved.lastIntelMatchScore === "number" ? saved.lastIntelMatchScore : this.lastIntelMatchScore;
-        this.identities = saved.identities || this.identities;
-        this.currentIdentityId = saved.currentIdentityId || this.currentIdentityId;
       }
 
       this.intelTeachState = "idle";
@@ -1341,6 +1373,7 @@
           bmEntries: this.bmEntries,
           tmHistory: this.tmHistory,
           intelNodes: this.intelNodes,
+          identityFacts: this.identityFacts,
           e0: this.e0,
           lastE0: this.lastE0,
           continuityIndex: this.continuityIndex,
@@ -1348,10 +1381,7 @@
           voiceOn: this.voiceOn,
           faithsSelected: this.faithsSelected,
           learningMode: this.learningMode,
-          lastAnsweredQuestion: this.lastAnsweredQuestion,
-          lastIntelMatchScore: this.lastIntelMatchScore,
-          identities: this.identities,
-          currentIdentityId: this.currentIdentityId
+          lastAnsweredQuestion: this.lastAnsweredQuestion
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         this.saveLLMConfig();
@@ -1417,6 +1447,9 @@
       this.seedParseBtn = document.getElementById("seedParseBtn");
       this.seedSaveBtn = document.getElementById("seedSaveBtn");
       this.seedDiscardBtn = document.getElementById("seedDiscardBtn");
+      this.seedModeRow = document.getElementById("seedModeRow");
+      this.seedModeQA = document.getElementById("seedModeQA");
+      this.seedModeIdentity = document.getElementById("seedModeIdentity");
 
       this.llmModal = document.getElementById("llmModal");
       this.llmLockStage = document.getElementById("llmLockStage");
@@ -1476,6 +1509,32 @@
           : "LLM configured but currently OFF.";
       }else{
         this.llmStatusText.textContent = "No API key saved. Engine is offline-only.";
+      }
+    }
+
+    setSeedMode(mode){
+      this.seedMode = mode === "identity" ? "identity" : "qa";
+      this.updateSeedModeUI();
+    }
+
+    updateSeedModeUI(){
+      if(this.seedModeQA && this.seedModeIdentity){
+        this.seedModeQA.classList.toggle("active", this.seedMode==="qa");
+        this.seedModeIdentity.classList.toggle("active", this.seedMode==="identity");
+      }
+      if(this.seedBlockInput && this.seedBlockPreview && this.seedSaveBtn){
+        if(this.seedMode === "qa"){
+          this.seedBlockPreview.textContent =
+            "Paste a LaTeX block with \\item questions and \\textbf{A:} answers, then click Parse.";
+          this.seedBlockInput.placeholder =
+            "Paste LaTeX conversation / logic block here...";
+        }else{
+          this.seedBlockPreview.textContent =
+            "Paste identity lines, one per line (e.g., 'Name: Alim ul Haq', 'Father name: Fazal Haq', 'Village: Lajbok').";
+          this.seedBlockInput.placeholder =
+            "Name: Alim ul Haq\nFather name: Fazal Haq\nBrothers: 2 (Tariq, Iftikhar)\nSisters: 5\nVillage: Lajbok\nDistrict: Lower Dir";
+        }
+        this.seedSaveBtn.disabled = true;
       }
     }
 
@@ -1657,6 +1716,12 @@
           }
         });
       }
+      if(this.seedModeQA){
+        this.seedModeQA.addEventListener("click",()=>this.setSeedMode("qa"));
+      }
+      if(this.seedModeIdentity){
+        this.seedModeIdentity.addEventListener("click",()=>this.setSeedMode("identity"));
+      }
       if(this.seedParseBtn){
         this.seedParseBtn.addEventListener("click",()=>this.handleSeedParse());
       }
@@ -1694,6 +1759,8 @@
           this.saveState();
         });
       }
+
+      this.setSeedMode("qa");
     }
 
     pushTM(role,text,sentiment){
@@ -1715,8 +1782,7 @@
         "E₀ = tanh((TM × (BM + Intel + LLM)) − D + λ_faith + λ_sys + λ_trc).\n\n"+
         "BM only stores story-level text that can later be used to generate a photo or video scene.\n"+
         "When Learning mode is ON and I don’t know an answer, you can teach me and I will remember it for next time.\n\n"+
-        "You can also say: \"please add this block to seed\" and then paste a LaTeX block of Q/A pairs to teach many answers at once.\n"+
-        "You can ask for time, fresh news links, or just explore emotional patterns.";
+        "You can also say: \"please add this block to seed\" and then paste a LaTeX block of Q/A pairs, or an identity block with your basic profile.";
       const sent = this.analyzeSentiment(text);
       this.addMessage("ai", text, true, sent);
       this.pushTM("ai", text, sent);
@@ -1751,7 +1817,7 @@
           ]
         },
         {
-          pattern:/\bhow (are|r) (you|u)( today| feeling)?\b/i,
+          pattern:/\bhow are you\b/i,
           polarity:"positive",
           category:"greeting",
           replies:[
@@ -1778,7 +1844,7 @@
           ]
         },
         {
-          pattern:/\b(hello|hi|hey|salam|salaam)\b/i,
+          pattern:/\bhello\b|\bhi\b|\bhey\b/i,
           polarity:"positive",
           category:"greeting",
           replies:[
@@ -1840,6 +1906,61 @@
       return result;
     }
 
+    parseIdentityBlock(text){
+      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+      const facts = [];
+      for(const line of lines){
+        const parts = line.split(/[:=]/);
+        if(parts.length < 2) continue;
+        const label = parts[0].trim();
+        const value = parts.slice(1).join(":").trim();
+        if(!label || !value) continue;
+        const type = this.detectIdentityType(label, value);
+        facts.push({
+          id: this.makeId("id"),
+          label,
+          value,
+          type,
+          confirmedCount:4,
+          source:"seed",
+          createdAt:new Date()
+        });
+      }
+      return facts;
+    }
+
+    detectIdentityType(label,value){
+      const l = label.toLowerCase();
+      if(l.includes("name") && !l.includes("father") && !l.includes("uncle")) return "self_name";
+      if(l.includes("father")) return "father";
+      if(l.includes("mother")) return "mother";
+      if(l.includes("brother")) return "brother";
+      if(l.includes("sister")) return "sister";
+      if(l.includes("village") || l.includes("gaon")) return "village";
+      if(l.includes("city") || l.includes("shehar")) return "city";
+      if(l.includes("district")) return "district";
+      if(l.includes("dob") || l.includes("birth")) return "dob";
+      if(l.includes("uncle") || l.includes("mamu") || l.includes("chacha")) return "uncle";
+      return "other";
+    }
+
+    upsertIdentityFact(newFact){
+      const key = (newFact.label || "").toLowerCase();
+      const value = (newFact.value || "").toLowerCase();
+      const existing = this.identityFacts.find(f =>
+        (f.label || "").toLowerCase() === key &&
+        (f.value || "").toLowerCase() === value
+      );
+      if(existing){
+        existing.confirmedCount = Math.min((existing.confirmedCount || 1) + 1, 10);
+        existing.createdAt = new Date();
+      }else{
+        newFact.confirmedCount = newFact.confirmedCount || 4;
+        newFact.createdAt = newFact.createdAt || new Date();
+        this.identityFacts.push(newFact);
+      }
+    }
+
     isTimeRequest(text){
       const lower = text.toLowerCase().trim();
       if(!lower.includes("time")) return false;
@@ -1866,6 +1987,15 @@
       return parts.length;
     }
 
+    detectGreetingPack(text){
+      const lower = text.toLowerCase();
+      if(lower.includes("how are you") &&
+         (lower.includes("where are you") || lower.includes("where you from") || lower.includes("where are you from"))){
+        return "Hi. I am fine, thanks.\n\nI stay inside your device as an offline emotional continuity engine.\nHow about you today?";
+      }
+      return null;
+    }
+
     async handleSend(){
       try{
         const textRaw = this.messageInput.value || "";
@@ -1874,9 +2004,6 @@
         this.messageInput.value = "";
         this.messageInput.style.height = "auto";
         const lowerText = text.toLowerCase();
-
-        // identity soft-learning (silent)
-        this.observeIdentity(text);
 
         if(this.intelBlockState === "awaitBlock"){
           this.addMessage("user", text);
@@ -1959,7 +2086,7 @@
           let existing = null;
           for(const n of this.intelNodes){
             const sim = this.textSimilarity(q.toLowerCase(), n.question.toLowerCase());
-            if(sim > 0.75){
+            if(sim > 0.9){
               existing = n;
               break;
             }
@@ -2088,11 +2215,11 @@
           this.pendingBlockQAs = [];
 
           const reply =
-            "Okay. I am ready to learn a block.\n\n"+
+            "Okay. I am ready to learn a Q/A block.\n\n"+
             "In your next message, paste the full block of questions and answers (for example LaTeX like:\n"+
             '\\item Where is the reception desk? \\\\\n'+
-            '\\textbf{A:} It’s right at the main entrance, on your left.\n\n'+
-            "I will parse it and then ask you to confirm with yes or no before saving.";
+            '\\textbf{A:} It’s right at the main entrance, on your left.\n\n"+
+            "If you want to feed identity instead, open the 🌱 panel and select Identity block mode.";
           const replySent = this.analyzeSentiment(reply);
           this.addMessage("ai", reply, true, replySent);
           this.pushTM("ai", reply, replySent);
@@ -2296,8 +2423,7 @@
           best = node;
         }
       });
-      if(bestScore <= 0.6) return null;
-      return {node:best, score:bestScore};
+      return bestScore>=0.9 ? best : null;
     }
 
     matchSeedRule(text){
@@ -2315,36 +2441,42 @@
       return null;
     }
 
-    tryMultiQuestionReply(text){
+    answerFromIdentity(text){
+      if(!this.identityFacts.length) return null;
       const lower = text.toLowerCase();
-      const hasHello = /\b(hi|hello|hey|salam|salaam)\b/.test(lower);
-      const hasHow = /\bhow (are|r) (you|u)( today| feeling)?\b/.test(lower);
-      const hasWhere = /\b(where (are|r)? (you|u) (from|live|staying?)|where do you (live|come from))\b/.test(lower);
+      const getVal = (types)=> {
+        const fact = this.identityFacts.find(f=>types.includes(f.type));
+        return fact ? fact.value : null;
+      };
 
-      const count = [hasHello,hasHow,hasWhere].filter(Boolean).length;
-      if(count>=2){
-        const parts = [];
-        if(hasHello) parts.push("Hello 👋");
-        if(hasHow) parts.push("I am fine and stable, thank you");
-        if(hasWhere) parts.push("I stay inside your device as an offline emotional engine");
-        let reply = parts.join(", ")+". ";
-        reply += "How about you?";
-        return reply;
+      if(lower.includes("my name") || /what is my name/i.test(lower)){
+        const v = getVal(["self_name"]);
+        if(v) return "Your name in my identity layer is stored as: "+v+".";
+      }
+      if(lower.includes("my father") || /who is my father/i.test(lower)){
+        const v = getVal(["father"]);
+        if(v) return "Your father’s name is stored as: "+v+".";
+      }
+      if(lower.includes("my village") || lower.includes("which village") || lower.includes("gaon")){
+        const v = getVal(["village"]);
+        if(v) return "Your village is stored as: "+v+".";
       }
       return null;
     }
 
     generateReply(text,sentiment,llmAnswer,opts={}){
-      // multi-question special handling (hello + how are you + where are you from)
-      const multi = this.tryMultiQuestionReply(text);
-      if(multi) return multi;
+      const multi = this.detectGreetingPack(text);
+      if(multi){
+        return multi;
+      }
 
       const mathResult = this.tryEvalMath(text);
       if(mathResult !== null){
         return "Mathematical evaluation from TM (your input only): "+text+" = "+mathResult;
       }
 
-      const intelMatch = this.matchIntelNode(text);
+      const intel = this.matchIntelNode(text);
+      const identityAns = this.answerFromIdentity(text);
       const seed = this.matchSeedRule(text);
 
       if(opts.bmStoryOnly){
@@ -2360,16 +2492,19 @@
           "I treated your message as TM (user input only) and linked it to the external LLM.\n\n"+
           "LLM suggestion:\n"+llmAnswer.trim()+"\n\n";
         const emoComment =
-          "Emotional scan of TM → (BM + Intelligence + LLM):\n"+
+          "Emotional scan of TM → (BM + Intel + LLM):\n"+
           "- overall polarity: "+emoLabel+" (E₀ will show in metrics)\n"+
           "- category: "+sentiment.category+" · intensity "+sentiment.intensity.toFixed(2)+".\n\n"+
           "I will keep only emotionally meaningful parts in BM; small-talk is filtered out.";
         return intro+emoComment;
       }
 
-      if(intelMatch){
-        this.lastIntelMatchScore = intelMatch.score;
-        return intelMatch.node.answer;
+      if(intel){
+        return intel.answer;
+      }
+
+      if(identityAns){
+        return identityAns;
       }
 
       if(seed){
@@ -2404,105 +2539,13 @@
     }
 
     textSimilarity(a,b){
-      const wordsA = a.split(/\W+/).filter(Boolean);
-      const wordsB = b.split(/\W+/).filter(Boolean);
-      if(!wordsA.length || !wordsB.length) return 0;
-
-      const maxPrefix = Math.min(3, wordsA.length, wordsB.length);
-      let samePrefix = true;
-      for(let i=0;i<maxPrefix;i++){
-        if(wordsA[i] !== wordsB[i]){
-          samePrefix = false;
-          break;
-        }
-      }
-
-      const setA = new Set(wordsA);
-      const setB = new Set(wordsB);
+      const setA = new Set(a.split(/\W+/).filter(Boolean));
+      const setB = new Set(b.split(/\W+/).filter(Boolean));
+      if(!setA.size || !setB.size) return 0;
       let inter = 0;
       setA.forEach(x=>{ if(setB.has(x)) inter++; });
-      const unionSize = new Set([...setA,...setB]).size || 1;
-      let score = inter/unionSize;
-
-      if(samePrefix){
-        score = Math.min(1, score + 0.25); // boost “same pattern” questions close to 1
-      }
-      return score;
-    }
-
-    // -------- Identity soft-learning (per-device) --------
-    observeIdentity(text){
-      if(!text) return;
-      const profile = this.ensureIdentityProfile();
-
-      // English patterns
-      let m = text.match(/\bmy name is ([A-Za-zÀ-ž\s]{2,60})/i);
-      if(m){
-        this.addSoftFact("self","name", m[1].trim());
-      }
-
-      m = text.match(/\bmy father(?:'s)? name is ([A-Za-zÀ-ž\s]{2,60})/i);
-      if(m){
-        this.addSoftFact("father","name", m[1].trim());
-      }
-
-      m = text.match(/\bi have (\d+)\s+brothers?\b/i);
-      if(m){
-        this.addSoftFact("self","brothers_count", m[1].trim());
-      }
-
-      m = text.match(/\bi have (\d+)\s+sisters?\b/i);
-      if(m){
-        this.addSoftFact("self","sisters_count", m[1].trim());
-      }
-
-      m = text.match(/\bmy brother ([A-Za-zÀ-ž\s]{2,40})/i);
-      if(m){
-        const name = m[1].trim();
-        const key = "brother:"+name.toLowerCase();
-        this.addSoftFact(key,"relation","brother");
-        this.addSoftFact(key,"name",name);
-      }
-
-      // Simple Roman Urdu examples
-      m = text.match(/\bmera name ([A-Za-zÀ-ž\s]{2,60}) hy\b/i);
-      if(m){
-        this.addSoftFact("self","name", m[1].trim());
-      }
-
-      m = text.match(/\b(i live in|i am from|mera gaon|merā gā̃v)\s+([A-Za-zÀ-ž\s]{2,60})/i);
-      if(m){
-        this.addSoftFact("self","location", m[2].trim());
-      }
-
-      // (Future: ambiguity like "Tariq #1 / Tariq #2" + multi-device verification
-      // can be built on top of profile.verificationSources)
-      void profile;
-    }
-
-    ensureIdentityProfile(){
-      if(!this.identities[this.currentIdentityId]){
-        this.identities[this.currentIdentityId] = {
-          facts:{},
-          confirmations:{},
-          verificationSources:{} // placeholder for multi-IMEI multi-user confirmations
-        };
-      }
-      return this.identities[this.currentIdentityId];
-    }
-
-    addSoftFact(entityKey,factKey,value){
-      const profile = this.ensureIdentityProfile();
-      const normalizedValue = String(value).trim();
-      const confKey = entityKey+"|"+factKey+"|"+normalizedValue.toLowerCase();
-      const counts = profile.confirmations;
-      counts[confKey] = (counts[confKey]||0)+1;
-
-      // Require 4 silent repetitions before committing as a stable identity fact
-      if(counts[confKey] >= 4){
-        if(!profile.facts[entityKey]) profile.facts[entityKey] = {};
-        profile.facts[entityKey][factKey] = normalizedValue;
-      }
+      const union = new Set([...setA,...setB]).size || 1;
+      return inter/union;
     }
 
     updateMemoryAndState(text,sentiment,smallTalk,llmAnswer){
@@ -2731,13 +2774,15 @@
     speak(text,sentiment){
       if(!("speechSynthesis" in window)) return;
       window.speechSynthesis.cancel();
-      const clean = text
-        .replace(/<[^>]+>/g,"")
-        .replace(/\[internals[^\]]*\]/gi,"");
-      // remove emojis entirely so they are never spoken
-      const noEmoji = clean.replace(/[\u2190-\u21FF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]/g,"");
-      if(!noEmoji.trim()) return;
-      const utter = new SpeechSynthesisUtterance(noEmoji);
+      let clean = text.replace(/<[^>]+>/g,"").replace(/\[internals[^\]]*\]/gi,"");
+      // emojis کو voice سے ہٹا دیں
+      try{
+        const emojiRegex = /[\u{1F300}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}]/gu;
+        clean = clean.replace(emojiRegex,"");
+      }catch(e){
+        clean = clean.replace(/[\uD800-\uDFFF]/g,"");
+      }
+      const utter = new SpeechSynthesisUtterance(clean);
       if(sentiment && sentiment.polarity==="positive") utter.pitch = 1.1;
       if(sentiment && sentiment.polarity==="negative") utter.pitch = 0.9;
       window.speechSynthesis.speak(utter);
@@ -2816,6 +2861,7 @@
       if(this.seedUnlocked){
         this.seedPasswordStage.style.display = "none";
         this.seedBlockStage.style.display = "block";
+        this.updateSeedModeUI();
       }else{
         this.seedPasswordStage.style.display = "block";
         this.seedBlockStage.style.display = "none";
@@ -2837,6 +2883,7 @@
         if(this.seedPasswordInput) this.seedPasswordInput.value = "";
         this.seedPasswordStage.style.display = "none";
         this.seedBlockStage.style.display = "block";
+        this.updateSeedModeUI();
         if(this.seedBlockInput) this.seedBlockInput.focus();
       }else{
         if(this.seedPasswordError) this.seedPasswordError.style.display = "block";
@@ -2846,43 +2893,86 @@
     handleSeedParse(){
       const raw = (this.seedBlockInput.value || "").trim();
       if(!raw){
-        this.seedBlockPreview.textContent = "Please paste a LaTeX block with \\item and \\textbf{A:} first.";
+        if(this.seedMode==="qa"){
+          this.seedBlockPreview.textContent = "Please paste a LaTeX block with \\item and \\textbf{A:} first.";
+        }else{
+          this.seedBlockPreview.textContent = "Please paste some identity lines first (e.g., 'Name: ...').";
+        }
         this.seedSaveBtn.disabled = true;
         return;
       }
-      const qas = this.parseLaTeXBlockToQAs(raw);
-      if(!qas.length){
-        this.seedBlockPreview.textContent = "I could not find any Q → A pairs. Check that each item has \\item question and \\textbf{A:} answer.";
-        this.seedSaveBtn.disabled = true;
-        return;
+
+      if(this.seedMode==="qa"){
+        const qas = this.parseLaTeXBlockToQAs(raw);
+        if(!qas.length){
+          this.seedBlockPreview.textContent =
+            "I could not find any Q → A pairs. Check that each item has \\item question and \\textbf{A:} answer.";
+          this.seedSaveBtn.disabled = true;
+          this.seedPanelQAs = [];
+          return;
+        }
+        this.seedPanelQAs = qas;
+        this.seedPanelIdentities = [];
+        const ex = qas[0];
+        this.seedBlockPreview.textContent =
+          `Found ${qas.length} pairs. Example:\nQ: ${ex.question}\nA: ${ex.answer}`;
+        this.seedSaveBtn.disabled = false;
+      }else{
+        const facts = this.parseIdentityBlock(raw);
+        if(!facts.length){
+          this.seedBlockPreview.textContent =
+            "I could not read any identity facts. Use lines like 'Name: ...', 'Father name: ...', 'Village: ...'.";
+          this.seedSaveBtn.disabled = true;
+          this.seedPanelIdentities = [];
+          return;
+        }
+        this.seedPanelIdentities = facts;
+        this.seedPanelQAs = [];
+        const ex = facts[0];
+        this.seedBlockPreview.textContent =
+          `Found ${facts.length} identity facts. Example:\n${ex.label}: ${ex.value}`;
+        this.seedSaveBtn.disabled = false;
       }
-      this.seedPanelQAs = qas;
-      const ex = qas[0];
-      this.seedBlockPreview.textContent = `Found ${qas.length} pairs. Example:\nQ: ${ex.question}\nA: ${ex.answer}`;
-      this.seedSaveBtn.disabled = false;
     }
 
     handleSeedSave(){
-      if(!this.seedPanelQAs.length){
-        this.seedBlockPreview.textContent = "Nothing to save yet. Parse a block first.";
+      if(this.seedMode==="qa"){
+        if(!this.seedPanelQAs.length){
+          this.seedBlockPreview.textContent = "Nothing to save yet. Parse a Q/A block first.";
+          this.seedSaveBtn.disabled = true;
+          return;
+        }
+        this.seedPanelQAs.forEach(pair=>{
+          this.addIntelNode(pair.question, pair.answer);
+        });
+        this.seedBlockPreview.textContent = `Saved ${this.seedPanelQAs.length} pairs into intelligence memory.`;
         this.seedSaveBtn.disabled = true;
-        return;
+        this.seedPanelQAs = [];
+        this.seedBlockInput.value = "";
+        this.renderIntelList();
+        this.saveState();
+      }else{
+        if(!this.seedPanelIdentities.length){
+          this.seedBlockPreview.textContent = "Nothing to save yet. Parse an identity block first.";
+          this.seedSaveBtn.disabled = true;
+          return;
+        }
+        this.seedPanelIdentities.forEach(fact=>this.upsertIdentityFact(fact));
+        this.seedBlockPreview.textContent = `Saved ${this.seedPanelIdentities.length} identity facts into identity profile.`;
+        this.seedSaveBtn.disabled = true;
+        this.seedPanelIdentities = [];
+        this.seedBlockInput.value = "";
+        this.saveState();
       }
-      this.seedPanelQAs.forEach(pair=>{
-        this.addIntelNode(pair.question, pair.answer);
-      });
-      this.seedBlockPreview.textContent = `Saved ${this.seedPanelQAs.length} pairs into intelligence memory.`;
-      this.seedSaveBtn.disabled = true;
-      this.seedPanelQAs = [];
-      this.seedBlockInput.value = "";
-      this.renderIntelList();
-      this.saveState();
     }
 
     handleSeedDiscard(){
       this.seedPanelQAs = [];
+      this.seedPanelIdentities = [];
       this.seedBlockInput.value = "";
-      this.seedBlockPreview.textContent = "Block cleared. You can paste a new LaTeX section here.";
+      this.seedBlockPreview.textContent = this.seedMode==="qa"
+        ? "Block cleared. You can paste a new LaTeX section here."
+        : "Block cleared. You can paste a new identity block here.";
       this.seedSaveBtn.disabled = true;
     }
 
