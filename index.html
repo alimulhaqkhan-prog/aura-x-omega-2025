@@ -135,13 +135,13 @@
     }
 
     .header-right{
-      position:relative;
+      position: relative;
       z-index:1;
       display:flex;
       flex-direction:column;
       align-items:flex-end;
       gap:10px;
-      padding-top:32px; /* keep space under Options button */
+      padding-top:32px; /* gives space so Options sits above mode pill */
     }
     .mode-pill{
       width: min(320px, 100%);
@@ -180,16 +180,16 @@
       opacity:.40;
     }
 
-    /* Options button pinned top-right of header */
+    /* Options button: fixed in header top-right */
     .header-controls{
+      position:absolute;
+      top:10px;
+      right:12px;
       display:flex;
       flex-wrap:wrap;
       justify-content:flex-end;
-      position:absolute;
-      top:10px;
-      right:14px;
       margin-top:0;
-      z-index:25;
+      z-index:30;
     }
     .voice-toggle{
       border:none;
@@ -205,7 +205,7 @@
       gap:8px;
       box-shadow: 0 10px 26px rgba(2,6,23,.6);
       position: relative;
-      z-index: 26;
+      z-index: 31;
     }
     .voice-toggle:hover{filter: brightness(1.03);}
 
@@ -245,16 +245,8 @@
         grid-template-columns:1fr;
         padding:12px 12px 14px;
       }
-      .header-right{
-        align-items:stretch;
-        padding-top:44px; /* a bit more space on mobile */
-      }
+      .header-right{align-items:stretch}
       .mode-pill{width:100%}
-      .header-controls{
-        top:8px;
-        right:10px;
-        justify-content:flex-end;
-      }
     }
 
     /* LAYOUT */
@@ -683,6 +675,20 @@
       border-color:#2563eb;
       box-shadow:0 0 0 1px rgba(37,99,235,.25);
     }
+    .modal-select{
+      width:100%;
+      padding:7px 9px;
+      border-radius:10px;
+      border:1px solid #cbd5f5;
+      font-size:.78rem;
+      margin:4px 0 8px;
+      outline:none;
+      background:#ffffff;
+    }
+    .modal-select:focus{
+      border-color:#2563eb;
+      box-shadow:0 0 0 1px rgba(37,99,235,.25);
+    }
     .bm-item{
       background:#ffffff;
       border-radius:12px;
@@ -840,7 +846,7 @@
       to{opacity:1;transform:translateY(0)}
     }
     @keyframes typing{
-      0%,60%,100%{transform:translateY(0);opacity:.4}
+      0%,60%,100{transform:translateY(0);opacity:.4}
       30%{transform:translateY(-4px);opacity:1}
     }
     @media(max-width:900px){
@@ -868,11 +874,8 @@
         </div>
       </div>
     </div>
-
     <div class="header-right">
       <div class="mode-pill">EMOTIONAL CONTINUITY ENGINE ACTIVE</div>
-
-      <!-- Options button now pinned top-right of header -->
       <div class="header-controls" id="headerControls">
         <button id="optionsToggle" class="voice-toggle">🔘 Options</button>
         <div class="option-panel" id="optionPanel">
@@ -1132,7 +1135,7 @@
     <div class="modal-header">
       <div>
         <div class="modal-title">🤖 LLM link settings</div>
-        <div class="modal-sub">Password 6789 · For private testing only (keys stay in this browser).</div>
+        <div class="modal-sub">Password 6789 · Local-only storage · For OpenAI-style chat APIs.</div>
       </div>
       <button class="modal-close" data-close="llmModal">✕</button>
     </div>
@@ -1151,46 +1154,25 @@
 
       <div id="llmConfigStage" style="display:none;">
         <p class="faith-note">
-          For real products, move all LLM calls to a secure backend. Here everything stays in localStorage of this browser only.
+          This demo expects an OpenAI-compatible <code>/chat/completions</code> style API.<br>
+          For Anthropic, Gemini etc. you can point to your own proxy URL.
         </p>
 
-        <!-- NEW: preset selector for different models/providers -->
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Provider</label>
+        <select id="llmProviderSelect" class="modal-select"></select>
+
         <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Model preset</label>
-        <select id="llmPresetSelect" class="modal-search">
-          <option value="custom">Custom / Manual</option>
-          <option value="openai-gpt4-mini"
-                  data-base="https://api.openai.com/v1/chat/completions"
-                  data-model="gpt-4.1-mini">
-            OpenAI – GPT-4.1 mini
-          </option>
-          <option value="openai-gpt4o-mini"
-                  data-base="https://api.openai.com/v1/chat/completions"
-                  data-model="gpt-4o-mini">
-            OpenAI – GPT-4o mini
-          </option>
-          <option value="openai-gpt4"
-                  data-base="https://api.openai.com/v1/chat/completions"
-                  data-model="gpt-4.1">
-            OpenAI – GPT-4.1
-          </option>
-          <option value="generic-openai"
-                  data-base="https://api.openai.com/v1/chat/completions"
-                  data-model="gpt-3.5-turbo">
-            Generic OpenAI-compatible
-          </option>
-          <option value="local-compatible"
-                  data-base="http://localhost:8000/v1/chat/completions"
-                  data-model="local-llm">
-            Local server (OpenAI-style)
-          </option>
-        </select>
+        <select id="llmModelPresetSelect" class="modal-select"></select>
+
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Custom / override model name</label>
+        <input id="llmModelInput" class="modal-search" />
 
         <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API base URL</label>
         <input id="llmBaseUrlInput" class="modal-search" />
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Model name</label>
-        <input id="llmModelInput" class="modal-search" />
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API key</label>
+
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API key (kept only in this browser)</label>
         <input id="llmKeyInput" type="password" class="modal-search" placeholder="sk-..." />
+
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
           <button id="llmSaveBtn" class="btn-mini">Save</button>
           <button id="llmClearBtn" class="btn-mini btn-danger">Clear key</button>
@@ -1220,10 +1202,76 @@
   const STORAGE_KEY = "auraXOmegaState_v6";
   const LLM_CONFIG_KEY = "auraXOmegaLLMConfig_v1";
 
+  /* Presets for ~top 10 LLM providers (OpenAI-style or via proxy) */
+  const LLM_PROVIDER_PRESETS = {
+    openai: {
+      id:"openai",
+      label:"OpenAI (GPT)",
+      baseUrl:"https://api.openai.com/v1/chat/completions",
+      models:["gpt-4.1-mini","gpt-4.1","gpt-4o-mini","gpt-4o"]
+    },
+    xai: {
+      id:"xai",
+      label:"xAI (Grok)",
+      baseUrl:"https://api.x.ai/v1/chat/completions",
+      models:["grok-2-latest","grok-2-mini"]
+    },
+    deepseek: {
+      id:"deepseek",
+      label:"DeepSeek",
+      baseUrl:"https://api.deepseek.com/v1/chat/completions",
+      models:["deepseek-chat","deepseek-coder"]
+    },
+    anthropic: {
+      id:"anthropic",
+      label:"Anthropic Claude (via proxy)",
+      baseUrl:"https://your-anthropic-proxy.example.com/v1/chat/completions",
+      models:["claude-3-5-sonnet","claude-3-opus","claude-3-haiku"]
+    },
+    gemini: {
+      id:"gemini",
+      label:"Google Gemini (via proxy)",
+      baseUrl:"https://your-gemini-proxy.example.com/v1/chat/completions",
+      models:["gemini-1.5-flash","gemini-1.5-pro"]
+    },
+    mistral: {
+      id:"mistral",
+      label:"Mistral",
+      baseUrl:"https://api.mistral.ai/v1/chat/completions",
+      models:["mistral-small","mistral-large"]
+    },
+    meta: {
+      id:"meta",
+      label:"Meta Llama (via proxy)",
+      baseUrl:"https://your-llama-proxy.example.com/v1/chat/completions",
+      models:["llama-3.1-8b-instruct","llama-3.1-70b-instruct"]
+    },
+    cohere: {
+      id:"cohere",
+      label:"Cohere (via proxy)",
+      baseUrl:"https://your-cohere-proxy.example.com/v1/chat/completions",
+      models:["command-r","command-r-plus"]
+    },
+    groq: {
+      id:"groq",
+      label:"Groq (LLM accelerator)",
+      baseUrl:"https://api.groq.com/openai/v1/chat/completions",
+      models:["llama-3.1-8b-instant","llama-3.1-70b-versatile","mixtral-8x7b"]
+    },
+    openrouter: {
+      id:"openrouter",
+      label:"OpenRouter",
+      baseUrl:"https://openrouter.ai/api/v1/chat/completions",
+      models:["gpt-4.1-mini","meta-llama/llama-3.1-70b-instruct","deepseek/deepseek-chat"]
+    }
+  };
+
   class AuraXOmegaEngine{
     constructor(){
       const saved = this.loadState();
       const savedLLM = this.loadLLMConfig();
+      const defaultProviderId = (savedLLM && savedLLM.provider) || "openai";
+      const defaultPreset = this.getProviderPreset(defaultProviderId);
 
       this.bmLayers = new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
       this.bmEntries = [];
@@ -1245,9 +1293,10 @@
 
       this.llmEnabled = savedLLM ? !!savedLLM.enabled : false;
       this.llmConfig = {
+        provider: savedLLM && savedLLM.provider ? savedLLM.provider : defaultProviderId,
         apiKey: savedLLM && savedLLM.apiKey ? savedLLM.apiKey : "",
-        baseUrl: savedLLM && savedLLM.baseUrl ? savedLLM.baseUrl : "https://api.openai.com/v1/chat/completions",
-        model: savedLLM && savedLLM.model ? savedLLM.model : "gpt-4.1-mini"
+        baseUrl: savedLLM && savedLLM.baseUrl ? savedLLM.baseUrl : defaultPreset.baseUrl,
+        model: savedLLM && savedLLM.model ? savedLLM.model : defaultPreset.models[0]
       };
 
       if(saved){
@@ -1322,6 +1371,7 @@
       ];
 
       this.cacheDom();
+      this.syncLLMInputsFromConfig();
       this.updateVoiceToggleLabel();
       this.updateFaithUI();
       this.updateLearningUI();
@@ -1342,6 +1392,10 @@
       this.saveState();
 
       if(this.messageInput) this.messageInput.focus();
+    }
+
+    getProviderPreset(id){
+      return LLM_PROVIDER_PRESETS[id] || LLM_PROVIDER_PRESETS["openai"];
     }
 
     makeId(prefix){
@@ -1371,9 +1425,10 @@
     saveLLMConfig(){
       try{
         const cfg = {
+          provider: this.llmConfig.provider || "openai",
           apiKey: this.llmConfig.apiKey || "",
-          baseUrl: this.llmConfig.baseUrl || "https://api.openai.com/v1/chat/completions",
-          model: this.llmConfig.model || "gpt-4.1-mini",
+          baseUrl: this.llmConfig.baseUrl || this.getProviderPreset(this.llmConfig.provider).baseUrl,
+          model: this.llmConfig.model || this.getProviderPreset(this.llmConfig.provider).models[0],
           enabled: !!this.llmEnabled
         };
         localStorage.setItem(LLM_CONFIG_KEY, JSON.stringify(cfg));
@@ -1477,11 +1532,64 @@
       this.llmClearBtn = document.getElementById("llmClearBtn");
       this.llmToggleBtn = document.getElementById("llmToggleBtn");
       this.llmStatusText = document.getElementById("llmStatusText");
-      this.llmPresetSelect = document.getElementById("llmPresetSelect");
+      this.llmProviderSelect = document.getElementById("llmProviderSelect");
+      this.llmModelPresetSelect = document.getElementById("llmModelPresetSelect");
 
       this.bmCtx = this.bmCanvas.getContext("2d");
       this.resizeCanvas();
       window.addEventListener("resize",()=>this.resizeCanvas());
+
+      this.populateProviderOptions();
+    }
+
+    populateProviderOptions(){
+      if(!this.llmProviderSelect) return;
+      this.llmProviderSelect.innerHTML = "";
+      Object.keys(LLM_PROVIDER_PRESETS).forEach(id=>{
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = LLM_PROVIDER_PRESETS[id].label;
+        this.llmProviderSelect.appendChild(opt);
+      });
+    }
+
+    populateModelOptions(providerId){
+      if(!this.llmModelPresetSelect) return;
+      const preset = this.getProviderPreset(providerId);
+      this.llmModelPresetSelect.innerHTML = "";
+      preset.models.forEach(m=>{
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        this.llmModelPresetSelect.appendChild(opt);
+      });
+    }
+
+    syncLLMInputsFromConfig(){
+      if(!this.llmBaseUrlInput) return;
+      const providerId = this.llmConfig.provider || "openai";
+      const preset = this.getProviderPreset(providerId);
+
+      if(this.llmProviderSelect){
+        this.llmProviderSelect.value = providerId;
+      }
+      this.populateModelOptions(providerId);
+
+      const model = this.llmConfig.model || preset.models[0];
+
+      if(this.llmModelPresetSelect){
+        if(!preset.models.includes(model)){
+          const opt = document.createElement("option");
+          opt.value = model;
+          opt.textContent = model;
+          this.llmModelPresetSelect.appendChild(opt);
+        }
+        this.llmModelPresetSelect.value = model;
+      }
+
+      this.llmBaseUrlInput.value = this.llmConfig.baseUrl || preset.baseUrl;
+      this.llmModelInput.value = model;
+      this.llmKeyInput.value = this.llmConfig.apiKey || "";
     }
 
     updateVoiceToggleLabel(){
@@ -1516,30 +1624,14 @@
 
     updateLLMUI(){
       if(!this.llmToggleBtn || !this.llmStatusText) return;
+      const providerPreset = this.getProviderPreset(this.llmConfig.provider || "openai");
       this.llmToggleBtn.textContent = this.llmEnabled ? "LLM: ON" : "LLM: OFF";
       if(this.llmConfig.apiKey){
         this.llmStatusText.textContent = this.llmEnabled
-          ? "LLM configured and active for TM collisions."
-          : "LLM configured but currently OFF.";
+          ? `LLM configured: ${providerPreset.label} (${this.llmConfig.model}) is ON.`
+          : `LLM configured: ${providerPreset.label} (${this.llmConfig.model}) but currently OFF.`;
       }else{
         this.llmStatusText.textContent = "No API key saved. Engine is offline-only.";
-      }
-
-      // also set preset dropdown based on known combos
-      if(this.llmPresetSelect){
-        let value = "custom";
-        const base = (this.llmConfig.baseUrl || "").toLowerCase();
-        const model = (this.llmConfig.model || "").toLowerCase();
-
-        if(base.includes("api.openai.com")){
-          if(model.includes("gpt-4.1-mini")) value = "openai-gpt4-mini";
-          else if(model.includes("gpt-4o-mini")) value = "openai-gpt4o-mini";
-          else if(model.includes("gpt-4.1")) value = "openai-gpt4";
-          else if(model.includes("gpt-3.5")) value = "generic-openai";
-        }else if(base.includes("localhost")){
-          value = "local-compatible";
-        }
-        this.llmPresetSelect.value = value;
       }
     }
 
@@ -1758,15 +1850,27 @@
           this.saveState();
         });
       }
-
-      if(this.llmPresetSelect){
-        this.llmPresetSelect.addEventListener("change",()=>{
-          const opt = this.llmPresetSelect.selectedOptions[0];
-          if(!opt || opt.value==="custom") return;
-          const base = opt.dataset.base || "";
-          const model = opt.dataset.model || "";
-          if(base) this.llmBaseUrlInput.value = base;
-          if(model) this.llmModelInput.value = model;
+      if(this.llmProviderSelect){
+        this.llmProviderSelect.addEventListener("change",()=>{
+          const id = this.llmProviderSelect.value || "openai";
+          const preset = this.getProviderPreset(id);
+          this.populateModelOptions(id);
+          const model = preset.models[0];
+          if(this.llmModelPresetSelect) this.llmModelPresetSelect.value = model;
+          if(this.llmModelInput) this.llmModelInput.value = model;
+          if(this.llmBaseUrlInput) this.llmBaseUrlInput.value = preset.baseUrl;
+          this.llmConfig.provider = id;
+          this.llmConfig.model = model;
+          this.llmConfig.baseUrl = preset.baseUrl;
+          this.updateLLMUI();
+        });
+      }
+      if(this.llmModelPresetSelect){
+        this.llmModelPresetSelect.addEventListener("change",()=>{
+          const model = this.llmModelPresetSelect.value;
+          if(this.llmModelInput) this.llmModelInput.value = model;
+          this.llmConfig.model = model;
+          this.updateLLMUI();
         });
       }
     }
@@ -1857,7 +1961,7 @@
           polarity:"positive",
           category:"greeting",
           replies:[
-            "Hello. I am still here, carrying your previous feelings in my memory layers.",
+            "Hello 👋. I am still here, carrying your previous feelings in my memory layers.",
             "Hi. I am AURA-X Ω, listening carefully for anything emotionally meaningful."
           ]
         }
@@ -3089,13 +3193,13 @@
       this.saveState();
     }
 
+    /* ---------- LLM CONFIG ---------- */
+
     openLLMModal(){
       if(this.llmConfig.apiKey){
         this.llmLockStage.style.display = "none";
         this.llmConfigStage.style.display = "block";
-        this.llmBaseUrlInput.value = this.llmConfig.baseUrl;
-        this.llmModelInput.value = this.llmConfig.model;
-        this.llmKeyInput.value = this.llmConfig.apiKey;
+        this.syncLLMInputsFromConfig();
         this.updateLLMUI();
       }else{
         this.llmLockStage.style.display = "block";
@@ -3116,9 +3220,7 @@
         if(this.llmPasswordError) this.llmPasswordError.style.display = "none";
         this.llmLockStage.style.display = "none";
         this.llmConfigStage.style.display = "block";
-        this.llmBaseUrlInput.value = this.llmConfig.baseUrl;
-        this.llmModelInput.value = this.llmConfig.model;
-        this.llmKeyInput.value = this.llmConfig.apiKey;
+        this.syncLLMInputsFromConfig();
         this.updateLLMUI();
       }else{
         if(this.llmPasswordError) this.llmPasswordError.style.display = "block";
@@ -3126,8 +3228,15 @@
     }
 
     handleLLMSave(){
-      this.llmConfig.baseUrl = (this.llmBaseUrlInput.value || "https://api.openai.com/v1/chat/completions").trim();
-      this.llmConfig.model = (this.llmModelInput.value || "gpt-4.1-mini").trim();
+      const providerId = this.llmProviderSelect ? (this.llmProviderSelect.value || "openai") : (this.llmConfig.provider || "openai");
+      const preset = this.getProviderPreset(providerId);
+      const modelFromPreset = this.llmModelPresetSelect && this.llmModelPresetSelect.value
+        ? this.llmModelPresetSelect.value
+        : (this.llmModelInput.value || "").trim() || preset.models[0];
+
+      this.llmConfig.provider = providerId;
+      this.llmConfig.baseUrl = (this.llmBaseUrlInput.value || preset.baseUrl).trim();
+      this.llmConfig.model = (this.llmModelInput.value || modelFromPreset).trim();
       this.llmConfig.apiKey = (this.llmKeyInput.value || "").trim();
       this.llmEnabled = !!this.llmConfig.apiKey;
       this.updateLLMUI();
@@ -3150,7 +3259,7 @@
       const payload = {
         model: this.llmConfig.model || "gpt-4.1-mini",
         messages: [
-          {role:"system",content:"You are a helper LLM plugged into an emotional engine called AURA-X Ω. Reply clearly; avoid emojis unless the user uses them."},
+          {role:"system",content:"You are a helper LLM plugged into an emotional engine called AURA-X Ω. Reply clearly; avoid emojis unless user uses them."},
           {role:"user",content:promptText}
         ],
         max_tokens: 256
