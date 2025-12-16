@@ -141,6 +141,7 @@
       flex-direction:column;
       align-items:flex-end;
       gap:10px;
+      padding-top:32px; /* keep space under Options button */
     }
     .mode-pill{
       width: min(320px, 100%);
@@ -179,13 +180,16 @@
       opacity:.40;
     }
 
+    /* Options button pinned top-right of header */
     .header-controls{
       display:flex;
       flex-wrap:wrap;
       justify-content:flex-end;
-      position:relative;
-      margin-top:4px;
-      z-index:20;
+      position:absolute;
+      top:10px;
+      right:14px;
+      margin-top:0;
+      z-index:25;
     }
     .voice-toggle{
       border:none;
@@ -201,7 +205,7 @@
       gap:8px;
       box-shadow: 0 10px 26px rgba(2,6,23,.6);
       position: relative;
-      z-index: 21;
+      z-index: 26;
     }
     .voice-toggle:hover{filter: brightness(1.03);}
 
@@ -241,9 +245,16 @@
         grid-template-columns:1fr;
         padding:12px 12px 14px;
       }
-      .header-right{align-items:stretch}
+      .header-right{
+        align-items:stretch;
+        padding-top:44px; /* a bit more space on mobile */
+      }
       .mode-pill{width:100%}
-      .header-controls{justify-content:flex-start;}
+      .header-controls{
+        top:8px;
+        right:10px;
+        justify-content:flex-end;
+      }
     }
 
     /* LAYOUT */
@@ -857,8 +868,11 @@
         </div>
       </div>
     </div>
+
     <div class="header-right">
       <div class="mode-pill">EMOTIONAL CONTINUITY ENGINE ACTIVE</div>
+
+      <!-- Options button now pinned top-right of header -->
       <div class="header-controls" id="headerControls">
         <button id="optionsToggle" class="voice-toggle">🔘 Options</button>
         <div class="option-panel" id="optionPanel">
@@ -1139,6 +1153,38 @@
         <p class="faith-note">
           For real products, move all LLM calls to a secure backend. Here everything stays in localStorage of this browser only.
         </p>
+
+        <!-- NEW: preset selector for different models/providers -->
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Model preset</label>
+        <select id="llmPresetSelect" class="modal-search">
+          <option value="custom">Custom / Manual</option>
+          <option value="openai-gpt4-mini"
+                  data-base="https://api.openai.com/v1/chat/completions"
+                  data-model="gpt-4.1-mini">
+            OpenAI – GPT-4.1 mini
+          </option>
+          <option value="openai-gpt4o-mini"
+                  data-base="https://api.openai.com/v1/chat/completions"
+                  data-model="gpt-4o-mini">
+            OpenAI – GPT-4o mini
+          </option>
+          <option value="openai-gpt4"
+                  data-base="https://api.openai.com/v1/chat/completions"
+                  data-model="gpt-4.1">
+            OpenAI – GPT-4.1
+          </option>
+          <option value="generic-openai"
+                  data-base="https://api.openai.com/v1/chat/completions"
+                  data-model="gpt-3.5-turbo">
+            Generic OpenAI-compatible
+          </option>
+          <option value="local-compatible"
+                  data-base="http://localhost:8000/v1/chat/completions"
+                  data-model="local-llm">
+            Local server (OpenAI-style)
+          </option>
+        </select>
+
         <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API base URL</label>
         <input id="llmBaseUrlInput" class="modal-search" />
         <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Model name</label>
@@ -1431,6 +1477,7 @@
       this.llmClearBtn = document.getElementById("llmClearBtn");
       this.llmToggleBtn = document.getElementById("llmToggleBtn");
       this.llmStatusText = document.getElementById("llmStatusText");
+      this.llmPresetSelect = document.getElementById("llmPresetSelect");
 
       this.bmCtx = this.bmCanvas.getContext("2d");
       this.resizeCanvas();
@@ -1476,6 +1523,23 @@
           : "LLM configured but currently OFF.";
       }else{
         this.llmStatusText.textContent = "No API key saved. Engine is offline-only.";
+      }
+
+      // also set preset dropdown based on known combos
+      if(this.llmPresetSelect){
+        let value = "custom";
+        const base = (this.llmConfig.baseUrl || "").toLowerCase();
+        const model = (this.llmConfig.model || "").toLowerCase();
+
+        if(base.includes("api.openai.com")){
+          if(model.includes("gpt-4.1-mini")) value = "openai-gpt4-mini";
+          else if(model.includes("gpt-4o-mini")) value = "openai-gpt4o-mini";
+          else if(model.includes("gpt-4.1")) value = "openai-gpt4";
+          else if(model.includes("gpt-3.5")) value = "generic-openai";
+        }else if(base.includes("localhost")){
+          value = "local-compatible";
+        }
+        this.llmPresetSelect.value = value;
       }
     }
 
@@ -1694,6 +1758,17 @@
           this.saveState();
         });
       }
+
+      if(this.llmPresetSelect){
+        this.llmPresetSelect.addEventListener("change",()=>{
+          const opt = this.llmPresetSelect.selectedOptions[0];
+          if(!opt || opt.value==="custom") return;
+          const base = opt.dataset.base || "";
+          const model = opt.dataset.model || "";
+          if(base) this.llmBaseUrlInput.value = base;
+          if(model) this.llmModelInput.value = model;
+        });
+      }
     }
 
     pushTM(role,text,sentiment){
@@ -1875,7 +1950,6 @@
         this.messageInput.style.height = "auto";
         const lowerText = text.toLowerCase();
 
-        // identity soft-learning (silent)
         this.observeIdentity(text);
 
         if(this.intelBlockState === "awaitBlock"){
@@ -2335,7 +2409,6 @@
     }
 
     generateReply(text,sentiment,llmAnswer,opts={}){
-      // multi-question special handling (hello + how are you + where are you from)
       const multi = this.tryMultiQuestionReply(text);
       if(multi) return multi;
 
@@ -2425,17 +2498,15 @@
       let score = inter/unionSize;
 
       if(samePrefix){
-        score = Math.min(1, score + 0.25); // boost “same pattern” questions close to 1
+        score = Math.min(1, score + 0.25);
       }
       return score;
     }
 
-    // -------- Identity soft-learning (per-device) --------
     observeIdentity(text){
       if(!text) return;
       const profile = this.ensureIdentityProfile();
 
-      // English patterns
       let m = text.match(/\bmy name is ([A-Za-zÀ-ž\s]{2,60})/i);
       if(m){
         this.addSoftFact("self","name", m[1].trim());
@@ -2464,7 +2535,6 @@
         this.addSoftFact(key,"name",name);
       }
 
-      // Simple Roman Urdu examples
       m = text.match(/\bmera name ([A-Za-zÀ-ž\s]{2,60}) hy\b/i);
       if(m){
         this.addSoftFact("self","name", m[1].trim());
@@ -2475,8 +2545,6 @@
         this.addSoftFact("self","location", m[2].trim());
       }
 
-      // (Future: ambiguity like "Tariq #1 / Tariq #2" + multi-device verification
-      // can be built on top of profile.verificationSources)
       void profile;
     }
 
@@ -2485,7 +2553,7 @@
         this.identities[this.currentIdentityId] = {
           facts:{},
           confirmations:{},
-          verificationSources:{} // placeholder for multi-IMEI multi-user confirmations
+          verificationSources:{}
         };
       }
       return this.identities[this.currentIdentityId];
@@ -2498,7 +2566,6 @@
       const counts = profile.confirmations;
       counts[confKey] = (counts[confKey]||0)+1;
 
-      // Require 4 silent repetitions before committing as a stable identity fact
       if(counts[confKey] >= 4){
         if(!profile.facts[entityKey]) profile.facts[entityKey] = {};
         profile.facts[entityKey][factKey] = normalizedValue;
@@ -2734,7 +2801,6 @@
       const clean = text
         .replace(/<[^>]+>/g,"")
         .replace(/\[internals[^\]]*\]/gi,"");
-      // remove emojis entirely so they are never spoken
       const noEmoji = clean.replace(/[\u2190-\u21FF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]/g,"");
       if(!noEmoji.trim()) return;
       const utter = new SpeechSynthesisUtterance(noEmoji);
@@ -3023,8 +3089,6 @@
       this.saveState();
     }
 
-    /* ---------- LLM CONFIG ---------- */
-
     openLLMModal(){
       if(this.llmConfig.apiKey){
         this.llmLockStage.style.display = "none";
@@ -3086,7 +3150,7 @@
       const payload = {
         model: this.llmConfig.model || "gpt-4.1-mini",
         messages: [
-          {role:"system",content:"You are a helper LLM plugged into an emotional engine called AURA-X Ω. Reply clearly; avoid emojis unless user uses them."},
+          {role:"system",content:"You are a helper LLM plugged into an emotional engine called AURA-X Ω. Reply clearly; avoid emojis unless the user uses them."},
           {role:"user",content:promptText}
         ],
         max_tokens: 256
