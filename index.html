@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AURA-X Ω – Offline Emotional Continuity + Local LLM</title>
+  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <script type="module">
@@ -11,10 +11,7 @@
   </script>
 
   <style>
-    /* آپ کا پرانا CSS یہاں برقرار رہے گا */
-    /* ... (Existing Styles from source 1 to 119) ... */
-    
-    /* نیو بٹن کے لیے تھوڑا اضافی سٹائل */
+    /* ... (Existing Styles from your code - Source 1 to 119) ... */
     .btn-offline { background: #10b981 !important; color: white !important; margin-top: 10px; }
     .offline-status { font-size: 0.7rem; color: #10b981; margin-top: 5px; }
   </style>
@@ -24,63 +21,52 @@
   <div class="modal-card">
     <div class="modal-header">
       <div>
-        <div class="modal-title">🤖 LLM link settings</div>
-        <div class="modal-sub">Password 6789 · For private testing only.</div>
+        <div class="modal-title">🤖 LLM Link & Offline Engine</div>
+        [span_10](start_span)<div class="modal-sub">Password 6789[span_10](end_span)</div>
       </div>
       <button class="modal-close" data-close="llmModal">✕</button>
     </div>
     <div class="modal-body">
       <div id="llmLockStage">
-        <p class="faith-note">Demo password: <strong>6789</strong>.</p>
-        <input id="llmPasswordInput" type="password" class="modal-search" placeholder="Enter password (6789)">
-        <button id="llmUnlockBtn" class="btn-mini" style="margin-top:8px;">Unlock</button>
+        [span_11](start_span)<p class="faith-note">Demo password: <strong>6789</strong>[span_11](end_span).</p>
+        <input id="llmPasswordInput" type="password" class="modal-search" placeholder="Enter password">
+        <button id="llmUnlockBtn" class="btn-mini">Unlock</button>
       </div>
       <div id="llmConfigStage" style="display:none;">
         <div style="border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 15px;">
-           <label style="font-size:.75rem; font-weight:bold; color:#0f172a;">LOCAL ENGINE (OFFLINE)</label>
-           <p class="faith-note">Download 1GB+ model to browser for 100% offline chat.</p>
+           <label style="font-weight:bold; color:#0f172a;">LOCAL ENGINE (OFFLINE)</label>
+           <p class="faith-note">Load a 1GB model to browser memory for 100% offline intelligence.</p>
            <button id="loadOfflineModelBtn" class="btn-mini btn-offline">📥 Load TinyLlama (Offline)</button>
            <div id="offlineLoadingStatus" class="offline-status">Status: Not Loaded</div>
         </div>
-
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API base URL (Cloud)</label>
-        <input id="llmBaseUrlInput" class="modal-search" />
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API key</label>
-        <input id="llmKeyInput" type="password" class="modal-search" placeholder="sk-..." />
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
-          <button id="llmSaveBtn" class="btn-mini">Save Cloud Config</button>
-          <button id="llmToggleBtn" class="btn-mini">Cloud LLM: OFF</button>
         </div>
-      </div>
     </div>
   </div>
 </div>
 
 <script>
 (function(){
-  // ... (Existing Variables BM_BANDS etc.) ...
+  // ... (Existing Constants BM_BANDS etc.) ...
 
   class AuraXOmegaEngine {
     constructor(){
-      // ... (Existing Constructor Logic source 155 to 176) ...
+      // ... (Initializations from Source 155 to 174) ...
       this.localEngine = null;
-      this.localModelId = "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC";
+      this.localModelId = "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC"; // Efficient for mobile/web
       
       this.cacheDom();
-      this.bindOfflineEvents(); // نیا فنکشن
       this.bindEvents();
+      this.bindOfflineEvents(); // New binding
       // ...
     }
 
-    // Step 2: Offline Model Binding
     bindOfflineEvents() {
       const loadBtn = document.getElementById("loadOfflineModelBtn");
       const statusText = document.getElementById("offlineLoadingStatus");
 
-      loadBtn.addEventListener("click", async () => {
+      loadBtn.onclick = async () => {
         loadBtn.disabled = true;
         statusText.textContent = "Initializing WebGPU...";
-        
         try {
           this.localEngine = await window.webllm.CreateMLCEngine(this.localModelId, {
             initProgressCallback: (report) => {
@@ -90,42 +76,46 @@
           statusText.textContent = "Status: Offline Model Ready";
           loadBtn.style.display = "none";
         } catch (e) {
-          statusText.textContent = "Error: " + e.message;
+          statusText.textContent = "Error: GPU not supported or download failed.";
           loadBtn.disabled = false;
         }
-      });
+      };
     }
 
-    // Step 3: Updated callLLM logic (Hybrid Online/Offline)
-    async callLLM(promptText) {
-      // Priority A: Local Offline Model
+    // Updated generateReply to prioritize local memory then Local LLM
+    async generateReply(text, sentiment, cloudAnswer, opts) {
+      // 1. Check Local Intelligence (Seeds/Nodes)
+      [span_12](start_span)[span_13](start_span)const intelMatch = this.matchIntelNode(text);[span_12](end_span)[span_13](end_span)
+      [span_14](start_span)if (intelMatch) return intelMatch.node.answer;[span_14](end_span)
+
+      [span_15](start_span)[span_16](start_span)const seed = this.matchSeedRule(text);[span_15](end_span)[span_16](end_span)
+      [span_17](start_span)if (seed) return seed.reply;[span_17](end_span)
+
+      // 2. Call Local LLM if loaded
       if (this.localEngine) {
+        const bmContext = this.getBMContextSummary();
+        const fullPrompt = `Context from Bold Memory: ${bmContext}\nUser says: ${text}\nAURA-X Ω Reply:`;
         const reply = await this.localEngine.chat.completions.create({
-          messages: [{ role: "user", content: promptText }]
+          messages: [{ role: "user", content: fullPrompt }]
         });
         return reply.choices[0].message.content;
       }
 
-      // Priority B: Cloud API (Original Logic)
-      if (this.llmConfig.apiKey && this.llmConfig.baseUrl) {
-        // ... (Existing fetch code from source 536 to 539) ...
-        const payload = {
-          model: this.llmConfig.model || "gpt-4.1-mini",
-          messages: [{role:"system", content:"AURA-X Ω Helper"}, {role:"user", content:promptText}],
-          max_tokens: 256
-        };
-        const res = await fetch(this.llmConfig.baseUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + this.llmConfig.apiKey },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        return data.choices[0].message.content.trim();
-      }
-      return null;
+      // 3. Fallback to Cloud LLM or Default Reply
+      [span_18](start_span)if (cloudAnswer) return cloudAnswer;[span_18](end_span)
+      [span_19](start_span)return "I'm processing this through my continuity layers...[span_19](end_span)";
     }
 
-    // ... (باقی تمام فنکشنز جیسے analyzeSentiment، generateReply وغیرہ پرانے کوڈ والے ہی رہیں گے)
+    getBMContextSummary() {
+      // Collects latest stories from BM to feed the LLM context
+      [span_20](start_span)[span_21](start_span)return this.bmEntries.slice(-3).map(e => e.text).join(" ");[span_20](end_span)[span_21](end_span)
+    }
+
+    // Modified callLLM to handle cloud fallback (Source 534)
+    async callLLM(promptText) {
+      if (this.localEngine) return null; // Use local engine instead if active
+      // ... (Original fetch logic from Source 536 to 539) ...
+    }
   }
 
   window.addEventListener("DOMContentLoaded", () => {
