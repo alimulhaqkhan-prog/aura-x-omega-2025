@@ -4,121 +4,2326 @@
   <meta charset="UTF-8" />
   <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+
+  <!-- WebLLM: in-browser offline LLM (TinyLlama) -->
   <script type="module">
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
-    window.webllm = webllm; 
+    window.webllm = webllm;
   </script>
 
   <style>
-    /* ... (Existing Styles from your code - Source 1 to 119) ... */
-    .btn-offline { background: #10b981 !important; color: white !important; margin-top: 10px; }
-    .offline-status { font-size: 0.7rem; color: #10b981; margin-top: 5px; }
+    /* RESET & BASICS */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
+        radial-gradient(circle at 80% 0%, #0ea5e9 0, transparent 40%),
+        linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
+      color:#e5e7eb;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:18px;
+    }
+    .app{
+      width:100%;
+      max-width:1120px;
+      border-radius:26px;
+      background:
+        radial-gradient(circle at 14% 0%, rgba(56,189,248,.18), transparent 60%),
+        radial-gradient(circle at 86% 0%, rgba(251,191,36,.18), transparent 55%),
+        linear-gradient(145deg,rgba(15,23,42,.98),rgba(15,23,42,.98));
+      box-shadow:
+        0 26px 80px rgba(15,23,42,.85),
+        0 0 0 1px rgba(148,163,184,.38);
+      padding:18px;
+      display:grid;
+      grid-template-columns: minmax(0,1.45fr) minmax(0,1.05fr);
+      gap:18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .app::before{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background:
+        radial-gradient(circle at 20% 0%,rgba(56,189,248,.1),transparent 55%),
+        radial-gradient(circle at 80% 0%,rgba(251,191,36,.08),transparent 55%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .app > *{position:relative; z-index:1;}
+
+    /* ===================== HERO HEADER ===================== */
+    .header{
+      position: relative;
+      border-radius: 24px;
+      padding: 16px 18px 14px;
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+      align-items: center;
+      background:
+        radial-gradient(900px 320px at 20% 0%, rgba(56,189,248,.32), rgba(15,23,42,.98) 55%, #020617 100%);
+      border: 1.5px solid rgba(148,163,184,.55);
+      box-shadow:
+        0 22px 60px rgba(15,23,42,.9),
+        0 0 0 1px rgba(15,23,42,.8);
+      overflow: hidden;
+    }
+    .header-left{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .brand-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .brand-main{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .logo-orb{
+      width:40px;
+      height:40px;
+      border-radius:999px;
+      background:
+        radial-gradient(circle at 30% 20%, #e0f2fe 0, #7dd3fc 18%, #0ea5e9 45%, transparent 70%),
+        radial-gradient(circle at 70% 80%, rgba(251,191,36,1) 0, rgba(245,158,11,1) 16%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(15,23,42,1) 0, rgba(15,23,42,1) 60%, transparent 80%);
+      box-shadow:
+        0 0 25px rgba(56,189,248,.7),
+        0 0 60px rgba(251,191,36,.9);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo-orb::after{
+      content:"Ω";
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:24px;
+      font-weight:700;
+      color:#e5e7eb;
+      text-shadow:0 0 12px rgba(15,23,42,.9);
+    }
+    .brand-text{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .brand-title{
+      font-size:1.15rem;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-weight:650;
+      color:#e5e7eb;
+    }
+    .brand-subtitle{
+      font-size:.74rem;
+      color:#cbd5f5;
+      opacity:.92;
+    }
+    .header-badges{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:6px;
+    }
+    .badge{
+      font-size:.68rem;
+      padding:4px 9px;
+      border-radius:999px;
+      background:rgba(15,23,42,.8);
+      color:#e5e7eb;
+      border:1px solid rgba(148,163,184,.5);
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+    .badge span.icon{
+      font-size:.85rem;
+    }
+    .ethics-line{
+      margin-top:4px;
+      font-size:.7rem;
+      color:#e5e7eb;
+      opacity:.9;
+      background:linear-gradient(90deg,rgba(250,204,21,.04),transparent);
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(251,191,36,.3);
+    }
+    .ethics-line strong{
+      color:#facc15;
+      font-weight:600;
+    }
+
+    .header-metrics{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:8px;
+    }
+    .metric-card{
+      position:relative;
+      padding:8px 9px;
+      border-radius:16px;
+      background:radial-gradient(circle at 10% 0%,rgba(56,189,248,.18),rgba(15,23,42,.96) 55%);
+      border:1px solid rgba(148,163,184,.5);
+      box-shadow:0 14px 35px rgba(15,23,42,.9);
+      overflow:hidden;
+    }
+    .metric-label{
+      font-size:.68rem;
+      color:#e5e7eb;
+      opacity:.9;
+      margin-bottom:2px;
+    }
+    .metric-value{
+      font-size:1.05rem;
+      font-weight:600;
+      color:#e5e7eb;
+    }
+    .metric-sub{
+      font-size:.7rem;
+      color:#9ca3af;
+    }
+
+    .metric-bar-wrap{
+      margin-top:6px;
+      height:4px;
+      border-radius:999px;
+      background:rgba(15,23,42,.9);
+      overflow:hidden;
+    }
+    .metric-bar{
+      height:100%;
+      width:40%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#22c55e,#eab308,#ef4444);
+      transition:width .35s ease-out;
+    }
+
+    .header-right{
+      position:relative;
+      padding-left:6px;
+      border-left:1px solid rgba(148,163,184,.45);
+    }
+    .bm-shell{
+      position:relative;
+      border-radius:24px;
+      padding:10px;
+      background:
+        radial-gradient(circle at 20% 0%,rgba(56,189,248,.24),rgba(15,23,42,.98) 55%),
+        radial-gradient(circle at 90% 10%,rgba(251,191,36,.18),transparent 55%);
+      border:1px solid rgba(148,163,184,.7);
+      box-shadow:0 22px 50px rgba(15,23,42,.95);
+    }
+    .bm-title-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:4px;
+    }
+    .bm-title{
+      font-size:.76rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#e5e7eb;
+      opacity:.9;
+    }
+    .bm-subtitle{
+      font-size:.68rem;
+      color:#9ca3af;
+    }
+    .bm-stats{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:4px;
+      font-size:.7rem;
+      color:#cbd5f5;
+    }
+    .bm-pill{
+      padding:2px 8px;
+      border-radius:999px;
+      background:rgba(15,23,42,.85);
+      border:1px solid rgba(148,163,184,.7);
+    }
+    .bm-shell canvas{
+      display:block;
+      width:100%;
+      height:140px;
+      border-radius:18px;
+      background:radial-gradient(circle at 50% 0%,rgba(15,23,42,1),#020617);
+      border:1px solid rgba(30,64,175,.8);
+    }
+
+    /* ===================== MAIN LAYOUT ===================== */
+    .left-column{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .right-column{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    /* ===================== CHAT PANEL ===================== */
+    .chat-card{
+      border-radius:22px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,.9),rgba(15,23,42,.98));
+      border:1px solid rgba(148,163,184,.5);
+      box-shadow:0 22px 60px rgba(15,23,42,.9);
+      padding:12px 12px 10px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height:260px;
+    }
+    .chat-header-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .chat-title-block{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .chat-title{
+      font-size:.85rem;
+      font-weight:600;
+      color:#e5e7eb;
+    }
+    .chat-sub{
+      font-size:.7rem;
+      color:#9ca3af;
+    }
+    .header-controls{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+    .header-chip{
+      font-size:.7rem;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.55);
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:background .18s ease,border-color .18s ease,transform .12s ease;
+    }
+    .header-chip span.icon{font-size:.9rem;}
+    .header-chip:hover{
+      background:rgba(15,23,42,1);
+      border-color:#38bdf8;
+      transform:translateY(-1px);
+    }
+
+    .chat-scroll{
+      flex:1;
+      min-height:160px;
+      max-height:320px;
+      border-radius:16px;
+      padding:10px 10px 8px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(15,23,42,.98));
+      border:1px solid rgba(30,64,175,.9);
+      overflow-y:auto;
+      scroll-behavior:smooth;
+    }
+    .message{
+      margin-bottom:8px;
+      display:flex;
+      gap:8px;
+    }
+    .message.ai .bubble{
+      background:rgba(15,23,42,.95);
+      border:1px solid rgba(129,140,248,.7);
+    }
+    .message.user{
+      justify-content:flex-end;
+    }
+    .message.user .bubble{
+      background:rgba(56,189,248,.18);
+      border:1px solid rgba(56,189,248,.8);
+    }
+    .bubble{
+      max-width:90%;
+      padding:7px 9px;
+      border-radius:12px;
+      font-size:.8rem;
+      line-height:1.35;
+      color:#e5e7eb;
+      position:relative;
+      box-shadow:0 10px 26px rgba(15,23,42,.8);
+      white-space:pre-wrap;
+    }
+    .bubble-meta{
+      margin-top:3px;
+      font-size:.68rem;
+      color:#9ca3af;
+      opacity:.9;
+    }
+
+    .typing-indicator{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      font-size:.78rem;
+      color:#9ca3af;
+      margin-top:3px;
+    }
+    .typing-dot{
+      width:4px;
+      height:4px;
+      border-radius:50%;
+      background:#9ca3af;
+      animation:typing 1s infinite ease-in-out;
+    }
+    .typing-dot:nth-child(2){animation-delay:.15s;}
+    .typing-dot:nth-child(3){animation-delay:.3s;}
+    @keyframes typing{
+      0%,80%,100%{transform:scale(0.7);opacity:.5;}
+      40%{transform:scale(1);opacity:1;}
+    }
+
+    /* ===================== INPUT BAR ===================== */
+    .input-shell{
+      position:relative;
+      margin-top:4px;
+      border-radius:18px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(15,23,42,.98));
+      border:1px solid rgba(148,163,184,.6);
+      box-shadow:
+        0 18px 40px rgba(15,23,42,.9),
+        0 0 0 1px rgba(15,23,42,.95);
+      padding:6px 6px 6px 10px;
+      display:flex;
+      align-items:flex-end;
+      gap:8px;
+    }
+    .formula-strip{
+      position:absolute;
+      top:-22px;
+      left:10px;
+      right:10px;
+      font-size:.7rem;
+      color:#9ca3af;
+      opacity:.92;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:6px;
+      pointer-events:none;
+    }
+    .formula-core{
+      white-space:nowrap;
+      text-overflow:ellipsis;
+      overflow:hidden;
+    }
+    .formula-pill{
+      padding:2px 7px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.6);
+      background:rgba(15,23,42,.9);
+      font-size:.68rem;
+    }
+
+    .message-input{
+      flex:1;
+      min-height:32px;
+      max-height:96px;
+      border:none;
+      outline:none;
+      resize:none;
+      background:transparent;
+      color:#e5e7eb;
+      font-size:.8rem;
+      padding:6px 0;
+      line-height:1.35;
+    }
+    .message-input::placeholder{
+      color:#6b7280;
+    }
+    .send-button{
+      flex:0 0 auto;
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      border:none;
+      background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      cursor:pointer;
+      box-shadow:0 12px 26px rgba(8,47,73,.8);
+      transition:transform .12s ease, box-shadow .12s ease, background .18s ease;
+    }
+    .send-button span{font-size:1.05rem;}
+    .send-button:hover{
+      transform:translateY(-1px);
+      box-shadow:0 16px 36px rgba(8,47,73,.95);
+      background:linear-gradient(135deg,#0ea5e9,#38bdf8);
+    }
+    .send-button:active{
+      transform:translateY(0);
+      box-shadow:0 10px 24px rgba(8,47,73,.8);
+    }
+
+    /* ===================== REACTION BUBBLES ===================== */
+    .reaction-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      margin-top:4px;
+    }
+    .reaction-pill{
+      flex:1;
+      border-radius:16px;
+      padding:6px 9px;
+      font-size:.7rem;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(15,23,42,.96));
+      border:1px solid rgba(148,163,184,.55);
+      color:#e5e7eb;
+      box-shadow:0 16px 40px rgba(15,23,42,.92);
+      display:flex;
+      align-items:flex-start;
+      gap:7px;
+    }
+    .reaction-label{
+      font-size:.7rem;
+      color:#e5e7eb;
+      opacity:.9;
+    }
+    .reaction-text{
+      font-size:.7rem;
+      color:#d1d5db;
+    }
+    .reaction-tag{
+      font-size:.65rem;
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.7);
+      background:rgba(15,23,42,.98);
+      color:#e5e7eb;
+    }
+
+    /* ===================== RIGHT COLUMN: METRICS + MODALS ===================== */
+    .panel{
+      border-radius:22px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,.98),rgba(15,23,42,1));
+      border:1px solid rgba(148,163,184,.55);
+      box-shadow:0 22px 60px rgba(15,23,42,.92);
+      padding:10px 11px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .panel-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+    .panel-title{
+      font-size:.8rem;
+      font-weight:600;
+      color:#e5e7eb;
+    }
+    .panel-sub{
+      font-size:.68rem;
+      color:#9ca3af;
+    }
+
+    .metrics-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-top:2px;
+    }
+    .metric-pill{
+      border-radius:14px;
+      padding:7px 8px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(15,23,42,.98));
+      border:1px solid rgba(148,163,184,.55);
+      font-size:.7rem;
+      color:#e5e7eb;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .metric-pill-label{
+      font-size:.68rem;
+      color:#9ca3af;
+    }
+    .metric-pill-value{
+      font-size:.88rem;
+      font-weight:600;
+      color:#e5e7eb;
+    }
+
+    .polarity-badge{
+      border-radius:999px;
+      padding:2px 7px;
+      font-size:.68rem;
+      border:1px solid rgba(148,163,184,.8);
+      background:rgba(15,23,42,.96);
+    }
+
+    .option-panel{
+      margin-top:4px;
+      border-radius:16px;
+      padding:7px 8px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(15,23,42,.98));
+      border:1px solid rgba(148,163,184,.6);
+      display:none;
+      flex-direction:column;
+      gap:6px;
+      font-size:.7rem;
+      color:#e5e7eb;
+    }
+
+    .option-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+      font-size:.7rem;
+    }
+    .option-label span{
+      color:#9ca3af;
+      font-size:.66rem;
+    }
+    .toggle{
+      padding:3px 9px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.6);
+      background:rgba(15,23,42,.98);
+      font-size:.7rem;
+      color:#e5e7eb;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+
+    .btn-mini{
+      border-radius:999px;
+      border:none;
+      padding:4px 10px;
+      font-size:.7rem;
+      cursor:pointer;
+      background:rgba(15,23,42,.98);
+      color:#e5e7eb;
+      border:1px solid rgba(148,163,184,.7);
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .btn-mini:hover{
+      background:rgba(15,23,42,1);
+    }
+    .btn-danger{
+      border-color:rgba(248,113,113,.9);
+      color:#fecaca;
+    }
+
+    .list-scroll{
+      max-height:210px;
+      overflow-y:auto;
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.55);
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(15,23,42,.98));
+      padding:8px;
+      margin-top:6px;
+    }
+    .bm-item{
+      border-radius:12px;
+      padding:6px 7px;
+      margin-bottom:6px;
+      border:1px solid rgba(148,163,184,.5);
+      background:rgba(15,23,42,.95);
+      font-size:.7rem;
+      color:#e5e7eb;
+    }
+    .bm-meta{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+      margin-bottom:4px;
+      font-size:.65rem;
+      color:#9ca3af;
+    }
+    .bm-actions{
+      margin-top:4px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+    }
+
+    .faith-chip{
+      padding:3px 7px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.7);
+      background:rgba(15,23,42,.98);
+      font-size:.68rem;
+      color:#e5e7eb;
+      cursor:pointer;
+    }
+    .faith-chip.active{
+      background:rgba(34,197,94,.2);
+      border-color:#22c55e;
+      color:#bbf7d0;
+    }
+
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.86);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:50;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s ease;
+    }
+    .modal-overlay.visible{
+      opacity:1;
+      pointer-events:auto;
+    }
+    .modal-card{
+      width:100%;
+      max-width:540px;
+      border-radius:20px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(15,23,42,.98));
+      border:1px solid rgba(148,163,184,.75);
+      box-shadow:0 26px 80px rgba(15,23,42,.95);
+      padding:14px 14px 12px;
+      color:#e5e7eb;
+      font-size:.8rem;
+    }
+    .modal-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:8px;
+    }
+    .modal-title{
+      font-size:.88rem;
+      font-weight:600;
+    }
+    .modal-sub{
+      font-size:.7rem;
+      color:#9ca3af;
+    }
+    .modal-close{
+      border:none;
+      background:transparent;
+      color:#9ca3af;
+      cursor:pointer;
+      font-size:1rem;
+    }
+    .modal-body{
+      margin-top:4px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .modal-search{
+      width:100%;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.6);
+      background:rgba(15,23,42,.98);
+      padding:6px 9px;
+      color:#e5e7eb;
+      font-size:.78rem;
+      outline:none;
+      margin-top:4px;
+    }
+    .modal-search::placeholder{color:#6b7280;}
+    .faith-note{
+      font-size:.72rem;
+      color:#9ca3af;
+    }
+
+    /* Offline LLM button + status */
+    .btn-offline{
+      background:#10b981 !important;
+      color:#ffffff !important;
+      margin-top:8px;
+    }
+    .offline-status{
+      font-size:0.75rem;
+      color:#10b981;
+      margin-top:4px;
+    }
+
+    @media(max-width:900px){
+      .app{
+        grid-template-columns:1fr;
+        max-width:640px;
+      }
+      .header{
+        grid-template-columns:1fr;
+      }
+      .header-right{
+        margin-top:6px;
+        border-left:none;
+        padding-left:0;
+      }
+    }
   </style>
 </head>
 <body>
+<div class="app">
+  <div class="left-column">
+    <header class="header">
+      <div class="header-left">
+        <div class="brand-row">
+          <div class="brand-main">
+            <div class="logo-orb"></div>
+            <div class="brand-text">
+              <div class="brand-title">AURA-X Ω</div>
+              <div class="brand-subtitle">Artificial Unified Resonance Architecture</div>
+            </div>
+          </div>
+          <div class="header-badges">
+            <div class="badge">
+              <span class="icon">🧠</span> Emotional Continuity
+            </div>
+            <div class="badge">
+              <span class="icon">🪬</span> TM × BM × Faith × Intel
+            </div>
+          </div>
+        </div>
+        <div class="ethics-line">
+          <strong>Universal ethics:</strong> avoid actions that create negative emotions in you or others, and gently move towards actions that create positivity in everyone.
+        </div>
+        <div class="header-metrics">
+          <div class="metric-card">
+            <div class="metric-label">Continuity E₀</div>
+            <div class="metric-value" id="metricE0">0.00</div>
+            <div class="metric-sub">Emotional resonance of this moment</div>
+            <div class="metric-bar-wrap">
+              <div class="metric-bar" id="metricBarE0"></div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">TM / BM balance</div>
+            <div class="metric-value">
+              <span id="metricTM">0.00</span>
+              <span style="opacity:.7;">/</span>
+              <span id="metricBM">0.00</span>
+            </div>
+            <div class="metric-sub">TM = current conversation, BM = story memory</div>
+            <div class="metric-bar-wrap">
+              <div class="metric-bar" id="metricBarBM"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="bm-shell" id="bmShell">
+          <div class="bm-title-row">
+            <div>
+              <div class="bm-title">Bold Memory (BM) layers</div>
+              <div class="bm-subtitle">240 emotional threads in 7 coloured bands</div>
+            </div>
+            <button id="bmOpenModal" class="btn-mini">📚 View BM stories</button>
+          </div>
+          <canvas id="bmCanvas"></canvas>
+          <div class="bm-stats" id="bmStats">
+            <div class="bm-pill">Stories: <span id="bmCount">0</span></div>
+            <div class="bm-pill">Locked (core): <span id="bmLockedCount">0</span></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="chat-card">
+      <div class="chat-header-row">
+        <div class="chat-title-block">
+          <div class="chat-title">Conversation stream (TM)</div>
+          <div class="chat-sub">Each emotionally meaningful moment may become a BM story.</div>
+        </div>
+        <div class="header-controls" id="headerControls">
+          <button class="header-chip" id="optionsToggle">
+            <span class="icon">🎛️</span><span>Options</span>
+          </button>
+          <button class="header-chip" id="faithButton">
+            <span class="icon">🪬</span><span>Faith: None</span>
+          </button>
+          <button class="header-chip" id="intelButton">
+            <span class="icon">🧩</span><span>Intelligence</span>
+          </button>
+          <button class="header-chip" id="learningToggle">
+            <span class="icon">📚</span><span>Learning: ON</span>
+          </button>
+          <button class="header-chip" id="voiceToggle">
+            <span class="icon">🔈</span><span>Voice: OFF</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="chat-scroll" id="chatContainer"></div>
+
+      <div class="reaction-row">
+        <div class="reaction-pill" id="reactionBubble">
+          <div>
+            <div class="reaction-label">Emotional reaction</div>
+            <div class="reaction-text" id="reactionText">
+              Waiting for your first message…
+            </div>
+          </div>
+          <div class="reaction-tag" id="reactionLabel">Neutral · 0.00</div>
+        </div>
+        <div class="reaction-pill" id="recallBubble">
+          <div>
+            <div class="reaction-label" id="recallTitle">Recall</div>
+            <div class="reaction-text" id="recallBody">No recall yet.</div>
+            <div class="reaction-tag" id="recallMeta">–</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-shell">
+        <div class="formula-strip">
+          <div class="formula-core">
+            E₀ = tanh((TM × (BM + Intel + LLM)) − D + λ_faith + λ_sys + λ_trc)
+          </div>
+          <div class="formula-pill">TM = user input + LLM answer</div>
+        </div>
+        <textarea id="messageInput" class="message-input" rows="1"
+          placeholder="Type something emotionally meaningful. Short chit-chat will not go into BM…"></textarea>
+        <button id="sendButton" class="send-button">
+          <span>➤</span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div class="right-column">
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Continuity metrics & polarity</div>
+          <div class="panel-sub">Real-time view of emotional trajectory</div>
+        </div>
+        <button id="bmOpenModal2" class="btn-mini">BM stories</button>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-pill">
+          <div class="metric-pill-label">Continuity index</div>
+          <div class="metric-pill-value" id="metricCI">0.00</div>
+          <div style="font-size:.66rem;color:#9ca3af;">How stable your emotional direction feels over time.</div>
+        </div>
+        <div class="metric-pill">
+          <div class="metric-pill-label">Polarity & intensity</div>
+          <div class="metric-pill-value" id="polarityLabel">Neutral · 0.00</div>
+          <div style="font-size:.66rem;color:#9ca3af;">Red = negative, Green = positive, Yellow = neutral.</div>
+        </div>
+      </div>
+
+      <div class="option-panel" id="optionPanel">
+        <div class="option-row">
+          <div class="option-label">
+            Learning mode<br><span>When ON, you can teach me answers into Intel.</span>
+          </div>
+          <button id="learningToggle2" class="toggle">ON</button>
+        </div>
+        <div class="option-row">
+          <div class="option-label">
+            BM auto-save<br><span>Only meaningful, story-level text enters BM.</span>
+          </div>
+          <div class="polarity-badge">Rule: length ≥ ~4 sentences & has a clear core idea.</div>
+        </div>
+        <div class="option-row">
+          <div class="option-label">
+            LLM link<br><span>Optional: connect a cloud LLM or use local WebLLM.</span>
+          </div>
+          <button id="llmSettingsButton" class="toggle">LLM settings</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">BM stories & conversation history</div>
+          <div class="panel-sub">Only story-level memories go into BM. TM decays in 48h.</div>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <button id="feedSeedButton" class="btn-mini">📦 Feed the seed</button>
+          <button id="convOpenModal" class="btn-mini">🕒 TM history</button>
+        </div>
+      </div>
+      <div class="list-scroll" id="bmStatsPanel">
+        <div style="font-size:.72rem;color:#9ca3af;">
+          BM = Bold Memory. Think of it as a 240-layer emotional roof. Each beam carries part of your story.
+          When continuity breaks, the "roof" collapses and the story loses meaning.
+        </div>
+        <div style="margin-top:8px;">
+          <button id="bmOpenModal" class="btn-mini">Open BM story browser</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- BM modal -->
+<div id="bmModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Bold Memory stories</div>
+        <div class="modal-sub">Only emotionally meaningful, story-level text is kept here.</div>
+      </div>
+      <button class="modal-close" data-close="bmModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input id="bmSearch" class="modal-search" placeholder="Search stories by text or tag…"/>
+      <div class="list-scroll" id="bmList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Conversation TM modal -->
+<div id="convModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Conversation (TM) history</div>
+        <div class="modal-sub">TM decays. Only locked messages stay beyond 48 hours.</div>
+      </div>
+      <button class="modal-close" data-close="convModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div class="faith-note">Lock messages you want to keep. Everything else is auto-pruned.</div>
+        <div style="display:flex;gap:6px;">
+          <button id="clear48" class="btn-mini btn-danger">Clear > 48h</button>
+          <button id="clearAll" class="btn-mini btn-danger">Clear all unlocked</button>
+        </div>
+      </div>
+      <div class="list-scroll" id="convList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Faith modal -->
+<div id="faithModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Faith / worldview lenses</div>
+        <div class="modal-sub">These slightly tilt λ_faith and λ_trc in the equation.</div>
+      </div>
+      <button class="modal-close" data-close="faithModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="faith-note">
+        This is not about religion only. It can be any deep worldview that changes how you interpret events.
+        You can pick multiple, but I will always try to keep universal ethics on top.
+      </div>
+      <div id="faithChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+        <div class="faith-chip" data-faith="None">None / keep neutral</div>
+        <div class="faith-chip" data-faith="Spiritual">Spiritual / transcendence</div>
+        <div class="faith-chip" data-faith="Scientific">Scientific scepticism</div>
+        <div class="faith-chip" data-faith="Stoic">Stoic resilience</div>
+        <div class="faith-chip" data-faith="Islamic">Islamic ethics</div>
+        <div class="faith-chip" data-faith="Other">Other custom lens</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Intelligence modal -->
+<div id="intelModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Learned intelligence (Q → A)</div>
+        <div class="modal-sub">Local "seed" memory that I recall before any LLM.</div>
+      </div>
+      <button class="modal-close" data-close="intelModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="faith-note">
+        When Learning mode is ON and I don’t know an answer, I will ask you to teach me.
+        Those Q → A pairs appear here and are always checked before any external LLM.
+      </p>
+      <input id="intelSearch" class="modal-search" placeholder="Search questions or answers…"/>
+      <div class="list-scroll" id="intelList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Seed modal -->
+<div id="seedModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Feed the seed (LaTeX Q/A blocks)</div>
+        <div class="modal-sub">Teach many answers at once – still fully offline.</div>
+      </div>
+      <button class="modal-close" data-close="seedModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="seedPasswordStage">
+        <p class="faith-note">
+          Simple local password, only on this device. Nothing leaves your browser.
+          Demo password: <strong>6789</strong>.
+        </p>
+        <input id="seedPasswordInput" type="password" class="modal-search" placeholder="Enter password 6789">
+        <div id="seedPasswordError" style="display:none;color:#b91c1c;font-size:.75rem;margin-top:4px;">
+          Wrong password. Try again.
+        </div>
+        <button id="seedPasswordBtn" class="btn-mini" style="margin-top:6px;">Unlock seed editor</button>
+      </div>
+      <div id="seedBlockStage" style="display:none;">
+        <p class="faith-note">
+          Paste a LaTeX block of Q/A pairs here. I’ll parse and add them into my seed.
+        </p>
+        <textarea id="seedBlockInput" class="message-input" style="min-height:120px;border-radius:14px;border:1px solid rgba(148,163,184,.6);padding:8px;"></textarea>
+        <div id="seedBlockPreview" style="margin-top:6px;font-size:.7rem;color:#9ca3af;">
+          Waiting for block…
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="seedParseBtn" class="btn-mini">Parse block</button>
+          <button id="seedSaveBtn" class="btn-mini" disabled>Save to seed</button>
+          <button id="seedDiscardBtn" class="btn-mini btn-danger">Discard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LLM settings modal -->
 <div id="llmModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
       <div>
-        <div class="modal-title">🤖 LLM Link & Offline Engine</div>
-        [span_10](start_span)<div class="modal-sub">Password 6789[span_10](end_span)</div>
+        <div class="modal-title">🤖 LLM link settings</div>
+        <div class="modal-sub">Password 6789 · For private testing only (keys stay in this browser).</div>
       </div>
       <button class="modal-close" data-close="llmModal">✕</button>
     </div>
     <div class="modal-body">
       <div id="llmLockStage">
-        [span_11](start_span)<p class="faith-note">Demo password: <strong>6789</strong>[span_11](end_span).</p>
-        <input id="llmPasswordInput" type="password" class="modal-search" placeholder="Enter password">
-        <button id="llmUnlockBtn" class="btn-mini">Unlock</button>
+        <p class="faith-note">
+          Simple local password to avoid accidental key leaks.<br>
+          Demo password: <strong>6789</strong>.
+        </p>
+        <input id="llmPasswordInput" type="password" class="modal-search" placeholder="Enter password (6789)">
+        <div id="llmPasswordError" style="display:none;color:#b91c1c;font-size:.75rem;margin-top:4px;">
+          Wrong password. Try again.
+        </div>
+        <button id="llmUnlockBtn" class="btn-mini" style="margin-top:8px;">Unlock LLM settings</button>
       </div>
       <div id="llmConfigStage" style="display:none;">
-        <div style="border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 15px;">
-           <label style="font-weight:bold; color:#0f172a;">LOCAL ENGINE (OFFLINE)</label>
-           <p class="faith-note">Load a 1GB model to browser memory for 100% offline intelligence.</p>
-           <button id="loadOfflineModelBtn" class="btn-mini btn-offline">📥 Load TinyLlama (Offline)</button>
-           <div id="offlineLoadingStatus" class="offline-status">Status: Not Loaded</div>
+        <!-- LOCAL OFFLINE ENGINE (TinyLlama via WebLLM) -->
+        <div style="border-bottom:1px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
+          <label style="font-weight:bold;color:#0f172a;font-size:.8rem;">LOCAL ENGINE (OFFLINE)</label>
+          <p class="faith-note">Load ~1GB TinyLlama model into browser memory (WebGPU) for 100% offline replies.</p>
+          <button id="loadOfflineModelBtn" class="btn-mini btn-offline">📥 Load TinyLlama (Offline)</button>
+          <div id="offlineLoadingStatus" class="offline-status">Status: Not Loaded</div>
         </div>
+        <p class="faith-note">
+          For real products, move all LLM calls to a secure back-end. Here everything stays in localStorage of this browser only.
+        </p>
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API base URL</label>
+        <input id="llmBaseUrlInput" class="modal-search" />
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Model name</label>
+        <input id="llmModelInput" class="modal-search" />
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API key</label>
+        <input id="llmKeyInput" type="password" class="modal-search" placeholder="sk-..." />
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+          <button id="llmSaveBtn" class="btn-mini">Save</button>
+          <button id="llmClearBtn" class="btn-mini btn-danger">Clear key</button>
+          <button id="llmToggleBtn" class="btn-mini">LLM: OFF</button>
         </div>
+        <div id="llmStatusText" style="font-size:.73rem;color:#4b5563;margin-top:6px;">
+          Not configured.
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
 (function(){
-  // ... (Existing Constants BM_BANDS etc.) ...
-
-  class AuraXOmegaEngine {
+  const BM_BANDS = ["Pain","Fear","Love","Identity","Belief","Hope","Wisdom"];
+  const BAND_RGB = [
+    [239,68,68],
+    [249,115,22],
+    [34,197,94],
+    [14,165,233],
+    [99,102,241],
+    [234,179,8],
+    [168,85,247]
+  ];
+  const IMAGE_GENERATOR_URL = "https://example.com/create?prompt=";
+  const STORAGE_KEY = "auraXOmegaState_v6";
+  const LLM_CONFIG_KEY = "auraXOmegaLLMConfig_v1";
+  class AuraXOmegaEngine{
     constructor(){
-      // ... (Initializations from Source 155 to 174) ...
+      const saved = this.loadState();
+      const savedLLM = this.loadLLMConfig();
+      this.bmLayers = new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
+      this.bmEntries = [];
+      this.tmHistory = [];
+      this.intelNodes = [];
+      this.e0 = 0.2 + Math.random()*0.3;
+      this.lastE0 = this.e0;
+      this.continuityIndex = 0.8;
+      this.lastResonance = 0.5;
+      this.lastIntelMatchScore = 0;
+      this.learningMode = true;
+      this.lastAnsweredQuestion = null;
+      this.voiceOn = false;
+      this.faithsSelected = [];
+      this.seedUnlocked = false;
+      this.seedPanelQAs = [];
+      this.identities = {};
+      this.currentIdentityId = "deviceUser";
+      this.llmEnabled = savedLLM ? !!savedLLM.enabled : false;
+      this.llmConfig = {
+        apiKey: savedLLM && savedLLM.apiKey ? savedLLM.apiKey : "",
+        baseUrl: savedLLM && savedLLM.baseUrl ? savedLLM.baseUrl : "https://api.openai.com/v1/chat/completions",
+        model: savedLLM && savedLLM.model ? savedLLM.model : "gpt-4.1-mini"
+      };
+      // Offline local WebLLM engine (TinyLlama)
       this.localEngine = null;
-      this.localModelId = "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC"; // Efficient for mobile/web
-      
+      this.localModelId = "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC";
+
+      if(saved){
+        this.bmLayers = saved.bmLayers || this.bmLayers;
+        this.bmEntries = (saved.bmEntries || []).map(e=>({
+          ...e,
+          id: e.id || this.makeId("bm"),
+          timestampMs: e.timestampMs || (e.date ? new Date(e.date).getTime() : Date.now()),
+          locked: !!e.locked
+        }));
+        this.tmHistory = (saved.tmHistory || []).map(e=>({
+          ...e,
+          id: e.id || this.makeId("tm"),
+          timestampMs: e.timestampMs || (e.date ? new Date(e.date).getTime() : Date.now()),
+          locked: !!e.locked
+        }));
+        this.e0 = typeof saved.e0==="number" ? saved.e0 : this.e0;
+        this.lastE0 = typeof saved.lastE0==="number" ? saved.lastE0 : this.lastE0;
+        this.continuityIndex = typeof saved.continuityIndex==="number" ? saved.continuityIndex : this.continuityIndex;
+        this.lastResonance = typeof saved.lastResonance==="number" ? saved.lastResonance : this.lastResonance;
+        this.lastIntelMatchScore = typeof saved.lastIntelMatchScore==="number" ? saved.lastIntelMatchScore : this.lastIntelMatchScore;
+        this.learningMode = typeof saved.learningMode==="boolean" ? saved.learningMode : this.learningMode;
+        this.voiceOn = typeof saved.voiceOn==="boolean" ? saved.voiceOn : this.voiceOn;
+        this.faithsSelected = saved.faithsSelected || [];
+        this.identities = saved.identities || {};
+        this.currentIdentityId = saved.currentIdentityId || "deviceUser";
+      }
+      if(!this.identities[this.currentIdentityId]){
+        this.identities[this.currentIdentityId] = {id:this.currentIdentityId, label:"Default device user"};
+      }
+      this.seedRules = this.buildSeedRules();
+      this.basicQA = this.buildBasicQA();
+      this.learnQuestionTemplates = [
+        "I am in learning mode and my seed is small. What would be an ideal answer here for next time?",
+        "If you were designing me, how should I answer this question in the future?",
+        "Teach me: what reply should I give when someone asks this same thing again?",
+        "Help me grow. What is the best answer I should remember for this question?"
+      ];
+      this.learnConfirmTemplates = [
+        "Should I use this exact answer whenever I see this question again? Please reply: yes / no.",
+        "Do you want me to remember this reply as my standard answer? Reply with yes or no.",
+        "Is this the answer I should keep in my seed for future conversations? (yes / no)",
+        "Can I lock this in as my default reply for this question? Answer yes or no."
+      ];
+      this.smallTalkPatterns = [
+        /\b(hi|hello|hey|salam|salaam)\b/i,
+        /\bhow are you\b/i,
+        /\bthanks\b/i,
+        /\bthank you\b/i,
+        /\bok(ay)?\b/i,
+        /\bbye\b/i,
+        /\bgood (night|morning|evening)\b/i,
+        /\bi love you\b/i,
+        /\bi hate you\b/i
+      ];
       this.cacheDom();
+      this.updateVoiceToggleLabel();
+      this.updateFaithUI();
+      this.updateLearningUI();
+      this.updateLLMUI();
       this.bindEvents();
-      this.bindOfflineEvents(); // New binding
-      // ...
+      if(this.bindOfflineEvents) this.bindOfflineEvents();
+      if(this.tmHistory.length){
+        this.tmHistory.forEach(m=>{
+          this.addMessage(m.role, m.text, m.role==="ai", m.sentiment || null);
+        });
+      }else{
+        this.initChat();
+      }
+      this.updateMetrics();
+      this.startBMAnimation();
+      this.pruneOldBM();
+      this.saveState();
+      if(this.messageInput) this.messageInput.focus();
     }
-
-    bindOfflineEvents() {
-      const loadBtn = document.getElementById("loadOfflineModelBtn");
-      const statusText = document.getElementById("offlineLoadingStatus");
-
-      loadBtn.onclick = async () => {
-        loadBtn.disabled = true;
-        statusText.textContent = "Initializing WebGPU...";
-        try {
-          this.localEngine = await window.webllm.CreateMLCEngine(this.localModelId, {
-            initProgressCallback: (report) => {
-              statusText.textContent = `Downloading: ${Math.round(report.progress * 100)}%`;
-            }
-          });
-          statusText.textContent = "Status: Offline Model Ready";
-          loadBtn.style.display = "none";
-        } catch (e) {
-          statusText.textContent = "Error: GPU not supported or download failed.";
-          loadBtn.disabled = false;
+    makeId(prefix){
+      return prefix + "_" + Math.random().toString(36).slice(2);
+    }
+    loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return null;
+        return JSON.parse(raw);
+      }catch(e){
+        return null;
+      }
+    }
+    loadLLMConfig(){
+      try{
+        const raw = localStorage.getItem(LLM_CONFIG_KEY);
+        if(!raw) return null;
+        return JSON.parse(raw);
+      }catch(e){
+        return null;
+      }
+    }
+    saveState(){
+      try{
+        const data = {
+          bmLayers:this.bmLayers,
+          bmEntries:this.bmEntries,
+          tmHistory:this.tmHistory,
+          e0:this.e0,
+          lastE0:this.lastE0,
+          continuityIndex:this.continuityIndex,
+          lastResonance:this.lastResonance,
+          lastIntelMatchScore:this.lastIntelMatchScore,
+          learningMode:this.learningMode,
+          voiceOn:this.voiceOn,
+          faithsSelected:this.faithsSelected,
+          identities:this.identities,
+          currentIdentityId:this.currentIdentityId
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }catch(e){}
+    }
+    saveLLMConfig(){
+      try{
+        const data = {
+          enabled:this.llmEnabled,
+          apiKey:this.llmConfig.apiKey,
+          baseUrl:this.llmConfig.baseUrl,
+          model:this.llmConfig.model
+        };
+        localStorage.setItem(LLM_CONFIG_KEY, JSON.stringify(data));
+      }catch(e){}
+    }
+    cacheDom(){
+      this.metricE0 = document.getElementById("metricE0");
+      this.metricTM = document.getElementById("metricTM");
+      this.metricBM = document.getElementById("metricBM");
+      this.metricCI = document.getElementById("metricCI");
+      this.tagValence = document.getElementById("tagValence");
+      this.tagArousal = document.getElementById("tagArousal");
+      this.tagReaction = document.getElementById("tagReaction");
+      this.bmCanvas = document.getElementById("bmCanvas");
+      this.bmShell = document.getElementById("bmShell");
+      this.bmStats = document.getElementById("bmStats");
+      this.chatContainer = document.getElementById("chatContainer");
+      this.messageInput = document.getElementById("messageInput");
+      this.sendButton = document.getElementById("sendButton");
+      this.voiceToggle = document.getElementById("voiceToggle");
+      this.faithButton = document.getElementById("faithButton");
+      this.intelButton = document.getElementById("intelButton");
+      this.learningToggle = document.getElementById("learningToggle");
+      this.optionsToggle = document.getElementById("optionsToggle");
+      this.optionPanel = document.getElementById("optionPanel");
+      this.headerControls = document.getElementById("headerControls");
+      this.feedSeedButton = document.getElementById("feedSeedButton");
+      this.llmSettingsButton = document.getElementById("llmSettingsButton");
+      this.reactionBubble = document.getElementById("reactionBubble");
+      this.reactionLabel = document.getElementById("reactionLabel");
+      this.reactionText = document.getElementById("reactionText");
+      this.recallBubble = document.getElementById("recallBubble");
+      this.recallTitle = document.getElementById("recallTitle");
+      this.recallBody = document.getElementById("recallBody");
+      this.recallMeta = document.getElementById("recallMeta");
+      this.bmModal = document.getElementById("bmModal");
+      this.bmSearch = document.getElementById("bmSearch");
+      this.bmList = document.getElementById("bmList");
+      this.convModal = document.getElementById("convModal");
+      this.convList = document.getElementById("convList");
+      this.clear48Btn = document.getElementById("clear48");
+      this.clearAllBtn = document.getElementById("clearAll");
+      this.faithModal = document.getElementById("faithModal");
+      this.faithChips = document.getElementById("faithChips");
+      this.intelModal = document.getElementById("intelModal");
+      this.intelSearch = document.getElementById("intelSearch");
+      this.intelList = document.getElementById("intelList");
+      this.seedModal = document.getElementById("seedModal");
+      this.seedPasswordStage = document.getElementById("seedPasswordStage");
+      this.seedBlockStage = document.getElementById("seedBlockStage");
+      this.seedPasswordInput = document.getElementById("seedPasswordInput");
+      this.seedPasswordError = document.getElementById("seedPasswordError");
+      this.seedPasswordBtn = document.getElementById("seedPasswordBtn");
+      this.seedBlockInput = document.getElementById("seedBlockInput");
+      this.seedBlockPreview = document.getElementById("seedBlockPreview");
+      this.seedParseBtn = document.getElementById("seedParseBtn");
+      this.seedSaveBtn = document.getElementById("seedSaveBtn");
+      this.seedDiscardBtn = document.getElementById("seedDiscardBtn");
+      this.llmModal = document.getElementById("llmModal");
+      this.llmLockStage = document.getElementById("llmLockStage");
+      this.llmConfigStage = document.getElementById("llmConfigStage");
+      this.llmPasswordInput = document.getElementById("llmPasswordInput");
+      this.llmPasswordError = document.getElementById("llmPasswordError");
+      this.llmUnlockBtn = document.getElementById("llmUnlockBtn");
+      this.llmBaseUrlInput = document.getElementById("llmBaseUrlInput");
+      this.llmModelInput = document.getElementById("llmModelInput");
+      this.llmKeyInput = document.getElementById("llmKeyInput");
+      this.llmSaveBtn = document.getElementById("llmSaveBtn");
+      this.llmClearBtn = document.getElementById("llmClearBtn");
+      this.llmToggleBtn = document.getElementById("llmToggleBtn");
+      this.llmStatusText = document.getElementById("llmStatusText");
+      this.offlineLoadBtn = document.getElementById("loadOfflineModelBtn");
+      this.offlineStatusEl = document.getElementById("offlineLoadingStatus");
+      this.bmCtx = this.bmCanvas.getContext("2d");
+      this.resizeCanvas();
+      window.addEventListener("resize",()=>this.resizeCanvas());
+    }
+    resizeCanvas(){
+      const rect = this.bmCanvas.getBoundingClientRect();
+      this.bmCanvas.width = Math.floor(rect.width*2);
+      this.bmCanvas.height = Math.floor(rect.height*2);
+      this.bmCtx.scale(2,2);
+      this.drawBMLayers();
+    }
+    updateVoiceToggleLabel(){
+      if(!this.voiceToggle) return;
+      this.voiceToggle.textContent = this.voiceOn ? "🔊 Voice: ON" : "🔈 Voice: OFF";
+    }
+    updateFaithUI(){
+      if(!this.faithButton) return;
+      const label = this.faithsSelected.length
+        ? "🔘 Faith: " + (this.faithsSelected.length===1
+            ? this.faithsSelected[0]
+            : this.faithsSelected[0]+" +"+(this.faithsSelected.length-1))
+        : "🔘 Faith: None";
+      this.faithButton.textContent = label;
+      if(!this.faithChips) return;
+      this.faithChips.querySelectorAll(".faith-chip").forEach(chip=>{
+        const faith = chip.dataset.faith;
+        if(faith === "None"){
+          chip.classList.toggle("active", this.faithsSelected.length===0);
+        }else{
+          chip.classList.toggle("active", this.faithsSelected.includes(faith));
         }
+      });
+    }
+    updateLearningUI(){
+      if(!this.learningToggle) return;
+      this.learningToggle.textContent = this.learningMode ? "📚 Learning: ON" : "📚 Learning: OFF";
+      if(this.headerControls){
+        const alt = this.headerControls.querySelector("#learningToggle2");
+        if(alt) alt.textContent = this.learningMode ? "ON" : "OFF";
+      }
+    }
+    updateLLMUI(){
+      if(!this.llmToggleBtn || !this.llmStatusText) return;
+      this.llmToggleBtn.textContent = this.llmEnabled ? "LLM: ON" : "LLM: OFF";
+      if(this.llmEnabled){
+        this.llmStatusText.textContent = this.localEngine
+          ? "Offline TinyLlama is active."
+          : ("Cloud LLM enabled: " + (this.llmConfig.model || "model"));
+      }else{
+        this.llmStatusText.textContent = "Not configured.";
+      }
+    }
+    bindEvents(){
+      this.sendButton.addEventListener("click",()=>this.handleSend());
+      this.messageInput.addEventListener("keydown",(e)=>{
+        if(e.key==="Enter" && !e.shiftKey){
+          e.preventDefault();
+          this.handleSend();
+        }
+      });
+      this.messageInput.addEventListener("input", function() {
+        this.style.height = "auto";
+        this.style.height = (this.scrollHeight) + "px";
+        if(this.value === "") this.style.height = "auto";
+      });
+      document.getElementById("bmOpenModal").addEventListener("click",(e)=>{
+        e.stopPropagation();
+        this.openBMModal();
+      });
+      document.getElementById("bmOpenModal2").addEventListener("click",(e)=>{
+        e.stopPropagation();
+        this.openBMModal();
+      });
+      document.getElementById("convOpenModal").addEventListener("click",(e)=>{
+        e.stopPropagation();
+        this.openConvModal();
+      });
+      this.bmSearch.addEventListener("input",()=>this.renderBMList());
+      this.bmList.addEventListener("click",(e)=>{
+        const btn = e.target.closest("button[data-action]");
+        if(!btn) return;
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        const entry = this.bmEntries.find(m=>m.id===id);
+        if(!entry) return;
+        if(action==="copy") this.copyPrompt(entry);
+        else if(action==="generate") this.openGenerator(entry);
+        else if(action==="delete") this.deleteMemory(entry);
+        else if(action==="lock-toggle"){
+          entry.locked = !entry.locked;
+          this.renderBMList();
+          this.saveState();
+        }
+      });
+      document.querySelectorAll(".modal-close").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const id = btn.getAttribute("data-close");
+          document.getElementById(id).classList.remove("visible");
+          if(this.messageInput) this.messageInput.focus();
+        });
+      });
+      this.clear48Btn.addEventListener("click",()=>{this.clearTMByHours(48);});
+      this.clearAllBtn.addEventListener("click",()=>{
+        this.tmHistory = this.tmHistory.filter(e=>e.locked);
+        this.renderConvList();
+        this.updateMetrics();
+        this.saveState();
+      });
+      this.convList.addEventListener("click",(e)=>{
+        const btn = e.target.closest("button[data-action]");
+        if(!btn) return;
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        if(action==="lock-toggle"){
+          const msg = this.tmHistory.find(m=>m.id===id);
+          if(!msg) return;
+          msg.locked = !msg.locked;
+          this.renderConvList();
+          this.saveState();
+        }
+      });
+      this.voiceToggle.addEventListener("click",()=>{
+        this.voiceOn = !this.voiceOn;
+        this.updateVoiceToggleLabel();
+        this.saveState();
+      });
+      this.faithButton.addEventListener("click",()=>{
+        this.openFaithModal();
+      });
+      this.intelButton.addEventListener("click",()=>{
+        this.openIntelModal();
+      });
+      this.intelSearch.addEventListener("input",()=>this.renderIntelList());
+      this.intelList.addEventListener("click",(e)=>{
+        const btn = e.target.closest("button[data-action]");
+        if(!btn) return;
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        const node = this.intelNodes.find(n=>n.id===id);
+        if(!node) return;
+        if(action==="copy"){
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            navigator.clipboard.writeText(node.answer).catch(()=>{
+              alert("Answer:\n\n"+node.answer);
+            });
+          }else{
+            alert("Answer:\n\n"+node.answer);
+          }
+        }else if(action==="use"){
+          this.messageInput.value = node.question;
+          this.messageInput.focus();
+        }else if(action==="delete"){
+          const c1 = confirm("First confirmation: Do you really want to delete this intelligence node?");
+          if(!c1) return;
+          const c2 = confirm("Second confirmation: This will permanently remove this learned Q → A. Continue?");
+          if(!c2) return;
+          this.intelNodes = this.intelNodes.filter(n=>n.id!==id);
+          this.renderIntelList();
+          this.saveState();
+        }
+      });
+      if(this.optionsToggle){
+        this.optionsToggle.addEventListener("click",()=>{
+          if(!this.optionPanel) return;
+          const visible = this.optionPanel.style.display==="flex";
+          this.optionPanel.style.display = visible ? "none" : "flex";
+        });
+      }
+      if(this.feedSeedButton){
+        this.feedSeedButton.addEventListener("click",()=>{
+          this.openSeedModal();
+        });
+      }
+      if(this.learningToggle){
+        this.learningToggle.addEventListener("click",()=>{
+          this.learningMode = !this.learningMode;
+          this.updateLearningUI();
+          this.saveState();
+        });
+      }
+      const learningToggle2 = document.getElementById("learningToggle2");
+      if(learningToggle2){
+        learningToggle2.addEventListener("click",()=>{
+          this.learningMode = !this.learningMode;
+          this.updateLearningUI();
+          this.saveState();
+        });
+      }
+      if(this.seedPasswordBtn){
+        this.seedPasswordBtn.addEventListener("click",()=>this.handleSeedPassword());
+      }
+      if(this.seedPasswordInput){
+        this.seedPasswordInput.addEventListener("keydown",(e)=>{
+          if(e.key==="Enter"){
+            e.preventDefault();
+            this.handleSeedPassword();
+          }
+        });
+      }
+      if(this.seedParseBtn){
+        this.seedParseBtn.addEventListener("click",()=>this.handleSeedParse());
+      }
+      if(this.seedSaveBtn){
+        this.seedSaveBtn.addEventListener("click",()=>this.handleSeedSave());
+      }
+      if(this.seedDiscardBtn){
+        this.seedDiscardBtn.addEventListener("click",()=>this.handleSeedDiscard());
+      }
+      if(this.llmSettingsButton){
+        this.llmSettingsButton.addEventListener("click",()=>this.openLLMModal());
+      }
+      if(this.llmUnlockBtn){
+        this.llmUnlockBtn.addEventListener("click",()=>this.handleLLMUnlock());
+      }
+      if(this.llmPasswordInput){
+        this.llmPasswordInput.addEventListener("keydown",(e)=>{
+          if(e.key==="Enter"){
+            e.preventDefault();
+            this.handleLLMUnlock();
+          }
+        });
+      }
+      if(this.llmSaveBtn){
+        this.llmSaveBtn.addEventListener("click",()=>this.handleLLMSave());
+      }
+      if(this.llmClearBtn){
+        this.llmClearBtn.addEventListener("click",()=>this.handleLLMClear());
+      }
+      if(this.llmToggleBtn){
+        this.llmToggleBtn.addEventListener("click",()=>{
+          this.llmEnabled = !this.llmEnabled;
+          this.updateLLMUI();
+          this.saveLLMConfig();
+        });
+      }
+    }
+    initChat(){
+      const text =
+        "Welcome. I am AURA-X Ω, running fully offline on your device.\n"+
+        "Here TM means only your inputs (text now, voice/video/documents in the future).\n"+
+        "I collide TM with your Bold Memory (BM) layers, my Intel Q → A seed, and optionally an external or local LLM, then pass everything through the equation:\n"+
+        "E₀ = tanh((TM × (BM + Intel + LLM)) − D + λ_faith + λ_sys + λ_trc).\n\n"+
+        "BM only stores story-level text that can later be used to generate a photo or video scene.\n"+
+        "When Learning mode is ON and I don’t know an answer, you can teach me and I will remember it for next time.\n\n"+
+        "You can also say: \"please add this block to seed\" and then paste a LaTeX block of Q/A pairs to teach many answers at once.\n"+
+        "You can ask for time, fresh news links, or just explore emotional patterns.";
+      const sent = this.analyzeSentiment(text);
+      this.addMessage("ai", text, true, sent);
+      this.pushTM("ai", text, sent);
+    }
+    buildSeedRules(){
+      return [
+        {
+          pattern:/\bwho (are|r) you\b/i,
+          polarity:"neutral",
+          category:"identity",
+          replies:[
+            "I am AURA-X Ω, a synthetic emotion engine designed to hold emotional continuity over time."
+          ]
+        },
+        {
+          pattern:/\bwhat('s| is) your name\b/i,
+          polarity:"positive",
+          category:"identity",
+          replies:[
+            "My name is AURA-X Ω, an Artificial Unified Resonance Architecture."
+          ]
+        },
+        {
+          pattern:/\bwho created you\b/i,
+          polarity:"positive",
+          category:"identity",
+          replies:[
+            "I am conceptually created by Alim ul Haq from Pakistan, as part of a research project on emotional continuity and dual-memory AI."
+          ]
+        },
+        {
+          pattern:/\bwhat is tm\b/i,
+          polarity:"neutral",
+          category:"concept",
+          replies:[
+            "TM (Temporary Memory) is the current conversation stream. It decays over time unless parts are promoted into Bold Memory (BM)."
+          ]
+        },
+        {
+          pattern:/\bwhat is bm\b/i,
+          polarity:"neutral",
+          category:"concept",
+          replies:[
+            "BM (Bold Memory) stores story-level, emotionally meaningful summaries. It’s like the steel beams of a building that hold your long-term narrative."
+          ]
+        },
+        {
+          pattern:/\bwhat is e0\b/i,
+          polarity:"neutral",
+          category:"concept",
+          replies:[
+            "E₀ is the current emotional continuity index: E₀ = tanh((TM × (BM + Intel + LLM)) − D + λ_faith + λ_sys + λ_trc). It reflects how stable and aligned your emotional trajectory feels right now."
+          ]
+        },
+        {
+          pattern:/\b(hello|hi|hey|salam|salaam)\b/i,
+          polarity:"positive",
+          category:"greeting",
+          replies:[
+            "Hello 👋 I am still here, carrying your previous feelings in my memory layers.",
+            "Hi. I am AURA-X Ω, listening carefully for anything emotionally meaningful."
+          ]
+        }
+      ];
+    }
+    buildBasicQA(){
+      return {
+        "what is aura x omega":"AURA-X Ω is an Artificial Unified Resonance Architecture designed to model emotional continuity over time using TM, BM, faith, system, and truth resonance layers.",
+        "what is bold memory":"Bold Memory (BM) is where only story-level, emotionally meaningful text is stored for long-term continuity.",
+        "what is temporary memory":"Temporary Memory (TM) is your current conversation stream, which slowly decays unless promoted into BM."
       };
     }
-
-    // Updated generateReply to prioritize local memory then Local LLM
-    async generateReply(text, sentiment, cloudAnswer, opts) {
-      // 1. Check Local Intelligence (Seeds/Nodes)
-      [span_12](start_span)[span_13](start_span)const intelMatch = this.matchIntelNode(text);[span_12](end_span)[span_13](end_span)
-      [span_14](start_span)if (intelMatch) return intelMatch.node.answer;[span_14](end_span)
-
-      [span_15](start_span)[span_16](start_span)const seed = this.matchSeedRule(text);[span_15](end_span)[span_16](end_span)
-      [span_17](start_span)if (seed) return seed.reply;[span_17](end_span)
-
-      // 2. Call Local LLM if loaded
-      if (this.localEngine) {
-        const bmContext = this.getBMContextSummary();
-        const fullPrompt = `Context from Bold Memory: ${bmContext}\nUser says: ${text}\nAURA-X Ω Reply:`;
-        const reply = await this.localEngine.chat.completions.create({
-          messages: [{ role: "user", content: fullPrompt }]
+    analyzeSentiment(text){
+      const lower = text.toLowerCase();
+      let score = 0;
+      if(/(thank|love|great|awesome|happy|alhamdulillah)/i.test(lower)) score += 0.3;
+      if(/(sad|angry|hate|depressed|anxious|fear|scared)/i.test(lower)) score -= 0.3;
+      if(/sorry/i.test(lower)) score -= 0.15;
+      const exclam = (text.match(/!/g)||[]).length;
+      score += Math.min(exclam*0.05,0.25);
+      score = Math.max(-1, Math.min(1, score));
+      const valence = score;
+      const intensity = Math.min(1, Math.abs(score)*1.2);
+      return {valence,intensity};
+    }
+    sentimentToLabel(sent){
+      if(!sent) return {label:"Neutral", color:"yellow", value:0};
+      const v = sent.valence;
+      if(v > 0.15) return {label:"Positive", color:"green", value:v};
+      if(v < -0.15) return {label:"Negative", color:"red", value:v};
+      return {label:"Neutral", color:"yellow", value:v};
+    }
+    addMessage(role, text, isAI=false, sentiment=null){
+      if(!this.chatContainer) return;
+      const el = document.createElement("div");
+      el.className = "message " + (isAI ? "ai" : "user");
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+      const meta = document.createElement("div");
+      meta.className = "bubble-meta";
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+      const sentLabel = this.sentimentToLabel(sentiment);
+      meta.textContent = `${timeStr} · ${sentLabel.label}`;
+      bubble.appendChild(meta);
+      el.appendChild(bubble);
+      this.chatContainer.appendChild(el);
+      this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+      if(isAI) this.speakIfEnabled(text);
+    }
+    showTyping(){
+      if(!this.chatContainer) return null;
+      const id = this.makeId("typing");
+      const el = document.createElement("div");
+      el.className = "message ai";
+      el.id = id;
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      const tip = document.createElement("div");
+      tip.className = "typing-indicator";
+      tip.innerHTML = `
+        <span>Thinking</span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      `;
+      bubble.appendChild(tip);
+      el.appendChild(bubble);
+      this.chatContainer.appendChild(el);
+      this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+      return id;
+    }
+    hideTyping(id){
+      if(!id) return;
+      const el = document.getElementById(id);
+      if(el && el.parentNode) el.parentNode.removeChild(el);
+    }
+    speakIfEnabled(text){
+      if(!this.voiceOn || !window.speechSynthesis) return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 1;
+      utter.pitch = 1;
+      utter.volume = 1;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utter);
+    }
+    pushTM(role,text,sentiment){
+      const entry = {
+        id:this.makeId("tm"),
+        role,
+        text,
+        sentiment,
+        timestampMs:Date.now(),
+        locked:false
+      };
+      this.tmHistory.push(entry);
+      this.saveState();
+    }
+    pruneOldBM(){
+      const cutoff = Date.now() - 90*24*60*60*1000;
+      this.bmEntries = this.bmEntries.filter(e=>e.timestampMs>=cutoff || e.locked);
+      this.saveState();
+    }
+    pruneTM(){
+      const cutoff = Date.now() - 48*60*60*1000;
+      this.tmHistory = this.tmHistory.filter(e=>e.timestampMs>=cutoff || e.locked);
+      this.saveState();
+    }
+    clearTMByHours(hours){
+      const cutoff = Date.now() - hours*60*60*1000;
+      this.tmHistory = this.tmHistory.filter(e=>e.timestampMs>=cutoff || e.locked);
+      this.renderConvList();
+      this.updateMetrics();
+      this.saveState();
+    }
+    updateMetrics(){
+      this.pruneTM();
+      const last = this.tmHistory.slice(-10);
+      let tmScore = 0;
+      let bmScore = 0;
+      last.forEach(e=>{
+        if(e.sentiment){
+          tmScore += e.sentiment.valence * (e.role==="user" ? 1 : 0.6);
+        }
+      });
+      this.bmEntries.slice(-10).forEach(e=>{
+        if(e.sentiment){
+          bmScore += e.sentiment.valence;
+        }
+      });
+      const tmNorm = last.length ? tmScore / last.length : 0;
+      const bmNorm = this.bmEntries.length ? bmScore / this.bmEntries.length : 0;
+      const ci = 0.5 * (1 - Math.abs(tmNorm - bmNorm)) + 0.5 * (1 - Math.abs(this.lastResonance - this.e0));
+      this.e0 = 0.6*this.e0 + 0.4*(tmNorm + bmNorm)/2;
+      this.continuityIndex = 0.7*this.continuityIndex + 0.3*ci;
+      this.lastResonance = this.e0;
+      if(this.metricE0) this.metricE0.textContent = this.e0.toFixed(2);
+      if(this.metricTM) this.metricTM.textContent = tmNorm.toFixed(2);
+      if(this.metricBM) this.metricBM.textContent = bmNorm.toFixed(2);
+      if(this.metricCI) this.metricCI.textContent = this.continuityIndex.toFixed(2);
+      const barE0 = document.getElementById("metricBarE0");
+      const barBM = document.getElementById("metricBarBM");
+      const e0Pos = (this.e0 + 1)/2;
+      if(barE0) barE0.style.width = (20 + 60*e0Pos)+"%";
+      const bmPos = (bmNorm + 1)/2;
+      if(barBM) barBM.style.width = (20 + 60*bmPos)+"%";
+      this.renderConvList();
+      this.renderBMList();
+    }
+    renderConvList(){
+      if(!this.convList) return;
+      this.convList.innerHTML = "";
+      const sorted = [...this.tmHistory].sort((a,b)=>b.timestampMs - a.timestampMs);
+      sorted.forEach(e=>{
+        const row = document.createElement("div");
+        row.className = "bm-item";
+        const meta = document.createElement("div");
+        meta.className = "bm-meta";
+        const dt = new Date(e.timestampMs);
+        const timeStr = dt.toLocaleString();
+        meta.innerHTML = `
+          <span>${e.role==="user" ? "User" : "AURA-X Ω"} · ${timeStr}</span>
+          <span>${e.locked ? "🔒 locked" : "🔓 unlocked"}</span>
+        `;
+        const body = document.createElement("div");
+        body.textContent = e.text;
+        const actions = document.createElement("div");
+        actions.className = "bm-actions";
+        const btn = document.createElement("button");
+        btn.className = "btn-mini";
+        btn.dataset.action = "lock-toggle";
+        btn.dataset.id = e.id;
+        btn.textContent = e.locked ? "Unlock" : "Lock";
+        actions.appendChild(btn);
+        row.appendChild(meta);
+        row.appendChild(body);
+        row.appendChild(actions);
+        this.convList.appendChild(row);
+      });
+    }
+    renderBMList(){
+      if(!this.bmList) return;
+      const q = (this.bmSearch.value || "").toLowerCase();
+      this.bmList.innerHTML = "";
+      const filtered = this.bmEntries.filter(e=>{
+        if(!q) return true;
+        return (e.text||"").toLowerCase().includes(q) || (e.tag||"").toLowerCase().includes(q);
+      }).sort((a,b)=>b.timestampMs - a.timestampMs);
+      if(!filtered.length){
+        const empty = document.createElement("div");
+        empty.style.fontSize = ".72rem";
+        empty.style.color = "#9ca3af";
+        empty.textContent = "No BM stories yet. Only story-level, meaningful text is saved here.";
+        this.bmList.appendChild(empty);
+      }else{
+        filtered.forEach(e=>{
+          const row = document.createElement("div");
+          row.className = "bm-item";
+          const meta = document.createElement("div");
+          meta.className = "bm-meta";
+          const dt = new Date(e.timestampMs);
+          const timeStr = dt.toLocaleString();
+          meta.innerHTML = `
+            <span>${timeStr}${e.tag ? " · "+e.tag : ""}</span>
+            <span>${e.locked ? "🔒" : "🔓"}</span>
+          `;
+          const body = document.createElement("div");
+          body.textContent = e.text;
+          const actions = document.createElement("div");
+          actions.className = "bm-actions";
+          ["copy","generate","lock-toggle","delete"].forEach(action=>{
+            const b = document.createElement("button");
+            b.className = "btn-mini" + (action==="delete" ? " btn-danger" : "");
+            b.dataset.action = action;
+            b.dataset.id = e.id;
+            b.textContent =
+              action==="copy" ? "Copy prompt" :
+              action==="generate" ? "Generate scene" :
+              action==="lock-toggle" ? (e.locked ? "Unlock" : "Lock") :
+              "Delete";
+            actions.appendChild(b);
+          });
+          row.appendChild(meta);
+          row.appendChild(body);
+          row.appendChild(actions);
+          this.bmList.appendChild(row);
         });
-        return reply.choices[0].message.content;
       }
-
-      // 3. Fallback to Cloud LLM or Default Reply
-      [span_18](start_span)if (cloudAnswer) return cloudAnswer;[span_18](end_span)
-      [span_19](start_span)return "I'm processing this through my continuity layers...[span_19](end_span)";
+      const bmCount = document.getElementById("bmCount");
+      const bmLockedCount = document.getElementById("bmLockedCount");
+      if(bmCount) bmCount.textContent = this.bmEntries.length;
+      if(bmLockedCount) bmLockedCount.textContent = this.bmEntries.filter(e=>e.locked).length;
     }
-
-    getBMContextSummary() {
-      // Collects latest stories from BM to feed the LLM context
-      [span_20](start_span)[span_21](start_span)return this.bmEntries.slice(-3).map(e => e.text).join(" ");[span_20](end_span)[span_21](end_span)
+    drawBMLayers(){
+      const ctx = this.bmCtx;
+      const canvas = this.bmCanvas;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      const total = this.bmLayers.length;
+      const bandSize = Math.floor(total / BM_BANDS.length);
+      for(let i=0;i<total;i++){
+        const bandIndex = Math.min(BM_BANDS.length-1, Math.floor(i / bandSize));
+        const [r,g,b] = BAND_RGB[bandIndex];
+        const x = (i/total)*w;
+        const base = this.bmLayers[i];
+        const height = base * h*0.9;
+        const top = (h-height)/2;
+        ctx.fillStyle = `rgba(${r},${g},${b},0.28)`;
+        ctx.fillRect(x, top, w/total+1, height);
+      }
+      const grad = ctx.createRadialGradient(w/2,h*0.2,0,w/2,h*0.2,h*0.9);
+      grad.addColorStop(0,"rgba(56,189,248,0.35)");
+      grad.addColorStop(0.4,"rgba(129,140,248,0.18)");
+      grad.addColorStop(1,"rgba(15,23,42,0.9)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,w,h);
     }
-
-    // Modified callLLM to handle cloud fallback (Source 534)
-    async callLLM(promptText) {
-      if (this.localEngine) return null; // Use local engine instead if active
-      // ... (Original fetch logic from Source 536 to 539) ...
+    handleSend(){
+      const text = (this.messageInput.value || "").trim();
+      if(!text) return;
+      this.messageInput.value = "";
+      this.messageInput.style.height = "auto";
+      const sentiment = this.analyzeSentiment(text);
+      this.addMessage("user", text, false, sentiment);
+      this.pushTM("user", text, sentiment);
+      const typingId = this.showTyping();
+      const smallTalk = this.isSmallTalk(text);
+      const bmStoryOnly = this.shouldGoToBMOnly(text, smallTalk);
+      this.processNormalMessage(text, sentiment, smallTalk, bmStoryOnly, typingId);
+    }
+    isSmallTalk(text){
+      const lower = text.toLowerCase();
+      return this.smallTalkPatterns.some(p=>p.test(lower));
+    }
+    shouldGoToBMOnly(text, smallTalk){
+      if(smallTalk) return false;
+      const sentences = text.split(/[.!?]+/).map(s=>s.trim()).filter(Boolean);
+      if(sentences.length < 4) return false;
+      const hasIdea = /(because|so that|therefore|in summary|the point is|main idea|lesson)/i.test(text);
+      return hasIdea || sentences.length>=5;
+    }
+    async processNormalMessage(text, sentiment, smallTalk, bmStoryOnly, typingId){
+      const intelMatchPre = this.matchIntelNode(text);
+      const seedPre = this.matchSeedRule(text);
+      let llmAnswer = null;
+      if(
+        !bmStoryOnly &&
+        !intelMatchPre &&
+        !seedPre &&
+        (this.localEngine || (this.llmEnabled && this.llmConfig && this.llmConfig.apiKey))
+      ){
+        try{
+          llmAnswer = await this.callLLM(text);
+        }catch(e){
+          console.error("LLM error", e);
+          llmAnswer = null;
+        }
+      }
+      this.hideTyping(typingId);
+      const reply = this.generateReply(text, sentiment, llmAnswer, {smallTalk, bmStoryOnly});
+      const replySentiment = this.analyzeSentiment(reply);
+      this.addMessage("ai", reply, true, replySentiment);
+      this.pushTM("ai", reply, replySentiment);
+      this.lastAnsweredQuestion = text;
+      this.updateMemoryAndState(text, sentiment, smallTalk, llmAnswer);
+      this.maybeShowRecallBubble(sentiment);
+      this.updateMetrics();
+    }
+    matchIntelNode(text){
+      const lower = text.toLowerCase();
+      let best = null;
+      let bestScore = 0;
+      this.intelNodes.forEach(node=>{
+        const q = (node.question||"").toLowerCase();
+        if(!q) return;
+        let score = 0;
+        const words = q.split(/\s+/);
+        words.forEach(w=>{
+          if(!w) return;
+          if(lower.includes(w)) score += 1;
+        });
+        score /= Math.max(1,words.length);
+        if(score>bestScore){
+          bestScore = score;
+          best = node;
+        }
+      });
+      this.lastIntelMatchScore = bestScore;
+      if(bestScore>=0.55){
+        return {node:best, score:bestScore};
+      }
+      return null;
+    }
+    matchSeedRule(text){
+      const lower = text.toLowerCase();
+      for(const rule of this.seedRules){
+        if(rule.pattern.test(lower)){
+          const reply = rule.replies[Math.floor(Math.random()*rule.replies.length)];
+          return {rule,reply};
+        }
+      }
+      return null;
+    }
+    generateReply(text, sentiment, llmAnswer, opts){
+      const {smallTalk, bmStoryOnly} = opts || {};
+      const intelMatch = this.matchIntelNode(text);
+      if(intelMatch){
+        return intelMatch.node.answer;
+      }
+      const seed = this.matchSeedRule(text);
+      if(seed){
+        return seed.reply;
+      }
+      if(llmAnswer){
+        return llmAnswer;
+      }
+      if(smallTalk){
+        return "I heard you. I will keep listening until something emotionally meaningful appears that can become part of your longer story.";
+      }
+      if(bmStoryOnly){
+        return "This sounds like a story-level reflection. I’ll try to store it into BM so we can revisit its meaning later.";
+      }
+      return "I’m processing this through my continuity layers. You can add more detail or ask me to summarise the emotional meaning.";
+    }
+    updateMemoryAndState(text, sentiment, smallTalk, llmAnswer){
+      if(!smallTalk){
+        const sentences = text.split(/[.!?]+/).map(s=>s.trim()).filter(Boolean);
+        const hasCoreIdea = sentences.length>=4;
+        if(hasCoreIdea){
+          const entry = {
+            id:this.makeId("bm"),
+            text,
+            sentiment,
+            timestampMs:Date.now(),
+            tag:"",
+            locked:false
+          };
+          this.bmEntries.push(entry);
+          this.saveState();
+          this.drawBMLayers();
+        }
+      }
+      this.lastE0 = this.e0;
+      this.updateMetrics();
+    }
+    maybeShowRecallBubble(sentiment){
+      if(!this.recallBubble) return;
+      const lastBM = this.bmEntries.slice(-1)[0];
+      if(!lastBM){
+        this.recallBody.textContent = "No BM story concluded yet.";
+        this.recallMeta.textContent = "—";
+        return;
+      }
+      this.recallTitle.textContent = "Latest BM story";
+      this.recallBody.textContent = lastBM.text.slice(0,140)+(lastBM.text.length>140?"…":"");
+      const dt = new Date(lastBM.timestampMs);
+      this.recallMeta.textContent = dt.toLocaleString();
+    }
+    openBMModal(){
+      if(this.bmModal){
+        this.bmModal.classList.add("visible");
+        this.renderBMList();
+      }
+    }
+    openConvModal(){
+      if(this.convModal){
+        this.convModal.classList.add("visible");
+        this.renderConvList();
+      }
+    }
+    openFaithModal(){
+      if(this.faithModal){
+        this.faithModal.classList.add("visible");
+      }
+    }
+    openIntelModal(){
+      if(this.intelModal){
+        this.intelModal.classList.add("visible");
+        this.renderIntelList();
+      }
+    }
+    openSeedModal(){
+      if(this.seedModal){
+        this.seedModal.classList.add("visible");
+      }
+    }
+    handleSeedPassword(){
+      const val = (this.seedPasswordInput.value || "").trim();
+      if(val==="6789"){
+        this.seedUnlocked = true;
+        this.seedPasswordError.style.display = "none";
+        this.seedPasswordStage.style.display = "none";
+        this.seedBlockStage.style.display = "block";
+      }else{
+        this.seedUnlocked = false;
+        this.seedPasswordError.style.display = "block";
+      }
+    }
+    handleSeedParse(){
+      const block = (this.seedBlockInput.value || "").trim();
+      if(!block){
+        this.seedBlockPreview.textContent = "Nothing to parse.";
+        return;
+      }
+      const lines = block.split("\n").map(l=>l.trim()).filter(Boolean);
+      const pairs = [];
+      let currentQ = "";
+      lines.forEach(line=>{
+        if(/^Q[.:]/i.test(line)){
+          currentQ = line.replace(/^Q[.:]\s*/i,"").trim();
+        }else if(/^A[.:]/i.test(line)){
+          const a = line.replace(/^A[.:]\s*/i,"").trim();
+          if(currentQ && a){
+            pairs.push({question:currentQ, answer:a});
+            currentQ = "";
+          }
+        }
+      });
+      this.pendingBlockQAs = pairs;
+      if(!pairs.length){
+        this.seedBlockPreview.textContent = "No valid Q/A pairs detected. Make sure lines start with Q: and A:";
+        this.seedSaveBtn.disabled = true;
+      }else{
+        this.seedBlockPreview.textContent = "Parsed "+pairs.length+" Q/A pairs. Click Save to add into seed.";
+        this.seedSaveBtn.disabled = false;
+      }
+    }
+    handleSeedSave(){
+      if(!this.pendingBlockQAs || !this.pendingBlockQAs.length) return;
+      this.pendingBlockQAs.forEach(p=>{
+        this.intelNodes.push({
+          id:this.makeId("intel"),
+          question:p.question,
+          answer:p.answer,
+          timestampMs:Date.now()
+        });
+      });
+      this.pendingBlockQAs = [];
+      this.seedBlockInput.value = "";
+      this.seedBlockPreview.textContent = "Saved into intelligence seed.";
+      this.seedSaveBtn.disabled = true;
+      this.saveState();
+    }
+    handleSeedDiscard(){
+      this.pendingBlockQAs = [];
+      this.seedBlockInput.value = "";
+      this.seedBlockPreview.textContent = "Discarded.";
+      this.seedSaveBtn.disabled = true;
+    }
+    openLLMModal(){
+      if(this.llmModal){
+        this.llmModal.classList.add("visible");
+        this.llmLockStage.style.display = "block";
+        this.llmConfigStage.style.display = "none";
+        this.llmPasswordInput.value = "";
+        this.llmPasswordError.style.display = "none";
+      }
+    }
+    handleLLMUnlock(){
+      const val = (this.llmPasswordInput.value || "").trim();
+      if(val==="6789"){
+        this.llmLockStage.style.display = "none";
+        this.llmConfigStage.style.display = "block";
+        this.llmPasswordError.style.display = "none";
+        this.llmBaseUrlInput.value = this.llmConfig.baseUrl || "";
+        this.llmModelInput.value = this.llmConfig.model || "";
+        this.llmKeyInput.value = this.llmConfig.apiKey || "";
+      }else{
+        this.llmPasswordError.style.display = "block";
+      }
+    }
+    handleLLMSave(){
+      this.llmConfig.baseUrl = (this.llmBaseUrlInput.value || "https://api.openai.com/v1/chat/completions").trim();
+      this.llmConfig.model = (this.llmModelInput.value || "gpt-4.1-mini").trim();
+      this.llmConfig.apiKey = (this.llmKeyInput.value || "").trim();
+      this.llmEnabled = !!this.llmConfig.apiKey || !!this.localEngine;
+      this.updateLLMUI();
+      this.saveLLMConfig();
+    }
+    handleLLMClear(){
+      this.llmConfig.apiKey = "";
+      this.llmEnabled = !!this.localEngine;
+      this.llmKeyInput.value = "";
+      this.updateLLMUI();
+      this.saveLLMConfig();
+    }
+    getBMContextSummary(){
+      if(!this.bmEntries || !this.bmEntries.length) return "";
+      return this.bmEntries.slice(-3).map(e=>e.text || "").join(" ");
+    }
+    bindOfflineEvents(){
+      if(!this.offlineLoadBtn || !this.offlineStatusEl) return;
+      this.offlineLoadBtn.addEventListener("click", async ()=>{
+        const btn = this.offlineLoadBtn;
+        const status = this.offlineStatusEl;
+        btn.disabled = true;
+        status.textContent = "Initializing WebGPU and downloading model...";
+        try{
+          if(!window.webllm){
+            status.textContent = "WebLLM not available in this browser.";
+            btn.disabled = false;
+            return;
+          }
+          this.localEngine = await window.webllm.CreateMLCEngine(this.localModelId,{
+            initProgressCallback:(report)=>{
+              if(report && typeof report.progress==="number"){
+                const pct = Math.round(report.progress*100);
+                status.textContent = "Downloading model: "+pct+"%";
+              }
+            }
+          });
+          status.textContent = "Status: Offline TinyLlama Ready ✅";
+          btn.style.display = "none";
+          this.llmEnabled = true;
+          if(this.updateLLMUI) this.updateLLMUI();
+        }catch(err){
+          console.error("Offline LLM error", err);
+          status.textContent = "Error: GPU not supported or download failed.";
+          btn.disabled = false;
+        }
+      });
+    }
+    async callLLM(promptText){
+      if(this.localEngine){
+        const bmContext = this.getBMContextSummary();
+        const fullPrompt =
+          "You are AURA-X Ω, an emotional continuity agent.\n"+
+          "Bold Memory context: "+(bmContext || "(empty)")+"\n"+
+          "User says: "+promptText+"\n"+
+          "Reply as AURA-X Ω in a friendly, concise way.";
+        const reply = await this.localEngine.chat.completions.create({
+          messages:[{role:"user",content:fullPrompt}]
+        });
+        const text = reply && reply.choices && reply.choices[0] && reply.choices[0].message && reply.choices[0].message.content;
+        return text ? text.trim() : null;
+      }
+      if(!this.llmEnabled || !this.llmConfig || !this.llmConfig.apiKey || !this.llmConfig.baseUrl){
+        return null;
+      }
+      const payload = {
+        model: this.llmConfig.model || "gpt-4.1-mini",
+        messages: [
+          {role:"system",content:"You are a helper LLM plugged into an emotional engine called AURA-X Ω. Reply clearly; avoid emojis unless the user uses them."},
+          {role:"user",content:promptText}
+        ],
+        max_tokens: 256
+      };
+      const res = await fetch(this.llmConfig.baseUrl,{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":"Bearer "+this.llmConfig.apiKey
+        },
+        body:JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error("LLM HTTP "+res.status);
+      const data = await res.json();
+      const answer = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      return answer ? answer.trim() : null;
     }
   }
-
-  window.addEventListener("DOMContentLoaded", () => {
+  window.addEventListener("DOMContentLoaded",()=>{
     window.auraX = new AuraXOmegaEngine();
   });
 })();
