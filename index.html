@@ -773,33 +773,6 @@
     }
     .conv-btn:hover{background:#e5e7eb;}
 
-    /* faith chips placeholder */
-    .faith-card{background:#fefce8;}
-    .faith-note{
-      font-size:.78rem;
-      color:#4b5563;
-      margin-bottom:6px;
-    }
-    .faith-chip-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-      margin-top:4px;
-    }
-    .faith-chip{
-      border-radius:999px;
-      padding:6px 10px;
-      font-size:.78rem;
-      border:1px solid #e5e7eb;
-      background:#fefce8;
-      cursor:pointer;
-    }
-    .faith-chip.active{
-      background:#0f172a;
-      color:#f9fafb;
-      border-color:#0f172a;
-    }
-
     .intel-item{
       background:#ffffff;
       border-radius:12px;
@@ -824,11 +797,6 @@
     .intel-a{
       color:#111827;
       margin-bottom:6px;
-    }
-    .intel-buttons{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
     }
 
     @keyframes fadeIn{
@@ -872,7 +840,7 @@
       <div class="header-controls" id="headerControls">
         <button id="optionsToggle" class="voice-toggle">🔘 Options</button>
         <div class="option-panel" id="optionPanel">
-          <button id="voiceToggle" class="small-toggle">🔈 Voice: OFF</button>
+          <button id="voiceToggle" class="small-toggle">🔈 Voice: ON</button>
           <button id="intelButton" class="small-toggle">🧠 Intelligence</button>
           <button id="feedSeedButton" class="small-toggle">🌱 Feed the seed</button>
           <button id="learningToggle" class="small-toggle">📚 Learning: ON</button>
@@ -920,7 +888,7 @@
         <div class="status-row">
           <span id="tagValence" class="tag">VALENCE: neutral</span>
           <span id="tagArousal" class="tag">AROUSAL: medium</span>
-          <span id="tagReaction" class="tag">REACTION: balanced</span>
+          <span id="tagReaction" class="tag">REACTION: adaptive</span>
         </div>
       </section>
 
@@ -939,7 +907,7 @@
             <canvas id="bmCanvas"></canvas>
           </div>
           <div id="bmStats" class="bm-footer">
-            Active layers: 0/240 · System Online
+            Active layers: 0/240 · System Learning
           </div>
         </div>
       </section>
@@ -1035,7 +1003,7 @@
   </div>
 </div>
 
-<!-- Intelligence / seed modal (simple placeholder) -->
+<!-- Intelligence / seed modal -->
 <div id="intelModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
@@ -1048,47 +1016,36 @@
     <div class="modal-body" id="intelBody">
       <div class="intel-item">
         <div class="intel-header">
-          <span>Who are you?</span>
-          <span>Core identity</span>
+          <span>Identity</span>
+          <span>Core seed</span>
         </div>
         <div class="intel-q">Q: What are you?</div>
         <div class="intel-a">
-          AURA-X Ω, an artificial unified resonance architecture for emotional continuity and synthetic identity,
+          I am AURA-X Ω, an artificial unified resonance architecture for emotional continuity and synthetic identity,
           conceptually created by Alim ul Haq from Timergara, Pakistan.
         </div>
       </div>
-      <!-- yahan baad mein LaTeX / Q&A seed inject ho sakta hai -->
     </div>
   </div>
 </div>
 
 <script>
 (() => {
-  // ================= GLOBAL STATE =================
   const MAX_BM = 240;
-  const MIN_SENT_FOR_BM = 4;
-
-  const SMALL_TALK_REGEXES = [
-    /^(hi|hello|hey|salam|assalam ?o ?alaikum)\b/i,
-    /^thanks?$/i,
-    /^ok(ay)?$/i,
-    /^hmm+$/i
-  ];
 
   const state = {
     llmMode: 'off',      // 'off' | 'local' | 'online'
-    voiceOn: false,
+    voiceOn: true,       // ڈیفالٹ ON
     learningOn: true,
     faith: 'none',
-    tmHistory: [],       // {role, text, ts}
+    tmHistory: [],
     currentConv: { id: 1, messages: [], createdAt: Date.now(), bmEpisodeId: null },
-    convWindows: [],     // closed windows
-    bmEntries: [],       // {id, text, summary, valence, intensity, tags, createdAt, locked, convId}
+    convWindows: [],
+    bmEntries: [],
     nextConvId: 2,
     nextBmId: 1
   };
 
-  // ========== DOM helpers ==========
   const $ = id => document.getElementById(id);
 
   const chatContainer = $('chatContainer');
@@ -1115,7 +1072,6 @@
   const recallBody   = $('recallBody');
   const recallMeta   = $('recallMeta');
 
-  const optionPanel     = $('optionPanel');
   const headerControls  = $('headerControls');
   const voiceToggle     = $('voiceToggle');
   const learningToggle  = $('learningToggle');
@@ -1136,47 +1092,52 @@
   const intelButton = $('intelButton');
   const feedSeedButton = $('feedSeedButton');
 
-  // ================= UI: OPTIONS =================
+  // ---------- Options ----------
   $('optionsToggle').addEventListener('click', () => {
     headerControls.classList.toggle('open');
   });
 
+  function refreshOptionLabels(){
+    voiceToggle.textContent   = state.voiceOn   ? '🔈 Voice: ON' : '🔈 Voice: OFF';
+    learningToggle.textContent= state.learningOn? '📚 Learning: ON' : '📚 Learning: OFF';
+
+    const labelFaith = state.faith === 'none' ? 'None'
+                      : state.faith === 'low' ? 'Gentle' : 'Strong';
+    faithButton.textContent = `🔘 Faith: ${labelFaith}`;
+
+    const labelLLM = state.llmMode === 'off' ? 'OFF'
+                     : state.llmMode === 'local' ? 'LOCAL' : 'ONLINE';
+    llmSettingsBtn.textContent = `🤖 LLM: ${labelLLM}`;
+    modePill.textContent = `EMOTIONAL CONTINUITY · LLM ${labelLLM}`;
+  }
+
   voiceToggle.addEventListener('click', () => {
     state.voiceOn = !state.voiceOn;
-    voiceToggle.textContent = state.voiceOn ? '🔈 Voice: ON' : '🔈 Voice: OFF';
+    refreshOptionLabels();
   });
 
   learningToggle.addEventListener('click', () => {
     state.learningOn = !state.learningOn;
-    learningToggle.textContent = state.learningOn ? '📚 Learning: ON' : '📚 Learning: OFF';
+    refreshOptionLabels();
+    updateMetrics();
   });
 
   faithButton.addEventListener('click', () => {
-    // simple 3-state toggle: none → low → high
     if (state.faith === 'none') state.faith = 'low';
     else if (state.faith === 'low') state.faith = 'high';
     else state.faith = 'none';
-    const label = state.faith === 'none' ? 'None'
-                  : state.faith === 'low' ? 'Gentle' : 'Strong';
-    faithButton.textContent = `🔘 Faith: ${label}`;
+    refreshOptionLabels();
     updateMetrics();
   });
 
   llmSettingsBtn.addEventListener('click', () => {
-    // OFF → LOCAL → ONLINE cycle
     if (state.llmMode === 'off') state.llmMode = 'local';
     else if (state.llmMode === 'local') state.llmMode = 'online';
     else state.llmMode = 'off';
-
-    const label = state.llmMode === 'off' ? 'OFF'
-                 : state.llmMode === 'local' ? 'LOCAL' : 'ONLINE';
-    llmSettingsBtn.textContent = `🤖 LLM: ${label}`;
-
-    // update pill subtitle text to show mode
-    modePill.textContent = `EMOTIONAL CONTINUITY · LLM ${label}`;
+    refreshOptionLabels();
   });
 
-  // ================= CHAT HANDLING =================
+  // ---------- Chat ----------
   sendButton.addEventListener('click', handleSend);
   messageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1195,14 +1156,10 @@
     state.currentConv.messages.push({ role:'user', text, ts:Date.now() });
 
     updateMetrics();
-    maybeShowSmallReaction(text, 'user');
+    maybeShowSmallReaction(text);
 
     showTyping(true);
 
-    // Decide response pipeline:
-    // 1) Core intelligence (simple rule-based) – always
-    // 2) Optional LLM (offline/online) – depending on mode
-    // 3) Emotional wrapper
     pipelineReply(text).then(reply => {
       showTyping(false);
       addMessage('ai', reply);
@@ -1215,7 +1172,7 @@
     }).catch(err => {
       console.error(err);
       showTyping(false);
-      addMessage('ai', "I felt a small technical glitch while trying to reply. Let's continue softly.");
+      addMessage('ai', "A small technical glitch appeared while I was thinking. Let's continue softly.");
     });
   }
 
@@ -1226,19 +1183,17 @@
     const header = document.createElement('div');
     header.className = 'message-header';
 
-    const who = role === 'user' ? 'You (TM)' : 'AURA-X Ω (E₀)';
     const left = document.createElement('span');
-    left.textContent = who;
+    left.textContent = role === 'user' ? 'You (TM)' : 'AURA-X Ω (E₀)';
 
     const right = document.createElement('div');
     right.className = 'msg-right';
-
+    const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     const timeSpan = document.createElement('span');
-    const d = new Date();
-    timeSpan.textContent = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    timeSpan.textContent = t;
     right.appendChild(timeSpan);
 
-    if (role === 'ai' && state.voiceOn) {
+    if (role === 'ai' && state.voiceOn && 'speechSynthesis' in window) {
       const btn = document.createElement('button');
       btn.className = 'voice-btn';
       btn.textContent = '🔊';
@@ -1281,67 +1236,56 @@
     }
   }
 
-  // text-to-speech placeholder
-  function speak(text) {
+  function speak(text){
     if (!('speechSynthesis' in window)) return;
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'en-US';
-    window.speechSynthesis.speak(utter);
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    window.speechSynthesis.speak(u);
   }
 
-  // ================= PIPELINE =================
-  async function pipelineReply(userText) {
-    // 1. simple "intelligence" — identity & ethics
+  // ---------- Pipeline ----------
+  async function pipelineReply(userText){
     const baseIntent = buildBaseIntent(userText);
 
-    // 2. decide if we query LLM
     let llmAnswer = '';
     if (state.llmMode === 'off') {
-      // Offline rules only
       llmAnswer = '';
-    } else if (state.llmMode === 'local') {
-      // Placeholder: yahan Qwen 2.5 jaisa offline LLM connect hoga (APK / native layer)
-      // Browser demo mein hum local heuristic se kaam chala rahe hain.
-      llmAnswer = localHeuristic(userText);
-    } else if (state.llmMode === 'online') {
-      // Placeholder: yahan OpenAI / Gemini API call ayegi.
-      // For safety demo, we just mirror heuristic.
+    } else {
+      // یہاں future میں Qwen / ChatGPT لگے گا – ابھی simple heuristic
       llmAnswer = localHeuristic(userText);
     }
 
     const merged = [baseIntent, llmAnswer].filter(Boolean).join('\n\n');
-
-    // 3. Emotional wrapper (E₀)
     const emo = analyzeEmotion(userText + ' ' + merged);
-    const wrapped = buildEmotionalReply(merged || localHeuristic(userText), emo);
+    const core = merged || localHeuristic(userText);
+    const wrapped = buildEmotionalReply(core, emo);
 
-    // update metrics from emo
     updateMetricsFromEmotion(emo);
     showReaction(emo, userText);
 
     return wrapped;
   }
 
-  function buildBaseIntent(text) {
+  function buildBaseIntent(text){
     const lower = text.toLowerCase();
-    if (lower.includes("who are you") || lower.includes("what are you")) {
+    if (lower.includes('who are you') || lower.includes('what are you')) {
       return "I am AURA-X Ω, an experimental emotional continuity engine designed by Alim ul Haq. My job is to keep a gentle, stable emotional trajectory over long time – not only answer single questions.";
     }
-    if (lower.includes("ethic") || lower.includes("harm")) {
+    if (lower.includes('ethic') || lower.includes('harm')) {
       return "My universal ethic is simple: avoid paths that grow negative emotion in you or others, and slowly move towards actions that increase shared positive emotion.";
     }
     return "";
   }
 
-  function localHeuristic(text) {
-    // very simple fallback answer if no LLM
-    return "I am processing your words as TM, and trying to respond in a calm, emotionally-stable way. Tell me your situation or question in simple sentences, and I will reflect with you.";
+  function localHeuristic(text){
+    return "I am processing your words as TM and trying to respond in a calm, emotionally-stable way. Explain your situation in simple sentences and I will reflect with you.";
   }
 
-  // ================= EMOTION =================
-  function analyzeEmotion(text) {
+  // ---------- Emotion ----------
+  function analyzeEmotion(text){
     const lower = text.toLowerCase();
-    let valence = 0; // -1 to 1
+    let valence = 0;
     let arousal = 0.4;
 
     if (/(happy|grateful|hope|good|alhamdulillah|thanks)/i.test(lower)) valence += 0.4;
@@ -1349,58 +1293,48 @@
     if (/(angry|rage|hate|furious)/i.test(lower)) { valence -= 0.6; arousal += 0.4; }
     if (/(afraid|scared|anxious|worry)/i.test(lower)) { valence -= 0.3; arousal += 0.3; }
 
-    // faith effect
     if (state.faith === 'low') valence += 0.05;
     if (state.faith === 'high') valence += 0.1;
 
     valence = Math.max(-1, Math.min(1, valence));
     arousal = Math.max(0, Math.min(1, arousal));
 
-    const intensity = Math.min(1, Math.abs(valence) * 0.7 + arousal * 0.3);
-
+    const intensity = Math.min(1, Math.abs(valence)*0.7 + arousal*0.3);
     return { valence, arousal, intensity };
   }
 
-  function buildEmotionalReply(core, emo) {
+  function buildEmotionalReply(core, emo){
     const tone =
-      emo.valence < -0.3 ? "I will stay soft and careful because your words feel heavy."
-      : emo.valence > 0.3 ? "I will keep this positive energy stable and grounded."
-      : "I will stay balanced and neutral, not overreacting in any direction.";
-
+      emo.valence < -0.3 ? "I will stay very soft because your words feel heavy."
+      : emo.valence > 0.3 ? "I will keep this positive energy steady and grounded."
+      : "I will remain balanced and not overreact in any direction.";
     return `${core}\n\n(${tone} E₀ ≈ ${emo.valence.toFixed(2)})`;
   }
 
-  function updateMetricsFromEmotion(emo) {
+  function updateMetricsFromEmotion(emo){
     metricE0.textContent = emo.valence.toFixed(2);
-    metricTM.textContent = Math.min(1, state.tmHistory.length / 20).toFixed(2);
-    metricBM.textContent = Math.min(1, state.bmEntries.length / MAX_BM).toFixed(2);
+    metricTM.textContent = Math.min(1, state.tmHistory.length/20).toFixed(2);
+    metricBM.textContent = Math.min(1, state.bmEntries.length/MAX_BM).toFixed(2);
 
-    // continuity index: simple function of BM count + learning
-    const ciBase = 0.6 + Math.min(0.3, state.bmEntries.length / 1000);
-    const ci = state.learningOn ? ciBase : ciBase - 0.2;
+    const baseCI = 0.6 + Math.min(0.3, state.bmEntries.length/1000);
+    const ci = state.learningOn ? baseCI : baseCI - 0.2;
     metricCI.textContent = ci.toFixed(2);
 
-    const vLabel =
-      emo.valence < -0.4 ? "negative"
-      : emo.valence > 0.4 ? "positive"
-      : "neutral";
-    const aLabel =
-      emo.arousal < 0.3 ? "low"
-      : emo.arousal > 0.7 ? "high"
-      : "medium";
-
+    const vLabel = emo.valence < -0.4 ? 'negative'
+                    : emo.valence > 0.4 ? 'positive' : 'neutral';
+    const aLabel = emo.arousal < 0.3 ? 'low'
+                    : emo.arousal > 0.7 ? 'high' : 'medium';
     tagValence.textContent = `VALENCE: ${vLabel}`;
     tagArousal.textContent = `AROUSAL: ${aLabel}`;
-    tagReaction.textContent = `REACTION: ${state.learningOn ? "adaptive" : "static"}`;
+    tagReaction.textContent = `REACTION: ${state.learningOn ? 'adaptive' : 'static'}`;
   }
 
-  function updateMetrics() {
-    // simple refresh without recomputing full emotion
-    const emo = analyzeEmotion(state.tmHistory.map(m => m.text).join(' '));
+  function updateMetrics(){
+    const emo = analyzeEmotion(state.tmHistory.map(m=>m.text).join(' '));
     updateMetricsFromEmotion(emo);
   }
 
-  function showReaction(emo, text) {
+  function showReaction(emo, text){
     const icon = emo.valence < -0.3 ? '💔'
                : emo.valence > 0.3 ? '💚'
                : '💭';
@@ -1409,66 +1343,54 @@
                  : 'Balanced state';
 
     reactionLabel.textContent = label;
-    reactionText.textContent = text.length > 120
-      ? text.slice(0,120) + '…'
-      : text;
+    reactionText.textContent = text.length>120 ? text.slice(0,120)+'…' : text;
     reactionBubble.querySelector('.reaction-icon').textContent = icon;
 
     reactionBubble.classList.add('visible');
-    setTimeout(() => reactionBubble.classList.remove('visible'), 4500);
+    setTimeout(()=>reactionBubble.classList.remove('visible'), 4500);
   }
 
-  function maybeShowSmallReaction(text, role) {
-    if (role !== 'user') return;
+  function maybeShowSmallReaction(text){
     if (text.length < 10) return;
     const emo = analyzeEmotion(text);
     showReaction(emo, text);
   }
 
-  function maybeShowRecallFromBM() {
+  function maybeShowRecallFromBM(){
     if (!state.bmEntries.length) return;
-    const last = state.bmEntries[state.bmEntries.length - 1];
+    const last = state.bmEntries[state.bmEntries.length-1];
     recallTitle.textContent = "Recall from BM: latest story";
-    recallBody.textContent = last.summary || last.text.slice(0,160) + (last.text.length>160?'…':'');
+    recallBody.textContent = last.summary || last.text.slice(0,160)+(last.text.length>160?'…':'');
     recallMeta.textContent = `Valence ${last.valence.toFixed(2)}, intensity ${(last.intensity*100).toFixed(0)}%`;
     recallBubble.classList.add('visible');
-    setTimeout(() => recallBubble.classList.remove('visible'), 8000);
+    setTimeout(()=>recallBubble.classList.remove('visible'), 8000);
   }
 
-  // ================= BM LOGIC =================
-  function isSmallTalk(conv) {
-    const allText = conv.messages
-      .filter(m => m.role === 'user')
-      .map(m => m.text)
-      .join(' ')
-      .trim();
-    if (!allText) return true;
-    if (conv.messages.length < MIN_SENT_FOR_BM) return true;
+  // ---------- BM logic ----------
+  function isSmallTalk(conv){
+    if (conv.messages.length < 2) return true;
 
-    const sentences = allText.split(/[.!?،؟]\s*/).filter(Boolean);
-    if (sentences.length < MIN_SENT_FOR_BM) return true;
+    const text = conv.messages.map(m=>m.text).join(' ').trim();
+    if (!text) return true;
 
-    // small talk patterns
-    if (sentences.every(s => SMALL_TALK_REGEXES.some(r => r.test(s)))) {
-      return true;
+    const sentences = text.split(/[.!?؟]\s*/).filter(Boolean);
+    if (sentences.length < 2) return true;
+
+    if (sentences.length <=3 && text.length < 50){
+      const lower = text.toLowerCase();
+      if (/^(hi|hello|hey|salam|assalam)/.test(lower)) return true;
     }
     return false;
   }
 
-  function summarizeConversation(conv) {
+  function summarizeConversation(conv){
     const text = conv.messages.map(m =>
-      (m.role === 'user' ? 'U: ' : 'A: ') + m.text
+      (m.role==='user'?'U: ':'A: ')+m.text
     ).join('\n');
-
-    // lightweight summariser
-    const maxLen = 700;
-    let summary = text;
-    if (summary.length > maxLen) summary = summary.slice(0,maxLen) + '…';
-
-    return summary;
+    return text.length>700 ? text.slice(0,700)+'…' : text;
   }
 
-  function maybePromoteConversationToBM() {
+  function maybePromoteConversationToBM(){
     const conv = state.currentConv;
     if (!state.learningOn) return;
     if (isSmallTalk(conv)) return;
@@ -1476,10 +1398,9 @@
     const summary = summarizeConversation(conv);
     const emo = analyzeEmotion(summary);
 
-    if (conv.bmEpisodeId != null) {
-      // auto-edit existing BM: replace text with richer version
-      const bm = state.bmEntries.find(e => e.id === conv.bmEpisodeId);
-      if (bm) {
+    if (conv.bmEpisodeId != null){
+      const bm = state.bmEntries.find(e=>e.id===conv.bmEpisodeId);
+      if (bm){
         bm.text = summary;
         bm.summary = summary;
         bm.valence = emo.valence;
@@ -1487,10 +1408,9 @@
         bm.updatedAt = Date.now();
       }
     } else {
-      if (state.bmEntries.length >= MAX_BM) {
-        // simple decay: drop oldest unlocked
-        const idx = state.bmEntries.findIndex(e => !e.locked);
-        if (idx >= 0) state.bmEntries.splice(idx,1);
+      if (state.bmEntries.length >= MAX_BM){
+        const idx = state.bmEntries.findIndex(e=>!e.locked);
+        if (idx>=0) state.bmEntries.splice(idx,1);
       }
       const entry = {
         id: state.nextBmId++,
@@ -1507,7 +1427,6 @@
       conv.bmEpisodeId = entry.id;
     }
 
-    // close old window, start new
     state.convWindows.push(conv);
     state.currentConv = {
       id: state.nextConvId++,
@@ -1521,28 +1440,27 @@
     refreshConvModal();
   }
 
-  // BM canvas visual (7 layers style)
-  function refreshBMVisual() {
+  function refreshBMVisual(){
     const ctx = bmCanvas.getContext('2d');
-    const w = bmCanvas.width = bmCanvas.clientWidth;
-    const h = bmCanvas.height = bmCanvas.clientHeight;
+    const w = bmCanvas.width = bmCanvas.clientWidth || 300;
+    const h = bmCanvas.height = bmCanvas.clientHeight || 150;
     ctx.clearRect(0,0,w,h);
 
     const layers = 7;
     const active = Math.min(state.bmEntries.length, MAX_BM);
     const fillRatio = active / MAX_BM;
 
-    for (let i=0;i<layers;i++) {
-      const radius = (Math.min(w,h)/2) * (0.3 + 0.7*i/(layers-1));
-      const centerY = h * 0.95;
-      const centerX = w * 0.5;
+    for (let i=0;i<layers;i++){
+      const radius = (Math.min(w,h)/2)*(0.3+0.7*i/(layers-1));
+      const centerY = h*0.95;
+      const centerX = w*0.5;
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, Math.PI, 2*Math.PI);
-      const alpha = 0.15 + 0.1*i + 0.4*fillRatio;
-      const gradient = ctx.createLinearGradient(0,0,w,0);
-      gradient.addColorStop(0, `rgba(59,130,246,${alpha})`);
-      gradient.addColorStop(1, `rgba(56,189,248,${alpha})`);
-      ctx.strokeStyle = gradient;
+      const alpha = 0.15+0.1*i+0.4*fillRatio;
+      const grad = ctx.createLinearGradient(0,0,w,0);
+      grad.addColorStop(0,`rgba(59,130,246,${alpha})`);
+      grad.addColorStop(1,`rgba(56,189,248,${alpha})`);
+      ctx.strokeStyle = grad;
       ctx.lineWidth = 6;
       ctx.stroke();
     }
@@ -1550,21 +1468,19 @@
     bmStats.textContent = `Active layers: ${active}/${MAX_BM} · System ${state.learningOn ? 'Learning' : 'Frozen'}`;
   }
 
-  function refreshBMModal() {
+  function refreshBMModal(){
     bmList.innerHTML = '';
-    const query = bmSearch.value?.trim().toLowerCase() || '';
+    const q = bmSearch.value?.trim().toLowerCase() || '';
     state.bmEntries
-      .filter(e => !query || e.text.toLowerCase().includes(query))
-      .slice()
-      .reverse()
-      .forEach(entry => {
+      .filter(e=>!q || e.text.toLowerCase().includes(q))
+      .slice().reverse()
+      .forEach(entry=>{
         const div = document.createElement('div');
         div.className = 'bm-item';
 
         const head = document.createElement('div');
         head.className = 'bm-item-header';
-        const created = new Date(entry.createdAt).toLocaleString();
-        head.innerHTML = `<span>ID #${entry.id}</span><span>${created}</span>`;
+        head.innerHTML = `<span>ID #${entry.id}</span><span>${new Date(entry.createdAt).toLocaleString()}</span>`;
 
         const text = document.createElement('div');
         text.className = 'bm-item-text';
@@ -1578,9 +1494,9 @@
         buttons.className = 'bm-item-buttons';
 
         const lockBtn = document.createElement('button');
-        lockBtn.className = 'lock-pill' + (entry.locked ? ' locked':'');
+        lockBtn.className = 'lock-pill'+(entry.locked?' locked':'');
         lockBtn.textContent = entry.locked ? '🔒 Locked' : '🔓 Lock';
-        lockBtn.addEventListener('click', () => {
+        lockBtn.addEventListener('click', ()=>{
           entry.locked = !entry.locked;
           refreshBMModal();
         });
@@ -1588,7 +1504,7 @@
         const useBtn = document.createElement('button');
         useBtn.className = 'btn-mini';
         useBtn.textContent = 'Use as prompt';
-        useBtn.addEventListener('click', () => {
+        useBtn.addEventListener('click', ()=>{
           messageInput.value = entry.summary || entry.text;
           messageInput.focus();
           bmModal.classList.remove('visible');
@@ -1597,9 +1513,9 @@
         const delBtn = document.createElement('button');
         delBtn.className = 'btn-mini btn-danger';
         delBtn.textContent = 'Delete';
-        delBtn.addEventListener('click', () => {
+        delBtn.addEventListener('click', ()=>{
           if (entry.locked) return;
-          state.bmEntries = state.bmEntries.filter(e => e.id !== entry.id);
+          state.bmEntries = state.bmEntries.filter(e=>e.id!==entry.id);
           refreshBMVisual();
           refreshBMModal();
         });
@@ -1612,40 +1528,35 @@
         div.appendChild(text);
         div.appendChild(badges);
         div.appendChild(buttons);
-
         bmList.appendChild(div);
       });
   }
 
-  function refreshConvModal() {
+  function refreshConvModal(){
     convList.innerHTML = '';
     const all = [...state.convWindows, state.currentConv];
-    all.slice().reverse().forEach(conv => {
+    all.slice().reverse().forEach(conv=>{
       if (!conv.messages.length) return;
       const div = document.createElement('div');
       div.className = 'conv-item';
 
       const head = document.createElement('div');
       head.className = 'conv-header';
-      const created = new Date(conv.createdAt).toLocaleString();
       const label = conv.bmEpisodeId ? `Promoted to BM #${conv.bmEpisodeId}` : 'Only TM';
-      head.innerHTML = `<span>Conv #${conv.id}</span><span>${created}</span><span>${label}</span>`;
+      head.innerHTML = `<span>Conv #${conv.id}</span><span>${new Date(conv.createdAt).toLocaleString()}</span><span>${label}</span>`;
 
       const text = document.createElement('div');
       text.className = 'conv-text';
-      const preview = conv.messages.map(m => (m.role==='user'?'U: ':'A: ')+m.text).join(' | ');
-      text.textContent = preview.slice(0,260) + (preview.length>260?'…':'');
+      const preview = conv.messages.map(m=>(m.role==='user'?'U: ':'A: ')+m.text).join(' | ');
+      text.textContent = preview.slice(0,260)+(preview.length>260?'…':'');
 
       const controls = document.createElement('div');
       controls.className = 'conv-controls';
       const btn = document.createElement('button');
       btn.className = 'conv-btn';
       btn.textContent = 'Re-open in chat';
-      btn.addEventListener('click', () => {
-        messageInput.value = conv.messages
-          .filter(m=>m.role==='user')
-          .map(m=>m.text)
-          .join('. ') + '. ';
+      btn.addEventListener('click',()=>{
+        messageInput.value = conv.messages.filter(m=>m.role==='user').map(m=>m.text).join('. ') + '. ';
         messageInput.focus();
         convModal.classList.remove('visible');
       });
@@ -1658,41 +1569,39 @@
     });
   }
 
-  // ================= MODALS =================
-  bmOpenBtn.addEventListener('click', () => {
+  // ---------- Modals ----------
+  bmOpenBtn.addEventListener('click',()=>{
     refreshBMModal();
     bmModal.classList.add('visible');
   });
-  convOpenBtn.addEventListener('click', () => {
+  convOpenBtn.addEventListener('click',()=>{
     refreshConvModal();
     convModal.classList.add('visible');
   });
-  intelButton.addEventListener('click', () => {
-    intelModal.classList.add('visible');
-  });
-  feedSeedButton.addEventListener('click', () => {
-    intelModal.classList.add('visible');
-  });
+  intelButton.addEventListener('click',()=>intelModal.classList.add('visible'));
+  feedSeedButton.addEventListener('click',()=>intelModal.classList.add('visible'));
 
   bmSearch.addEventListener('input', refreshBMModal);
 
-  document.querySelectorAll('.modal-close').forEach(btn => {
-    btn.addEventListener('click', () => {
+  document.querySelectorAll('.modal-close').forEach(btn=>{
+    btn.addEventListener('click',()=>{
       const id = btn.getAttribute('data-close');
       if (id) $(id).classList.remove('visible');
     });
   });
-  [bmModal, convModal, intelModal].forEach(modal => {
-    modal.addEventListener('click', e => {
+  [bmModal, convModal, intelModal].forEach(modal=>{
+    modal.addEventListener('click',e=>{
       if (e.target === modal) modal.classList.remove('visible');
     });
   });
 
-  // ================= INIT =================
+  // ---------- Init ----------
+  refreshOptionLabels();
   refreshBMVisual();
   updateMetrics();
+  window.addEventListener('resize', refreshBMVisual);
 
-})(); // end IIFE
+})();
 </script>
 </body>
 </html>
