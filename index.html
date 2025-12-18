@@ -1014,7 +1014,7 @@
       </p>
       <div id="faithChips" class="faith-chip-row">
         <button class="faith-chip" data-faith="None">None</button>
-        <button class="faith-chip" data-faith="Islam">Islam</button>
+        <button class="faith-chip" data-faith="Islam">Islam</</button>
         <button class="faith-chip" data-faith="Christianity">Christianity</button>
         <button class="faith-chip" data-faith="Hinduism">Hinduism</button>
         <button class="faith-chip" data-faith="Buddhism">Buddhism</button>
@@ -2087,35 +2087,6 @@
       }
     }
 
-    // ✅ small change: allow offline LLM even without API key
-    async processNormalMessage(text, sentiment, smallTalk, bmStoryOnly, typingId){
-      const intelMatchPre = this.matchIntelNode(text);
-      const seedPre = this.matchSeedRule(text);
-      let llmAnswer = null;
-      const canUseOffline = this.offlineLoaded;
-      const canUseCloud = !!this.llmConfig.apiKey;
-      if(!bmStoryOnly && !intelMatchPre && !seedPre && this.llmEnabled && (canUseOffline || canUseCloud)){
-        try{
-          llmAnswer = await this.callLLM(text);
-        }catch(e){
-          console.error("LLM error", e);
-          llmAnswer = null;
-        }
-      }
-      this.hideTyping(typingId);
-      const reply = this.generateReply(text, sentiment, llmAnswer, {smallTalk, bmStoryOnly});
-      const replySentiment = this.analyzeSentiment(reply);
-      this.addMessage("ai", reply, true, replySentiment);
-      this.pushTM("ai", reply, replySentiment);
-      this.lastAnsweredQuestion = text;
-      this.updateMemoryAndState(text, sentiment, smallTalk, llmAnswer);
-      this.maybeShowRecallBubble(sentiment);
-      this.updateMetrics();
-      this.renderBMList();
-      this.renderConvList();
-      this.renderIntelList();
-      this.saveState();
-    }
     isSmallTalk(text){
       if(text.length>40) return false;
       return this.smallTalkPatterns.some(r=>r.test(text));
@@ -2223,28 +2194,77 @@
       }
       return null;
     }
+
+    // ✅ Hierarchy & LLM call (Seed → Intel → LLM)
+    async processNormalMessage(text, sentiment, smallTalk, bmStoryOnly, typingId){
+      const seedPre = this.matchSeedRule(text);
+      const intelMatchPre = this.matchIntelNode(text);
+
+      let llmAnswer = null;
+      const canUseOffline = this.offlineLoaded;
+      const canUseCloud = !!this.llmConfig.apiKey;
+
+      if(!bmStoryOnly && !seedPre && !intelMatchPre && this.llmEnabled && (canUseOffline || canUseCloud)){
+        try{
+          llmAnswer = await this.callLLM(text);
+        }catch(e){
+          console.error("LLM error", e);
+          llmAnswer = null;
+        }
+      }
+
+      this.hideTyping(typingId);
+
+      const reply = this.generateReply(
+        text,
+        sentiment,
+        llmAnswer,
+        { smallTalk, bmStoryOnly, seedPre, intelMatchPre }
+      );
+
+      const replySentiment = this.analyzeSentiment(reply);
+      this.addMessage("ai", reply, true, replySentiment);
+      this.pushTM("ai", reply, replySentiment);
+      this.lastAnsweredQuestion = text;
+      if(intelMatchPre) this.lastIntelMatchScore = intelMatchPre.score;
+
+      this.updateMemoryAndState(text, sentiment, smallTalk, llmAnswer);
+      this.maybeShowRecallBubble(sentiment);
+      this.updateMetrics();
+      this.renderBMList();
+      this.renderConvList();
+      this.renderIntelList();
+      this.saveState();
+    }
+
     generateReply(text,sentiment,llmAnswer,opts={}){
       const multi = this.tryMultiQuestionReply(text);
       if(multi) return multi;
+
       const mathResult = this.tryEvalMath(text);
       if(mathResult !== null){
         return "Mathematical evaluation from TM (your input only): "+text+" = "+mathResult;
       }
-      const intelMatch = this.matchIntelNode(text);
-      const seed = this.matchSeedRule(text);
+
+      // اگر یہ صرف BM-Story کے طور پر treat ہونا ہے
       if(opts.bmStoryOnly){
         const ts = new Date().toLocaleString();
         return "I treated this as a long story for Bold Memory (more than four sentences).\n\n"+
                "Your input has been saved in BM with timestamp: "+ts+".\n"+
                "Later it can influence E₀ and help generate photo/video scenes, but I will not ask you for a formal answer here.";
       }
-      if(intelMatch){
-        this.lastIntelMatchScore = intelMatch.score;
-        return intelMatch.node.answer;
+
+      // ✅ A. سب سے پہلے Seed
+      if(opts.seedPre){
+        return opts.seedPre.reply;
       }
-      if(seed){
-        return seed.reply;
+
+      // ✅ B. پھر Intelligence
+      if(opts.intelMatchPre){
+        return opts.intelMatchPre.node.answer;
       }
+
+      // ✅ C. پھر LLM (Offline یا Cloud)
       if(llmAnswer){
         const emoLabel = sentiment.polarity;
         const intro =
@@ -2257,11 +2277,14 @@
           "I will keep only emotionally meaningful parts in BM; small-talk is filtered out.";
         return intro+emoComment;
       }
+
+      // Default fallback + learning flow
       const feelingWord = ({positive:"warm",negative:"disturbed",neutral:"balanced"})[sentiment.polarity];
       let line1 = "I read this TM input as emotionally "+sentiment.polarity+". It feels "+feelingWord+" inside the system.";
       let line2 = sentiment.polarity==="negative"
         ? " I store this pattern to understand your pain over time (without putting short small-talk into BM)."
         : " I will hold this in my continuity layers for future resonance.";
+
       if(!this.learningMode){
         const offlineNote =
           "\n\nRight now I am in offline mode with a very small seed of answers.\n"+
@@ -2269,6 +2292,7 @@
           "If you switch Learning mode ON, you can teach me how to answer this next time.";
         return line1+line2+offlineNote;
       }
+
       this.intelTeachState = "awaitAnswer";
       this.pendingIntelQuestion = text;
       const teachQ = this.learnQuestionTemplates[
@@ -2279,6 +2303,7 @@
         "\nJust type your ideal answer in your next message.";
       return line1+line2+teachLine;
     }
+
     textSimilarity(a,b){
       const wordsA = a.split(/\W+/).filter(Boolean);
       const wordsB = b.split(/\W+/).filter(Boolean);
@@ -2866,7 +2891,7 @@
       this.saveLLMConfig();
     }
 
-    // ✅ Offline TinyLlama loader
+    // ✅ Offline TinyLlama loader with WebGPU check
     async handleOfflineLoad(){
       if(!window.webllm){
         if(this.offlineStatus){
@@ -2874,6 +2899,18 @@
         }
         return;
       }
+
+      // اہم: اگر WebGPU ہی نہیں تو صاف error دے دیں
+      if(!navigator.gpu){
+        if(this.offlineStatus){
+          this.offlineStatus.textContent = "Error: Your browser/device does not support WebGPU.";
+        }
+        if(this.offlineLoadBtn){
+          this.offlineLoadBtn.disabled = false;
+        }
+        return;
+      }
+
       if(this.offlineLoaded && this.localLLMEngine){
         if(this.offlineStatus){
           this.offlineStatus.textContent = "Offline TinyLlama already loaded in this session.";
