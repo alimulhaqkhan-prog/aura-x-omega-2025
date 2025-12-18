@@ -832,6 +832,50 @@
       gap:6px;
     }
 
+    /* OFFLINE BLOCK INSIDE LLM MODAL */
+    .offline-card{
+      background:#ecfdf3;
+      border:1px solid #bbf7d0;
+      border-radius:14px;
+      padding:10px 10px 8px;
+      margin-bottom:10px;
+    }
+    .offline-title{
+      font-size:.82rem;
+      font-weight:600;
+      color:#14532d;
+      margin-bottom:4px;
+    }
+    .offline-sub{
+      font-size:.74rem;
+      color:#15803d;
+      margin-bottom:6px;
+    }
+    .offline-btn{
+      border:none;
+      border-radius:999px;
+      padding:5px 10px;
+      font-size:.78rem;
+      background:#22c55e;
+      color:white;
+      cursor:pointer;
+      box-shadow:0 4px 10px rgba(22,163,74,.4);
+      margin-bottom:4px;
+    }
+    .offline-btn:hover{filter:brightness(1.05);}
+    .offline-status{
+      font-size:.72rem;
+      color:#14532d;
+      margin-bottom:4px;
+    }
+    .offline-toggle-row{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:.74rem;
+      color:#166534;
+    }
+
     @keyframes fadeIn{
       from{opacity:0;transform:translateY(6px)}
       to{opacity:1;transform:translateY(0)}
@@ -875,7 +919,6 @@
           <button id="intelButton" class="small-toggle">🧠 Intelligence</button>
           <button id="feedSeedButton" class="small-toggle">🌱 Feed the seed</button>
           <button id="learningToggle" class="small-toggle">📚 Learning: ON</button>
-          <button id="offlineLLMToggle" class="small-toggle">🧩 Offline LLM: OFF</button>
           <button id="faithButton" class="small-toggle">🔘 Faith: None</button>
           <button id="llmSettingsButton" class="small-toggle">🤖 LLM link</button>
         </div>
@@ -1127,7 +1170,7 @@
   <div class="modal-card">
     <div class="modal-header">
       <div>
-        <div class="modal-title">🤖 LLM link settings</div>
+        <div class="modal-title">🤖 LLM link & offline engine</div>
         <div class="modal-sub">Password 6789 · For private testing only (keys stay in this browser).</div>
       </div>
       <button class="modal-close" data-close="llmModal">✕</button>
@@ -1144,12 +1187,26 @@
         </div>
         <button id="llmUnlockBtn" class="btn-mini" style="margin-top:8px;">Unlock LLM settings</button>
       </div>
+
       <div id="llmConfigStage" style="display:none;">
-        <p class="faith-note">
-          For real products, move all LLM calls to a secure backend. Here everything stays in localStorage of this browser only.
+        <!-- OFFLINE BLOCK -->
+        <div class="offline-card">
+          <div class="offline-title">OFFLINE MODE: Run TinyLlama in browser (WebGPU).</div>
+          <div class="offline-sub">Downloads once (~1 GB). Works even if internet or API key is gone.</div>
+          <button id="offlineLoadBtn" class="offline-btn">📥 Download / Load Model</button>
+          <div id="offlineStatus" class="offline-status">Status: Not loaded</div>
+          <div class="offline-toggle-row">
+            <input type="checkbox" id="offlineLLMCheckbox" />
+            <label for="offlineLLMCheckbox">Use offline model when online LLM is off or fails</label>
+          </div>
+        </div>
+
+        <!-- ONLINE OPTIONS -->
+        <p class="faith-note" style="margin-bottom:4px;">
+          Cloud API (optional). For real products, move all calls to a secure backend. Here everything stays in this browser.
         </p>
 
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Provider / gateway (optional)</label>
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Provider / gateway</label>
         <select id="llmProviderSelect" class="modal-search">
           <option value="">Custom / manual</option>
           <option value="openai">OpenAI (api.openai.com)</option>
@@ -1159,15 +1216,30 @@
           <option value="deepseek">DeepSeek</option>
         </select>
 
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API base URL</label>
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Quick model presets</label>
+        <select id="llmModelPreset" class="modal-search">
+          <option value="">Custom / manual</option>
+          <option value="openai:gpt-4o-mini">OpenAI – gpt-4o-mini</option>
+          <option value="openai:gpt-4o">OpenAI – gpt-4o</option>
+          <option value="xai:grok-beta">xAI – grok-beta</option>
+          <option value="groq:llama-3.3-70b-versatile">Groq – LLaMA-3.3-70B-versatile</option>
+          <option value="deepseek:deepseek-reasoner">DeepSeek – deepseek-reasoner</option>
+        </select>
+
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API Base URL</label>
         <input id="llmBaseUrlInput" class="modal-search" placeholder="https://api.openai.com/v1/chat/completions" />
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Model name</label>
+
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">
+          Model Name (e.g. gpt-4o-mini) – leave empty to use provider default
+        </label>
         <input id="llmModelInput" class="modal-search" placeholder="gpt-4o-mini" />
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API key</label>
+
+        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API Key</label>
         <input id="llmKeyInput" type="password" class="modal-search" placeholder="sk-..." />
+
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
-          <button id="llmSaveBtn" class="btn-mini">Save</button>
-          <button id="llmClearBtn" class="btn-mini btn-danger">Clear key</button>
+          <button id="llmSaveBtn" class="btn-mini">Save Settings</button>
+          <button id="llmClearBtn" class="btn-mini btn-danger">Clear Key</button>
           <button id="llmToggleBtn" class="btn-mini">LLM: OFF</button>
         </div>
         <div id="llmStatusText" style="font-size:.73rem;color:#4b5563;margin-top:6px;">
@@ -1293,7 +1365,7 @@
       };
       this.llmEnabled = savedLLM ? !!(savedLLM.enabled && this.llmConfig.apiKey) : false;
 
-      this.offlineLLMEnabled = false;
+      this.offlineLLMEnabled = saved ? !!saved.offlineLLMEnabled : false;
       this.offlineEngine = null;
       this.offlineLLMStatus = "idle";
 
@@ -1330,7 +1402,6 @@
         this.lastIntelMatchScore = typeof saved.lastIntelMatchScore === "number" ? saved.lastIntelMatchScore : this.lastIntelMatchScore;
         this.identities = saved.identities || this.identities;
         this.currentIdentityId = saved.currentIdentityId || this.currentIdentityId;
-        this.offlineLLMEnabled = typeof saved.offlineLLMEnabled === "boolean" ? saved.offlineLLMEnabled : this.offlineLLMEnabled;
       }
 
       this.intelTeachState = "idle";
@@ -1373,8 +1444,8 @@
       this.updateVoiceToggleLabel();
       this.updateFaithUI();
       this.updateLearningUI();
-      this.updateOfflineLLMUI();
       this.updateLLMUI();
+      this.updateOfflineModalUI();
       this.bindEvents();
 
       if(this.tmHistory.length){
@@ -1468,7 +1539,6 @@
       this.headerControls = document.getElementById("headerControls");
       this.feedSeedButton = document.getElementById("feedSeedButton");
       this.llmSettingsButton = document.getElementById("llmSettingsButton");
-      this.offlineLLMToggle = document.getElementById("offlineLLMToggle");
       this.reactionBubble = document.getElementById("reactionBubble");
       this.reactionLabel = document.getElementById("reactionLabel");
       this.reactionText = document.getElementById("reactionText");
@@ -1513,6 +1583,10 @@
       this.llmToggleBtn = document.getElementById("llmToggleBtn");
       this.llmStatusText = document.getElementById("llmStatusText");
       this.llmProviderSelect = document.getElementById("llmProviderSelect");
+      this.llmModelPreset = document.getElementById("llmModelPreset");
+      this.offlineLoadBtn = document.getElementById("offlineLoadBtn");
+      this.offlineStatus = document.getElementById("offlineStatus");
+      this.offlineLLMCheckbox = document.getElementById("offlineLLMCheckbox");
 
       this.bmCtx = this.bmCanvas.getContext("2d");
       this.resizeCanvas();
@@ -1545,9 +1619,14 @@
       if(!this.learningToggle) return;
       this.learningToggle.textContent = this.learningMode ? "📚 Learning: ON" : "📚 Learning: OFF";
     }
-    updateOfflineLLMUI(){
-      if(!this.offlineLLMToggle) return;
-      this.offlineLLMToggle.textContent = this.offlineLLMEnabled ? "🧩 Offline LLM: ON" : "🧩 Offline LLM: OFF";
+    updateOfflineModalUI(){
+      if(!this.offlineStatus || !this.offlineLLMCheckbox) return;
+      let statusTxt = "Status: Not loaded";
+      if(this.offlineLLMStatus === "loading") statusTxt = "Status: Loading model…";
+      else if(this.offlineLLMStatus === "ready") statusTxt = "Status: Loaded (offline model ready)";
+      else if(this.offlineLLMStatus === "error") statusTxt = "Status: Error loading model";
+      this.offlineStatus.textContent = statusTxt;
+      this.offlineLLMCheckbox.checked = !!this.offlineLLMEnabled;
     }
     updateLLMUI(){
       if(!this.llmToggleBtn || !this.llmStatusText) return;
@@ -1717,17 +1796,21 @@
         }
       });
 
-      if(this.offlineLLMToggle){
-        this.offlineLLMToggle.addEventListener("click", async ()=>{
-          this.offlineLLMEnabled = !this.offlineLLMEnabled;
-          this.updateOfflineLLMUI();
+      if(this.offlineLoadBtn){
+        this.offlineLoadBtn.addEventListener("click", async ()=>{
+          this.offlineLLMStatus = "loading";
+          this.updateOfflineModalUI();
+          await this.initOfflineLLM();
+          this.updateOfflineModalUI();
           this.updateLLMUI();
           this.saveState();
-          if(this.offlineLLMEnabled && window.webllm && !this.offlineEngine){
-            try{
-              await this.initOfflineLLM();
-            }catch(e){console.error("Offline LLM init error", e);}
-          }
+        });
+      }
+      if(this.offlineLLMCheckbox){
+        this.offlineLLMCheckbox.addEventListener("change",()=>{
+          this.offlineLLMEnabled = this.offlineLLMCheckbox.checked;
+          this.updateLLMUI();
+          this.saveState();
         });
       }
 
@@ -1801,6 +1884,26 @@
             if(!this.llmBaseUrlInput.value) this.llmBaseUrlInput.value = "https://api.deepseek.com/v1/chat/completions";
             if(!this.llmModelInput.value) this.llmModelInput.value = "deepseek-reasoner";
           }
+        });
+      }
+      if(this.llmModelPreset){
+        this.llmModelPreset.addEventListener("change",()=>{
+          const val = this.llmModelPreset.value;
+          if(!val) return;
+          const [provider, model] = val.split(":");
+          if(this.llmProviderSelect) this.llmProviderSelect.value = provider;
+          if(provider==="openai"){
+            this.llmBaseUrlInput.value = "https://api.openai.com/v1/chat/completions";
+          }else if(provider==="xai"){
+            this.llmBaseUrlInput.value = "https://api.x.ai/v1/chat/completions";
+          }else if(provider==="openrouter"){
+            this.llmBaseUrlInput.value = "https://openrouter.ai/api/v1/chat/completions";
+          }else if(provider==="groq"){
+            this.llmBaseUrlInput.value = "https://api.groq.com/openai/v1/chat/completions";
+          }else if(provider==="deepseek"){
+            this.llmBaseUrlInput.value = "https://api.deepseek.com/v1/chat/completions";
+          }
+          this.llmModelInput.value = model;
         });
       }
     }
@@ -2692,38 +2795,6 @@
       }
     }
 
-    addIntelNode(question,answer,meta){
-      const emo = this.analyzeSentiment(answer);
-      const sentiment = {...emo};
-      if(meta){
-        if(meta.polarity) sentiment.polarity = meta.polarity;
-        if(typeof meta.intensity === "number") sentiment.intensity = meta.intensity;
-        if(meta.category) sentiment.category = meta.category;
-        if(meta.emotionCode){
-          const found = EMOTION_CATALOG.find(e=>e.code===meta.emotionCode);
-          if(found){
-            sentiment.emotionCode = found.code;
-            sentiment.emotionName = found.name;
-          }else{
-            sentiment.emotionCode = meta.emotionCode;
-          }
-        }
-      }
-      this.intelNodes.push({
-        id:this.makeId("intel"),
-        question:question,
-        answer:answer,
-        createdAt:new Date(),
-        polarity: sentiment.polarity,
-        valence: sentiment.valence,
-        intensity: sentiment.intensity,
-        category: sentiment.category,
-        emotionCode: sentiment.emotionCode,
-        emotionName: sentiment.emotionName
-      });
-      this.saveState();
-    }
-
     clamp(v,min,max){return v<min?min:v>max?max:v;}
 
     updateMetrics(){
@@ -3124,6 +3195,7 @@
         this.llmKeyInput.value = this.llmConfig.apiKey;
         if(this.llmProviderSelect) this.llmProviderSelect.value = this.llmConfig.provider || "";
         this.updateLLMUI();
+        this.updateOfflineModalUI();
       }else{
         this.llmLockStage.style.display = "block";
         this.llmConfigStage.style.display = "none";
@@ -3148,6 +3220,7 @@
         this.llmKeyInput.value = this.llmConfig.apiKey;
         if(this.llmProviderSelect) this.llmProviderSelect.value = this.llmConfig.provider || "";
         this.updateLLMUI();
+        this.updateOfflineModalUI();
       }else{
         if(this.llmPasswordError) this.llmPasswordError.style.display = "block";
       }
@@ -3205,6 +3278,7 @@
       if(this.offlineEngine || !window.webllm) return;
       try{
         this.offlineLLMStatus = "loading";
+        this.updateOfflineModalUI();
         const defaultModelId = "Llama-3-8B-Instruct-q4f32_1-MLC";
         this.offlineEngine = await window.webllm.CreateMLCEngine(defaultModelId,{
           initProgressCallback: (info)=>{
@@ -3212,9 +3286,11 @@
           }
         });
         this.offlineLLMStatus = "ready";
+        this.updateOfflineModalUI();
       }catch(e){
         console.error("Offline LLM init error", e);
         this.offlineLLMStatus = "error";
+        this.updateOfflineModalUI();
       }
     }
 
@@ -3246,6 +3322,20 @@
         console.error("Offline LLM error", e);
         return fallback("facing an internal error");
       }
+    }
+
+    maybeShowRecallBubble(sentiment){
+      if(!this.recallBubble) return;
+      if(this.bmEntries.length===0) return;
+      if(Math.random()>0.25) return;
+      const last = this.bmEntries[this.bmEntries.length-1];
+      this.recallTitle.textContent = "BM resonance snapshot";
+      const preview = last.text.length>120 ? last.text.slice(0,120)+"…" : last.text;
+      this.recallBody.textContent = preview;
+      this.recallMeta.textContent =
+        `polarity: ${last.polarity} · code: ${last.emotionCode||"E---"} · E₀≈${last.e0.toFixed(2)}`;
+      this.recallBubble.classList.add("visible");
+      setTimeout(()=>this.recallBubble.classList.remove("visible"),6500);
     }
   }
 
