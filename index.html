@@ -858,6 +858,19 @@
       font-size:.74rem;
       color:#166534;
     }
+    .offline-progress{
+      margin-top:4px;
+      height:6px;
+      border-radius:999px;
+      background:#bbf7d0;
+      overflow:hidden;
+    }
+    .offline-progress-bar{
+      height:100%;
+      width:0%;
+      background:#22c55e;
+      transition:width .2s ease;
+    }
 
     @keyframes fadeIn{
       from{opacity:0;transform:translateY(6px)}
@@ -1181,6 +1194,9 @@
           </div>
           <button id="offlineLoadBtn" class="offline-btn">📥 Download / load model</button>
           <div id="offlineStatus" class="offline-status">Status: Not loaded</div>
+          <div class="offline-progress">
+            <div id="offlineProgressBar" class="offline-progress-bar"></div>
+          </div>
           <div class="offline-toggle-row">
             <input type="checkbox" id="offlineLLMCheckbox" />
             <label for="offlineLLMCheckbox">Use offline model when online LLM is off or fails</label>
@@ -1218,7 +1234,7 @@
 
 <script>
 (function(){
-  const STORAGE_KEY = "auraXOmegaState_v8";
+  const STORAGE_KEY = "auraXOmegaState_v9";
   const LLM_CONFIG_KEY = "auraXOmegaLLMConfig_v4";
   const EMOTION_INTENSITY_LEVELS = ["very-low","low","medium","high","very-high","extreme"];
 
@@ -1322,6 +1338,8 @@
       this.offlineLLMEnabled = saved ? !!saved.offlineLLMEnabled : false;
       this.offlineEngine = null;
       this.offlineLLMStatus = "idle";
+      this.offlineProgress = 0;
+      this.offlineProgressText = "";
 
       if(saved){
         this.bmLayers = saved.bmLayers || this.bmLayers;
@@ -1522,6 +1540,7 @@
       this.offlineLoadBtn = document.getElementById("offlineLoadBtn");
       this.offlineStatus = document.getElementById("offlineStatus");
       this.offlineLLMCheckbox = document.getElementById("offlineLLMCheckbox");
+      this.offlineProgressBar = document.getElementById("offlineProgressBar");
 
       this.bmCtx = this.bmCanvas.getContext("2d");
       this.resizeCanvas();
@@ -1556,12 +1575,26 @@
     }
     updateOfflineModalUI(){
       if(!this.offlineStatus || !this.offlineLLMCheckbox) return;
-      let statusTxt = "Status: Not loaded";
-      if(this.offlineLLMStatus === "loading") statusTxt = "Status: Loading model…";
-      else if(this.offlineLLMStatus === "ready") statusTxt = "Status: Model loaded (offline ready)";
-      else if(this.offlineLLMStatus === "error") statusTxt = "Status: Error loading model";
+      let statusTxt;
+      if(this.offlineLLMStatus === "loading"){
+        const pct = Math.round((this.offlineProgress||0)*100);
+        statusTxt = `Status: Downloading model… ${pct}%`;
+        if(this.offlineProgressText) statusTxt += " – " + this.offlineProgressText;
+      }else if(this.offlineLLMStatus === "ready"){
+        statusTxt = "Status: Model loaded (offline ready)";
+      }else if(this.offlineLLMStatus === "error"){
+        statusTxt = "Status: Error loading model";
+      }else{
+        statusTxt = "Status: Not loaded";
+      }
       this.offlineStatus.textContent = statusTxt;
       this.offlineLLMCheckbox.checked = !!this.offlineLLMEnabled;
+      if(this.offlineProgressBar){
+        let ratio = 0;
+        if(this.offlineLLMStatus === "loading") ratio = this.offlineProgress || 0;
+        else if(this.offlineLLMStatus === "ready") ratio = 1;
+        this.offlineProgressBar.style.width = Math.round(ratio*100) + "%";
+      }
     }
     updateLLMUI(){
       if(!this.llmToggleBtn || !this.llmStatusText) return;
@@ -1735,6 +1768,8 @@
       if(this.offlineLoadBtn){
         this.offlineLoadBtn.addEventListener("click", async ()=>{
           this.offlineLLMStatus = "loading";
+          this.offlineProgress = 0;
+          this.offlineProgressText = "Starting download…";
           this.updateOfflineModalUI();
           await this.initOfflineLLM();
           this.updateOfflineModalUI();
@@ -2825,16 +2860,16 @@
       const v = s ? s.valence : this.e0;
       const intensity = s ? s.intensity : 0.4;
       let r,g,b;
-      if(v <= -0.6){        // very negative
-        r=239; g=68;  b=68;
-      }else if(v < -0.2){   // mild negative
-        r=248; g=113; b=113;
-      }else if(v < 0.2){    // neutral
-        r=59;  g=130; b=246;
-      }else if(v < 0.6){    // positive
-        r=34;  g=197; b=94;
-      }else{                // very positive
-        r=22;  g=163; b=74;
+      if(v <= -0.6){
+        r=239; g=68;  b=68;     // very negative
+      }else if(v < -0.2){
+        r=248; g=113; b=113;    // mild negative
+      }else if(v < 0.2){
+        r=59;  g=130; b=246;    // neutral
+      }else if(v < 0.6){
+        r=34;  g=197; b=94;     // positive
+      }else{
+        r=22;  g=163; b=74;     // very positive
       }
       const alphaBase = 0.25 + intensity*0.45;
       const contBoost = 0.15*(this.continuityIndex-0.5);
@@ -3212,19 +3247,28 @@
     async initOfflineLLM(){
       if(this.offlineEngine || !window.webllm) return;
       try{
+        const defaultModelId = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+        this.offlineProgress = 0;
+        this.offlineProgressText = "Preparing…";
         this.offlineLLMStatus = "loading";
         this.updateOfflineModalUI();
-        const defaultModelId = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
         this.offlineEngine = await window.webllm.CreateMLCEngine(defaultModelId,{
           initProgressCallback: (info)=>{
-            console.log("Offline LLM load progress:", Math.round(info.progress*100)+"%");
+            const p = typeof info.progress === "number" ? info.progress : this.offlineProgress;
+            this.offlineProgress = p;
+            this.offlineProgressText = info.text || "";
+            this.updateOfflineModalUI();
           }
         });
         this.offlineLLMStatus = "ready";
+        this.offlineProgress = 1;
+        this.offlineProgressText = "Model ready.";
         this.updateOfflineModalUI();
       }catch(e){
         console.error("Offline LLM init error", e);
         this.offlineLLMStatus = "error";
+        this.offlineProgress = 0;
+        this.offlineProgressText = "Error while loading model.";
         this.updateOfflineModalUI();
       }
     }
@@ -3239,10 +3283,10 @@
           return fallback("not available in this browser");
         }
         if(!this.offlineEngine){
-          await this.initOfflineLLM();
-        }
-        if(!this.offlineEngine){
-          return fallback("not ready yet");
+          if(this.offlineLLMStatus === "loading"){
+            return fallback("still downloading in the background (first download is large)");
+          }
+          return fallback("not loaded yet. Use the LLM link panel to download it.");
         }
         const result = await this.offlineEngine.chat.completions.create({
           messages:[
