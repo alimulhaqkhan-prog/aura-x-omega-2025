@@ -1234,7 +1234,7 @@
 
 <script>
 (function(){
-  const STORAGE_KEY = "auraXOmegaState_v9";
+  const STORAGE_KEY = "auraXOmegaState_v10";
   const LLM_CONFIG_KEY = "auraXOmegaLLMConfig_v4";
   const EMOTION_INTENSITY_LEVELS = ["very-low","low","medium","high","very-high","extreme"];
 
@@ -1861,7 +1861,49 @@
     }
 
     buildSeedRules(){return [];}
-    buildBasicQA(){return {};}
+
+    /* ---------- BASIC BUILT-IN QA (NO LLM NEEDED) ---------- */
+    buildBasicQA(){
+      const qa = {};
+
+      const howList = [
+        "how are you",
+        "how are you?",
+        "how r u",
+        "how are u",
+        "how are you doing",
+        "how is your day",
+        "how's your day",
+        "how are you feeling",
+        "kese ho",
+        "ap kese ho",
+        "tum kese ho",
+        "aap kaise hain",
+        "aap kesy ho"
+      ];
+      const howAns = "I am quite fine today, how about you?";
+      howList.forEach(q=>{
+        qa[q.toLowerCase()] = {answer: howAns, polarity:"positive"};
+      });
+
+      const helloList = [
+        "hello",
+        "hi",
+        "hey",
+        "salam",
+        "salaam",
+        "assalam o alaikum",
+        "assalamu alaikum",
+        "assalamualaikum",
+        "asalam o alaikum"
+      ];
+      const helloAns = "Hello, I am AURA-X Ω. I am quite fine today, how about you?";
+      helloList.forEach(q=>{
+        qa[q.toLowerCase()] = {answer: helloAns, polarity:"positive"};
+      });
+
+      return qa;
+    }
 
     parseEmotionMeta(str){
       const meta = {};
@@ -2038,7 +2080,7 @@
               "I tried to read this block, but I could not find any clear question–answer pairs.\n\n"+
               "Please check that each item looks like:\n"+
               '\\item Question text? \\\\\n' +
-              '\\textbf{A:} [optional metadata] Answer text...';
+              '\\textbf{A:} [polarity=neutral; code=E001; intensity=0.3] It’s right at the main entrance, on your left.\n';
             const replySent = this.analyzeSentiment(reply);
             this.addMessage("ai", reply, true, replySent);
             this.pushTM("ai", reply, replySent);
@@ -2284,15 +2326,26 @@
       const seedPre = this.matchSeedRule(text);
       let llmAnswer = null;
 
+      // LLM only if nothing else already has a clear answer
       if(!bmStoryOnly && !intelMatchPre && !seedPre){
+        // Try online first
         if(this.llmEnabled && this.llmConfig.apiKey && this.llmConfig.baseUrl){
           try{
             llmAnswer = await this.callLLM(text);
           }catch(e){
             console.error("LLM error", e);
             llmAnswer = null;
+            // If online fails, try offline as backup
+            if(this.offlineLLMEnabled){
+              try{
+                llmAnswer = await this.callOfflineLLM(text);
+              }catch(e2){
+                console.error("Offline LLM backup error", e2);
+              }
+            }
           }
         }else if(this.offlineLLMEnabled){
+          // If only offline is enabled
           try{
             llmAnswer = await this.callOfflineLLM(text);
           }catch(e){
@@ -2483,6 +2536,7 @@
       const intelMatch = this.matchIntelNode(text);
       const seed = this.matchSeedRule(text);
 
+      // Priority: Intelligence > seed/basic QAs > LLM > learning
       if(opts.bmStoryOnly){
         const ts = new Date().toLocaleString();
         return "This feels like a full story. I have stored it in deeper memory so later it can shape scenes and long-term continuity.\n\n"+
@@ -3247,7 +3301,7 @@
     async initOfflineLLM(){
       if(this.offlineEngine || !window.webllm) return;
       try{
-        const defaultModelId = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+        const defaultModelId = "Llama-3.2-1B-Instruct-q4f16_1-MLC"; // adjust to a valid WebLLM model ID if needed
         this.offlineProgress = 0;
         this.offlineProgressText = "Preparing…";
         this.offlineLLMStatus = "loading";
@@ -3274,20 +3328,18 @@
     }
 
     async callOfflineLLM(promptText){
-      const fallback = (reason)=>{
-        return "Offline mini-engine: I received your message but the local model is "+reason+
-               ". I will still use this as TM for emotional continuity.";
-      };
+      // If WebLLM not available or model not loaded/errored, return null so engine can use other sources
+      if(!window.webllm) return null;
+      if(!this.offlineEngine){
+        if(this.offlineLLMStatus === "loading"){
+          this.offlineProgressText = "Still downloading in background…";
+          this.updateOfflineModalUI();
+        }
+        return null;
+      }
+      if(this.offlineLLMStatus !== "ready") return null;
+
       try{
-        if(!window.webllm){
-          return fallback("not available in this browser");
-        }
-        if(!this.offlineEngine){
-          if(this.offlineLLMStatus === "loading"){
-            return fallback("still downloading in the background (first download is large)");
-          }
-          return fallback("not loaded yet. Use the LLM link panel to download it.");
-        }
         const result = await this.offlineEngine.chat.completions.create({
           messages:[
             {role:"system", content:"You are a small offline helper model inside AURA-X Ω. Answer briefly and clearly."},
@@ -3297,10 +3349,13 @@
           temperature: 0.7
         });
         const text = result && result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content;
-        return text || fallback("too small to answer fully");
+        return text || null;
       }catch(e){
         console.error("Offline LLM error", e);
-        return fallback("facing an internal error");
+        this.offlineLLMStatus = "error";
+        this.offlineProgressText = "Error while using model.";
+        this.updateOfflineModalUI();
+        return null;
       }
     }
 
