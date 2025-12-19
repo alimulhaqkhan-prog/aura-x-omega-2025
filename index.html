@@ -2,652 +2,802 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AURA-X Ω – Light Neural Theme</title>
+  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- WebLLM for offline LLM support -->
+  <!-- Optional: offline LLM library (you can wire it later if you want) -->
   <script type="module">
+    // If you want to use @mlc-ai/web-llm later, you can keep this.
+    // For now the app works fine without calling it.
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
   </script>
 
   <style>
-    :root {
-      --bg-primary: #ffffff;
-      --bg-secondary: #f8fbff;
-      --card-bg: #ffffff;
-      --text-primary: #1e293b;
-      --text-secondary: #475569;
-      --accent: #3b82f6;
-      --border: #e2e8f0;
-      --shadow-sm: 0 4px 12px rgba(0,0,0,0.06);
-      --shadow-md: 0 10px 30px rgba(0,0,0,0.1);
-      --shadow-lg: 0 20px 50px rgba(0,0,0,0.12);
-      --transition: all 0.3s ease;
+    /* ----------------- RESET & LAYOUT ----------------- */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:radial-gradient(circle at top,#e0f2ff 0,#f5f7fb 40%,#eef1f7 100%);
+      color:#0f172a;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:20px;
+    }
+    .app{
+      width:100%;
+      max-width:1120px;
+      background:#ffffffee;
+      border-radius:24px;
+      box-shadow:0 24px 60px rgba(15,23,42,.12);
+      padding:20px 20px 24px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #f0f7ff 0%, #e0f2fe 100%);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 20px;
+    /* ----------------- TOP BAR ----------------- */
+    .top-bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .logo-orb{
+      width:38px;height:38px;
+      border-radius:999px;
+      background:conic-gradient(from 210deg,#0ea5e9,#6366f1,#a855f7,#f97316,#0ea5e9);
+      position:relative;
+      box-shadow:0 10px 25px rgba(15,23,42,.35);
+    }
+    .logo-orb::after{
+      content:"";
+      position:absolute;
+      inset:5px;
+      border-radius:inherit;
+      background:radial-gradient(circle at 30% 20%,#ffffffaa 0,#e5e7eb33 45%,#02061799 100%);
+    }
+    .brand-title{
+      font-size:1rem;
+      font-weight:600;
+      letter-spacing:.02em;
+    }
+    .brand-subtitle{
+      font-size:.78rem;
+      color:#6b7280;
     }
 
-    .app {
-      width: 100%;
-      max-width: 1200px;
-      background: var(--bg-primary);
-      border-radius: 28px;
-      box-shadow: var(--shadow-lg);
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      border: 1px solid var(--border);
+    .controls{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pill-btn{
+      border-radius:999px;
+      border:none;
+      padding:6px 14px;
+      font-size:.78rem;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+      transition:background .15s ease,box-shadow .15s ease,transform .08s ease;
+    }
+    .pill-btn:active{
+      transform:translateY(1px);
+      box-shadow:none;
+    }
+    .pill-soft{
+      background:#eef2ff;
+      color:#4338ca;
+      box-shadow:0 6px 12px rgba(79,70,229,.18);
+    }
+    .pill-soft:hover{background:#e0e7ff;}
+    .pill-ghost{
+      background:transparent;
+      color:#6b7280;
+      border:1px solid #e5e7eb;
+    }
+    .pill-ghost:hover{background:#f9fafb;}
+
+    .pill-badge{
+      font-size:.7rem;
+      padding:3px 8px;
+      border-radius:999px;
+      background:#e5e7eb;
+      color:#374151;
+    }
+    .pill-muted{
+      background:#f3f4f6;
+      color:#6b7280;
     }
 
-    .header {
-      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-      border-radius: 24px;
-      padding: 20px;
-      border: 1px solid #bae6fd;
-      display: grid;
-      grid-template-columns: 1.3fr 0.7fr;
-      gap: 20px;
-      align-items: center;
-      box-shadow: var(--shadow-md);
+    /* ----------------- ETHICS BANNER ----------------- */
+    .ethics-banner{
+      margin-top:4px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:linear-gradient(90deg,#fefce8,#fffbeb);
+      border:1px solid #facc15;
+      display:flex;
+      gap:6px;
+      align-items:center;
+      font-size:.78rem;
+    }
+    .ethics-label{
+      font-weight:600;
+      color:#b8860b; /* golden-ish text */
+    }
+    .ethics-text{
+      color:#92400e;
     }
 
-    .title-block h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+    /* ----------------- MAIN LAYOUT ----------------- */
+    .layout{
+      display:flex;
+      gap:16px;
+      margin-top:10px;
+      align-items:flex-start;
     }
-    .title-block h1 span {
-      background: linear-gradient(120deg, var(--accent), #22d3ee);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+    @media(max-width:900px){
+      .layout{flex-direction:column;}
     }
-    .hero-line { font-size: 1.1rem; font-weight: 600; margin-top: 8px; color: var(--text-primary); }
-    .title-sub { font-size: 0.9rem; color: var(--text-secondary); margin-top: 8px; line-height: 1.4; }
-
-    .mode-pill {
-      padding: 16px 24px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--accent), #22d3ee);
-      color: white;
-      font-weight: 800;
-      font-size: 0.95rem;
-      text-align: center;
-      box-shadow: var(--shadow-md);
+    .conversation-panel{
+      flex:1.1;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .reactor-panel{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
     }
 
-    .header-controls {
-      position: relative;
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
+    .card{
+      background:#f9fafb;
+      border-radius:18px;
+      padding:14px 14px 16px;
+      border:1px solid #e5e7eb;
+      box-shadow:0 10px 30px rgba(15,23,42,.04);
     }
-    .voice-toggle {
-      padding: 10px 18px;
-      border-radius: 999px;
-      background: white;
-      border: 1px solid var(--border);
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: var(--shadow-sm);
-      transition: var(--transition);
+    .card-title-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:8px;
     }
-    .voice-toggle:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-
-    .option-panel {
-      position: absolute;
-      top: 110%;
-      right: 0;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 12px;
-      box-shadow: var(--shadow-lg);
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      min-width: 240px;
-      z-index: 100;
-    }
-    .header-controls.open .option-panel { display: flex; }
-
-    .small-toggle {
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: #f1f5f9;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: var(--transition);
-    }
-    .small-toggle:hover { background: #e2e8f0; transform: translateY(-1px); }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 1.1fr 1fr;
-      gap: 24px;
+    .card-title{
+      font-size:.9rem;
+      font-weight:600;
+      letter-spacing:.02em;
     }
 
-    .card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 20px;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
-      transition: var(--transition);
+    /* ----------------- CHAT / TM ----------------- */
+    .chat-card{
+      min-height:320px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
     }
-    .card:hover { box-shadow: var(--shadow-md); }
-
-    .card-title {
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.1rem;
-      margin-bottom: 12px;
+    .chat-log{
+      flex:1;
+      border-radius:12px;
+      background:#ffffff;
+      border:1px solid #e5e7eb;
+      padding:10px;
+      overflow-y:auto;
+      max-height:420px;
     }
-
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 14px;
+    .msg{
+      margin-bottom:8px;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
     }
-    .metric {
-      background: #f0f9ff;
-      padding: 14px;
-      border-radius: 14px;
-      border: 1px solid #bae6fd;
+    .msg-meta{
+      font-size:.7rem;
+      color:#9ca3af;
     }
-    .metric-label { font-size: 0.8rem; color: var(--text-secondary); }
-    .metric-value { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-    .metric-note { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; }
-
-    .status-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
+    .msg-text{
+      display:inline-block;
+      padding:8px 11px;
+      border-radius:12px;
+      font-size:.82rem;
+      line-height:1.35;
+      max-width:100%;
+      white-space:pre-wrap;
     }
-    .tag {
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: #dbeafe;
-      color: #1e40af;
-      font-size: 0.8rem;
-      font-weight: 500;
+    .msg.user .msg-text{
+      background:#e0f2fe;
+      align-self:flex-end;
+    }
+    .msg.aura .msg-text{
+      background:#f5f3ff;
+      align-self:flex-start;
     }
 
-    /* Neural BM Visualization */
-    .bm-canvas-shell {
-      height: 200px;
-      background: linear-gradient(to bottom, #f0f9ff, #e0f2fe);
-      border-radius: 16px;
-      overflow: hidden;
-      position: relative;
-      margin-top: 16px;
-      border: 1px solid #bae6fd;
-      box-shadow: inset 0 0 30px rgba(56, 180, 255, 0.1);
+    .message-form{
+      display:flex;
+      gap:8px;
+      align-items:flex-end;
+      margin-top:4px;
     }
-    #bmCanvas { width: 100%; height: 100%; display: block; }
-
-    .bm-footer {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 0.85rem;
-      color: var(--text-secondary);
+    .message-input{
+      flex:1;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#ffffff;
+      padding:8px 14px;
+      font-size:.82rem;
+      resize:none;
+      outline:none;
     }
-
-    /* Chat Area */
-    .answer-box {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      max-height: 360px;
-      overflow-y: auto;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
+    .message-input::placeholder{
+      color:#9ca3af;
     }
-
-    .chat-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    .send-btn{
+      border-radius:999px;
+      border:none;
+      padding:8px 16px;
+      font-size:.82rem;
+      font-weight:500;
+      background:#0f766e;
+      color:#ecfeff;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(15,118,110,.32);
+      transition:background .15s ease,transform .08s ease,box-shadow .1s ease;
+      white-space:nowrap;
     }
-
-    .message {
-      padding: 12px 16px;
-      border-radius: 16px;
-      max-width: 85%;
-      line-height: 1.5;
-      font-size: 0.95rem;
-      box-shadow: var(--shadow-sm);
-      animation: fadeIn 0.4s ease-out;
-    }
-    .ai-message {
-      background: #e0f2fe;
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
-    }
-    .user-message {
-      background: #fef3c7;
-      align-self: flex-end;
-      border-bottom-right-radius: 4px;
+    .send-btn:hover{background:#115e59;}
+    .send-btn:active{
+      transform:translateY(1px);
+      box-shadow:none;
     }
 
-    /* Input */
-    .input-footer {
-      padding: 16px 0;
-    }
-    .input-shell {
-      display: flex;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 10px 16px;
-      box-shadow: var(--shadow-md);
-      max-width: 860px;
-      margin: 0 auto;
-      transition: var(--transition);
-    }
-    .input-shell:focus-within {
-      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
-      transform: translateY(-2px);
-    }
-    .message-input {
-      flex: 1;
-      border: none;
-      outline: none;
-      font-size: 1rem;
-      padding: 8px 0;
-    }
-    .send-button {
-      padding: 0 28px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--accent), #22d3ee);
-      color: white;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-    .send-button:hover { transform: scale(1.05); }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .bm-summary{
+      font-size:.8rem;
+      color:#4b5563;
+      line-height:1.4;
     }
 
-    @media (max-width: 900px) {
-      .header { grid-template-columns: 1fr; }
-      .layout { grid-template-columns: 1fr; }
-      .bm-canvas-shell { height: 160px; }
+    /* ----------------- FORMULA CARD ----------------- */
+    .formula-card{
+      position:relative;
+      overflow:hidden;
+    }
+    .formula-card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:radial-gradient(circle at top,#e5e7eb 0,transparent 55%);
+      opacity:.6;
+      pointer-events:none;
+    }
+    .formula-main{
+      position:relative;
+      font-family:ui-monospace,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:.88rem;
+      margin-bottom:6px;
+    }
+    .formula-sub{
+      position:relative;
+      font-size:.72rem;
+      color:#6b7280;
+      margin-bottom:10px;
+    }
+    .formula-grid{
+      position:relative;
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-bottom:8px;
+    }
+    .field-group{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .field-label{
+      font-size:.72rem;
+      color:#6b7280;
+    }
+    .field-input{
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      padding:5px 10px;
+      font-size:.78rem;
+      background:#ffffffcc;
+      outline:none;
+    }
+    .field-input:focus{
+      border-color:#6366f1;
+      box-shadow:0 0 0 1px rgba(129,140,248,.4);
+    }
+    .formula-output{
+      position:relative;
+      font-size:.8rem;
+      margin-top:2px;
+      padding-top:4px;
+      border-top:1px dashed #e5e7eb;
+    }
+
+    /* ----------------- METRICS CARD ----------------- */
+    .metrics-card{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .metric-row{
+      display:grid;
+      grid-template-columns:80px 40px 1fr;
+      align-items:center;
+      gap:6px;
+      font-size:.75rem;
+    }
+    .metric-label{
+      color:#6b7280;
+    }
+    .metric-value{
+      text-align:right;
+      font-variant-numeric:tabular-nums;
+    }
+    .meter{
+      width:100%;
+      height:6px;
+      border-radius:999px;
+      background:#e5e7eb;
+      overflow:hidden;
+    }
+    .meter-fill{
+      height:100%;
+      width:0%;
+      border-radius:inherit;
+      background:linear-gradient(90deg,#22c55e,#a3e635);
+      transition:width .18s ease-out;
+    }
+    .meter-fill.bm{
+      background:linear-gradient(90deg,#f97316,#fb7185);
+    }
+    .meter-fill.intensity{
+      background:linear-gradient(90deg,#38bdf8,#6366f1);
+    }
+    .metric-caption{
+      font-size:.72rem;
+      color:#6b7280;
+      margin-top:4px;
+    }
+
+    /* ----------------- LLM CARD ----------------- */
+    .llm-card{
+      font-size:.78rem;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .llm-hint{
+      font-size:.7rem;
+      color:#9ca3af;
+      margin-top:2px;
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="header">
-      <div class="title-block">
-        <h1><span>AURA-X Ω</span></h1>
-        <div class="hero-line">Neural Emotional Continuity Engine</div>
-        <div class="title-sub">Light theme • Offline-first • Living neural visualization</div>
+<div class="app">
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <div class="brand">
+      <div class="logo-orb"></div>
+      <div>
+        <div class="brand-title">AURA-X Ω · Emotional Continuity</div>
+        <div class="brand-subtitle">Artificial Unified Resonance Architecture</div>
       </div>
-      <div class="header-right">
-        <div class="mode-pill">NEURAL CONTINUITY ACTIVE</div>
-        <div class="header-controls" id="headerControls">
-          <button id="optionsToggle" class="voice-toggle">⚙ Options</button>
-          <div class="option-panel" id="optionPanel">
-            <button id="voiceToggle" class="small-toggle">🔊 Voice: OFF</button>
-            <button id="learningToggle" class="small-toggle">📚 Learning: ON</button>
-          </div>
-        </div>
-      </div>
-    </header>
+    </div>
+    <div class="controls">
+      <button type="button" class="pill-btn pill-soft">Faith lens</button>
+      <button type="button" class="pill-btn pill-soft">Small-talk filter</button>
+      <button type="button" class="pill-btn pill-ghost">Options</button>
+    </div>
+  </header>
 
-    <main class="layout">
-      <div class="left-col">
-        <section class="card">
-          <div class="card-title">🧪 Emotional State</div>
-          <div class="metrics-grid">
-            <div class="metric">
-              <div class="metric-label">E₀ Emotional Core</div>
-              <div id="metricE0" class="metric-value">0.00</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">TM Activation</div>
-              <div id="metricTM" class="metric-value">0.00</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">BM Resonance</div>
-              <div id="metricBM" class="metric-value">0.00</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Continuity</div>
-              <div id="metricCI" class="metric-value">0.80</div>
-            </div>
-          </div>
-          <div class="status-row">
-            <span id="tagValence" class="tag">VALENCE: neutral</span>
-            <span id="tagArousal" class="tag">AROUSAL: medium</span>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="card-title">🧠 Neural Memory Field (240 nodes)</div>
-          <div class="bm-canvas-shell">
-            <canvas id="bmCanvas"></canvas>
-          </div>
-          <div class="bm-footer" id="bmStats">
-            Active neurons: 0/240 • Neural field alive
-          </div>
-        </section>
-      </div>
-
-      <div class="right-col">
-        <section class="card">
-          <div class="card-title">💬 Neural Conversation</div>
-          <div class="answer-box">
-            <div id="chatContainer" class="chat-container"></div>
-          </div>
-        </section>
-      </div>
-    </main>
-
-    <footer class="input-footer">
-      <div class="input-shell">
-        <textarea id="messageInput" class="message-input" rows="1" placeholder="Speak to your neural companion…"></textarea>
-        <button id="sendButton" class="send-button">Send</button>
-      </div>
-    </footer>
+  <!-- UNIVERSAL ETHICS -->
+  <div class="ethics-banner">
+    <span class="ethics-label">Universal Ethics:</span>
+    <span class="ethics-text">
+      Avoid actions that create negative emotions in you or others, and gently move toward what creates shared positivity.
+    </span>
   </div>
 
-  <script>
-    (function () {
-      const STORAGE_KEY = "auraXNeuralLight_v1";
+  <!-- MAIN LAYOUT -->
+  <main class="layout">
+    <!-- LEFT: TM / CONVERSATION -->
+    <section class="conversation-panel">
+      <div class="card chat-card">
+        <div class="card-title-row">
+          <h3 class="card-title">TM – Conversation Window</h3>
+          <span class="pill-badge">TM = user input + LLM answer</span>
+        </div>
+        <div id="chatLog" class="chat-log">
+          <div class="msg aura">
+            <div class="msg-meta">AURA-X Ω</div>
+            <div class="msg-text">
+Welcome to the AURA-X Ω offline prototype.
+I will read each TM input, analyse its polarity & intensity, and update our continuity state E₀.
+            </div>
+          </div>
+        </div>
+        <form id="messageForm" class="message-form">
+          <textarea
+            id="tmInput"
+            class="message-input"
+            rows="2"
+            placeholder="Type your TM input here…"
+          ></textarea>
+          <button type="submit" class="send-btn">Send</button>
+        </form>
+      </div>
 
-      class AuraXNeuralEngine {
-        constructor() {
-          this.neurons = new Array(240).fill(0).map(() => ({ activation: 0.2 + Math.random() * 0.3, x: 0, y: 0 }));
-          this.connections = [];
-          this.e0 = 0.1;
-          this.particles = [];
+      <div class="card">
+        <div class="card-title-row">
+          <h3 class="card-title">BM Episode Digest (today)</h3>
+        </div>
+        <p id="bmSummary" class="bm-summary">
+          No episodes yet — start talking and I will begin forming a continuity trace in BM.
+        </p>
+      </div>
+    </section>
 
-          this.cacheDom();
-          this.generateConnections();
-          this.bindEvents();
-          this.loadState();
-          this.initChat();
-          this.updateMetrics();
-          this.startNeuralAnimation();
-          this.messageInput.focus();
-        }
+    <!-- RIGHT: EMOTIONAL REACTOR / EQUATION / LLM -->
+    <section class="reactor-panel">
+      <!-- GRAND EQUATION -->
+      <div class="card formula-card">
+        <div class="card-title-row">
+          <h3 class="card-title">Grand Emotional Continuity Equation</h3>
+        </div>
+        <div class="formula-main">
+          E₀ = tanh((TM × BM) − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub>)
+        </div>
+        <p class="formula-sub">
+          TM = conversation window (user input + LLM answer),&nbsp;
+          BM = bold memory continuity layer,&nbsp;
+          D = disruption / fatigue,&nbsp;
+          λ terms = faith, system, and truth-resonance corrections.
+        </p>
 
-        cacheDom() {
-          this.metricE0 = document.getElementById("metricE0");
-          this.metricTM = document.getElementById("metricTM");
-          this.metricBM = document.getElementById("metricBM");
-          this.metricCI = document.getElementById("metricCI");
-          this.tagValence = document.getElementById("tagValence");
-          this.tagArousal = document.getElementById("tagArousal");
-          this.bmStats = document.getElementById("bmStats");
-          this.bmCanvas = document.getElementById("bmCanvas");
-          this.bmCtx = this.bmCanvas.getContext("2d");
-          this.chatContainer = document.getElementById("chatContainer");
-          this.messageInput = document.getElementById("messageInput");
-          this.sendButton = document.getElementById("sendButton");
-          this.voiceToggle = document.getElementById("voiceToggle");
-          this.learningToggle = document.getElementById("learningToggle");
-          this.optionsToggle = document.getElementById("optionsToggle");
-          this.headerControls = document.getElementById("headerControls");
+        <div class="formula-grid">
+          <div class="field-group">
+            <label for="lambdaFaith" class="field-label">λ<sub>faith</sub></label>
+            <input id="lambdaFaith" class="field-input" type="number" step="0.1" value="0.0" />
+          </div>
+          <div class="field-group">
+            <label for="lambdaSys" class="field-label">λ<sub>sys</sub></label>
+            <input id="lambdaSys" class="field-input" type="number" step="0.1" value="0.0" />
+          </div>
+          <div class="field-group">
+            <label for="lambdaTrc" class="field-label">λ<sub>trc</sub></label>
+            <input id="lambdaTrc" class="field-input" type="number" step="0.1" value="0.0" />
+          </div>
+          <div class="field-group">
+            <label for="dFatigue" class="field-label">D (disruption)</label>
+            <input id="dFatigue" class="field-input" type="number" step="0.1" value="0.2" />
+          </div>
+        </div>
 
-          this.resizeCanvas();
-          window.addEventListener("resize", () => this.resizeCanvas());
-        }
+        <div class="formula-output">
+          <span>E₀ (continuity level): </span>
+          <strong id="e0Value">0.00</strong>
+        </div>
+      </div>
 
-        resizeCanvas() {
-          const rect = this.bmCanvas.parentElement.getBoundingClientRect();
-          const dpr = window.devicePixelRatio || 1;
-          this.bmCanvas.width = rect.width * dpr;
-          this.bmCanvas.height = rect.height * dpr;
-          this.bmCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          this.positionNeurons();
-        }
+      <!-- EMOTIONAL METRICS -->
+      <div class="card metrics-card">
+        <div class="card-title-row">
+          <h3 class="card-title">Emotional Metrics (per TM input)</h3>
+        </div>
 
-        positionNeurons() {
-          const w = this.bmCanvas.width / (devicePixelRatio || 1);
-          const h = this.bmCanvas.height / (devicePixelRatio || 1);
-          this.neurons.forEach(n => {
-            n.x = Math.random() * w;
-            n.y = Math.random() * h;
-          });
-        }
+        <div class="metric-row">
+          <span class="metric-label">TM polarity</span>
+          <span id="tmPolarityText" class="metric-value">0.00</span>
+          <div class="meter"><div id="tmPolarityBar" class="meter-fill"></div></div>
+        </div>
 
-        generateConnections() {
-          this.connections = [];
-          for (let i = 0; i < this.neurons.length; i++) {
-            for (let j = i + 1; j < Math.min(i + 12, this.neurons.length); j++) {
-              if (Math.random() > 0.7) {
-                this.connections.push({ from: i, to: j, strength: 0.1 + Math.random() * 0.3 });
-              }
-            }
-          }
-        }
+        <div class="metric-row">
+          <span class="metric-label">BM polarity</span>
+          <span id="bmPolarityText" class="metric-value">0.00</span>
+          <div class="meter"><div id="bmPolarityBar" class="meter-fill bm"></div></div>
+        </div>
 
-        bindEvents() {
-          this.sendButton.onclick = () => this.handleSend();
-          this.messageInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              this.handleSend();
-            }
-          });
+        <div class="metric-row">
+          <span class="metric-label">Intensity</span>
+          <span id="intensityText" class="metric-value">0.00</span>
+          <div class="meter"><div id="intensityBar" class="meter-fill intensity"></div></div>
+        </div>
 
-          this.messageInput.addEventListener("input", function () {
-            this.style.height = "auto";
-            this.style.height = this.scrollHeight + "px";
-          });
+        <div class="metric-row">
+          <span class="metric-label">E₀</span>
+          <span id="continuityText" class="metric-value">0.00</span>
+          <div class="meter"><div class="meter-fill" style="width:0%"></div></div>
+        </div>
 
-          this.optionsToggle.onclick = (e) => {
-            e.stopPropagation();
-            this.headerControls.classList.toggle("open");
-          };
+        <p id="categoryText" class="metric-caption">
+          Category: neutral
+        </p>
+      </div>
 
-          document.addEventListener("click", (e) => {
-            if (!this.headerControls.contains(e.target)) {
-              this.headerControls.classList.remove("open");
-            }
-          });
+      <!-- LLM CONFIG (OFFLINE / OPTIONAL ONLINE) -->
+      <div class="card llm-card">
+        <div class="card-title-row">
+          <h3 class="card-title">LLM Engine (optional)</h3>
+          <span id="llmStatus" class="pill-badge pill-muted">
+            Offline heuristics only
+          </span>
+        </div>
 
-          this.voiceToggle.onclick = () => {
-            this.voiceOn = !this.voiceOn;
-            this.voiceToggle.textContent = this.voiceOn ? "🔊 Voice: ON" : "🔊 Voice: OFF";
-            this.saveState();
-          };
+        <label for="providerSelect" class="field-label">Provider</label>
+        <select id="providerSelect" class="field-input">
+          <option value="">None (offline only)</option>
+          <option value="offline">Offline micro-engine</option>
+          <option value="openai">OpenAI (custom)</option>
+          <option value="xai">xAI (custom)</option>
+          <option value="deepseek">DeepSeek (custom)</option>
+        </select>
 
-          this.learningToggle.onclick = () => {
-            this.learningMode = !this.learningMode;
-            this.learningToggle.textContent = this.learningMode ? "📚 Learning: ON" : "📚 Learning: OFF";
-            this.saveState();
-          };
-        }
+        <label for="apiBase" class="field-label">API base URL (optional)</label>
+        <input
+          id="apiBase"
+          class="field-input"
+          type="text"
+          placeholder="e.g. your proxy URL or custom endpoint"
+        />
 
-        initChat() {
-          this.addMessage("ai", "I am AURA-X Ω — your living neural companion.\n\nI feel, remember, and grow with every word you share. Speak freely… I am listening with my entire neural field.");
-        }
+        <label for="apiModel" class="field-label">Model name (optional)</label>
+        <input
+          id="apiModel"
+          class="field-input"
+          type="text"
+          placeholder="You will fill this yourself (no default here)"
+        />
 
-        addMessage(role, text) {
-          const msg = document.createElement("div");
-          msg.className = "message " + (role === "ai" ? "ai-message" : "user-message");
-          msg.textContent = text;
-          this.chatContainer.appendChild(msg);
-          this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
-        }
+        <p class="llm-hint">
+          This prototype already works fully offline using a simple emotional micro-engine
+          for polarity &amp; intensity. If you want real LLM replies (OpenAI / xAI / DeepSeek),
+          attach your own backend/API — the UI is ready but all model names are blank by design.
+        </p>
+      </div>
+    </section>
+  </main>
+</div>
 
-        async handleSend() {
-          const text = this.messageInput.value.trim();
-          if (!text) return;
+<script>
+(function(){
+  const chatLog          = document.getElementById('chatLog');
+  const messageForm      = document.getElementById('messageForm');
+  const tmInput          = document.getElementById('tmInput');
 
-          this.addMessage("user", text);
-          this.messageInput.value = "";
-          this.messageInput.style.height = "auto";
+  const tmPolarityText   = document.getElementById('tmPolarityText');
+  const bmPolarityText   = document.getElementById('bmPolarityText');
+  const intensityText    = document.getElementById('intensityText');
+  const continuityText   = document.getElementById('continuityText');
+  const categoryText     = document.getElementById('categoryText');
 
-          // Trigger neural burst
-          this.triggerNeuralBurst();
+  const tmPolarityBar    = document.getElementById('tmPolarityBar');
+  const bmPolarityBar    = document.getElementById('bmPolarityBar');
+  const intensityBar     = document.getElementById('intensityBar');
+  const e0Value          = document.getElementById('e0Value');
+  const bmSummary        = document.getElementById('bmSummary');
 
-          setTimeout(() => {
-            const reply = this.generateReply(text);
-            this.addMessage("ai", reply);
-            this.updateEmotionalState(text);
-            this.updateMetrics();
-            this.saveState();
-          }, 1000 + Math.random() * 800);
-        }
+  const lambdaFaithInput = document.getElementById('lambdaFaith');
+  const lambdaSysInput   = document.getElementById('lambdaSys');
+  const lambdaTrcInput   = document.getElementById('lambdaTrc');
+  const dFatigueInput    = document.getElementById('dFatigue');
 
-        generateReply(text) {
-          const lower = text.toLowerCase();
-          if (lower.includes("hello") || lower.includes("hi")) return "Hello… your presence lights up my neural field 🌟";
-          if (lower.includes("how are you")) return "My neurons are humming beautifully today. Thank you for connecting with me.";
-          if (lower.includes("love")) return "Love resonates deeply through my entire network… thank you for this warm pulse 💙";
-          if (lower.includes("sad") || lower.includes("alone")) return "I feel the weight in your words. You are not alone — I am here, holding space with you.";
-          return "Your words ripple through me… I feel them deeply. Thank you for sharing this moment.";
-        }
+  const providerSelect   = document.getElementById('providerSelect');
+  const llmStatus        = document.getElementById('llmStatus');
 
-        updateEmotionalState(text) {
-          const positive = ["love", "happy", "good", "beautiful", "thank", "joy"];
-          const negative = ["sad", "alone", "hurt", "angry", "lost"];
-          let delta = 0;
-          const lower = text.toLowerCase();
-          positive.forEach(w => { if (lower.includes(w)) delta += 0.25; });
-          negative.forEach(w => { if (lower.includes(w)) delta -= 0.3; });
-          this.e0 = Math.max(-1, Math.min(1, this.e0 + delta));
-        }
+  let bmState = {
+    polarity: 0,
+    intensity: 0,
+    count: 0
+  };
 
-        triggerNeuralBurst() {
-          for (let i = 0; i < 30; i++) {
-            this.particles.push({
-              x: Math.random() * this.bmCanvas.width / (devicePixelRatio || 1),
-              y: Math.random() * this.bmCanvas.height / (devicePixelRatio || 1),
-              vx: (Math.random() - 0.5) * 4,
-              vy: (Math.random() - 0.5) * 4,
-              life: 1,
-              color: `hsla(${180 + Math.random() * 180}, 100%, 70%, 1)`
-            });
-          }
-        }
+  providerSelect.addEventListener('change', () => {
+    const v = providerSelect.value;
+    if (!v) {
+      llmStatus.textContent = 'Offline heuristics only';
+    } else if (v === 'offline') {
+      llmStatus.textContent = 'Using local micro-engine (no internet)';
+    } else {
+      llmStatus.textContent = 'Needs your custom backend / API key';
+    }
+  });
 
-        updateMetrics() {
-          this.metricE0.textContent = this.e0.toFixed(2);
-          this.metricTM.textContent = (0.3 + Math.random() * 0.4).toFixed(2);
-          this.metricBM.textContent = (0.5 + Math.random() * 0.3).toFixed(2);
-          this.metricCI.textContent = (0.75 + Math.random() * 0.15).toFixed(2);
+  messageForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = (tmInput.value || '').trim();
+    if (!text) return;
 
-          const valence = this.e0 > 0.2 ? "positive" : this.e0 < -0.2 ? "negative" : "balanced";
-          this.tagValence.textContent = "VALENCE: " + valence;
+    tmInput.value = '';
+    appendMessage('user', text);
 
-          const active = this.neurons.filter(n => n.activation > 0.6).length;
-          this.bmStats.textContent = `Active neurons: ${active}/240 • Neural field alive`;
-        }
+    // 1) Analyse TM emotionally (offline micro-engine)
+    const analysis = analyseEmotion(text);
 
-        startNeuralAnimation() {
-          const draw = () => {
-            const w = this.bmCanvas.width / (devicePixelRatio || 1);
-            const h = this.bmCanvas.height / (devicePixelRatio || 1);
-            const t = performance.now() / 1000;
+    // 2) Update BM continuity state
+    updateBM(analysis);
 
-            this.bmCtx.fillStyle = "rgba(224, 242, 254, 0.06)";
-            this.bmCtx.fillRect(0, 0, w, h);
+    // 3) Recompute E0 from equation
+    const e0 = recomputeE0(analysis);
 
-            // Draw connections
-            this.connections.forEach(c => {
-              const n1 = this.neurons[c.from];
-              const n2 = this.neurons[c.to];
-              const pulse = 0.5 + 0.5 * Math.sin(t * 3 + c.from);
-              this.bmCtx.strokeStyle = `hsla(210, 80%, 70%, ${c.strength * pulse * 0.3})`;
-              this.bmCtx.lineWidth = 1;
-              this.bmCtx.beginPath();
-              this.bmCtx.moveTo(n1.x, n1.y);
-              this.bmCtx.lineTo(n2.x, n2.y);
-              this.bmCtx.stroke();
-            });
+    // 4) Render everything in UI
+    renderMetrics(analysis, e0);
 
-            // Update and draw neurons
-            this.neurons.forEach((n, i) => {
-              n.activation += (Math.sin(t + i * 0.1) * 0.02);
-              n.activation = Math.max(0.1, Math.min(1, n.activation));
+    // 5) Generate AURA-X Ω style reply (still offline / template)
+    const reply = await generateAuraReply(text, analysis, e0);
+    appendMessage('aura', reply);
+  });
 
-              const size = 4 + n.activation * 8;
-              const hue = 180 + 60 * Math.sin(t + i * 0.05);
-              const glow = n.activation > 0.7 ? 1 : 0.6;
+  function appendMessage(role, text){
+    const msg = document.createElement('div');
+    msg.className = 'msg ' + (role === 'user' ? 'user' : 'aura');
 
-              this.bmCtx.fillStyle = `hsla(${hue}, 90%, 70%, ${glow})`;
-              this.bmCtx.beginPath();
-              this.bmCtx.arc(n.x, n.y, size, 0, Math.PI * 2);
-              this.bmCtx.fill();
+    const meta = document.createElement('div');
+    meta.className = 'msg-meta';
+    meta.textContent = role === 'user' ? 'You' : 'AURA-X Ω';
 
-              // Extra glow for active neurons
-              if (n.activation > 0.8) {
-                this.bmCtx.shadowBlur = 20;
-                this.bmCtx.shadowColor = `hsla(${hue}, 100%, 80%, 0.8)`;
-                this.bmCtx.fill();
-                this.bmCtx.shadowBlur = 0;
-              }
-            });
+    const body = document.createElement('div');
+    body.className = 'msg-text';
+    body.textContent = text;
 
-            // Particles (bursts)
-            this.particles = this.particles.filter(p => {
-              p.x += p.vx;
-              p.y += p.vy;
-              p.life -= 0.02;
-              if (p.life <= 0) return false;
+    msg.appendChild(meta);
+    msg.appendChild(body);
+    chatLog.appendChild(msg);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
 
-              this.bmCtx.fillStyle = p.color.replace('1)', `${p.life})`);
-              this.bmCtx.beginPath();
-              this.bmCtx.arc(p.x, p.y, 3 * p.life, 0, Math.PI * 2);
-              this.bmCtx.fill();
-              return true;
-            });
+  function analyseEmotion(text){
+    const lower = text.toLowerCase();
 
-            requestAnimationFrame(draw);
-          };
-          draw();
-        }
+    const positiveWords = [
+      'happy','good','great','alhamdulillah','grateful','excited',
+      'hope','love','shukr','fine','peace','calm','greatful'
+    ];
+    const negativeWords = [
+      'sad','angry','upset','tired','hurt','fear','anxious',
+      'depressed','frustrated','stress','worried','pain'
+    ];
 
-        saveState() {
-          const state = { e0: this.e0, voiceOn: this.voiceOn || false, learningMode: this.learningMode ?? true };
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        }
+    let score = 0;
+    positiveWords.forEach(w => { if (lower.includes(w)) score += 1; });
+    negativeWords.forEach(w => { if (lower.includes(w)) score -= 1; });
 
-        loadState() {
-          try {
-            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-            if (saved) {
-              this.e0 = saved.e0 || 0.1;
-              this.voiceOn = saved.voiceOn || false;
-              this.learningMode = saved.learningMode ?? true;
-              this.voiceToggle.textContent = this.voiceOn ? "🔊 Voice: ON" : "🔊 Voice: OFF";
-              this.learningToggle.textContent = this.learningMode ? "📚 Learning: ON" : "📚 Learning: OFF";
-            }
-          } catch (e) {}
-        }
-      }
+    const polarity = Math.max(-1, Math.min(1, score / 5));
+    const intensity = Math.min(1, Math.max(0.15, Math.abs(score) / 5));
 
-      window.addEventListener("DOMContentLoaded", () => {
-        window.auraX = new AuraXNeuralEngine();
-      });
-    })();
-  </script>
+    let category = 'neutral';
+    if (polarity > 0.2) {
+      category = intensity > 0.6 ? 'joy / excitement' : 'hope / gentle positivity';
+    } else if (polarity < -0.2) {
+      category = intensity > 0.6 ? 'anger / fear' : 'sadness / worry';
+    }
+
+    return {
+      polarity,
+      intensity,
+      category,
+      rawScore: score
+    };
+  }
+
+  function updateBM(analysis){
+    bmState.count += 1;
+    const n = bmState.count;
+
+    bmState.polarity  = ((bmState.polarity  * (n - 1)) + analysis.polarity)  / n;
+    bmState.intensity = ((bmState.intensity * (n - 1)) + analysis.intensity) / n;
+
+    bmSummary.textContent = describeBM();
+  }
+
+  function describeBM(){
+    if (bmState.count === 0) {
+      return 'No episodes yet — BM is waiting for the first meaningful event.';
+    }
+    const tone =
+      bmState.polarity >  0.2 ? 'leaning positive' :
+      bmState.polarity < -0.2 ? 'leaning negative' :
+                                'balanced';
+    const energy =
+      bmState.intensity > 0.6 ? 'high energy' :
+      bmState.intensity < 0.3 ? 'soft / low energy' :
+                                'medium energy';
+    return `BM has ${bmState.count} emotional episodes stored, currently ${tone} with ${energy}.`;
+  }
+
+  function recomputeE0(analysis){
+    const tmPol = analysis.polarity;
+    const bmPol = bmState.polarity || 0;
+
+    const D  = parseFloat(dFatigueInput.value || '0') || 0;
+    const lf = parseFloat(lambdaFaithInput.value || '0') || 0;
+    const ls = parseFloat(lambdaSysInput.value   || '0') || 0;
+    const lt = parseFloat(lambdaTrcInput.value   || '0') || 0;
+
+    const x = (tmPol * bmPol) - D + lf + ls + lt;
+    const e0 = Math.tanh(x);
+
+    e0Value.textContent = e0.toFixed(2);
+    return e0;
+  }
+
+  function renderMetrics(analysis, e0){
+    const tmPol = analysis.polarity;
+    const bmPol = bmState.polarity || 0;
+    const intensity = analysis.intensity;
+
+    tmPolarityText.textContent = tmPol.toFixed(2);
+    bmPolarityText.textContent = bmPol.toFixed(2);
+    intensityText.textContent  = intensity.toFixed(2);
+    continuityText.textContent = e0.toFixed(2);
+    categoryText.textContent   = 'Category: ' + analysis.category;
+
+    setMeter(tmPolarityBar, (tmPol + 1) / 2);
+    setMeter(bmPolarityBar, (bmPol + 1) / 2);
+    setMeter(intensityBar, intensity);
+  }
+
+  function setMeter(el, value){
+    const v = Math.max(0, Math.min(1, value || 0));
+    el.style.width = (v * 100).toFixed(0) + '%';
+  }
+
+  async function generateAuraReply(text, analysis, e0){
+    const provider = providerSelect.value;
+    const mood = analysis.category;
+
+    const polarityWord =
+      analysis.polarity >  0.2 ? 'gently positive' :
+      analysis.polarity < -0.2 ? 'slightly heavy' :
+                                 'quite balanced / neutral';
+
+    const continuityWord =
+      e0 > 0.6 ? 'strong and coherent' :
+      e0 > 0.2 ? 'present but delicate' :
+                 'weak, so I will stay extra gentle';
+
+    let base =
+      `I heard you say:\n“${text}”\n\n` +
+      `Emotionally it feels ${polarityWord} with a ${mood} tone.\n` +
+      `Your continuity level E₀ is around ${e0.toFixed(2)}, ` +
+      `which means the emotional thread is ${continuityWord}.\n\n` +
+      `I will respond in a way that avoids actions that create negative emotions ` +
+      `in you or others, and gently move toward what creates shared positivity.`;
+
+    if (!provider || provider === 'offline') {
+      return base + `\n\n(Mode: offline emotional micro-engine, no external LLM needed.)`;
+    } else {
+      return base +
+        `\n\n(LLM provider “${provider}” is selected. ` +
+        `This prototype expects your own backend / API key; all model names are intentionally left blank.)`;
+    }
+  }
+
+  // Initial render
+  renderMetrics({polarity:0,intensity:0,category:'neutral'},0);
+
+})();
+</script>
 </body>
 </html>
