@@ -5,10 +5,8 @@
   <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Optional: offline LLM library (you can wire it later if you want) -->
+  <!-- Optional: offline LLM library (for future use) -->
   <script type="module">
-    // If you want to use @mlc-ai/web-llm later, you can keep this.
-    // For now the app works fine without calling it.
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
   </script>
@@ -92,7 +90,7 @@
       align-items:center;
       gap:6px;
       white-space:nowrap;
-      transition:background .15s ease,box-shadow .15s ease,transform .08s ease;
+      transition:background .15s ease,box-shadow .15s ease,transform .08s ease,color .15s ease;
     }
     .pill-btn:active{
       transform:translateY(1px);
@@ -123,6 +121,13 @@
       color:#6b7280;
     }
 
+    /* Active state for toggles */
+    .pill-active{
+      background:#e0f2fe !important;
+      color:#0369a1 !important;
+      box-shadow:0 0 0 1px rgba(56,189,248,.5);
+    }
+
     /* ----------------- ETHICS BANNER ----------------- */
     .ethics-banner{
       margin-top:4px;
@@ -137,7 +142,7 @@
     }
     .ethics-label{
       font-weight:600;
-      color:#b8860b; /* golden-ish text */
+      color:#b8860b; /* golden-ish */
     }
     .ethics-text{
       color:#92400e;
@@ -172,6 +177,7 @@
       padding:14px 14px 16px;
       border:1px solid #e5e7eb;
       box-shadow:0 10px 30px rgba(15,23,42,.04);
+      transition:box-shadow .2s ease,border-color .2s ease;
     }
     .card-title-row{
       display:flex;
@@ -184,6 +190,12 @@
       font-size:.9rem;
       font-weight:600;
       letter-spacing:.02em;
+    }
+
+    /* Highlight when Options button focuses LLM card */
+    .card-highlight{
+      box-shadow:0 0 0 1px rgba(129,140,248,.9),0 0 0 4px rgba(199,210,254,.9);
+      border-color:#4f46e5;
     }
 
     /* ----------------- CHAT / TM ----------------- */
@@ -407,9 +419,9 @@
       </div>
     </div>
     <div class="controls">
-      <button type="button" class="pill-btn pill-soft">Faith lens</button>
-      <button type="button" class="pill-btn pill-soft">Small-talk filter</button>
-      <button type="button" class="pill-btn pill-ghost">Options</button>
+      <button type="button" id="faithBtn" class="pill-btn pill-soft">Faith lens</button>
+      <button type="button" id="filterBtn" class="pill-btn pill-soft">Small-talk filter</button>
+      <button type="button" id="optionsBtn" class="pill-btn pill-ghost">Options</button>
     </div>
   </header>
 
@@ -529,7 +541,7 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
         <div class="metric-row">
           <span class="metric-label">E₀</span>
           <span id="continuityText" class="metric-value">0.00</span>
-          <div class="meter"><div class="meter-fill" style="width:0%"></div></div>
+          <div class="meter"><div class="meter-fill" id="e0Bar"></div></div>
         </div>
 
         <p id="categoryText" class="metric-caption">
@@ -537,8 +549,8 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
         </p>
       </div>
 
-      <!-- LLM CONFIG (OFFLINE / OPTIONAL ONLINE) -->
-      <div class="card llm-card">
+      <!-- LLM CONFIG -->
+      <div id="llmCard" class="card llm-card">
         <div class="card-title-row">
           <h3 class="card-title">LLM Engine (optional)</h3>
           <span id="llmStatus" class="pill-badge pill-muted">
@@ -574,7 +586,7 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
         <p class="llm-hint">
           This prototype already works fully offline using a simple emotional micro-engine
           for polarity &amp; intensity. If you want real LLM replies (OpenAI / xAI / DeepSeek),
-          attach your own backend/API — the UI is ready but all model names are blank by design.
+          attach your own backend/API — the UI is ready but all model names are intentionally left blank.
         </p>
       </div>
     </section>
@@ -596,6 +608,7 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
   const tmPolarityBar    = document.getElementById('tmPolarityBar');
   const bmPolarityBar    = document.getElementById('bmPolarityBar');
   const intensityBar     = document.getElementById('intensityBar');
+  const e0Bar            = document.getElementById('e0Bar');
   const e0Value          = document.getElementById('e0Value');
   const bmSummary        = document.getElementById('bmSummary');
 
@@ -607,12 +620,58 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
   const providerSelect   = document.getElementById('providerSelect');
   const llmStatus        = document.getElementById('llmStatus');
 
+  const faithBtn         = document.getElementById('faithBtn');
+  const filterBtn        = document.getElementById('filterBtn');
+  const optionsBtn       = document.getElementById('optionsBtn');
+  const llmCard          = document.getElementById('llmCard');
+  const ethicsText       = document.querySelector('.ethics-text');
+
   let bmState = {
     polarity: 0,
     intensity: 0,
     count: 0
   };
 
+  let faithOn  = false;
+  let filterOn = false;
+
+  /* --------- TOP BUTTONS BEHAVIOUR --------- */
+  faithBtn.addEventListener('click', () => {
+    faithOn = !faithOn;
+    faithBtn.classList.toggle('pill-active', faithOn);
+    faithBtn.textContent = faithOn ? 'Faith lens: On' : 'Faith lens';
+    updateEthicsLine();
+  });
+
+  filterBtn.addEventListener('click', () => {
+    filterOn = !filterOn;
+    filterBtn.classList.toggle('pill-active', filterOn);
+    filterBtn.textContent = filterOn ? 'Small-talk filter: On' : 'Small-talk filter';
+    updateEthicsLine();
+  });
+
+  optionsBtn.addEventListener('click', () => {
+    if (!llmCard) return;
+    llmCard.scrollIntoView({behavior:'smooth', block:'start'});
+    llmCard.classList.add('card-highlight');
+    setTimeout(() => llmCard.classList.remove('card-highlight'), 1200);
+  });
+
+  function updateEthicsLine(){
+    let base =
+      'Avoid actions that create negative emotions in you or others, ' +
+      'and gently move toward what creates shared positivity.';
+    if (faithOn && filterOn) {
+      base += ' · Faith lens active · Small-talk filter active.';
+    } else if (faithOn) {
+      base += ' · Faith lens is gently active.';
+    } else if (filterOn) {
+      base += ' · Small-talk filter is active (casual noise reduced).';
+    }
+    if (ethicsText) ethicsText.textContent = base;
+  }
+
+  /* --------- LLM PROVIDER STATUS --------- */
   providerSelect.addEventListener('change', () => {
     const v = providerSelect.value;
     if (!v) {
@@ -624,6 +683,7 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
     }
   });
 
+  /* --------- MAIN MESSAGE HANDLER --------- */
   messageForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = (tmInput.value || '').trim();
@@ -644,7 +704,7 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
     // 4) Render everything in UI
     renderMetrics(analysis, e0);
 
-    // 5) Generate AURA-X Ω style reply (still offline / template)
+    // 5) Generate AURA-X Ω style reply (offline template)
     const reply = await generateAuraReply(text, analysis, e0);
     appendMessage('aura', reply);
   });
@@ -667,6 +727,7 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
     chatLog.scrollTop = chatLog.scrollHeight;
   }
 
+  /* --------- EMOTIONAL MICRO-ENGINE --------- */
   function analyseEmotion(text){
     const lower = text.toLowerCase();
 
@@ -756,6 +817,7 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
     setMeter(tmPolarityBar, (tmPol + 1) / 2);
     setMeter(bmPolarityBar, (bmPol + 1) / 2);
     setMeter(intensityBar, intensity);
+    setMeter(e0Bar, (e0 + 1) / 2);
   }
 
   function setMeter(el, value){
@@ -765,7 +827,6 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
 
   async function generateAuraReply(text, analysis, e0){
     const provider = providerSelect.value;
-    const mood = analysis.category;
 
     const polarityWord =
       analysis.polarity >  0.2 ? 'gently positive' :
@@ -779,7 +840,7 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
 
     let base =
       `I heard you say:\n“${text}”\n\n` +
-      `Emotionally it feels ${polarityWord} with a ${mood} tone.\n` +
+      `Emotionally it feels ${polarityWord} with a ${analysis.category} tone.\n` +
       `Your continuity level E₀ is around ${e0.toFixed(2)}, ` +
       `which means the emotional thread is ${continuityWord}.\n\n` +
       `I will respond in a way that avoids actions that create negative emotions ` +
@@ -796,6 +857,7 @@ I will read each TM input, analyse its polarity & intensity, and update our cont
 
   // Initial render
   renderMetrics({polarity:0,intensity:0,category:'neutral'},0);
+  updateEthicsLine();
 
 })();
 </script>
