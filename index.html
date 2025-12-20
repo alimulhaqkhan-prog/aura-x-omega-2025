@@ -2,1154 +2,1865 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
+  <title>AURA-X Ω – Emotional Continuity Engine (Prototype)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- =========================
-       OFFLINE / OPTIONAL LLM HOOKS
-       ========================= -->
-  <!--
-    NOTE:
-    - Yahan sirf structure diya gaya hai.
-    - Aap baad mein chahein to:
-      * WebLLM (MLC) use karein
-      * TFLite model use karein
-      * Ya koi local/on-device LLM
-    - Neeche JS mein analyzeWithLLM(...) function hai
-      jismein aap apna real LLM call inject kar sakte hain.
-  -->
+  <!-- Optional offline LLM (WebLLM). Fails silently if not supported -->
+  <script type="module">
+    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+    window.webllm = webllm;
+  </script>
 
   <style>
-    /* RESET & BASICS */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root{
+      --bg:#020617;
+      --bg-soft:#02081b;
+      --card:#020617;
+      --card-soft:#02081b;
+      --card-soft-2:#02091e;
+      --accent:#0ea5e9;
+      --accent-2:#38bdf8;
+      --accent-soft:#0ea5e933;
+      --accent-strong:#0ea5e9;
+      --text-main:#e5e7eb;
+      --text-soft:#9ca3af;
+      --text-softer:#6b7280;
+      --border-soft:#1f2937;
+      --danger:#ef4444;
+      --shadow-soft:0 22px 45px rgba(0,0,0,0.7);
+      --radius-xl:24px;
+      --radius-lg:18px;
+      --radius-md:14px;
+      --radius-pill:999px;
+    }
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    *{box-sizing:border-box;margin:0;padding:0;}
+
+    body{
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       background:
-        radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
-        radial-gradient(circle at 80% 0%, #0ea5e9 0, transparent 40%),
+        radial-gradient(circle at 15% 0%, #0f172a 0, transparent 55%),
+        radial-gradient(circle at 85% 0%, #0ea5e9 0, transparent 50%),
         linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
-      color: #e5e7eb;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
-      padding: 24px;
-    }
-
-    .app-shell {
-      width: 100%;
-      max-width: 1200px;
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
-      gap: 20px;
-    }
-
-    /* LEFT COLUMN: MAIN INTERFACE */
-    .card {
-      background: rgba(15,23,42,0.92);
-      border-radius: 18px;
-      border: 1px solid rgba(148,163,184,0.35);
-      box-shadow:
-        0 18px 60px rgba(15,23,42,0.9),
-        0 0 0 1px rgba(148,163,184,0.2);
-      padding: 18px 18px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: -120px;
-      background:
-        radial-gradient(circle at 0% 0%, rgba(56,189,248,0.10) 0, transparent 55%),
-        radial-gradient(circle at 80% 0%, rgba(96,165,250,0.18) 0, transparent 52%);
-      opacity: 0.85;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .card-inner {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .app-title {
-      font-size: 1.2rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #e5e7eb;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .app-title em {
-      font-style: normal;
-      font-weight: 700;
-      color: #7dd3fc;
-      letter-spacing: 0.16em;
-      font-size: 0.95rem;
-    }
-
-    .app-subtitle {
-      font-size: 0.72rem;
-      color: #9ca3af;
-    }
-
-    .orb {
-      width: 44px;
-      height: 44px;
-      border-radius: 999px;
-      background:
-        radial-gradient(circle at 30% 20%, #f9fafb 0, #93c5fd 26%, #0ea5e9 55%, #0f172a 100%);
-      box-shadow:
-        0 0 22px rgba(59,130,246,0.85),
-        0 0 44px rgba(56,189,248,0.85);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .orb::after {
-      content: "";
-      position: absolute;
-      inset: 16%;
-      border-radius: inherit;
-      border: 1px solid rgba(248,250,252,0.6);
-      box-shadow: 0 0 16px rgba(248,250,252,0.7) inset;
-      opacity: 0.65;
-    }
-
-    .meta-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 0.7rem;
-      color: #9ca3af;
-    }
-
-    .pill {
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.4);
-      padding: 3px 9px;
-      background: radial-gradient(circle at 0 0,rgba(56,189,248,0.18),transparent 60%);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .pill span.key {
-      font-size: 0.66rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #e5e7eb;
-    }
-
-    .pill span.val {
-      font-size: 0.66rem;
-      color: #cbd5f5;
-    }
-
-    .equation-block {
-      border-radius: 14px;
-      border: 1px solid rgba(148,163,184,0.45);
-      background: linear-gradient(145deg,rgba(15,23,42,0.96),rgba(15,23,42,0.96));
-      padding: 10px 11px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      font-family: "SF Mono","JetBrains Mono",ui-monospace,Menlo,Monaco,Consolas,monospace;
-    }
-
-    .equation-main {
-      font-size: 0.78rem;
-      color: #e5e7eb;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 6px;
-    }
-
-    .eq-symbol {
-      font-size: 0.9rem;
-      color: #bfdbfe;
-    }
-
-    .eq-highlight {
-      color: #a5b4fc;
-    }
-
-    .eq-note {
-      font-size: 0.68rem;
-      color: #9ca3af;
-    }
-
-    .eq-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      font-size: 0.62rem;
-    }
-
-    .eq-tag {
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.6);
-      background: rgba(15,23,42,0.85);
-      color: #e5e7eb;
-    }
-
-    .layout-row {
-      display: grid;
-      grid-template-columns: minmax(0,1.7fr) minmax(0,1.2fr);
-      gap: 14px;
-      align-items: stretch;
-    }
-
-    .panel {
-      border-radius: 14px;
-      border: 1px solid rgba(148,163,184,0.5);
-      background: radial-gradient(circle at 0 0,rgba(51,65,85,0.7),transparent 65%);
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-height: 0;
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.78rem;
-      color: #e5e7eb;
-    }
-
-    .panel-header span.label {
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 0.68rem;
-      color: #9ca3af;
-    }
-
-    .panel-header span.value {
-      font-size: 0.7rem;
-      color: #bfdbfe;
-    }
-
-    .field-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: #9ca3af;
-    }
-
-    .text-input {
-      margin-top: 5px;
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid rgba(148,163,184,0.6);
-      background: rgba(15,23,42,0.85);
-      color: #e5e7eb;
-      padding: 7px 9px;
-      font-size: 0.75rem;
-      resize: vertical;
-      min-height: 56px;
-    }
-
-    .text-input::placeholder {
-      color: #6b7280;
-    }
-
-    .chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
-    }
-
-    .chip {
-      font-size: 0.68rem;
-      padding: 3px 7px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.7);
-      background: rgba(15,23,42,0.95);
-      color: #e5e7eb;
-    }
-
-    .chip strong {
-      color: #93c5fd;
-      font-weight: 500;
-    }
-
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 6px;
-    }
-
-    button.btn {
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.7);
-      background: radial-gradient(circle at 0 0,rgba(56,189,248,0.18),transparent 60%);
-      color: #e5e7eb;
-      padding: 6px 10px;
-      font-size: 0.72rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: transform 0.09s ease, box-shadow 0.09s ease, border-color 0.09s ease, background 0.09s ease;
-    }
-
-    button.btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px rgba(15,23,42,0.7);
-      border-color: rgba(129,140,248,0.9);
-      background: radial-gradient(circle at 15% 0,rgba(129,140,248,0.26),transparent 65%);
-    }
-
-    button.btn:active {
-      transform: translateY(0);
-      box-shadow: 0 4px 10px rgba(15,23,42,0.8);
-    }
-
-    button.btn-primary {
-      border-color: rgba(96,165,250,0.95);
-      background: linear-gradient(135deg,#38bdf8,#6366f1);
-      color: #0b1120;
-      font-weight: 600;
-      box-shadow:
-        0 10px 30px rgba(37,99,235,0.75),
-        0 0 0 1px rgba(15,23,42,0.6);
-    }
-
-    button.btn-primary:hover {
-      background: linear-gradient(135deg,#0ea5e9,#4f46e5);
-      border-color: rgba(191,219,254,1);
-    }
-
-    .btn-offline {
-      border-color: rgba(45,212,191,0.85);
-      background: radial-gradient(circle at 0 0,rgba(45,212,191,0.24),transparent 60%);
-      color: #a7f3d0;
-    }
-
-    .btn-offline:hover {
-      background: radial-gradient(circle at 0 0,rgba(16,185,129,0.4),transparent 65%);
-    }
-
-    .status-line {
-      font-size: 0.68rem;
-      color: #9ca3af;
-      margin-top: 3px;
-    }
-
-    .status-line span.ok {
-      color: #6ee7b7;
-    }
-
-    .status-line span.warn {
-      color: #f97316;
-    }
-
-    .status-line span.bad {
-      color: #f97373;
-    }
-
-    .metrics-row {
-      display: grid;
-      grid-template-columns: repeat(3,minmax(0,1fr));
-      gap: 6px;
-      margin-top: 4px;
-    }
-
-    .metric {
-      border-radius: 10px;
-      border: 1px solid rgba(148,163,184,0.5);
-      background: rgba(15,23,42,0.92);
-      padding: 4px 6px;
-      font-size: 0.68rem;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .metric-label {
-      color: #9ca3af;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 0.6rem;
-    }
-
-    .metric-value {
-      color: #e5e7eb;
-      font-weight: 500;
-    }
-
-    .metric-bar {
-      margin-top: 1px;
-      width: 100%;
-      height: 3px;
-      border-radius: 999px;
-      background: rgba(31,41,55,0.95);
-      overflow: hidden;
-    }
-
-    .metric-bar-inner {
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg,#22c55e,#a3e635);
-      width: 0%;
-      transition: width 0.18s ease-out;
-    }
-
-    .metric-bar-inner.neg {
-      background: linear-gradient(90deg,#ef4444,#f97316);
-    }
-
-    .output-box {
-      margin-top: 6px;
-      border-radius: 10px;
-      border: 1px solid rgba(148,163,184,0.55);
-      background: rgba(15,23,42,0.96);
-      padding: 8px 9px;
-      font-size: 0.7rem;
-      color: #e5e7eb;
-      min-height: 60px;
-      white-space: pre-wrap;
-    }
-
-    .toggle-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 0.68rem;
-      margin-top: 2px;
-      color: #9ca3af;
-    }
-
-    .toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-    }
-
-    .toggle input {
-      accent-color: #38bdf8;
-    }
-
-    /* RIGHT COLUMN: MEMORY / CHAT SIDEBAR */
-    .side-card {
-      background: rgba(15,23,42,0.9);
-      border-radius: 18px;
-      border: 1px solid rgba(148,163,184,0.4);
-      box-shadow:
-        0 18px 50px rgba(15,23,42,0.8),
-        0 0 0 1px rgba(148,163,184,0.16);
-      padding: 16px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .side-card::before {
-      content: "";
-      position: absolute;
-      inset: -120px;
-      background:
-        radial-gradient(circle at 100% 0,rgba(56,189,248,0.22) 0,transparent 55%),
-        radial-gradient(circle at 50% 120%,rgba(129,140,248,0.18) 0,transparent 55%);
-      opacity: 0.8;
-      pointer-events: none;
-    }
-
-    .side-inner {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      height: 100%;
-    }
-
-    .side-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.78rem;
-      color: #e5e7eb;
-    }
-
-    .badge {
-      font-size: 0.6rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 3px 7px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.7);
-      background: rgba(15,23,42,0.9);
-      color: #a5b4fc;
-    }
-
-    .chat-log {
-      flex: 1;
-      border-radius: 14px;
-      border: 1px solid rgba(148,163,184,0.55);
-      background: rgba(15,23,42,0.96);
-      padding: 8px 9px;
-      font-size: 0.7rem;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      overflow-y: auto;
-      max-height: 340px;
-    }
-
-    .chat-entry {
-      padding: 5px 7px;
-      border-radius: 10px;
-      background: rgba(15,23,42,0.96);
-      border: 1px solid rgba(55,65,81,0.9);
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
-
-    .chat-entry.user {
-      border-color: rgba(59,130,246,0.9);
-      background: radial-gradient(circle at 0 0,rgba(37,99,235,0.32),transparent 60%);
-    }
-
-    .chat-entry.aura {
-      border-color: rgba(45,212,191,0.85);
-      background: radial-gradient(circle at 100% 0,rgba(45,212,191,0.28),transparent 60%);
-    }
-
-    .chat-meta {
-      font-size: 0.6rem;
-      color: #9ca3af;
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-    }
-
-    .chat-text {
-      color: #e5e7eb;
-      font-size: 0.7rem;
-    }
-
-    .memory-row {
-      display: grid;
-      grid-template-columns: minmax(0,1.2fr) minmax(0,1.1fr);
-      gap: 8px;
-      font-size: 0.68rem;
-    }
-
-    .memory-box {
-      border-radius: 12px;
-      border: 1px dashed rgba(148,163,184,0.7);
-      background: rgba(15,23,42,0.96);
-      padding: 6px 7px;
-      min-height: 40px;
-      white-space: pre-wrap;
-    }
-
-    .memory-title {
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 0.6rem;
-      color: #9ca3af;
-      margin-bottom: 2px;
-    }
-
-    .side-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.64rem;
-      color: #9ca3af;
-      margin-top: 4px;
-    }
-
-    .side-footer span.strong {
-      color: #e5e7eb;
-    }
-
-    .side-footer button {
-      font-size: 0.66rem;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.7);
-      background: rgba(15,23,42,0.95);
-      color: #e5e7eb;
-      cursor: pointer;
-    }
-
-    .side-footer button:hover {
-      border-color: rgba(129,140,248,0.95);
-      background: radial-gradient(circle at 0 0,rgba(129,140,248,0.22),transparent 60%);
-    }
-
-    @media (max-width: 900px) {
-      body { padding: 14px; }
-      .app-shell {
-        grid-template-columns: minmax(0,1fr);
+      color:var(--text-main);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:20px 10px 40px;
+    }
+
+    .shell{
+      width:100%;
+      max-width:1120px;
+      background:radial-gradient(circle at top left,#0b1220 0,rgba(15,23,42,0.85) 42%,#020617 80%);
+      border-radius:32px;
+      box-shadow:var(--shadow-soft);
+      padding:20px 16px 24px;
+      border:1px solid rgba(148,163,184,0.35);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .shell::before{
+      content:"";
+      position:absolute;
+      right:-80px;
+      top:-40px;
+      width:220px;
+      height:220px;
+      border-radius:999px;
+      background:radial-gradient(circle at 30% 20%,#e0f2fe 0,#38bdf8 35%,#0369a1 75%,transparent 100%);
+      opacity:0.92;
+      filter:blur(1px);
+      box-shadow:0 0 45px rgba(56,189,248,0.85);
+      pointer-events:none;
+    }
+
+    .shell-inner{
+      position:relative;
+      z-index:2;
+    }
+
+    .top-row{
+      display:flex;
+      gap:18px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+
+    .hero-card{
+      flex:1.4;
+      min-width:260px;
+      background:radial-gradient(circle at top,#0f172a 0,#020617 65%);
+      border-radius:var(--radius-xl);
+      padding:20px 18px 18px;
+      border:1px solid rgba(148,163,184,0.55);
+      box-shadow:0 18px 40px rgba(15,23,42,0.9);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero-title{
+      font-size:1.9rem;
+      letter-spacing:0.18em;
+      font-weight:700;
+      color:#e0f2fe;
+    }
+    .hero-title span{
+      color:var(--accent-2);
+    }
+
+    .hero-sub{
+      margin-top:6px;
+      font-size:0.96rem;
+      color:var(--text-soft);
+    }
+    .hero-sub b{color:#e5e7eb;}
+
+    .hero-ethic{
+      margin-top:18px;
+      padding:14px 14px 13px;
+      border-radius:18px;
+      border:1px solid rgba(250,250,250,0.22);
+      background:linear-gradient(135deg,#020617,#020617 40%,#02081b 100%);
+      font-size:0.86rem;
+      color:#fef9c3;
+      line-height:1.44;
+    }
+
+    .hero-ethic-title{
+      font-size:0.82rem;
+      font-weight:600;
+      letter-spacing:0.18em;
+      text-transform:uppercase;
+      color:#fde68a;
+      margin-bottom:4px;
+    }
+
+    .hero-main-button{
+      margin-top:14px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:11px 22px;
+      border-radius:999px;
+      border:none;
+      background:linear-gradient(120deg,#22c1c3,#0ea5e9,#38bdf8);
+      color:white;
+      font-size:0.84rem;
+      letter-spacing:0.14em;
+      text-transform:uppercase;
+      font-weight:600;
+      cursor:default;
+      box-shadow:0 12px 28px rgba(56,189,248,0.55);
+    }
+
+    .hero-meta{
+      margin-top:16px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
+      font-size:0.75rem;
+      color:var(--text-softer);
+    }
+
+    .hero-meta span{
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.55);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 60%);
+    }
+
+    .top-controls{
+      flex:0 0 150px;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:8px;
+      min-width:140px;
+    }
+
+    .options-btn{
+      padding:9px 16px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 70%);
+      color:#e5e7eb;
+      font-size:0.82rem;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+    }
+
+    .options-btn span.icon{
+      width:18px;
+      height:18px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.7);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:0.75rem;
+    }
+
+    .small-note{
+      font-size:0.75rem;
+      color:var(--text-softer);
+      max-width:190px;
+      text-align:right;
+    }
+
+    .main-grid{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns: minmax(0,0.9fr) minmax(0,1.1fr);
+      gap:16px;
+    }
+
+    @media(max-width:880px){
+      .main-grid{
+        grid-template-columns:1fr;
       }
-      .side-card {
-        max-height: 420px;
+      .top-row{
+        flex-direction:column;
       }
+      .top-controls{
+        align-items:flex-start;
+      }
+      .small-note{text-align:left;max-width:none;}
+    }
+
+    .card{
+      background:radial-gradient(circle at top,#020617 0,#02081b 65%);
+      border-radius:var(--radius-xl);
+      border:1px solid rgba(148,163,184,0.5);
+      padding:14px 14px 15px;
+      box-shadow:0 18px 38px rgba(15,23,42,0.85);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .card + .card{margin-top:12px;}
+
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+    }
+
+    .card-title{
+      font-size:0.9rem;
+      letter-spacing:0.16em;
+      text-transform:uppercase;
+      color:#c7d2fe;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .card-title .icon-emoji{font-size:1.05rem;}
+
+    .card-sub{
+      font-size:0.8rem;
+      color:var(--text-softer);
+      margin-bottom:8px;
+    }
+
+    .metrics-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-top:4px;
+    }
+
+    .metric-box{
+      padding:9px 10px;
+      border-radius:16px;
+      border:1px solid rgba(148,163,184,0.5);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 65%);
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      min-height:62px;
+    }
+
+    .metric-label{
+      font-size:0.72rem;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      color:var(--text-softer);
+    }
+
+    .metric-value{
+      font-size:1rem;
+      font-weight:600;
+      color:#e5e7eb;
+    }
+
+    .metric-hint{
+      font-size:0.72rem;
+      color:var(--text-softer);
+    }
+
+    .metric-tags{
+      margin-top:8px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      font-size:0.7rem;
+    }
+
+    .tag-pill{
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.6);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 70%);
+      color:var(--text-soft);
+    }
+
+    .bm-chart{
+      margin-top:10px;
+      height:110px;
+      border-radius:18px;
+      border:1px dashed rgba(148,163,184,0.65);
+      background:radial-gradient(circle at top,#020617 0,#02081b 70%);
+      padding:7px 10px;
+      display:flex;
+      align-items:flex-end;
+      gap:2px;
+      overflow:hidden;
+    }
+    .bm-bar{
+      flex:1;
+      border-radius:999px 999px 0 0;
+      background:linear-gradient(to top,#0ea5e9,#22c55e);
+      transform-origin:bottom;
+      opacity:0.9;
+    }
+
+    .bm-footer{
+      margin-top:6px;
+      font-size:0.75rem;
+      color:var(--text-softer);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+    .bm-footer button{
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.6);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 70%);
+      color:var(--text-soft);
+      font-size:0.72rem;
+      cursor:pointer;
+    }
+
+    .chat-card{
+      background:radial-gradient(circle at top,#020617 0,#02081b 65%);
+      border-radius:var(--radius-xl);
+      border:1px solid rgba(148,163,184,0.55);
+      padding:14px 14px 12px;
+      box-shadow:0 18px 36px rgba(15,23,42,0.9);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .chat-header-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+
+    .chat-sub{
+      font-size:0.8rem;
+      color:var(--text-softer);
+    }
+
+    .chat-buttons{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+
+    .btn-mini{
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 70%);
+      color:var(--text-soft);
+      font-size:0.72rem;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+
+    .btn-danger{
+      border-color:rgba(248,113,113,0.9);
+      color:#fecaca;
+    }
+
+    .chat-log{
+      margin-top:6px;
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,0.6);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 75%);
+      padding:10px 10px;
+      max-height:260px;
+      min-height:160px;
+      overflow-y:auto;
+      font-size:0.82rem;
+    }
+
+    .message{
+      margin-bottom:8px;
+      padding:7px 9px;
+      border-radius:12px;
+      background:rgba(15,23,42,0.85);
+      border:1px solid rgba(148,163,184,0.4);
+    }
+
+    .message.user-message{
+      background:rgba(15,23,42,0.6);
+    }
+
+    .message-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:0.74rem;
+      margin-bottom:3px;
+      color:var(--text-softer);
+    }
+
+    .msg-right{
+      display:flex;
+      gap:4px;
+      align-items:center;
+    }
+
+    .voice-btn{
+      border:none;
+      background:none;
+      cursor:pointer;
+      font-size:0.86rem;
+    }
+
+    .message-content{
+      font-size:0.82rem;
+      color:var(--text-main);
+      line-height:1.4;
+      white-space:pre-wrap;
+    }
+
+    .typing-indicator{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      margin-top:4px;
+      font-size:0.76rem;
+      color:var(--text-softer);
+    }
+
+    .typing-dot{
+      width:5px;
+      height:5px;
+      border-radius:999px;
+      background:var(--text-softer);
+      animation:dotPulse 1s infinite ease-in-out;
+    }
+    .typing-dot:nth-child(2){animation-delay:0.16s;}
+    .typing-dot:nth-child(3){animation-delay:0.32s;}
+    @keyframes dotPulse{
+      0%,80%,100%{transform:scale(0.7);opacity:0.3;}
+      40%{transform:scale(1);opacity:0.9;}
+    }
+
+    .typing-text{margin-left:4px;}
+
+    .chat-input-row{
+      margin-top:8px;
+      display:flex;
+      gap:8px;
+      align-items:flex-end;
+    }
+
+    .chat-input-row textarea{
+      flex:1;
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,0.6);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 75%);
+      color:var(--text-main);
+      padding:9px 10px;
+      font-size:0.84rem;
+      resize:vertical;
+      min-height:60px;
+      max-height:140px;
+    }
+
+    .chat-input-row textarea::placeholder{
+      color:var(--text-softer);
+    }
+
+    .chat-send-btn{
+      flex:0 0 auto;
+      border:none;
+      border-radius:18px;
+      padding:9px 16px;
+      background:linear-gradient(120deg,#0ea5e9,#22c55e);
+      color:white;
+      font-weight:600;
+      font-size:0.84rem;
+      cursor:pointer;
+      box-shadow:0 12px 26px rgba(34,197,94,0.55);
+      display:flex;
+      align-items:center;
+      gap:5px;
+    }
+
+    .chat-send-btn:disabled{
+      opacity:0.6;
+      cursor:default;
+      box-shadow:none;
+    }
+
+    .pipe-row{
+      margin-top:14px;
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(148,163,184,0.5);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 70%);
+      padding:10px 12px;
+      font-size:0.76rem;
+      color:var(--text-softer);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .pipe-row .formula{
+      font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:0.78rem;
+      color:#e5e7eb;
+      margin-bottom:4px;
+    }
+
+    .pipe-row .pipe-text{
+      font-size:0.75rem;
+      color:var(--text-softer);
+    }
+
+    .pipe-row::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:radial-gradient(circle at left,rgba(56,189,248,0.15) 0,transparent 55%);
+      opacity:0.7;
+      pointer-events:none;
+    }
+
+    .footer-note{
+      margin-top:10px;
+      font-size:0.74rem;
+      color:var(--text-softer);
+    }
+
+    /* Modals (same UI, cleaned) */
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,0.8);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:30;
+      padding:16px;
+    }
+
+    .modal-overlay.visible{display:flex;}
+
+    .modal-card{
+      width:100%;
+      max-width:520px;
+      border-radius:24px;
+      background:radial-gradient(circle at top,#020617 0,#02081b 70%);
+      border:1px solid rgba(148,163,184,0.75);
+      padding:14px 14px 16px;
+      box-shadow:0 20px 45px rgba(0,0,0,0.9);
+      max-height:90vh;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .modal-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:8px;
+    }
+
+    .modal-title{
+      font-size:0.96rem;
+      color:#e5e7eb;
+      font-weight:600;
+    }
+
+    .modal-sub{
+      font-size:0.75rem;
+      color:var(--text-softer);
+      margin-top:2px;
+    }
+
+    .modal-close{
+      border:none;
+      background:none;
+      color:var(--text-soft);
+      font-size:0.9rem;
+      cursor:pointer;
+    }
+
+    .modal-body{
+      font-size:0.8rem;
+      color:var(--text-soft);
+      overflow-y:auto;
+      padding-right:4px;
+    }
+
+    .modal-section-title{
+      font-size:0.78rem;
+      text-transform:uppercase;
+      letter-spacing:0.16em;
+      color:var(--text-soft);
+      margin-top:8px;
+      margin-bottom:4px;
+    }
+
+    .modal-search{
+      width:100%;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 70%);
+      color:var(--text-main);
+      padding:7px 10px;
+      font-size:0.8rem;
+      margin-bottom:6px;
+    }
+
+    .modal-search::placeholder{color:var(--text-softer);}
+
+    .faith-note{
+      font-size:0.75rem;
+      color:#e5e7eb;
+      margin-bottom:6px;
+    }
+
+    .offline-card{
+      padding:8px 9px;
+      border-radius:16px;
+      border:1px dashed rgba(148,163,184,0.7);
+      background:radial-gradient(circle at top left,#020617 0,#02081b 70%);
+      margin-bottom:9px;
+      font-size:0.78rem;
+    }
+    .offline-title{font-weight:600;font-size:0.78rem;color:#e5e7eb;margin-bottom:2px;}
+    .offline-sub{font-size:0.74rem;color:var(--text-softer);}
+
+    .offline-progress-bar{
+      margin-top:6px;
+      width:100%;
+      height:6px;
+      border-radius:999px;
+      background:#020617;
+      overflow:hidden;
+      border:1px solid rgba(148,163,184,0.5);
+    }
+    .offline-progress-fill{
+      height:100%;
+      width:10%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#0ea5e9,#22c55e);
+      transition:width .25s ease-out;
+    }
+    .offline-status-line{
+      margin-top:4px;
+      font-size:0.73rem;
+      color:var(--text-softer);
+    }
+
+    .recall-bubble{
+      position:fixed;
+      left:16px;
+      bottom:20px;
+      max-width:280px;
+      background:radial-gradient(circle at top left,#020617 0,#02081b 70%);
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,0.8);
+      padding:9px 11px;
+      font-size:0.78rem;
+      color:var(--text-main);
+      box-shadow:0 16px 34px rgba(0,0,0,0.9);
+      opacity:0;
+      pointer-events:none;
+      transform:translateY(15px);
+      transition:opacity .25s ease-out,transform .25s ease-out;
+      z-index:25;
+    }
+    .recall-bubble.visible{
+      opacity:1;
+      pointer-events:auto;
+      transform:translateY(0);
+    }
+    .recall-title{
+      font-size:0.76rem;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      color:var(--text-soft);
+      margin-bottom:4px;
+    }
+    .recall-meta{
+      margin-top:4px;
+      font-size:0.72rem;
+      color:var(--text-softer);
     }
   </style>
 </head>
 <body>
-<div class="app-shell">
-  <!-- ================= LEFT: MAIN PROTOTYPE ================= -->
-  <div class="card">
-    <div class="card-inner">
-      <div class="header-row">
-        <div class="title-block">
-          <div class="app-title">
-            <em>AURA-X Ω</em>
-            <span>Emotional Continuity Reactor</span>
-          </div>
-          <div class="app-subtitle">
-            Dual-memory TM/BM resonance with optional offline / online LLM.
-          </div>
-        </div>
-        <div class="orb" aria-hidden="true"></div>
-      </div>
+<div class="shell">
+  <div class="shell-inner">
 
-      <div class="meta-row">
-        <div class="pill">
-          <span class="key">Identity</span>
-          <span class="val">Artificial Unified Resonance Architecture</span>
+    <!-- Top row -->
+    <div class="top-row">
+      <div class="hero-card">
+        <div class="hero-title">AURA-X <span>Ω</span></div>
+        <div class="hero-sub">
+          Offline emotional continuity engine (prototype).<br/>
+          <b>TM = user inputs only.</b> Internal layers keep continuity & emotional trajectory.
         </div>
-        <div class="pill">
-          <span class="key">Author</span>
-          <span class="val">Alim ul Haq – Timergara, Pakistan</span>
-        </div>
-        <div class="pill">
-          <span class="key">Mode</span>
-          <span class="val">Offline-first · Hybrid LLM</span>
-        </div>
-      </div>
-
-      <!-- ===== GRAND EQUATION BLOCK ===== -->
-      <div class="equation-block">
-        <div class="equation-main">
-          <span class="eq-symbol">E₀</span>
-          <span>= tanh(</span>
-          <span class="eq-highlight">(TM × BM) − D</span>
-          <span>+ λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub></span>
-          <span>)</span>
-        </div>
-        <div class="eq-note">
-          E₀ = Emotional Output · TM = Temporary Memory · BM = Bold Memory ·
-          D = Decay · λ<sub>faith</sub> = Faith Lens · λ<sub>sys</sub> = System/Ethical Lens · λ<sub>trc</sub> = Truth Resonance Core
-        </div>
-        <div class="eq-tags">
-          <span class="eq-tag">TM: short-term continuity & frish input</span>
-          <span class="eq-tag">BM: identity-linked long-term continuity</span>
-          <span class="eq-tag">D: forgetting / decay control</span>
-          <span class="eq-tag">Faith / System / TRC = moral + logical filters</span>
-        </div>
-      </div>
-
-      <!-- ===== LAYOUT: LEFT (FEED) · RIGHT (MATH + ANALYSIS) ===== -->
-      <div class="layout-row">
-        <!-- -------------- LEFT PANEL: USER INPUT / FEED -------------- -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="label">Frish Input · Feed the Seed</span>
-            <span class="value" id="tm-status">TM: idle</span>
-          </div>
-
+        <div class="hero-ethic">
+          <div class="hero-ethic-title">Universal ethic</div>
           <div>
-            <div class="field-label">User text</div>
-            <textarea id="userInput" class="text-input" placeholder="Type how you feel, what happened, or a normal question. AURA-X Ω will analyze polarity, intensity, category and compute E₀ …"></textarea>
+            Avoid actions that grow negative emotions in you or others.
+            Move gently toward choices that increase shared positive feeling for everyone.
           </div>
+        </div>
+        <button class="hero-main-button">
+          EMOTIONAL CONTINUITY ENGINE ACTIVE
+        </button>
+        <div class="hero-meta">
+          <span>Dual-memory TM/BM resonance</span>
+          <span>Optional helper LLM (online/offline)</span>
+          <span>Small-talk never goes to BM</span>
+        </div>
+      </div>
 
-          <div class="chip-row">
-            <div class="chip"><strong>Examples:</strong> “I am so tired but hopeful about my project.”</div>
-            <div class="chip"><strong>Q&A mode:</strong> “How are you?” · “Who created you?” · “What is emotional continuity?”</div>
+      <div class="top-controls">
+        <button id="optionsBtn" class="options-btn">
+          <span class="icon">⚙️</span>
+          <span>Options</span>
+        </button>
+        <div class="small-note">
+          Faith & system filters stay local.
+          All continuity layers live inside this browser only.
+        </div>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="main-grid">
+
+      <!-- Left column -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="icon-emoji">🧪</span>Emotional metrics</div>
           </div>
-
-          <div class="btn-row">
-            <button class="btn btn-primary" id="btnCompute">
-              Compute Emotional Output (E₀)
-            </button>
-            <button class="btn btn-offline" id="btnLLM">
-              Analyze with Offline / Optional LLM
-            </button>
-            <button class="btn" id="btnSeed">
-              Add to BM (Seed / Identity Trace)
-            </button>
+          <div class="card-sub">
+            Internal state based on TM (your inputs) colliding with BM,
+            Intelligence and optional helper LLM.
           </div>
-
-          <div class="toggle-row">
-            <label class="toggle">
-              <input type="checkbox" id="chkUseLLM" />
-              <span>Allow LLM help for polarity &amp; category (when available)</span>
-            </label>
-            <label class="toggle">
-              <input type="checkbox" id="chkFaithLens" checked />
-              <span>Apply Faith / Ethical lens (λ<sub>faith</sub> + λ<sub>sys</sub>)</span>
-            </label>
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <div class="metric-label">Emotional state E₀</div>
+              <div id="metricE0" class="metric-value">0.000</div>
+              <div class="metric-hint">tanh-based, range [-1, +1]</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">TM activation (user only)</div>
+              <div id="metricTM" class="metric-value">0.00</div>
+              <div class="metric-hint">Recent user inputs (text/voice/docs)</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">BM resonance</div>
+              <div id="metricBM" class="metric-value">0.00</div>
+              <div class="metric-hint">Stored emotional events</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Continuity index</div>
+              <div id="metricCI" class="metric-value">0.000</div>
+              <div class="metric-hint">Stability of emotional trajectory</div>
+            </div>
           </div>
-
-          <div class="status-line" id="statusLine">
-            Status: <span class="warn">Waiting for input …</span>
+          <div class="metric-tags">
+            <span id="tagValence" class="tag-pill">VALENCE: neutral</span>
+            <span id="tagArousal" class="tag-pill">AROUSAL: medium</span>
+            <span id="tagReaction" class="tag-pill">REACTION: balanced</span>
           </div>
         </div>
 
-        <!-- -------------- RIGHT PANEL: MATH + EMOTIONAL METRICS -------------- -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="label">E₀ Calculation · Emotional Reactor</span>
-            <span class="value" id="e0Label">E₀ = 0.00</span>
+        <div class="card" style="margin-top:12px;">
+          <div class="card-header">
+            <div class="card-title"><span class="icon-emoji">🧠</span>Bold Memory layers (240)</div>
           </div>
+          <div class="card-sub">
+            Only story-level memories for future photo/video scenes.
+          </div>
+          <div id="bmChart" class="bm-chart"></div>
+          <div class="bm-footer">
+            <span id="bmStats">Active layers: 0/240 · System idle</span>
+            <button id="bmViewBtn">View BM / edit</button>
+          </div>
+        </div>
+      </div>
 
-          <div class="metrics-row">
-            <div class="metric">
-              <div class="metric-label">Polarity</div>
-              <div class="metric-value" id="polarityVal">Neutral (0.00)</div>
-              <div class="metric-bar">
-                <div class="metric-bar-inner" id="polarityBar"></div>
+      <!-- Right column: chat -->
+      <div>
+        <div class="chat-card">
+          <div class="card-header chat-header-row">
+            <div>
+              <div class="card-title"><span class="icon-emoji">💬</span>Emotional continuity console</div>
+              <div class="chat-sub">
+                Offline-first · TM = your inputs only. Small-talk never goes to BM.
               </div>
             </div>
-
-            <div class="metric">
-              <div class="metric-label">Intensity</div>
-              <div class="metric-value" id="intensityVal">0.00</div>
-              <div class="metric-bar">
-                <div class="metric-bar-inner" id="intensityBar"></div>
-              </div>
-            </div>
-
-            <div class="metric">
-              <div class="metric-label">Continuity</div>
-              <div class="metric-value" id="continuityVal">TM×BM = 0.00</div>
-              <div class="metric-bar">
-                <div class="metric-bar-inner" id="continuityBar"></div>
-              </div>
+            <div class="chat-buttons">
+              <button id="historyBtn" class="btn-mini">Conversation history</button>
+              <button id="seedBtn" class="btn-mini">Feed TM / Seed</button>
+              <button id="llmBtn" class="btn-mini">LLM link</button>
             </div>
           </div>
 
-          <div class="field-label" style="margin-top:7px;">Emotional category</div>
-          <div class="output-box" id="categoryBox">
-            Waiting for analysis …
-          </div>
+          <div id="chatLog" class="chat-log"></div>
 
-          <div class="field-label" style="margin-top:7px;">Reactor explanation</div>
-          <div class="output-box" id="explanationBox">
-            When you type something and press “Compute Emotional Output (E₀)”, the system:
-            1) detects polarity (positive vs negative), 2) estimates intensity, 3) combines TM (this moment) with BM (your stored traces), subtracts decay D, and 4) applies Faith, System and Truth Resonance lenses before producing E₀.
+          <div class="chat-input-row">
+            <textarea
+              id="userInput"
+              placeholder="Talk to AURA-X Ω… (TM = your inputs only, BM = long-term identity traces).">
+            </textarea>
+            <button id="sendBtn" class="chat-send-btn">
+              <span>Send</span> ➜
+            </button>
           </div>
+        </div>
+
+        <div class="pipe-row">
+          <div class="formula">
+            E₀ = tanh( (TM × (BM + Intel + LLM)) − D + λ_faith + λ_sys + λ_trc )
+          </div>
+          <div class="pipe-text">
+            Pipeline: TM (your inputs) → optional helper LLM → collide with BM & Intelligence →
+            full formula → answer + updated emotional metrics.
+          </div>
+        </div>
+
+        <div class="footer-note">
+          E₀ is a living output: continuity + ethics + truth resonance. System does not store raw secrets;
+          only abstract emotional traces inside BM.
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ================= RIGHT: MEMORY · CHAT ================= -->
-  <div class="side-card">
-    <div class="side-inner">
-      <div class="side-header">
-        <span>Conversation &amp; Continuity Trace</span>
-        <span class="badge">TM · BM Recorder</span>
-      </div>
+  <!-- Recall bubble -->
+  <div id="recallBubble" class="recall-bubble">
+    <div class="recall-title">BM resonance snapshot</div>
+    <div id="recallBody"></div>
+    <div id="recallMeta" class="recall-meta"></div>
+  </div>
+</div>
 
-      <div class="chat-log" id="chatLog">
-        <!-- Chat entries will be appended here -->
-      </div>
-
-      <div class="memory-row">
-        <div>
-          <div class="memory-title">Temporary Memory (TM)</div>
-          <div class="memory-box" id="tmBox">
-Last user input &amp; recent emotional snapshot will appear here.
-          </div>
-        </div>
-        <div>
-          <div class="memory-title">Bold Memory (BM)</div>
-          <div class="memory-box" id="bmBox">
-Core identity traces, seeds and long-term continuity notes are stored here.
-          </div>
+<!-- BM modal -->
+<div id="bmModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">🧠 Bold Memory recorder</div>
+        <div class="modal-sub">
+          Only identity-linked traces. Small-talk and random noise never appear here.
         </div>
       </div>
+      <button class="modal-close" data-close="bmModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section-title">Recent BM entries</div>
+      <div id="bmList" style="font-size:.78rem;color:#e5e7eb;"></div>
+    </div>
+  </div>
+</div>
 
-      <div class="side-footer">
-        <span>
-          E₀ is a living output: <span class="strong">continuity + ethics + truth resonance</span>.
-        </span>
-        <button id="btnClear">
-          Clear TM / Chat (keep BM)
-        </button>
+<!-- History modal -->
+<div id="historyModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">📜 Conversation & continuity trace</div>
+        <div class="modal-sub">
+          TM = chat log; BM = distilled events only. You can export or clear TM safely.
+        </div>
+      </div>
+      <button class="modal-close" data-close="historyModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="historyContent" style="font-size:.78rem;color:#e5e7eb;white-space:pre-wrap;"></div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <button id="exportHistoryBtn" class="btn-mini">Export TM</button>
+        <button id="clearTMBtn" class="btn-mini btn-danger">Clear TM / chat (keep BM)</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===================== CORE LOGIC SCRIPT ===================== -->
+<!-- Seed / LaTeX modal -->
+<div id="seedModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">🔐 Seed / identity trace</div>
+        <div class="modal-sub">
+          Parse LaTeX Q&A blocks into Intelligence nodes (no raw secrets; only behaviour / logic).
+        </div>
+      </div>
+      <button class="modal-close" data-close="seedModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="seedPasswordStage">
+        <p class="faith-note">
+          This area is protected. Enter the offline password to continue.<br/>
+          Demo password: <strong>6789</strong>.
+        </p>
+        <input id="seedPasswordInput" type="password" class="modal-search"
+               placeholder="Password (default: 6789)">
+        <div id="seedPasswordError"
+             style="display:none;color:#fca5a5;font-size:.75rem;margin-top:4px;">
+          Incorrect password. Try again.
+        </div>
+        <button id="seedPasswordBtn" class="btn-mini" style="margin-top:6px;">Unlock</button>
+      </div>
+
+      <div id="seedBlockStage" style="display:none;">
+        <p class="faith-note">
+          Paste a LaTeX block with <code>\item</code> questions and
+          <code>\textbf{A:}</code> answers.<br/>
+          Optional metadata at beginning of answer:
+          <code>[polarity=positive; code=E031; intensity=0.8]</code>.
+        </p>
+        <textarea id="seedBlockInput" class="modal-search" style="min-height:120px;"
+                  placeholder="Paste LaTeX conversation / logic block here."></textarea>
+        <div id="seedBlockPreview"
+             style="font-size:.74rem;color:#9ca3af;margin-top:4px;">
+          Waiting for block…
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+          <button id="seedParseBtn" class="btn-mini">Parse block</button>
+          <button id="seedSaveBtn" class="btn-mini" disabled>Save to seed</button>
+          <button id="seedDiscardBtn" class="btn-mini btn-danger">Discard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LLM + offline engine modal -->
+<div id="llmModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">🤖 LLM link & offline engine</div>
+        <div class="modal-sub">
+          Password 6789 · Keys stay inside this browser only.
+        </div>
+      </div>
+      <button class="modal-close" data-close="llmModal">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div id="llmLockStage">
+        <p class="faith-note">
+          Simple local password to avoid accidental key leaks.<br/>
+          Demo password: <strong>6789</strong>.
+        </p>
+        <input id="llmPasswordInput" type="password" class="modal-search"
+               placeholder="Enter password (6789)">
+        <div id="llmPasswordError"
+             style="display:none;color:#fca5a5;font-size:.75rem;margin-top:4px;">
+          Wrong password. Try again.
+        </div>
+        <button id="llmUnlockBtn" class="btn-mini" style="margin-top:6px;">Unlock LLM settings</button>
+      </div>
+
+      <div id="llmConfigStage" style="display:none;">
+        <div class="offline-card">
+          <div class="offline-title">OFFLINE MODE: In-browser model (WebGPU).</div>
+          <div class="offline-sub">
+            Suggested demo: <strong>Llama-3.2-1B-Instruct</strong> (~1.3 GB, downloaded once, then runs fully offline).
+          </div>
+          <div class="offline-progress-bar">
+            <div id="offlineProgressFill" class="offline-progress-fill"></div>
+          </div>
+          <div id="offlineProgressText" class="offline-status-line">
+            Offline engine idle.
+          </div>
+          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+            <button id="offlineLoadBtn" class="btn-mini">Load / wake offline model</button>
+          </div>
+        </div>
+
+        <div class="modal-section-title">Online LLM (optional)</div>
+        <input id="llmBaseUrl" class="modal-search"
+               placeholder="Base URL (e.g. https://api.openai.com/v1/chat/completions)">
+        <input id="llmModel" class="modal-search"
+               placeholder="Model name (kept blank / generic by default)">
+        <input id="llmApiKey" class="modal-search" type="password"
+               placeholder="API key (stored only in this browser)">
+        <div style="font-size:.74rem;color:#9ca3af;margin-bottom:6px;">
+          This prototype posts <code>{ model, messages[] }</code> JSON to the URL above using
+          <code>Authorization: Bearer &lt;key&gt;</code>. Use any compatible OpenAI-style API
+          (OpenAI / xAI / DeepSeek etc.).
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button id="llmSaveBtn" class="btn-mini">Save config locally</button>
+          <button id="llmClearBtn" class="btn-mini btn-danger">Clear stored key</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-  // SIMPLE INTERNAL STATE
-  const state = {
-    tmValue: 0.0,   // numeric TM strength
-    bmValue: 0.5,   // numeric BM strength (seeded)
-    decay: 0.05,    // global decay factor D
-    lambdaFaith: 0.0,
-    lambdaSys: 0.0,
-    lambdaTRC: 0.0,
-    polarity: 0.0,  // -1 to +1
-    intensity: 0.0, // 0 to 1
-    category: "Unknown",
-    e0: 0.0,
-    bmText: "Core identity traces, seeds and long-term continuity notes are stored here.\n"
-  };
+(() => {
 
-  const userInputEl      = document.getElementById("userInput");
-  const tmStatusEl       = document.getElementById("tm-status");
-  const statusLineEl     = document.getElementById("statusLine");
-  const polarityValEl    = document.getElementById("polarityVal");
-  const intensityValEl   = document.getElementById("intensityVal");
-  const continuityValEl  = document.getElementById("continuityVal");
-  const categoryBoxEl    = document.getElementById("categoryBox");
-  const explanationBoxEl = document.getElementById("explanationBox");
-  const e0LabelEl        = document.getElementById("e0Label");
+  class AuraXOmegaEngine {
+    constructor(){
+      // DOM
+      this.chatContainer = document.getElementById("chatLog");
+      this.userInput      = document.getElementById("userInput");
+      this.sendBtn        = document.getElementById("sendBtn");
 
-  const polarityBarEl    = document.getElementById("polarityBar");
-  const intensityBarEl   = document.getElementById("intensityBar");
-  const continuityBarEl  = document.getElementById("continuityBar");
+      this.metricE0  = document.getElementById("metricE0");
+      this.metricTM  = document.getElementById("metricTM");
+      this.metricBM  = document.getElementById("metricBM");
+      this.metricCI  = document.getElementById("metricCI");
+      this.tagValence = document.getElementById("tagValence");
+      this.tagArousal = document.getElementById("tagArousal");
+      this.tagReaction = document.getElementById("tagReaction");
+      this.bmChart   = document.getElementById("bmChart");
+      this.bmStats   = document.getElementById("bmStats");
 
-  const tmBoxEl          = document.getElementById("tmBox");
-  const bmBoxEl          = document.getElementById("bmBox");
-  const chatLogEl        = document.getElementById("chatLog");
+      this.optionsBtn = document.getElementById("optionsBtn");
+      this.bmViewBtn  = document.getElementById("bmViewBtn");
+      this.historyBtn = document.getElementById("historyBtn");
+      this.seedBtn    = document.getElementById("seedBtn");
+      this.llmBtn     = document.getElementById("llmBtn");
 
-  const chkUseLLM        = document.getElementById("chkUseLLM");
-  const chkFaithLens     = document.getElementById("chkFaithLens");
+      this.bmModal       = document.getElementById("bmModal");
+      this.historyModal  = document.getElementById("historyModal");
+      this.seedModal     = document.getElementById("seedModal");
+      this.llmModal      = document.getElementById("llmModal");
+      this.bmList        = document.getElementById("bmList");
+      this.historyContent = document.getElementById("historyContent");
 
-  const btnCompute       = document.getElementById("btnCompute");
-  const btnLLM           = document.getElementById("btnLLM");
-  const btnSeed          = document.getElementById("btnSeed");
-  const btnClear         = document.getElementById("btnClear");
+      this.exportHistoryBtn = document.getElementById("exportHistoryBtn");
+      this.clearTMBtn       = document.getElementById("clearTMBtn");
 
-  // ====== BASIC TEXT → EMOTION HEURISTICS (FALLBACK WITHOUT LLM) ======
-  function simpleHeuristicAnalysis(text) {
-    const t = text.toLowerCase();
-    if (!t.trim()) {
-      return {
-        polarity: 0.0,
-        intensity: 0.0,
-        category: "Neutral / Empty",
-        tm: 0.0
+      this.seedPasswordStage = document.getElementById("seedPasswordStage");
+      this.seedBlockStage    = document.getElementById("seedBlockStage");
+      this.seedPasswordInput = document.getElementById("seedPasswordInput");
+      this.seedPasswordError = document.getElementById("seedPasswordError");
+      this.seedPasswordBtn   = document.getElementById("seedPasswordBtn");
+      this.seedBlockInput    = document.getElementById("seedBlockInput");
+      this.seedBlockPreview  = document.getElementById("seedBlockPreview");
+      this.seedParseBtn      = document.getElementById("seedParseBtn");
+      this.seedSaveBtn       = document.getElementById("seedSaveBtn");
+      this.seedDiscardBtn    = document.getElementById("seedDiscardBtn");
+
+      this.llmPasswordInput  = document.getElementById("llmPasswordInput");
+      this.llmPasswordError  = document.getElementById("llmPasswordError");
+      this.llmUnlockBtn      = document.getElementById("llmUnlockBtn");
+      this.llmLockStage      = document.getElementById("llmLockStage");
+      this.llmConfigStage    = document.getElementById("llmConfigStage");
+      this.llmBaseUrlInput   = document.getElementById("llmBaseUrl");
+      this.llmModelInput     = document.getElementById("llmModel");
+      this.llmKeyInput       = document.getElementById("llmApiKey");
+      this.llmSaveBtn        = document.getElementById("llmSaveBtn");
+      this.llmClearBtn       = document.getElementById("llmClearBtn");
+
+      this.offlineLoadBtn     = document.getElementById("offlineLoadBtn");
+      this.offlineProgressFill = document.getElementById("offlineProgressFill");
+      this.offlineProgressText = document.getElementById("offlineProgressText");
+
+      this.recallBubble = document.getElementById("recallBubble");
+      this.recallBody   = document.getElementById("recallBody");
+      this.recallMeta   = document.getElementById("recallMeta");
+
+      // State
+      this.tmHistory = [];   // {role:"user"/"ai", text, sentiment}
+      this.bmEntries = [];   // {text,valence,intensity,category,emotionCode,timestampMs}
+      this.intelNodes = [];  // parsed from LaTeX seed
+      this.bmLayers  = Array.from({length:240}, () => 0.08 + Math.random()*0.12);
+      this.e0 = 0;
+      this.lastSentiment = {valence:0,intensity:0,category:"neutral"};
+      this.lastResonance = 0.6;
+      this.continuityIndex = 0.83;
+      this.faithsSelected = [];   // for λ_faith
+      this.voiceOn = true;
+
+      // LLM config
+      this.llmConfig = { baseUrl:"", model:"", apiKey:"" };
+      this.llmEnabled = false;
+      this.offlineEngine = null;
+      this.offlineLLMStatus = "idle"; // idle | loading | ready | error
+      this.offlineProgress = 0;
+      this.offlineProgressTextVal = "Offline engine idle.";
+
+      this.seedParsedBlock = null;
+
+      this.attachEvents();
+      this.renderBMChart();
+      this.loadLLMConfig();
+      this.updateMetrics();
+      this.addWelcomeMessage();
+    }
+
+    addWelcomeMessage(){
+      this.addMessage(
+        "ai",
+        "I am AURA-X Ω, an emotional continuity engine. Tell me how you feel or what happened, and I will respond while keeping a gentle long-term trajectory.",
+        true,
+        null,
+        true
+      );
+    }
+
+    attachEvents(){
+      this.sendBtn.addEventListener("click", () => this.handleSend());
+      this.userInput.addEventListener("keydown", e => {
+        if(e.key === "Enter" && !e.shiftKey){
+          e.preventDefault();
+          this.handleSend();
+        }
+      });
+
+      const closeButtons = document.querySelectorAll(".modal-close");
+      closeButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-close");
+          if(!id) return;
+          const el = document.getElementById(id);
+          if(el) el.classList.remove("visible");
+        });
+      });
+
+      this.optionsBtn.addEventListener("click", () => {
+        alert("Prototype options: use the three buttons on the right (History, Seed, LLM) to configure continuity and helper models. All data stays inside this browser.");
+      });
+
+      this.bmViewBtn.addEventListener("click", () => this.openBMModal());
+      this.historyBtn.addEventListener("click", () => this.openHistoryModal());
+      this.seedBtn.addEventListener("click", () => this.openSeedModal());
+      this.llmBtn.addEventListener("click", () => this.openLLMModal());
+
+      this.exportHistoryBtn.addEventListener("click", () => this.exportHistory());
+      this.clearTMBtn.addEventListener("click", () => this.clearTM());
+
+      this.seedPasswordBtn.addEventListener("click", () => this.unlockSeed());
+      this.seedParseBtn.addEventListener("click", () => this.parseSeedBlock());
+      this.seedSaveBtn.addEventListener("click", () => this.saveSeedBlock());
+      this.seedDiscardBtn.addEventListener("click", () => this.discardSeedBlock());
+
+      this.llmUnlockBtn.addEventListener("click", () => this.unlockLLM());
+      this.llmSaveBtn.addEventListener("click", () => this.handleLLMSave());
+      this.llmClearBtn.addEventListener("click", () => this.handleLLMClear());
+      this.offlineLoadBtn.addEventListener("click", () => this.initOfflineLLM());
+    }
+
+    // ---------- Chat flow ----------
+
+    async handleSend(){
+      const text = (this.userInput.value || "").trim();
+      if(!text) return;
+
+      this.userInput.value = "";
+      this.addMessage("user", text, false, null, true);
+      this.tmHistory.push({role:"user",text});
+
+      const smallTalk = this.isSmallTalk(text);
+      const sentiment = this.analyzeSentiment(text);
+      const tmOnly = sentiment;
+
+      const typingId = this.showTyping();
+      this.sendBtn.disabled = true;
+
+      let llmAnswer = null;
+      let intelAnswer = this.answerFromSeed(text);
+
+      try{
+        // Optional helper LLMs
+        const [offlineAns, onlineAns] = await Promise.all([
+          this.callOfflineLLM(text),
+          this.callLLM(text)
+        ]);
+        llmAnswer = onlineAns || offlineAns || null;
+      }catch(e){
+        console.error("LLM error", e);
+        llmAnswer = null;
+      }
+
+      // Compose final answer: TM -> Seed Intel -> LLM
+      let finalAnswer = "";
+
+      if(intelAnswer){
+        finalAnswer = intelAnswer;
+      }else if(llmAnswer){
+        finalAnswer = llmAnswer;
+      }else{
+        finalAnswer = this.simpleRuleAnswer(text, sentiment);
+      }
+
+      // Update BM & metrics
+      this.updateMemoryAndState(text, sentiment, smallTalk, llmAnswer || finalAnswer);
+      this.updateMetrics();
+      this.updateBMChartVisual();
+
+      this.hideTyping(typingId);
+      this.addMessage("ai", finalAnswer, true, sentiment);
+      this.tmHistory.push({role:"ai",text:finalAnswer,sentiment});
+
+      this.sendBtn.disabled = false;
+      this.maybeShowRecallBubble(sentiment);
+    }
+
+    isSmallTalk(text){
+      const t = text.toLowerCase();
+      const smallWords = ["hi","hello","salam","salaam","how are you","what's up","kia hal","kya haal"];
+      return smallWords.some(w => t.includes(w));
+    }
+
+    analyzeSentiment(text){
+      const t = text.toLowerCase();
+      const posWords = ["hope","grateful","happy","excited","alhamdulillah","confident","love","peace"];
+      const negWords = ["tired","sad","afraid","angry","anxious","depressed","hopeless","stuck","lost"];
+
+      let score = 0;
+      for(const w of posWords) if(t.includes(w)) score += 1;
+      for(const w of negWords) if(t.includes(w)) score -= 1;
+
+      let valence = 0;
+      if(score > 0) valence = Math.min(1, score/4);
+      if(score < 0) valence = Math.max(-1, score/4);
+
+      let intensity = Math.min(1, Math.max(0.1, Math.abs(valence) + (text.length/200)));
+      let category = "neutral";
+      if(valence > 0.25) category = "hope";
+      if(valence < -0.25) category = "stress";
+
+      return { valence, intensity, category };
+    }
+
+    simpleRuleAnswer(text, sentiment){
+      const v = sentiment.valence;
+      const cat = sentiment.category;
+      if(cat === "hope" && v > 0.25){
+        return "I can feel a hopeful and positive direction in what you said. Keep moving gently in that line; your emotional trajectory looks stable.";
+      }
+      if(cat === "stress" && v < -0.25){
+        return "This feels heavy and stressful. I’m staying with you in it. Can you describe what is making it feel this intense, step by step, without rushing?";
+      }
+      return "I’m listening. Tell me a bit more about what this situation means for you, so I can keep the emotional continuity aligned with your values.";
+    }
+
+    textSimilarity(a,b){
+      const aa = a.toLowerCase().split(/\W+/).filter(Boolean);
+      const bb = b.toLowerCase().split(/\W+/).filter(Boolean);
+      if(!aa.length || !bb.length) return 0;
+      const setA = new Set(aa);
+      const setB = new Set(bb);
+      let inter = 0;
+      for(const w of setA) if(setB.has(w)) inter++;
+      const union = setA.size + setB.size - inter;
+      return union ? inter/union : 0;
+    }
+
+    // ---------- Seed / Intelligence ----------
+
+    answerFromSeed(text){
+      if(!this.intelNodes.length) return null;
+      let best = null;
+      let bestScore = 0;
+      this.intelNodes.forEach(node => {
+        const sim = this.textSimilarity(text, node.question);
+        if(sim > bestScore){
+          bestScore = sim;
+          best = node;
+        }
+      });
+      if(best && bestScore > 0.32){
+        return best.answer;
+      }
+      return null;
+    }
+
+    unlockSeed(){
+      const pwd = (this.seedPasswordInput.value || "").trim();
+      if(pwd !== "6789"){
+        this.seedPasswordError.style.display = "block";
+        return;
+      }
+      this.seedPasswordError.style.display = "none";
+      this.seedPasswordStage.style.display = "none";
+      this.seedBlockStage.style.display = "block";
+    }
+
+    parseSeedBlock(){
+      const raw = (this.seedBlockInput.value || "").trim();
+      if(!raw){
+        this.seedBlockPreview.textContent = "Nothing to parse yet.";
+        this.seedParsedBlock = null;
+        this.seedSaveBtn.disabled = true;
+        return;
+      }
+      const lines = raw.split(/\r?\n/);
+      const qas = [];
+      let currentQ = "";
+      let currentA = "";
+
+      for(const line of lines){
+        const itemMatch = line.match(/\\item\s*(.*)/);
+        if(itemMatch){
+          if(currentQ && currentA){
+            qas.push({q:currentQ.trim(),a:currentA.trim()});
+          }
+          currentQ = itemMatch[1] || "";
+          currentA = "";
+        }else if(line.includes("\\textbf{A:}")){
+          const idx = line.indexOf("\\textbf{A:}");
+          currentA += line.slice(idx + "\\textbf{A:}".length).trim() + " ";
+        }else{
+          currentA += line.trim() + " ";
+        }
+      }
+      if(currentQ && currentA){
+        qas.push({q:currentQ.trim(),a:currentA.trim()});
+      }
+
+      if(!qas.length){
+        this.seedBlockPreview.textContent = "Could not detect any \\item / \\textbf{A:} pairs.";
+        this.seedParsedBlock = null;
+        this.seedSaveBtn.disabled = true;
+        return;
+      }
+
+      this.seedParsedBlock = qas;
+      this.seedSaveBtn.disabled = false;
+      this.seedBlockPreview.textContent =
+        `Parsed ${qas.length} Q&A pairs. They will be stored as Intelligence nodes only.`;
+    }
+
+    saveSeedBlock(){
+      if(!this.seedParsedBlock) return;
+      this.seedParsedBlock.forEach(item => {
+        this.intelNodes.push({
+          question:item.q,
+          answer:item.a,
+          meta:{source:"latex-seed"}
+        });
+      });
+      this.seedParsedBlock = null;
+      this.seedBlockInput.value = "";
+      this.seedBlockPreview.textContent =
+        `Saved. Total Intelligence nodes: ${this.intelNodes.length}.`;
+      this.seedSaveBtn.disabled = true;
+    }
+
+    discardSeedBlock(){
+      this.seedParsedBlock = null;
+      this.seedBlockInput.value = "";
+      this.seedBlockPreview.textContent = "Discarded current block.";
+      this.seedSaveBtn.disabled = true;
+    }
+
+    // ---------- LLM config ----------
+
+    unlockLLM(){
+      const pwd = (this.llmPasswordInput.value || "").trim();
+      if(pwd !== "6789"){
+        this.llmPasswordError.style.display = "block";
+        return;
+      }
+      this.llmPasswordError.style.display = "none";
+      this.llmLockStage.style.display = "none";
+      this.llmConfigStage.style.display = "block";
+    }
+
+    loadLLMConfig(){
+      try{
+        const raw = localStorage.getItem("aura_llm_cfg");
+        if(!raw) return;
+        const parsed = JSON.parse(raw);
+        this.llmConfig = parsed || this.llmConfig;
+        this.llmBaseUrlInput.value = this.llmConfig.baseUrl || "";
+        this.llmModelInput.value   = this.llmConfig.model || "";
+        this.llmKeyInput.value     = this.llmConfig.apiKey || "";
+        this.llmEnabled = !!(this.llmConfig.apiKey && this.llmConfig.baseUrl);
+      }catch(e){
+        console.warn("Failed to load LLM config", e);
+      }
+    }
+
+    saveLLMConfig(){
+      try{
+        localStorage.setItem("aura_llm_cfg", JSON.stringify(this.llmConfig));
+      }catch(e){
+        console.warn("Cannot store LLM config", e);
+      }
+    }
+
+    updateLLMUI(){
+      // (for future visual cues – currently kept minimal to avoid UI changes)
+    }
+
+    handleLLMSave(){
+      this.llmConfig.baseUrl = (this.llmBaseUrlInput.value || "").trim();
+      this.llmConfig.model   = (this.llmModelInput.value || "").trim();
+      this.llmConfig.apiKey  = (this.llmKeyInput.value || "").trim();
+      this.llmEnabled = !!(this.llmConfig.apiKey && this.llmConfig.baseUrl);
+      this.updateLLMUI();
+      this.saveLLMConfig();
+      alert("LLM config saved locally. For real deployments, move keys to a secure backend.");
+    }
+
+    handleLLMClear(){
+      const ok = confirm("Clear stored API key from this browser?");
+      if(!ok) return;
+      this.llmConfig.apiKey = "";
+      this.llmEnabled = false;
+      this.llmKeyInput.value = "";
+      this.updateLLMUI();
+      this.saveLLMConfig();
+    }
+
+    async callLLM(promptText){
+      if(!this.llmConfig.apiKey || !this.llmConfig.baseUrl) return null;
+      const base  = this.llmConfig.baseUrl;
+      const model = this.llmConfig.model || "default-model";
+
+      const payload = {
+        model,
+        messages:[
+          {role:"system",content:"You are a helper LLM plugged into an emotional engine called AURA-X Ω. Reply clearly and conversationally."},
+          {role:"user",content:promptText}
+        ],
+        max_tokens:256
       };
+
+      const res = await fetch(base,{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":"Bearer "+this.llmConfig.apiKey
+        },
+        body:JSON.stringify(payload)
+      });
+
+      if(!res.ok) throw new Error("LLM HTTP "+res.status);
+      const data = await res.json();
+      const answer = data.choices && data.choices[0] && data.choices[0].message &&
+        data.choices[0].message.content;
+      return answer ? answer.trim() : null;
     }
 
-    const positiveWords = ["happy","love","excited","hopeful","grateful","great","good","wonderful","calm","confident","proud","inspired"];
-    const negativeWords = ["sad","tired","angry","upset","anxious","hate","depressed","worried","scared","fear","frustrated","hopeless"];
+    // ---------- Offline LLM (WebLLM) ----------
 
-    let score = 0;
-    let absScore = 0;
-
-    for (const w of positiveWords) {
-      if (t.includes(w)) { score += 1; absScore += 1; }
-    }
-    for (const w of negativeWords) {
-      if (t.includes(w)) { score -= 1; absScore += 1; }
+    updateOfflineModalUI(){
+      const p = Math.round((this.offlineProgress || 0)*100);
+      this.offlineProgressFill.style.width = p+"%";
+      this.offlineProgressText.textContent = this.offlineProgressTextVal || "Offline engine idle.";
     }
 
-    let polarity = 0.0;
-    if (score > 0) polarity = Math.min(1, score / 4);
-    else if (score < 0) polarity = Math.max(-1, score / 4);
+    async initOfflineLLM(){
+      if(this.offlineEngine || !window.webllm){
+        if(!window.webllm){
+          this.offlineProgressTextVal = "WebLLM not available in this browser (WebGPU missing).";
+          this.updateOfflineModalUI();
+        }
+        return;
+      }
+      try{
+        const defaultModelId = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+        this.offlineProgress = 0;
+        this.offlineProgressTextVal = "Preparing…";
+        this.offlineLLMStatus = "loading";
+        this.updateOfflineModalUI();
 
-    // intensity ~ how emotional the text is
-    const lengthFactor = Math.min(1, t.length / 200);
-    const intensity = Math.min(1, 0.5 * lengthFactor + 0.5 * (absScore / 4));
+        this.offlineEngine = await window.webllm.CreateMLCEngine(defaultModelId,{
+          initProgressCallback:(info)=>{
+            const p = typeof info.progress === "number" ? info.progress : this.offlineProgress;
+            this.offlineProgress = p;
+            this.offlineProgressTextVal = info.text || "";
+            this.updateOfflineModalUI();
+          }
+        });
 
-    let category = "Neutral / Mixed";
-    if (polarity > 0.2) {
-      category = intensity > 0.6 ? "Strongly positive" : "Gently positive";
-    } else if (polarity < -0.2) {
-      category = intensity > 0.6 ? "Strongly negative" : "Gently negative";
+        this.offlineLLMStatus = "ready";
+        this.offlineProgress = 1;
+        this.offlineProgressTextVal = "Model ready.";
+        this.updateOfflineModalUI();
+      }catch(e){
+        console.error("Offline LLM init error", e);
+        this.offlineLLMStatus = "error";
+        this.offlineProgress = 0;
+        this.offlineProgressTextVal = "Error while loading model.";
+        this.updateOfflineModalUI();
+      }
     }
 
-    // TM magnitude can depend on intensity + recency heuristics
-    const tm = 0.3 + 0.7 * intensity; // 0.3–1.0
+    async callOfflineLLM(promptText){
+      if(!window.webllm) return null;
+      if(!this.offlineEngine){
+        if(this.offlineLLMStatus === "loading"){
+          this.offlineProgressTextVal = "Still downloading in background…";
+          this.updateOfflineModalUI();
+        }
+        return null;
+      }
+      if(this.offlineLLMStatus !== "ready") return null;
 
-    return { polarity, intensity, category, tm };
+      try{
+        const result = await this.offlineEngine.chat.completions.create({
+          messages:[
+            {role:"system",content:"You are a small offline helper model inside AURA-X Ω. Answer briefly and clearly."},
+          {role:"user",content:promptText}
+          ],
+          max_tokens:200,
+          temperature:0.7
+        });
+        const text = result && result.choices && result.choices[0] &&
+          result.choices[0].message && result.choices[0].message.content;
+        return text || null;
+      }catch(e){
+        console.error("Offline LLM error", e);
+        this.offlineLLMStatus = "error";
+        this.offlineProgressTextVal = "Error while using model.";
+        this.updateOfflineModalUI();
+        return null;
+      }
+    }
+
+    // ---------- Memory / formula ----------
+
+    updateMemoryAndState(text,sentiment,smallTalk,llmAnswer){
+      this.lastSentiment = sentiment;
+      const now = Date.now();
+      const recentBM = this.bmEntries.slice(-12);
+
+      let bmRes = 0.5;
+      if(recentBM.length){
+        let total = 0;
+        recentBM.forEach(entry => {
+          const dtHours = (now - entry.timestampMs)/(1000*60*60);
+          const timeFactor = Math.exp(-dtHours/24);
+          const vSim = 1 - Math.abs(sentiment.valence - entry.valence)/2;
+          total += Math.max(0, vSim) * timeFactor;
+        });
+        bmRes = total / recentBM.length;
+      }
+
+      let intelRes = 0;
+      if(this.intelNodes.length){
+        let total = 0;
+        this.intelNodes.forEach(node => {
+          const sim = this.textSimilarity(text, node.question+" "+node.answer);
+          total += sim;
+        });
+        intelRes = total / this.intelNodes.length;
+      }
+
+      let llmRes = 0;
+      if(llmAnswer){
+        const sim = this.textSimilarity(text.toLowerCase(), llmAnswer.toLowerCase());
+        const sL  = this.analyzeSentiment(llmAnswer);
+        const align = 1 - Math.abs(sentiment.valence - sL.valence)/2;
+        llmRes = Math.max(0, Math.min(1, 0.5*sim + 0.5*align));
+      }
+
+      const combinedRes = this.clamp(
+        0,1,
+        0.6*bmRes + 0.25*intelRes + 0.15*llmRes
+      );
+      this.lastResonance = combinedRes;
+
+      const tmMag = Math.min(1, 0.4 + 0.6*((Math.abs(sentiment.valence)+sentiment.intensity)/2));
+      const bmMag = Math.min(1, 0.3 + 0.7*Math.min(1, this.bmEntries.length/80));
+      const TMxBM = tmMag * bmMag * (0.5 + 0.5*combinedRes);
+
+      const D = 0.15 + 0.25*(1 - this.continuityIndex);
+      const lambdaFaith = this.faithsSelected.length ? (0.08 + 0.02*Math.min(this.faithsSelected.length,3)) : 0;
+      const lambdaSys   = 0.10;
+      const strongTruthCats = ["love","hope","wisdom"];
+      const lambdaTrc   = strongTruthCats.includes(sentiment.category) ? 0.12 : 0.04;
+
+      const z = (TMxBM) - D + lambdaFaith + lambdaSys + lambdaTrc;
+      this.e0 = Math.tanh(z);
+
+      if(!smallTalk){
+        this.bmEntries.push({
+          text,
+          valence:sentiment.valence,
+          intensity:sentiment.intensity,
+          category:sentiment.category,
+          emotionCode:this.generateEmotionCode(sentiment),
+          timestampMs:now
+        });
+        if(this.bmEntries.length > 240){
+          this.bmEntries.shift();
+        }
+        this.jiggleBMLayers(sentiment);
+      }
+
+      // continuity index update
+      const baseCI = this.continuityIndex;
+      const drift  = 0.005;
+      const adjust = 0.06*(1 - Math.abs(this.e0 - baseCI));
+      this.continuityIndex = this.clamp(0.55,0.98, baseCI + drift + adjust*(this.e0>=0?1:-1));
+    }
+
+    generateEmotionCode(sentiment){
+      const prefix = sentiment.valence>0 ? "E+" : sentiment.valence<0 ? "E-" : "E0";
+      const mid = sentiment.category === "hope" ? "H" :
+                  sentiment.category === "stress" ? "S" : "N";
+      const idx = Math.floor(sentiment.intensity*90).toString().padStart(2,"0");
+      return `${prefix}${mid}${idx}`;
+    }
+
+    jiggleBMLayers(sentiment){
+      const sign = sentiment.valence >=0 ? 1 : -1;
+      const intensity = Math.max(0.3, sentiment.intensity);
+      for(let i=0;i<this.bmLayers.length;i++){
+        if(Math.random() < 0.2){
+          this.bmLayers[i] = this.clamp(this.bmLayers[i] + sign*0.1*intensity, 0.05, 0.95);
+        }
+      }
+    }
+
+    clamp(v,min,max){ return v<min?min:v>max?max:v; }
+
+    updateMetrics(){
+      this.metricE0.textContent = this.e0.toFixed(3);
+      const userCount = this.tmHistory.filter(m => m.role==="user").length;
+      this.metricTM.textContent = Math.min(1,userCount/40).toFixed(2);
+      this.metricBM.textContent = Math.min(1,this.bmEntries.length/80).toFixed(2);
+      this.metricCI.textContent = this.continuityIndex.toFixed(3);
+
+      const val = this.e0;
+      let valLabel = val>0.25 ? "positive" : val<-0.25 ? "negative" : "neutral";
+      this.tagValence.textContent = "VALENCE: "+valLabel;
+
+      const ar = this.lastResonance;
+      const arLabel = ar>0.7 ? "high" : ar<0.4 ? "low" : "medium";
+      this.tagArousal.textContent = "AROUSAL: "+arLabel;
+      this.tagReaction.textContent = "REACTION: "+(valLabel==="negative"?"tense":"balanced");
+
+      const active = this.bmLayers.filter(v => v>0.6).length;
+      this.bmStats.textContent = `Active layers: ${active}/${this.bmLayers.length} · System online`;
+    }
+
+    // ---------- Chat UI helpers ----------
+
+    addMessage(role,text,isAI=false,sentiment=null,skipSpeech=false,isHtml=false){
+      const msg = document.createElement("div");
+      msg.className = "message "+(role==="ai"?"ai-message":"user-message");
+
+      const header = document.createElement("div");
+      header.className = "message-header";
+      const left = document.createElement("span");
+      left.textContent = role==="ai" ? "AURA-X Ω" : "You";
+
+      const right = document.createElement("div");
+      right.className = "msg-right";
+
+      if(role==="ai"){
+        const btn = document.createElement("button");
+        btn.className = "voice-btn";
+        btn.textContent = "🔊";
+        btn.addEventListener("click", () => this.speak(text, sentiment || {polarity:"neutral"}));
+        right.appendChild(btn);
+      }
+
+      header.appendChild(left);
+      header.appendChild(right);
+
+      const body = document.createElement("div");
+      body.className = "message-content";
+      if(isHtml){
+        body.textContent = text;
+      }else{
+        body.textContent = text;
+      }
+
+      msg.appendChild(header);
+      msg.appendChild(body);
+      this.chatContainer.appendChild(msg);
+      this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+
+      if(role==="ai" && this.voiceOn && !skipSpeech){
+        this.speak(text,sentiment);
+      }
+    }
+
+    speak(text,_sentiment){
+      if(!("speechSynthesis" in window)) return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "en-US";
+      window.speechSynthesis.speak(utter);
+    }
+
+    showTyping(){
+      const id = "typing-"+Math.random().toString(36).slice(2);
+      const wrap = document.createElement("div");
+      wrap.id = id;
+      wrap.className = "typing-indicator";
+      wrap.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span class="typing-text">Aura is thinking…</span>';
+      this.chatContainer.appendChild(wrap);
+      this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+      return id;
+    }
+
+    hideTyping(id){
+      const el = document.getElementById(id);
+      if(el && el.parentNode) el.parentNode.removeChild(el);
+    }
+
+    // ---------- BM visual ----------
+
+    renderBMChart(){
+      this.bmChart.innerHTML = "";
+      this.bmBars = [];
+      for(let i=0;i<this.bmLayers.length;i++){
+        const bar = document.createElement("div");
+        bar.className = "bm-bar";
+        const h = 10 + this.bmLayers[i]*80;
+        bar.style.height = h+"%";
+        this.bmChart.appendChild(bar);
+        this.bmBars.push(bar);
+      }
+    }
+
+    updateBMChartVisual(){
+      if(!this.bmBars) return;
+      for(let i=0;i<this.bmLayers.length;i++){
+        const h = 10 + this.bmLayers[i]*80;
+        this.bmBars[i].style.height = h+"%";
+      }
+    }
+
+    // ---------- Modals ----------
+
+    openBMModal(){
+      this.bmList.innerHTML = "";
+      if(!this.bmEntries.length){
+        this.bmList.textContent = "No BM entries yet. Non-trivial emotional moments will be stored here.";
+      }else{
+        this.bmEntries.slice().reverse().forEach(entry => {
+          const div = document.createElement("div");
+          const dt = new Date(entry.timestampMs).toLocaleString();
+          div.style.marginBottom = "6px";
+          div.innerHTML =
+            `<div style="font-size:.75rem;color:#9ca3af;">${dt}</div>`+
+            `<div style="margin-top:2px;">${entry.text}</div>`+
+            `<div style="margin-top:2px;font-size:.72rem;color:#9ca3af;">`+
+            `valence=${entry.valence.toFixed(2)}, intensity=${entry.intensity.toFixed(2)}, `+
+            `category=${entry.category}, code=${entry.emotionCode}</div>`;
+          this.bmList.appendChild(div);
+        });
+      }
+      this.bmModal.classList.add("visible");
+    }
+
+    openHistoryModal(){
+      const lines = this.tmHistory.map(m => {
+        const who = m.role==="ai" ? "AURA-X Ω" : "You";
+        return `[${who}] ${m.text}`;
+      });
+      this.historyContent.textContent = lines.join("\n\n") || "No conversation yet.";
+      this.historyModal.classList.add("visible");
+    }
+
+    openSeedModal(){
+      this.seedPasswordStage.style.display = "block";
+      this.seedBlockStage.style.display = "none";
+      this.seedPasswordInput.value = "";
+      this.seedPasswordError.style.display = "none";
+      this.seedBlockInput.value = "";
+      this.seedBlockPreview.textContent = "Waiting for block…";
+      this.seedSaveBtn.disabled = true;
+      this.seedModal.classList.add("visible");
+    }
+
+    openLLMModal(){
+      this.llmPasswordInput.value = "";
+      this.llmPasswordError.style.display = "none";
+      this.llmLockStage.style.display = "block";
+      this.llmConfigStage.style.display = "none";
+      this.llmModal.classList.add("visible");
+    }
+
+    exportHistory(){
+      const blob = new Blob(
+        [this.historyContent.textContent || ""],
+        {type:"text/plain;charset=utf-8"}
+      );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "aura_tm_history.txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    clearTM(){
+      const ok = confirm("Clear TM / chat history? BM (identity traces) will stay intact.");
+      if(!ok) return;
+      this.tmHistory = [];
+      this.chatContainer.innerHTML = "";
+      this.addWelcomeMessage();
+      this.updateMetrics();
+      alert("TM cleared. BM is untouched.");
+    }
+
+    maybeShowRecallBubble(sentiment){
+      if(!this.recallBubble) return;
+      if(this.bmEntries.length===0) return;
+      if(Math.random()>0.25) return;
+
+      const last = this.bmEntries[this.bmEntries.length-1];
+      this.recallBody.textContent = last.text.length>120 ? last.text.slice(0,120)+"…" : last.text;
+      this.recallMeta.textContent = `emotion code: ${last.emotionCode || "E---"}`;
+      this.recallBubble.classList.add("visible");
+      setTimeout(()=>this.recallBubble.classList.remove("visible"),6500);
+    }
   }
 
-  // ====== OPTIONAL LLM HOOK (OFFLINE / ONLINE) ======
-  async function analyzeWithLLM(text) {
-    // IMPORTANT:
-    // - Yahan sirf placeholder / demo behavior hai.
-    // - Aap yahan apna real offline LLM ya API call inject kar sakte hain.
-    //
-    // Example (pseudo):
-    // const result = await localLLM.analyze(text);
-    // return { polarity: result.polarity, intensity: result.intensity, ... }
-
-    // For now, we fall back to the same heuristic, but mark it in explanation.
-    const heuristic = simpleHeuristicAnalysis(text);
-    heuristic.category += " (LLM hook placeholder)";
-    return heuristic;
-  }
-
-  // ====== GRAND EQUATION CALCULATION ======
-  function computeE0FromState() {
-    const { tmValue, bmValue, decay, polarity, intensity } = state;
-
-    // Faith + Sys lens if enabled
-    if (chkFaithLens.checked) {
-      state.lambdaFaith = 0.1 * polarity; // positive if positive emotion
-      state.lambdaSys   = 0.05;           // small safety baseline
-    } else {
-      state.lambdaFaith = 0.0;
-      state.lambdaSys   = 0.0;
-    }
-
-    // Truth resonance: we approximate as "alignment between content length and intensity"
-    state.lambdaTRC = 0.05 * intensity;
-
-    const continuity = tmValue * bmValue;
-    const raw = (continuity) - decay + state.lambdaFaith + state.lambdaSys + state.lambdaTRC;
-
-    const e0 = Math.tanh(raw);
-    state.e0 = e0;
-
-    return { continuity, e0, raw };
-  }
-
-  // ====== UI UPDATES ======
-  function updateMetricBars(continuity) {
-    const pol = state.polarity;   // -1 to 1
-    const polAbs = Math.abs(pol);
-    const polWidth = Math.round(polAbs * 100);
-    polarityBarEl.style.width = polWidth + "%";
-    if (pol < 0) polarityBarEl.classList.add("neg");
-    else polarityBarEl.classList.remove("neg");
-
-    const intWidth = Math.round(state.intensity * 100);
-    intensityBarEl.style.width = intWidth + "%";
-
-    const contNorm = Math.min(1, Math.max(0, continuity));
-    const contWidth = Math.round(contNorm * 100);
-    continuityBarEl.style.width = contWidth + "%";
-  }
-
-  function appendChat(role, text, meta) {
-    const entry = document.createElement("div");
-    entry.className = "chat-entry " + (role === "user" ? "user" : "aura");
-
-    const metaDiv = document.createElement("div");
-    metaDiv.className = "chat-meta";
-    metaDiv.innerHTML = `
-      <span>${role === "user" ? "User" : "AURA-X Ω"}</span>
-      <span>${meta || ""}</span>
-    `;
-
-    const textDiv = document.createElement("div");
-    textDiv.className = "chat-text";
-    textDiv.textContent = text;
-
-    entry.appendChild(metaDiv);
-    entry.appendChild(textDiv);
-
-    chatLogEl.appendChild(entry);
-    chatLogEl.scrollTop = chatLogEl.scrollHeight;
-  }
-
-  // ====== Q&A: BASIC IDENTITY RESPONSES ======
-  function tryAnswerDirectQA(text) {
-    const t = text.trim().toLowerCase();
-
-    // "How are you" family
-    if (
-      t === "how are you" ||
-      t === "how are you?" ||
-      t.includes("how are you feeling") ||
-      t.includes("how is your day") ||
-      t === "how are u" ||
-      t === "how r u"
-    ) {
-      return "I am quite fine today. How about you?";
-    }
-
-    // Name
-    if (t.includes("what is your name") || t.includes("what's your name") || t === "who are you?") {
-      return "I am AURA-X Ω, an Artificial Unified Resonance Architecture for emotional continuity.";
-    }
-
-    // Creator
-    if (t.includes("who created you")) {
-      return "I am conceptually created by Alim ul Haq from Pakistan.";
-    }
-
-    // Emotional continuity definition
-    if (t.includes("what is emotional continuity") || t.includes("emotional continuity kya") || t.includes("emotional continuity?")) {
-      return "Emotional continuity means that I remember how feelings evolve over time, not just one message at a time. TM and BM work together so that my emotional trajectory remains stable, ethical, and consistent across long conversations.";
-    }
-
-    return null;
-  }
-
-  // ====== MAIN COMPUTE HANDLER ======
-  async function handleCompute(useLLMFirst = false) {
-    const text = userInputEl.value || "";
-    if (!text.trim()) {
-      statusLineEl.innerHTML = 'Status: <span class="bad">Please type something first.</span>';
-      return;
-    }
-
-    tmStatusEl.textContent = "TM: capturing frish input …";
-    tmBoxEl.textContent = text;
-
-    appendChat("user", text, "Frish input → TM");
-
-    // Step 1: if Q&A direct answer possible:
-    const direct = tryAnswerDirectQA(text);
-    if (direct) {
-      appendChat("aura", direct, "Direct identity / continuity answer");
-      explanationBoxEl.textContent =
-        "This answer came from AURA-X Ω identity layer (BM/Q&A seed), without using an LLM. " +
-        "The emotional analysis still uses the same TM/BM equation.";
-    }
-
-    // Step 2: Emotional analysis (LLM optional)
-    let analysis;
-    if (useLLMFirst && chkUseLLM.checked) {
-      statusLineEl.innerHTML = 'Status: <span class="ok">Analyzing via LLM hook (placeholder) …</span>';
-      analysis = await analyzeWithLLM(text);
-    } else {
-      statusLineEl.innerHTML = 'Status: <span class="ok">Analyzing via built-in heuristic …</span>';
-      analysis = simpleHeuristicAnalysis(text);
-    }
-
-    state.polarity  = analysis.polarity;
-    state.intensity = analysis.intensity;
-    state.category  = analysis.category;
-    state.tmValue   = analysis.tm;
-
-    // Lightly update BM from emotional intensity (BM grows slowly)
-    state.bmValue = Math.min(1.0, Math.max(0.2, state.bmValue + 0.15 * state.intensity - 0.03));
-
-    const { continuity, e0, raw } = computeE0FromState();
-
-    // Update UI
-    polarityValEl.textContent  =
-      (state.polarity > 0 ? "Positive " : state.polarity < 0 ? "Negative " : "Neutral ") +
-      "(" + state.polarity.toFixed(2) + ")";
-    intensityValEl.textContent = state.intensity.toFixed(2);
-    continuityValEl.textContent = "TM×BM = " + continuity.toFixed(2);
-    e0LabelEl.textContent = "E₀ = " + e0.toFixed(2);
-
-    updateMetricBars(continuity);
-
-    categoryBoxEl.textContent = state.category;
-    explanationBoxEl.textContent =
-      "TM was set to " + state.tmValue.toFixed(2) +
-      " based on your current emotional intensity; BM is " + state.bmValue.toFixed(2) +
-      ".\nContinuity (TM×BM) = " + continuity.toFixed(2) +
-      ", Decay D = " + state.decay.toFixed(2) +
-      ", λ_faith = " + state.lambdaFaith.toFixed(2) +
-      ", λ_sys = " + state.lambdaSys.toFixed(2) +
-      ", λ_trc = " + state.lambdaTRC.toFixed(2) +
-      ".\nRaw signal = " + raw.toFixed(2) +
-      ", so after tanh we get E₀ = " + e0.toFixed(2) +
-      " (bounded between −1 and +1).";
-
-    statusLineEl.innerHTML = 'Status: <span class="ok">E₀ computed successfully.</span>';
-    tmStatusEl.textContent = "TM: active";
-
-    appendChat(
-      "aura",
-      "Polarity: " + polarityValEl.textContent +
-      " · Intensity: " + state.intensity.toFixed(2) +
-      " · Category: " + state.category +
-      " · E₀ = " + e0.toFixed(2),
-      "Emotional reactor"
-    );
-  }
-
-  // ====== SEED TO BM HANDLER ======
-  function handleSeedToBM() {
-    const text = userInputEl.value || "";
-    if (!text.trim()) {
-      statusLineEl.innerHTML = 'Status: <span class="bad">Nothing to add to BM. Type something first.</span>';
-      return;
-    }
-    state.bmText += "- " + text + "\n";
-    bmBoxEl.textContent = state.bmText;
-    state.bmValue = Math.min(1.0, state.bmValue + 0.1);
-    statusLineEl.innerHTML = 'Status: <span class="ok">Seed added to BM. BM continuity slightly increased.</span>';
-    appendChat("aura", "I stored this as a long-term trace in BM.", "BM update");
-  }
-
-  // ====== CLEAR TM / CHAT (KEEP BM) ======
-  function handleClearTM() {
-    chatLogEl.innerHTML = "";
-    tmBoxEl.textContent =
-      "Last user input & recent emotional snapshot will appear here.";
-    userInputEl.value = "";
-    state.tmValue = 0.0;
-    state.polarity = 0.0;
-    state.intensity = 0.0;
-    state.e0 = 0.0;
-    tmStatusEl.textContent = "TM: idle";
-    polarityValEl.textContent  = "Neutral (0.00)";
-    intensityValEl.textContent = "0.00";
-    continuityValEl.textContent = "TM×BM = 0.00";
-    e0LabelEl.textContent = "E₀ = 0.00";
-    polarityBarEl.style.width   = "0%";
-    intensityBarEl.style.width  = "0%";
-    continuityBarEl.style.width = "0%";
-    categoryBoxEl.textContent   = "Waiting for analysis …";
-    explanationBoxEl.textContent =
-      "TM is cleared but BM (identity layer) is preserved. " +
-      "You can continue the conversation and E₀ will keep evolving.";
-    statusLineEl.innerHTML = 'Status: <span class="warn">TM cleared, BM preserved.</span>';
-  }
-
-  // ====== EVENT LISTENERS ======
-  btnCompute.addEventListener("click", () => handleCompute(false));
-  btnLLM.addEventListener("click", () => handleCompute(true));
-  btnSeed.addEventListener("click", handleSeedToBM);
-  btnClear.addEventListener("click", handleClearTM);
-
-  userInputEl.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleCompute(false);
-    }
+  window.addEventListener("DOMContentLoaded", () => {
+    window.auraX = new AuraXOmegaEngine();
   });
 
-  // INITIAL STATE
-  statusLineEl.innerHTML = 'Status: <span class="warn">Waiting for input …</span>';
+})();
 </script>
 </body>
 </html>
