@@ -155,6 +155,10 @@
           <div class="stat-val" id="valTM">0.00</div>
         </div>
         <div class="stat-box">
+          <div class="stat-lbl">BM Sentiment</div>
+          <div class="stat-val" id="valBM">0.00</div>
+        </div>
+        <div class="stat-box">
           <div class="stat-lbl">Learned Nodes</div>
           <div class="stat-val" id="valNodes">0</div>
         </div>
@@ -206,13 +210,16 @@ class AuraSystem {
   constructor() {
     this.state = {
       e0: 0.1,
+      bm: 0.0,
       intelNodes: [
         { q: "who are you", a: "I am AURA-X Omega, an emotional continuity engine." },
         { q: "how are you", a: "I am functioning within normal emotional parameters." }
       ],
       tmHistory: [],
       offlineReady: false,
-      voice: false
+      voice: false,
+      learning: false,
+      lastQ: ''
     };
 
     this.offlineEngine = null;
@@ -221,6 +228,7 @@ class AuraSystem {
       chat: document.getElementById('chat'),
       valE0: document.getElementById('valE0'),
       valTM: document.getElementById('valTM'),
+      valBM: document.getElementById('valBM'),
       valNodes: document.getElementById('valNodes'),
       valSource: document.getElementById('valSource'),
       controls: document.getElementById('controls')
@@ -230,9 +238,9 @@ class AuraSystem {
   }
 
   init() {
-    // 1. Fix Option Button Event
+    // Option Button Event
     document.getElementById('optBtn').addEventListener('click', (e) => {
-      e.stopPropagation(); // CRITICAL: Prevents immediate closing
+      e.stopPropagation();
       this.dom.controls.classList.toggle('open');
     });
 
@@ -245,7 +253,13 @@ class AuraSystem {
     // Send Events
     document.getElementById('send').addEventListener('click', () => this.processInput());
     this.dom.input.addEventListener('keypress', (e) => {
-      if(e.key === 'Enter') this.processInput();
+      if (e.key === 'Enter') this.processInput();
+    });
+
+    // Voice Toggle
+    document.getElementById('btnVoice').addEventListener('click', () => {
+      this.state.voice = !this.state.voice;
+      document.getElementById('btnVoice').innerText = `🔊 Voice: ${this.state.voice ? 'ON' : 'OFF'}`;
     });
 
     // Offline LLM Events
@@ -257,6 +271,20 @@ class AuraSystem {
     });
     document.getElementById('loadLlmBtn').addEventListener('click', () => this.loadOfflineModel());
 
+    // Reset Memory
+    document.getElementById('btnReset').addEventListener('click', () => {
+      this.state.intelNodes = [
+        { q: "who are you", a: "I am AURA-X Omega, an emotional continuity engine." },
+        { q: "how are you", a: "I am functioning within normal emotional parameters." }
+      ];
+      this.state.tmHistory = [];
+      this.state.e0 = 0.1;
+      this.state.bm = 0.0;
+      this.state.learning = false;
+      this.updateUI();
+      this.addMsg("Memory reset complete.", 'sys');
+    });
+
     this.updateUI();
   }
 
@@ -264,17 +292,28 @@ class AuraSystem {
     const text = this.dom.input.value.trim();
     if (!text) return;
 
-    // 1. UI: Show User Message
+    // If in learning mode, treat input as the response to learn
+    if (this.state.learning) {
+      const a = text;
+      this.state.intelNodes.push({ q: this.state.lastQ, a });
+      this.addMsg("Learned new response for: " + this.state.lastQ, 'sys');
+      this.state.learning = false;
+      this.dom.input.value = '';
+      this.updateUI();
+      return;
+    }
+
+    // UI: Show User Message
     this.addMsg(text, 'user');
     this.dom.input.value = '';
 
-    // 2. IMMEDIATE TM ANALYSIS (On Entrance)
+    // IMMEDIATE TM ANALYSIS (On Entrance)
     const sentiment = this.analyzeSentiment(text);
     this.updateEmotion(sentiment); // Update E0 instantly based on input
     
     this.dom.valSource.innerText = "Thinking...";
 
-    // 3. PRIORITY HIERARCHY FOR ANSWER
+    // PRIORITY HIERARCHY FOR ANSWER
     let reply = null;
     let source = "";
 
@@ -295,18 +334,20 @@ class AuraSystem {
       } catch (e) { console.error(e); }
     }
 
-    // Priority C: Online API (Placeholder for now)
+    // Priority C: Online API (Placeholder, disabled)
     if (!reply && false) { 
-      // Add OpenAI fetch here if key exists
+      // Implement OpenAI or similar here if desired
     }
 
     // Fallback: Learning Prompt
     if (!reply) {
       reply = "I don't have a memory for this yet. How should I respond?";
       source = "❓ Needs Training";
+      this.state.learning = true;
+      this.state.lastQ = text;
     }
 
-    // 4. Output Reply
+    // Output Reply
     this.dom.valSource.innerText = source;
     this.addMsg(reply, 'ai');
     
@@ -317,7 +358,7 @@ class AuraSystem {
   // --- CORE FUNCTIONS ---
 
   analyzeSentiment(text) {
-    // Simple mock sentiment analysis
+    // Simple mock sentiment analysis (-1 to 1 range)
     let score = 0;
     const pos = ['good','happy','thanks','great','love'];
     const neg = ['bad','sad','hate','angry','wrong'];
@@ -325,21 +366,44 @@ class AuraSystem {
       if(pos.includes(w)) score += 0.2;
       if(neg.includes(w)) score -= 0.2;
     });
+    score = Math.max(-1, Math.min(1, score));
     // Update UI immediately
     this.dom.valTM.innerText = score.toFixed(2);
+    this.state.tmHistory.push(score);
     return score;
   }
 
+  resonant(TM, BM) {
+    // Wave-like resonant interaction: amplitude * cos(phase difference)
+    // This simulates interference: full positive if aligned, negative if opposed
+    const amplitude = (Math.abs(TM) + Math.abs(BM)) / 2;
+    const phaseDiff = Math.abs(TM - BM);
+    return amplitude * Math.cos(phaseDiff * Math.PI / 2);
+  }
+
   updateEmotion(tmScore) {
-    // Formula: New E0 = tanh(Old E0 + TM)
-    // This updates the internal spirit immediately upon input
-    const raw = this.state.e0 + tmScore;
+    // Full numerical formula from AURA-X Ω paper:
+    // E_0 = tanh( R(TM, BM) - D + λ_faith + λ_sys + λ_trc )
+    // Where R is resonant interaction (wave-like, not scalar multiply)
+    // D is decay, λ_faith is belief stabilization (e.g., 0.05), λ_sys is system bias (0.0), λ_trc is truth correction (0.0 for now)
+    const TM = tmScore;
+    const BM = this.state.bm;
+    const R = this.resonant(TM, BM);
+    const D = 0.1 * Math.abs(this.state.e0); // Decay: 10% of current |E0| 
+    const lambda_faith = 0.05; // Stabilizing belief/moral grounding
+    const lambda_sys = 0.0; // System-level constraints
+    const lambda_trc = 0.0; // Truth-resonance correction (could be negative if "false" detected, but simplified)
+    const raw = R - D + lambda_faith + lambda_sys + lambda_trc;
     this.state.e0 = Math.tanh(raw);
+
+    // Slowly update BM (slow-changing identity memory)
+    this.state.bm = 0.95 * BM + 0.05 * TM;
+
     this.updateUI();
   }
 
   findIntelMatch(input) {
-    // Find best match in known Q/A pairs
+    // Find best match in known Q/A pairs (simple substring match)
     const cleanIn = input.toLowerCase();
     const match = this.state.intelNodes.find(n => cleanIn.includes(n.q.toLowerCase()));
     return match ? match.a : null;
@@ -389,9 +453,17 @@ class AuraSystem {
     this.dom.chat.scrollTop = this.dom.chat.scrollHeight;
   }
 
+  speak(text) {
+    if ('speechSynthesis' in window) {
+      const utt = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(utt);
+    }
+  }
+
   updateUI() {
     this.dom.valE0.innerText = this.state.e0.toFixed(3);
     this.dom.valE0.style.color = this.state.e0 > 0 ? '#4ade80' : (this.state.e0 < 0 ? '#f87171' : '#e2e8f0');
+    this.dom.valBM.innerText = this.state.bm.toFixed(2);
     this.dom.valNodes.innerText = this.state.intelNodes.length;
   }
 }
