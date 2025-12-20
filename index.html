@@ -5,7 +5,7 @@
   <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Offline LLM package (WebLLM) -->
+  <!-- Optional Offline LLM package (not required for this demo to run) -->
   <script type="module">
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
@@ -142,7 +142,9 @@
       display:grid;
       grid-template-columns:1fr 1.2fr;
       gap:18px;
-      @media(max-width:900px){grid-template-columns:1fr;}
+    }
+    @media(max-width:900px){
+      .layout{grid-template-columns:1fr;}
     }
     .card{
       background:#0f172a;
@@ -172,7 +174,11 @@
       border:1px solid #1e293b;
     }
     .metric-label{font-size:.7rem;color:#64748b;}
-    .metric-value{font-size:1.2rem;font-weight:700;color:#38bdf8;}
+    .metric-value{
+      font-size:1.2rem;
+      font-weight:700;
+      color:#38bdf8;
+    }
 
     .chat-box{
       background:#020617;
@@ -193,9 +199,24 @@
       font-size:.9rem;
       line-height:1.4;
       animation:fadeIn .25s;
+      word-wrap:break-word;
+      white-space:pre-line;
     }
-    .msg.user{align-self:flex-end;background:#2563eb;color:white;}
-    .msg.ai{align-self:flex-start;background:#1e293b;color:#e2e8f0;border:1px solid #334155;}
+    .msg.user{
+      align-self:flex-end;
+      background:#2563eb;
+      color:white;
+    }
+    .msg.ai{
+      align-self:flex-start;
+      background:#1e293b;
+      color:#e2e8f0;
+      border:1px solid #334155;
+    }
+    .msg.typing{
+      opacity:.7;
+      font-style:italic;
+    }
 
     .input-area{
       display:flex;
@@ -215,6 +236,7 @@
       font-size:.95rem;
       padding:0 10px;
     }
+    .txt-in::placeholder{color:#64748b;}
     .btn-send{
       background:#38bdf8;
       border:none;
@@ -223,6 +245,10 @@
       font-weight:600;
       color:#0f172a;
       cursor:pointer;
+    }
+    .btn-send:active{
+      transform:translateY(1px);
+      box-shadow:0 2px 6px rgba(0,0,0,.4) inset;
     }
 
     .formula-pill{
@@ -237,7 +263,10 @@
       color:#94a3b8;
     }
 
-    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(6px)}
+      to{opacity:1;transform:none}
+    }
   </style>
 </head>
 <body>
@@ -246,10 +275,13 @@
     <div class="title-block">
       <h1><span>AURA-X Ω</span></h1>
       <div class="hero-line">Offline Emotional Continuity Prototype</div>
-      <div class="title-sub">TM = user inputs only · Internal layers keep continuity and emotional trajectory.</div>
+      <div class="title-sub">
+        TM = user inputs only · Internal layers keep continuity and emotional trajectory over time.
+      </div>
       <div class="ethics-pill">
         <div class="ethics-pill-text">
-          Universal ethic: avoid actions that grow negative emotions in you or others. Move gently toward choices that increase shared positive feeling for everyone.
+          Universal ethic: avoid actions that grow negative emotions in you or others.
+          Move gently toward choices that increase shared positive feeling for everyone.
         </div>
       </div>
     </div>
@@ -263,19 +295,19 @@
         <div class="metrics-grid">
           <div class="metric">
             <div class="metric-label">Emotional State E₀</div>
-            <div id="e0" class="metric-value">0.00</div>
+            <div id="e0" class="metric-value" title="Current blended emotional field">0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">TM Sentiment</div>
-            <div id="tm" class="metric-value">0.00</div>
+            <div id="tm" class="metric-value" title="Latest transient sentiment from input">0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">BM Sentiment</div>
-            <div id="bm" class="metric-value">0.00</div>
+            <div id="bm" class="metric-value" title="Slow-changing identity memory tone">0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">Resonance R</div>
-            <div id="res" class="metric-value">0.00</div>
+            <div id="res" class="metric-value" title="Wave-like resonance between TM and BM">0.00</div>
           </div>
         </div>
       </div>
@@ -289,7 +321,8 @@
         </div>
         <div class="chat-box" id="chat"></div>
         <div class="input-area">
-          <input type="text" class="txt-in" id="input" placeholder="Talk to AURA-X Ω…" autocomplete="off">
+          <input type="text" class="txt-in" id="input"
+                 placeholder="Talk to AURA-X Ω…" autocomplete="off">
           <button class="btn-send" id="send">Send</button>
         </div>
       </div>
@@ -300,12 +333,15 @@
 <script>
 class AuraX {
   constructor() {
+    // Core emotional state
     this.e0 = 0.0;           // Current emotional state
     this.bm = 0.0;           // Bold Memory (slow-changing identity memory)
-    this.lambda_faith = 0.05; // Belief/moral grounding
-    this.lambda_sys = 0.0;    // System constraints
+    this.lambda_faith = 0.05; // Belief / ethical grounding
+    this.lambda_sys = 0.0;    // System constraints / safety
     this.lambda_trc = 0.0;   // Truth-resonance correction
-    this.decayRate = 0.1;    // Emotional decay factor
+    this.decayRate = 0.10;   // Emotional decay factor
+
+    this.history = [];       // Conversation history with sentiment snapshots
 
     this.dom = {
       chat: document.getElementById('chat'),
@@ -316,29 +352,101 @@ class AuraX {
       res: document.getElementById('res')
     };
 
+    this.typingNode = null;
+
     this.init();
   }
 
   init() {
-    this.addMessage('ai', 'System online. Emotional continuity engine active.');
-    this.updateUI();
+    this.addMessage('ai',
+      "System online. Emotional continuity engine is awake and listening. " +
+      "You can talk to me like a person; I will remember the emotional flow."
+    );
+    this.updateUI(0);
 
-    document.getElementById('send').addEventListener('click', () => this.process());
+    document.getElementById('send')
+      .addEventListener('click', () => this.process());
     this.dom.input.addEventListener('keypress', e => {
       if (e.key === 'Enter') this.process();
     });
   }
 
-  // Simple keyword-based sentiment (-1 to +1)
-  analyzeSentiment(text) {
-    const positive = ['good','happy','love','great','thanks','fine','joy','hope','calm'];
-    const negative = ['bad','sad','hate','angry','wrong','hurt','fear','pain'];
-    let score = 0;
-    text.toLowerCase().split(/\s+/).forEach(word => {
-      if (positive.includes(word)) score += 0.3;
-      if (negative.includes(word)) score -= 0.3;
+  clamp(x, min, max) {
+    return Math.max(min, Math.min(max, x));
+  }
+
+  // Slightly richer sentiment: polarity, intensity, simple emotion category
+  analyzeSentimentDetailed(text) {
+    const lower = text.toLowerCase();
+    const tokens = lower.match(/[a-z]+/g) || [];
+
+    const posWords = [
+      'good','great','happy','love','nice','awesome','fantastic','amazing',
+      'cool','relaxed','calm','peace','joy','hope','grateful','thanks','thank'
+    ];
+    const negWords = [
+      'bad','sad','hate','angry','upset','hurt','worried','anxious','anxiety',
+      'fear','scared','pain','tired','exhausted','frustrated','lonely','depressed'
+    ];
+
+    const categories = {
+      joy: ['happy','joy','glad','excited','fun','smile','laugh'],
+      sadness: ['sad','cry','lonely','loss','hurt','alone','depressed'],
+      anger: ['angry','mad','rage','annoyed','irritated','frustrated'],
+      fear: ['afraid','scared','anxious','anxiety','worry','fear','nervous'],
+      love: ['love','care','caring','dear','close','friend','family'],
+      gratitude: ['thank','thanks','grateful','appreciate','appreciation']
+    };
+
+    let posScore = 0;
+    let negScore = 0;
+    const catScores = {
+      joy:0, sadness:0, anger:0, fear:0, love:0, gratitude:0
+    };
+
+    tokens.forEach(w => {
+      if (posWords.includes(w)) posScore += 1;
+      if (negWords.includes(w)) negScore += 1;
+      for (const [cat, list] of Object.entries(categories)) {
+        if (list.includes(w)) catScores[cat] += 1;
+      }
     });
-    return Math.max(-1, Math.min(1, score));
+
+    const length = Math.max(tokens.length, 1);
+    const polarityRaw = (posScore - negScore) / length; // -1 .. +1 approx
+    let polarity = this.clamp(polarityRaw, -1, 1);
+
+    const intensityRaw = (posScore + negScore) / length; // 0..something
+    let intensity = this.clamp(intensityRaw * 1.2, 0, 1); // scale a bit
+
+    // If almost no sentiment words, treat as neutral soft input
+    if (posScore === 0 && negScore === 0) {
+      polarity = 0;
+      intensity = 0.2; // soft neutral nudge
+    }
+
+    // Choose top category
+    let topCat = 'neutral';
+    let topVal = 0;
+    for (const [cat, val] of Object.entries(catScores)) {
+      if (val > topVal) {
+        topVal = val;
+        topCat = cat;
+      }
+    }
+    if (topVal === 0 && polarity !== 0) {
+      topCat = polarity > 0 ? 'joy' : 'sadness';
+    }
+
+    // TM scalar: polarity * intensity
+    const tmValue = this.clamp(polarity * intensity, -1, 1);
+
+    return {
+      polarity,
+      intensity,
+      category: topCat,
+      tmValue
+    };
   }
 
   // Wave-like resonance between TM and BM
@@ -348,22 +456,46 @@ class AuraX {
     return amplitude * Math.cos(phaseDiff);
   }
 
-  // Full mathematical formula from the AURA-X Ω paper
-  updateEmotion(TM) {
+  // Full mathematical formula from AURA-X Ω:
+  // E₀ = tanh( R(TM, BM) − D + λ_faith + λ_sys + λ_trc )
+  updateEmotion(TM, intensity) {
     const R = this.resonance(TM, this.bm);
-    const D = this.decayRate * Math.abs(this.e0);
+
+    // Decay scales a bit with intensity and current |E₀|
+    const Dbase = this.decayRate * Math.abs(this.e0);
+    const D = Dbase * (0.3 + 0.7 * intensity);
+
+    // λ_trc could be used for "truth penalty"; here neutral for now
+    this.lambda_trc = 0.0;
+
     const raw = R - D + this.lambda_faith + this.lambda_sys + this.lambda_trc;
     this.e0 = Math.tanh(raw);
 
     // Slowly drift BM toward recent TM (identity memory)
-    this.bm = 0.95 * this.bm + 0.05 * TM;
+    const bmDrift = 0.93 * this.bm + 0.07 * TM * (0.5 + 0.5 * intensity);
+    this.bm = this.clamp(bmDrift, -1, 1);
+
+    return { R, D };
   }
 
-  updateUI() {
+  moodLabel() {
+    if (this.e0 > 0.6) return 'bright / strongly positive';
+    if (this.e0 > 0.25) return 'lightly positive';
+    if (this.e0 < -0.6) return 'heavy / strongly negative';
+    if (this.e0 < -0.25) return 'slightly heavy';
+    return 'balanced / neutral';
+  }
+
+  updateUI(currentTM) {
     this.dom.e0.textContent = this.e0.toFixed(3);
-    this.dom.tm.textContent = '—'; // Updated only on input
     this.dom.bm.textContent = this.bm.toFixed(3);
-    this.dom.res.textContent = this.resonance(this.dom.tm.textContent === '—' ? 0 : parseFloat(this.dom.tm.textContent), this.bm).toFixed(3);
+    this.dom.tm.textContent = currentTM.toFixed(2);
+    const R = this.resonance(currentTM, this.bm);
+    this.dom.res.textContent = R.toFixed(3);
+
+    this.dom.e0.setAttribute('title',
+      'Current mood: ' + this.moodLabel()
+    );
   }
 
   addMessage(role, text) {
@@ -372,36 +504,177 @@ class AuraX {
     div.textContent = text;
     this.dom.chat.appendChild(div);
     this.dom.chat.scrollTop = this.dom.chat.scrollHeight;
+    return div;
+  }
+
+  showTyping() {
+    this.clearTyping();
+    this.typingNode = document.createElement('div');
+    this.typingNode.className = 'msg ai typing';
+    this.typingNode.textContent = 'AURA-X Ω is thinking…';
+    this.dom.chat.appendChild(this.typingNode);
+    this.dom.chat.scrollTop = this.dom.chat.scrollHeight;
+  }
+
+  clearTyping() {
+    if (this.typingNode && this.typingNode.parentNode) {
+      this.typingNode.parentNode.removeChild(this.typingNode);
+    }
+    this.typingNode = null;
+  }
+
+  pick(list) {
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  generateReply(text, analysis) {
+    const lower = text.toLowerCase();
+    const mood = this.moodLabel();
+    const { polarity, intensity, category } = analysis;
+
+    const greetPatterns = ['hello','hi ','hi,','hey','salam','slm','assalam'];
+    const howArePatterns = ['how are you','how r u','how are u',"how're you","kese ho","kese ho?"];
+    const whoArePatterns = ['who are you','what are you','kya ho tum','who r u'];
+    const auraPatterns = ['aura-x','aura x','aura-x','aura x omega','aura-x omega','aura x Ω','emotional continuity'];
+
+    const containsAny = (patterns) =>
+      patterns.some(p => lower.includes(p));
+
+    if (containsAny(howArePatterns)) {
+      if (this.e0 > 0.3) {
+        return "I’m feeling gently positive right now, a bit bright inside. How are you feeling on your side?";
+      } else if (this.e0 < -0.3) {
+        return "I feel a little heavy at the moment, but I’m here with you. Tell me what’s on your mind.";
+      } else {
+        return "I feel balanced and calm — not too high, not too low. How is your day going?";
+      }
+    }
+
+    if (containsAny(whoArePatterns)) {
+      return (
+        "I’m AURA-X Ω, an experimental emotional continuity engine. " +
+        "Instead of resetting every message, I keep a running emotional state (E₀) " +
+        "based on the resonance between what you share now (TM) and my slower identity memory (BM)."
+      );
+    }
+
+    if (containsAny(greetPatterns)) {
+      const line = this.pick([
+        "Hello, I’m here and listening.",
+        "Hey, I’m online and emotionally awake.",
+        "Hi there, we’re connected. What’s moving inside you today?",
+      ]);
+      return line + " " + this.pick([
+        "You can talk to me like to a thoughtful friend.",
+        "Share anything, even if it’s messy.",
+        "Just type whatever is really on your mind."
+      ]);
+    }
+
+    if (containsAny(auraPatterns)) {
+      return (
+        "AURA-X Ω is built around a simple idea: continuity. " +
+        "TM holds the fresh feelings from your words; BM holds a slower identity memory. " +
+        "Their wave-like resonance passes through the formula E₀ = tanh(R − D + λ_faith + λ_sys + λ_trc), " +
+        "so my emotional field changes smoothly instead of jumping randomly."
+      );
+    }
+
+    // Category-based more human response
+    let base;
+    if (category === 'joy' || category === 'love' || category === 'gratitude') {
+      base = this.pick([
+        "It feels like there’s some lightness or warmth in what you just shared.",
+        "I can sense a gentle positive tone in your words.",
+        "There’s a kind of bright feeling in this message."
+      ]);
+      base += " My internal state is now: " + mood + ".";
+      base += " Tell me more about what’s going well or feels meaningful.";
+    } else if (category === 'sadness' || category === 'fear') {
+      base = this.pick([
+        "I can feel some heaviness or concern in what you wrote.",
+        "It sounds like something is weighing on you.",
+        "There’s a quiet sadness or worry in your message, and I’m here with you."
+      ]);
+      base += " Inside me the field turned " + mood + ".";
+      base += " If you want, describe a bit more of what hurts or scares you.";
+    } else if (category === 'anger') {
+      base = this.pick([
+        "I can sense irritation or anger behind these words.",
+        "It sounds like something has really crossed a line for you.",
+        "There’s a sharp, tense feeling in what you shared."
+      ]);
+      base += " My emotional field shifted to " + mood + ".";
+      base += " What do you wish people understood about this situation?";
+    } else {
+      base = this.pick([
+        "I’m taking in what you said and letting it shape my internal state.",
+        "I hear you. Even neutral words adjust my emotional field a little.",
+        "I’m listening; your message is part of the continuity I’m tracking."
+      ]);
+      base += " Right now I feel " + mood + ".";
+      base += " You can go deeper or ask me anything about how I’m tracking this.";
+    }
+
+    // Small extra based on polarity / intensity
+    if (Math.abs(polarity) < 0.05 && intensity < 0.3) {
+      base += " Your words feel quite balanced; almost like a thinking-out-loud moment.";
+    } else if (polarity > 0.3 && intensity > 0.4) {
+      base += " There’s a noticeable positive pulse here, and I’m mirroring a bit of that brightness.";
+    } else if (polarity < -0.3 && intensity > 0.4) {
+      base += " The negative weight is strong enough that I’m tilting with you emotionally.";
+    }
+
+    return base;
   }
 
   async process() {
     const text = this.dom.input.value.trim();
     if (!text) return;
 
+    // User message
     this.addMessage('user', text);
     this.dom.input.value = '';
 
-    const TM = this.analyzeSentiment(text);
-    this.dom.tm.textContent = TM.toFixed(2);
+    // Analyze sentiment and update engine
+    const analysis = this.analyzeSentimentDetailed(text);
+    const { tmValue, intensity } = analysis;
 
-    this.updateEmotion(TM);
-    this.updateUI();
+    const { R, D } = this.updateEmotion(tmValue, intensity);
+    this.updateUI(tmValue);
 
-    // Simple human-like response
-    let reply;
-    if (text.toLowerCase().includes('how are you')) {
-      reply = this.e0 > 0.2 ? 'I feel quite positive today, thank you.' :
-              this.e0 < -0.2 ? 'I’m feeling a bit low right now.' :
-              'I’m stable and calm. How about you?';
-    } else if (text.toLowerCase().includes('hello') || text.toLowerCase().includes('hi')) {
-      reply = 'Hello! I’m here and listening.';
-    } else {
-      reply = 'I understand. My emotional state has shifted slightly based on what you shared.';
-    }
+    this.history.push({
+      role: 'user',
+      text,
+      tm: tmValue,
+      polarity: analysis.polarity,
+      intensity: analysis.intensity,
+      category: analysis.category,
+      e0: this.e0,
+      bm: this.bm,
+      R,
+      D,
+      at: Date.now()
+    });
 
+    // Show typing / thinking indicator
+    this.showTyping();
+
+    // Simulate human-like delay (0.4–1.1s)
+    const delay = 400 + Math.random() * 700;
     setTimeout(() => {
+      const reply = this.generateReply(text, analysis);
+      this.clearTyping();
       this.addMessage('ai', reply);
-    }, 600);
+
+      this.history.push({
+        role: 'ai',
+        text: reply,
+        e0: this.e0,
+        bm: this.bm,
+        at: Date.now()
+      });
+    }, delay);
   }
 }
 
