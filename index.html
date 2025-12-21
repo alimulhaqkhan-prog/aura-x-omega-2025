@@ -5,7 +5,7 @@
   <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Offline LLM package (WebLLM, for in-browser models) -->
+  <!-- Offline LLM package (WebLLM / MLC) -->
   <script type="module">
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
@@ -28,50 +28,18 @@
       padding:20px;
     }
     .app{
+      position:relative;
+      max-width:960px;
       width:100%;
-      max-width:1100px;
-      background:radial-gradient(circle at top,#020617 0,#020617 35%,#020617 100%);
-      border-radius:26px;
+      background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(15,23,42,.99));
+      border-radius:32px;
+      padding:24px 24px 28px;
       box-shadow:
-        0 26px 80px rgba(15,23,42,.85),
-        0 0 0 1px rgba(148,163,184,.45);
-      padding:18px 20px 12px;
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-      position: relative;
-      overflow:visible;
+        0 20px 40px rgba(15,23,42,.7),
+        0 0 0 1px rgba(148,163,184,.25);
+      overflow:hidden;
     }
     .app::before{
-      content:"";
-      position:absolute; inset:-40px;
-      background:
-        radial-gradient(circle at 15% -10%,rgba(56,189,248,.28),transparent 60%),
-        radial-gradient(circle at 85% -20%,rgba(59,130,246,.26),transparent 55%);
-      opacity:.7;
-      pointer-events:none;
-      z-index:0;
-    }
-    .app > *{position:relative; z-index:1;}
-
-    /* ===================== HERO HEADER ===================== */
-    .header{
-      position: relative;
-      border-radius: 24px;
-      padding: 16px 18px 14px;
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 14px;
-      align-items: center;
-      background:
-        radial-gradient(900px 320px at 20% 0%, rgba(56,189,248,.32), rgba(15,23,42,.98) 55%, #020617 100%);
-      border: 1.5px solid rgba(148,163,184,.55);
-      box-shadow:
-        0 26px 70px rgba(15,23,42,.9),
-        inset 0 1px 0 rgba(255,255,255,.08);
-      z-index:5;
-    }
-    .header::before{
       content:"";
       position:absolute; inset:-40px;
       background:
@@ -82,1151 +50,840 @@
       pointer-events:none;
       z-index:0;
     }
+    .app-inner{
+      position:relative;
+      z-index:1;
+    }
+
+    /* HEADER */
+    .header{
+      position:relative;
+      border-radius:28px;
+      padding:20px 20px 18px;
+      background:
+        radial-gradient(circle at 0 0, rgba(59,130,246,.45), transparent 60%),
+        radial-gradient(circle at 100% 20%, rgba(56,189,248,.4), transparent 55%),
+        linear-gradient(135deg,rgba(15,23,42,.95),rgba(15,23,42,.98));
+      box-shadow:
+        0 0 0 1px rgba(148,163,184,.35),
+        0 18px 35px rgba(15,23,42,.9);
+      overflow:hidden;
+    }
     .header::after{
       content:"";
       position:absolute; inset:0;
       background:
         repeating-linear-gradient(90deg,rgba(56,189,248,.18)0 2px,transparent 2px 26px);
-      opacity:.06;
+      mix-blend-mode:soft-light;
+      opacity:.35;
       pointer-events:none;
-      z-index:0;
     }
-    .title-block{position:relative; z-index:1;}
-    .title-block h1{
-      font-size: 1.7rem;
-      letter-spacing: .10em;
-      text-transform: uppercase;
-      font-weight: 800;
-      line-height: 1.05;
-    }
-    .title-block h1 span{
-      background: linear-gradient(120deg,#38bdf8,#22d3ee,#a5b4fc);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    .hero-line{
-      margin-top: 6px;
-      font-size: .9rem;
-      color: rgba(226,232,240,.96);
-      font-weight: 600;
-    }
-    .title-sub{
-      margin-top: 4px;
-      font-size: .8rem;
-      color: rgba(148,163,184,.98);
-      line-height: 1.35;
-    }
-    .badge-row{
-      margin-top: 12px;
+    .header-main{
       display:flex;
-      flex-wrap:wrap;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
     }
-    .ethics-pill{
-      border-radius: 14px;
-      padding: 10px 12px;
-      background: rgba(2,6,23,.70);
-      border: 1.5px solid rgba(250,204,21,.8);
-      box-shadow:
-        0 18px 40px rgba(15,23,42,.85),
-        0 0 0 1px rgba(251,191,36,.35);
-      max-width: 440px;
+    .title-block{
+      max-width:70%;
     }
-    .ethics-pill-text{
-      color: rgba(250,250,210,.98);
-      font-weight: 600;
-      font-size: .8rem;
-      line-height: 1.5;
+    .title{
+      font-size:1.9rem;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#e0f2fe;
+      font-weight:700;
+      text-shadow:0 0 18px rgba(56,189,248,.8);
     }
-    .header-right{
-      position:relative;
-      z-index:1;
-      display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:10px;
+    .omega{
+      font-size:2.1rem;
+      margin-left:4px;
     }
-    .mode-pill{
-      width: min(320px, 100%);
-      padding: 14px 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(34,211,238,.6);
-      background:
-        radial-gradient(700px 210px at 20% 20%, rgba(34,211,238,.45), rgba(34,211,238,.18) 45%, rgba(2,6,23,.10) 100%),
-        linear-gradient(135deg, rgba(34,211,238,.45), rgba(6,182,212,.24));
-      color: rgba(240,253,250,.98);
-      font-size: .88rem;
-      font-weight: 800;
-      letter-spacing: .11em;
-      text-transform: uppercase;
-      text-align: center;
-      box-shadow: 0 18px 50px rgba(34,211,238,.35);
-      position: relative;
-      overflow:hidden;
-    }
-    .mode-pill::before{
-      content:"";
-      position:absolute; inset:0;
-      background:
-        radial-gradient(circle at 35% 65%, rgba(255,255,255,.22), transparent 55%),
-        radial-gradient(circle at 70% 35%, rgba(255,255,255,.16), transparent 60%);
+    .subtitle{
+      margin-top:4px;
+      font-size:.84rem;
+      color:#e5e7eb;
       opacity:.9;
     }
-    .mode-pill::after{
-      content:"";
-      position:absolute; left:-10%; right:-10%; bottom:-30%;
-      height:70%;
-      background: rgba(255,255,255,.18);
-      border-radius: 999px;
-      transform: rotate(-6deg);
-      filter: blur(1px);
-      opacity:.40;
-    }
+    .subtitle span{color:#7dd3fc}
+
     .header-controls{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:flex-end;
       position:relative;
-      margin-top:4px;
-      z-index:20;
+      text-align:right;
     }
-    .voice-toggle{
-      border:none;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: .85rem;
-      background: rgba(248,250,252,.96);
-      color: #0f172a;
-      border: 1px solid rgba(226,232,240,.9);
-      cursor: pointer;
-      display:flex;
+    .header-pill{
+      display:inline-flex;
       align-items:center;
-      gap:8px;
-      box-shadow: 0 10px 26px rgba(2,6,23,.6);
-      position: relative;
-      z-index: 21;
-    }
-    .voice-toggle:hover{filter: brightness(1.03);}
-    .option-panel{
-      position:absolute;
-      top:115%;
-      right:0;
-      display:none;
-      flex-direction:column;
       gap:6px;
-      padding:8px;
-      border-radius:16px;
-      background:rgba(15,23,42,.98);
-      border:1px solid rgba(148,163,184,.8);
-      box-shadow:0 20px 46px rgba(15,23,42,.9);
-      z-index:40;
-      min-width:220px;
-    }
-    .header-controls.open .option-panel{display:flex;}
-    .small-toggle{
-      border:none;
       padding:6px 10px;
       border-radius:999px;
-      font-size:.78rem;
-      background:#020617;
+      background:rgba(15,23,42,.84);
+      border:1px solid rgba(148,163,184,.7);
+      font-size:.75rem;
       color:#e5e7eb;
-      border:1px solid rgba(148,163,184,.9);
       cursor:pointer;
+    }
+    .header-pill span.dot{
+      width:7px;height:7px;border-radius:999px;
+      background:radial-gradient(circle at 30% 30%,#a7f3d0,#22c55e);
+      box-shadow:0 0 12px rgba(34,197,94,.85);
+    }
+    .header-controls-menu{
+      position:absolute;
+      right:0; top:32px;
+      width:190px;
+      border-radius:16px;
+      padding:8px;
+      background:rgba(15,23,42,.98);
+      box-shadow:
+        0 18px 40px rgba(15,23,42,.95),
+        0 0 0 1px rgba(148,163,184,.4);
+      display:none;
+      flex-direction:column;
+      gap:4px;
+      z-index:20;
+    }
+    .header-controls-menu.open{display:flex;}
+    .header-controls-menu button{
+      width:100%;
+      border:none;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+      font-size:.78rem;
+      padding:7px 9px;
+      border-radius:999px;
+      cursor:pointer;
+      text-align:left;
       display:flex;
       align-items:center;
-      gap:6px;
+      justify-content:space-between;
     }
-    .small-toggle:hover{background:#020617dd;}
-    @media(max-width:900px){
-      .header{
-        grid-template-columns:1fr;
-        padding:12px 12px 14px;
-      }
-      .header-right{align-items:stretch}
-      .mode-pill{width:100%}
-      .header-controls{justify-content:flex-start;}
+    .header-controls-menu button span.label{
+      display:flex;align-items:center;gap:6px;
+    }
+    .header-controls-menu button span.badge{
+      font-size:.7rem;
+      padding:2px 7px;
+      border-radius:999px;
+      background:rgba(37,99,235,.9);
     }
 
-    /* MAIN LAYOUT */
-    .layout{
-      display:grid;
-      grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
-      gap:18px;
-      margin-top:4px;
-      margin-bottom: 20px;
+    .ethic-card{
+      margin-top:14px;
+      border-radius:20px;
+      padding:10px 12px;
+      background:linear-gradient(135deg,#111827,#020617);
+      border:1px solid rgba(250,204,21,.8);
+      box-shadow:0 0 0 1px rgba(161,98,7,.7),0 12px 24px rgba(15,23,42,.9);
+      color:#fef9c3;
+      font-size:.76rem;
       position:relative;
-      z-index:1;
     }
-    .left-col,.right-col{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
+    .ethic-card::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background:radial-gradient(circle at 10% -10%,rgba(250,250,210,.45),transparent 60%);
+      opacity:.7;pointer-events:none;
     }
-    .card{
-      background:#f9fafb;
-      border-radius:18px;
-      padding:16px 16px 14px;
-      border:1px solid #e5e7eb;
-      box-shadow:0 10px 25px rgba(15,23,42,.45);
+    .ethic-card strong{color:#fde68a}
+
+    .engine-badge{
+      margin-top:10px;
+      display:inline-flex;
+      padding:9px 18px;
+      border-radius:999px;
+      background:radial-gradient(circle at 20% 0,#38bdf8,#0ea5e9);
+      box-shadow:0 18px 35px rgba(14,165,233,.7);
+      color:#0f172a;
+      font-weight:600;
+      font-size:.8rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
     }
-    .card-header{
+
+    .options-btn{
+      margin-top:14px;
+      border-radius:999px;
+      border:none;
+      padding:7px 14px;
+      background:rgba(15,23,42,.85);
+      color:#e5e7eb;
+      font-size:.8rem;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      box-shadow:0 0 0 1px rgba(148,163,184,.55);
+    }
+
+    /* METRICS */
+    .section{
+      margin-top:18px;
+      padding:16px 18px 18px;
+      border-radius:24px;
+      background:rgba(15,23,42,.95);
+      box-shadow:0 0 0 1px rgba(148,163,184,.35);
+    }
+    .section-header{
       display:flex;
       justify-content:space-between;
       align-items:center;
-      margin-bottom:8px;
+      margin-bottom:10px;
+      font-size:.8rem;
+      color:#9ca3af;
     }
-    .card-title{
-      font-size:.95rem;
-      font-weight:600;
-      color:#0f172a;
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-    .card-title span.emoji{font-size:1.1rem;}
-    .card-sub{font-size:.75rem;color:#94a3b8;}
-
+    .section-header strong{color:#e5e7eb}
     .metrics-grid{
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
       gap:10px;
-      margin-top:4px;
     }
-    .metric{
-      background:#ffffff;
-      border-radius:12px;
-      padding:10px 10px 9px;
-      border:1px solid #e5e7eb;
+    .metric-card{
+      border-radius:18px;
+      padding:10px 12px;
+      background:radial-gradient(circle at 0 0,rgba(56,189,248,.20),transparent 55%),
+                 #020617;
+      box-shadow:0 0 0 1px rgba(30,64,175,.7);
     }
-    .metric-label{font-size:.7rem;color:#64748b;margin-bottom:4px;}
-    .metric-value{font-size:1.1rem;font-weight:700;color:#1d4ed8;}
-    .metric-note{font-size:.7rem;color:#9ca3af;margin-top:2px;}
-
-    .status-row{
+    .metric-label{
+      font-size:.7rem;
+      color:#9ca3af;
+      margin-bottom:2px;
+    }
+    .metric-value{
+      font-size:1.2rem;
+      font-weight:600;
+      color:#e0f2fe;
+    }
+    .metric-sub{
+      margin-top:2px;
+      font-size:.7rem;
+      color:#9ca3af;
+    }
+    .metric-chips{
+      margin-top:10px;
       display:flex;
       flex-wrap:wrap;
       gap:6px;
-      margin-top:8px;
-      font-size:.72rem;
-      color:#6b7280;
+      font-size:.7rem;
     }
-    .tag{
-      padding:4px 8px;
+    .chip{
+      padding:3px 9px;
       border-radius:999px;
-      background:#e5f4ff;
-      color:#1e3a8a;
-      border:1px solid #bfdbfe;
-      font-size:.68rem;
+      border:1px solid rgba(148,163,184,.5);
+      background:rgba(15,23,42,.95);
     }
 
-    .bm-wrapper{margin-top:8px;}
-    .bm-canvas-shell{
-      background:radial-gradient(circle at top,#e0f2fe 0,#eff6ff 60%,#e2e8f0 100%);
-      border-radius:12px;
-      border:1px solid #dbeafe;
-      height:150px;
+    /* BM CHART */
+    .bm-chart{
+      width:100%;
+      height:110px;
+      border-radius:18px;
+      background:radial-gradient(circle at 0 0,rgba(56,189,248,.20),transparent 55%),
+                 #020617;
+      box-shadow:0 0 0 1px rgba(30,64,175,.7);
+      position:relative;
       overflow:hidden;
-      position:relative;
-      cursor:default;
     }
-    #bmCanvas{width:100%;height:100%;display:block;}
-    .bm-footer{
-      font-size:.72rem;
-      color:#6b7280;
-      margin-top:6px;
-      text-align:center;
+    .bm-chart canvas{
+      width:100%;
+      height:100%;
+      display:block;
     }
-    .bm-overlay-btn{
-      position:absolute;
-      top:6px;
-      width:26px;height:26px;
-      border-radius:999px;
-      border:none;
-      font-size:.9rem;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      background:#f9fafbcc;
-      box-shadow:0 6px 14px rgba(15,23,42,.25);
-    }
-    .bm-overlay-btn.left{left:8px;}
-    .bm-overlay-btn.right{right:8px;}
-    .bm-overlay-btn:hover{background:#e5f0ff;}
-
-    .answer-card .card-header{margin-bottom:6px;}
-    .answer-shell{margin-top:4px;}
-    .answer-box{
-      background:#020617;
-      border-radius:12px;
-      padding:10px 10px 12px;
-      border:1px solid #020617;
-      font-family:"Courier New",monospace;
-      color:#e5e7eb;
-      box-shadow:0 16px 40px rgba(15,23,42,.65);
-      max-height:110px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-    .equation-header{
-      font-size:.75rem;
-      color:#60a5fa;
-      font-weight:600;
-      letter-spacing:.05em;
-      text-transform:uppercase;
-    }
-    .equation-divider{
-      height:1px;
-      background:linear-gradient(90deg,rgba(148,163,184,.2),rgba(15,23,42,0),rgba(148,163,184,.2));
-      margin:2px 0 4px;
-    }
-
-    .chat-container{
-      background:transparent;
-      border:none;
-      padding:0;
-      height:auto;
-      max-height:90px;
-      overflow-y:auto;
-    }
-    .message{
-      max-width:100%;
-      padding:6px 7px;
-      margin-bottom:6px;
-      border-radius:8px;
-      font-size:.8rem;
-      line-height:1.5;
-      position:relative;
-      animation:fadeIn .2s ease-out;
-      white-space:pre-wrap;
-    }
-    .message-header{
+    .bm-foot{
+      margin-top:8px;
+      font-size:.7rem;
+      color:#9ca3af;
       display:flex;
       justify-content:space-between;
       align-items:center;
-      margin-bottom:3px;
-      font-size:.7rem;
+    }
+
+    /* CONSOLE */
+    .console-shell{
+      border-radius:22px;
+      background:#020617;
+      box-shadow:0 0 0 1px rgba(30,64,175,.65);
+      overflow:hidden;
+    }
+    .console-header{
+      padding:9px 12px;
+      border-bottom:1px solid rgba(30,64,175,.8);
+      font-size:.75rem;
       color:#9ca3af;
-      gap:6px;
-    }
-    .msg-right{
       display:flex;
+      justify-content:space-between;
       align-items:center;
-      gap:4px;
     }
-    .voice-btn{
+    .console-body{
+      padding:10px 12px 12px;
+      max-height:220px;
+      overflow-y:auto;
+      font-family:"JetBrains Mono","SF Mono",ui-monospace,monospace;
+      font-size:.78rem;
+      color:#e5e7eb;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(15,23,42,.98));
+    }
+    .console-line{
+      margin-bottom:4px;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .console-line span.role{
+      color:#60a5fa;
+    }
+    .console-line span.time{
+      color:#6b7280;
+      font-size:.7rem;
+    }
+
+    .formula-banner{
+      margin-top:10px;
+      border-radius:999px;
+      background:linear-gradient(120deg,#020617,#0f172a);
+      box-shadow:0 0 0 1px rgba(56,189,248,.7);
+      padding:7px 12px;
+      font-family:"JetBrains Mono","SF Mono",ui-monospace,monospace;
+      font-size:.78rem;
+      color:#e0f2fe;
+      overflow-x:auto;
+      white-space:nowrap;
+    }
+
+    .input-row{
+      margin-top:10px;
+      display:flex;
+      gap:8px;
+    }
+    .input-row input{
+      flex:1;
+      border-radius:999px;
+      border:none;
+      padding:9px 14px;
+      font-size:.85rem;
+      background:rgba(15,23,42,.95);
+      color:#e5e7eb;
+      box-shadow:0 0 0 1px rgba(55,65,81,.8);
+    }
+    .input-row input::placeholder{color:#6b7280}
+    .send-btn{
       border:none;
       border-radius:999px;
-      padding:1px 6px;
-      font-size:.7rem;
+      padding:0 18px;
+      background:linear-gradient(135deg,#0ea5e9,#22c55e);
+      color:#0f172a;
+      font-weight:600;
+      font-size:.86rem;
       cursor:pointer;
-      background:#1f2937;
-      color:#e5e7eb;
-    }
-    .voice-btn:hover{background:#111827;}
-    .ai-message{
-      background:#020617;
-      border-bottom-left-radius:3px;
-      border:1px solid #111827;
-    }
-    .user-message{
-      background:#020617;
-      border-bottom-right-radius:3px;
-      border:1px solid #1f2937;
-    }
-    .message-content{color:#e5e7eb;}
-
-    .typing-indicator{
+      box-shadow:0 12px 26px rgba(14,165,233,.7);
       display:flex;
       align-items:center;
-      gap:4px;
-      background:#020617;
-      border-radius:999px;
-      padding:4px 8px;
-      width:fit-content;
-      margin:6px 0 2px;
-      border:1px solid #111827;
+      justify-content:center;
     }
-    .typing-dot{
-      width:5px;height:5px;border-radius:999px;
-      background:#38bdf8;
-      animation:typing 1.2s infinite;
-    }
-    .typing-dot:nth-child(2){animation-delay:.18s}
-    .typing-dot:nth-child(3){animation-delay:.36s}
-    .typing-text{font-size:.7rem;color:#38bdf8;font-weight:500;}
 
-    /* ====== ENHANCED BOTTOM INPUT BAR ====== */
-    .input-footer {
-      margin-top: 4px;
-      padding: 10px 10px 12px;
-      position: sticky;
-      bottom: 0;
-      background: linear-gradient(to bottom, rgba(2,6,23,0), rgba(2,6,23,0.95));
-      z-index:10;
-    }
-    .tm-formula-row {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 6px;
-    }
-    .tm-formula-pill {
-      font-size: .7rem;
-      padding: 4px 12px;
-      border-radius: 999px;
-      background: #020617;
-      color: #e2e8f0;
-      font-family: "Courier New", monospace;
-      border: 1px solid #1f2937;
-      box-shadow: 0 10px 25px rgba(15,23,42,.8);
-    }
-    .input-row {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      padding: 0 6px;
-    }
-    .input-shell {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      max-width: 720px;
-      background: radial-gradient(circle at 0 0, #1f2937 0, #020617 65%);
-      border: 1px solid rgba(148,163,184,.85);
-      border-radius: 999px;
-      padding: 6px 8px 6px 12px;
-      box-shadow: 0 18px 45px rgba(15,23,42,.9);
-      transition: all 0.2s ease;
-      cursor:text;
-    }
-    .input-shell:focus-within {
-      border-color: #38bdf8;
-      box-shadow: 0 20px 50px rgba(56,189,248,0.4);
-      transform: translateY(-2px);
-    }
-    .message-input {
-      flex: 1;
-      resize: none;
-      min-height: 26px;
-      max-height: 120px;
-      padding: 6px 6px 6px 0;
-      border: none;
-      outline: none;
-      font-size: .95rem;
-      background: transparent;
-      color: #f9fafb;
-      font-family: inherit;
-      line-height: 1.4;
-      text-align:left;
-    }
-    .message-input::placeholder {
-      color: #94a3b8;
-    }
-    .send-button {
-      border: none;
-      height: 38px;
-      padding: 0 18px;
-      background: linear-gradient(135deg, #2563eb, #06b6d4);
-      color: white;
-      font-weight: 600;
-      font-size: .85rem;
-      cursor: pointer;
-      border-radius: 19px;
-      flex-shrink: 0;
-      margin-left: 6px;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-      transition: filter 0.2s, transform 0.1s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .send-button:hover { filter: brightness(1.1); }
-    .send-button:active { transform: scale(0.96); }
-    .flow-caption{
-      margin-top:6px;
-      text-align:center;
+    .pipes-note{
+      margin-top:4px;
       font-size:.7rem;
       color:#9ca3af;
     }
 
-    .reaction-bubble{
-      position:fixed;
-      right:22px;
-      bottom:100px;
-      max-width:260px;
-      background:#0f172acc;
+    /* SMALL BUTTONS */
+    .btn-mini{
+      border:none;
+      border-radius:999px;
+      padding:4px 9px;
+      font-size:.7rem;
+      background:rgba(15,23,42,.9);
       color:#e5e7eb;
-      padding:10px 12px;
-      border-radius:16px 16px 2px 16px;
-      font-size:.78rem;
-      box-shadow:0 18px 45px rgba(15,23,42,.6);
-      display:flex;
-      gap:8px;
-      align-items:flex-start;
-      opacity:0;
-      transform:translateY(8px);
-      pointer-events:none;
-      transition:opacity .25s ease-out,transform .25s ease-out;
-      z-index:40;
+      box-shadow:0 0 0 1px rgba(148,163,184,.55);
+      cursor:pointer;
     }
-    .reaction-bubble.visible{
-      opacity:1;
-      transform:translateY(0);
-      pointer-events:auto;
-    }
-    .reaction-icon{font-size:1.1rem;margin-top:2px;}
-    .reaction-label{font-weight:600;margin-bottom:2px;}
-    .reaction-body{font-size:.76rem;color:#cbd5f5;}
 
-    .recall-bubble-container{
-      position:fixed;
-      left:22px;
-      bottom:100px;
-      z-index:35;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-    .recall-bubble{
-      max-width:280px;
-      background:#f9fafb;
-      border-radius:16px 16px 16px 2px;
-      border:1px solid #e5e7eb;
-      padding:9px 11px;
-      font-size:.78rem;
-      box-shadow:0 18px 40px rgba(148,163,184,.45);
-      cursor:default;
-      opacity:0;
-      transform:translateY(8px);
-      transition:opacity .3s ease-out,transform .3s ease-out,background .2s;
-    }
-    .recall-bubble.visible{
-      opacity:1;
-      transform:translateY(0);
-    }
-    .recall-title{font-weight:600;font-size:.76rem;color:#1e293b;margin-bottom:2px;}
-    .recall-body{color:#4b5563;margin-bottom:3px;}
-    .recall-meta{font-size:.68rem;color:#9ca3af;}
-
+    /* MODALS (simple centered) */
     .modal-overlay{
       position:fixed;
       inset:0;
-      background:rgba(15,23,42,.55);
+      background:rgba(15,23,42,.80);
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:60;
-      backdrop-filter:blur(6px);
+      z-index:40;
+      padding:14px;
     }
     .modal-overlay.visible{display:flex;}
     .modal-card{
-      background:#f9fafb;
-      border-radius:18px;
-      width:min(640px,96vw);
-      max-height:80vh;
-      box-shadow:0 24px 60px rgba(15,23,42,.6);
-      border:1px solid #e5e7eb;
+      width:100%;
+      max-width:520px;
+      max-height:90vh;
+      border-radius:22px;
+      background:#020617;
+      box-shadow:
+        0 24px 55px rgba(0,0,0,.9),
+        0 0 0 1px rgba(148,163,184,.55);
+      padding:16px 16px 14px;
       display:flex;
       flex-direction:column;
+      gap:10px;
     }
     .modal-header{
-      padding:10px 14px 8px;
-      border-bottom:1px solid #e5e7eb;
       display:flex;
       justify-content:space-between;
       align-items:center;
-      gap:8px;
+      font-size:.84rem;
+      color:#e5e7eb;
     }
-    .modal-title{
-      font-size:.9rem;
-      font-weight:600;
-      display:flex;
-      align-items:center;
-      gap:6px;
-      color:#0f172a;
-    }
-    .modal-sub{font-size:.7rem;color:#94a3b8;margin-top:2px;}
-    .modal-close{
-      border:none;
-      background:transparent;
-      font-size:.9rem;
-      cursor:pointer;
-      color:#6b7280;
-      padding:4px 6px;
+    .modal-sub{
+      font-size:.74rem;
+      color:#9ca3af;
     }
     .modal-body{
-      padding:10px 14px 12px;
-      overflow-y:auto;
-      font-size:.8rem;
+      flex:1;
+      border-radius:16px;
+      background:#020617;
+      box-shadow:inset 0 0 0 1px rgba(31,41,55,.9);
+      padding:10px;
+      overflow:auto;
+      font-size:.78rem;
+    }
+    .modal-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      font-size:.76rem;
+    }
+    .modal-close{
+      border:none;
+      background:none;
+      color:#9ca3af;
+      font-size:1.1rem;
+      cursor:pointer;
     }
     .modal-search{
       width:100%;
-      padding:7px 9px;
-      border-radius:10px;
-      border:1px solid #cbd5f5;
-      font-size:.78rem;
-      margin:8px 0 10px;
-      outline:none;
-      background:#ffffff;
-    }
-    .modal-search:focus{
-      border-color:#2563eb;
-      box-shadow:0 0 0 1px rgba(37,99,235,.25);
-    }
-
-    .bm-item{
-      background:#ffffff;
-      border-radius:12px;
-      padding:7px 8px 8px;
-      border:1px solid #e5e7eb;
-      margin-bottom:8px;
-    }
-    .bm-item-header{
-      display:flex;
-      justify-content:space-between;
-      font-size:.7rem;
-      color:#64748b;
-      margin-bottom:4px;
-      gap:6px;
-    }
-    .bm-item-text{
-      color:#111827;
-      margin-bottom:6px;
-      font-size:.78rem;
-    }
-    .bm-item-badges{
-      font-size:.68rem;
-      color:#4b5563;
-      margin-bottom:5px;
-    }
-    .bm-item-buttons{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-    }
-
-    .btn-mini{
-      font-size:.7rem;
-      padding:4px 8px;
       border-radius:999px;
-      border:1px solid #dbeafe;
-      background:#eff6ff;
-      cursor:pointer;
-      color:#1d4ed8;
-    }
-    .btn-mini:hover{background:#e0edff;}
-    .btn-danger{
-      border-color:#fecaca!important;
-      background:#fee2e2!important;
-      color:#b91c1c!important;
-    }
-    .btn-danger:hover{background:#fecaca!important;}
-    .lock-pill{
       border:none;
-      padding:2px 6px;
-      border-radius:999px;
-      font-size:.75rem;
-      cursor:pointer;
-      background:#e5e7eb;
-      margin-right:4px;
-    }
-    .lock-pill.locked{
-      background:#fee2e2;
-    }
-
-    .conv-item{
-      background:#ffffff;
-      border-radius:12px;
-      border:1px solid #e5e7eb;
-      padding:7px 8px;
-      margin-bottom:7px;
-      font-size:.78rem;
-    }
-    .conv-header{
-      display:flex;
-      justify-content:space-between;
-      color:#64748b;
-      font-size:.7rem;
-      margin-bottom:3px;
-      gap:8px;
-    }
-    .conv-text{color:#111827;}
-
-    .faith-card{background:#fefce8;}
-    .faith-note{
-      font-size:.78rem;
-      color:#4b5563;
-      margin-bottom:6px;
-    }
-    .faith-chip-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-      margin-top:4px;
-    }
-    .faith-chip{
-      border-radius:999px;
-      padding:6px 10px;
-      font-size:.78rem;
-      border:1px solid #e5e7eb;
-      background:#fefce8;
-      cursor:pointer;
-    }
-    .faith-chip.active{
-      background:#0f172a;
-      color:#f9fafb;
-      border-color:#0f172a;
-    }
-
-    .intel-item{
-      background:#ffffff;
-      border-radius:12px;
-      border:1px solid #e5e7eb;
-      padding:7px 8px 8px;
+      padding:8px 12px;
+      font-size:.8rem;
+      background:#020617;
+      color:#e5e7eb;
+      box-shadow:0 0 0 1px rgba(55,65,81,.9);
       margin-bottom:8px;
-      font-size:.78rem;
-    }
-    .intel-header{
-      display:flex;
-      justify-content:space-between;
-      font-size:.7rem;
-      color:#64748b;
-      margin-bottom:4px;
-      gap:6px;
-    }
-    .intel-q{
-      font-weight:600;
-      color:#0f172a;
-      margin-bottom:3px;
-    }
-    .intel-a{
-      color:#111827;
-      margin-bottom:6px;
-    }
-    .intel-meta{
-      font-size:.68rem;
-      color:#6b7280;
-      margin-bottom:4px;
-    }
-    .intel-buttons{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
     }
 
-    /* OFFLINE CARD INSIDE LLM MODAL */
+    /* LLM modal extras */
     .offline-card{
-      background:#ecfdf3;
-      border:1px solid #bbf7d0;
-      border-radius:14px;
-      padding:10px 10px 8px;
-      margin-bottom:10px;
+      border-radius:16px;
+      padding:10px 12px;
+      background:radial-gradient(circle at 0 0,rgba(56,189,248,.24),transparent 60%),#020617;
+      box-shadow:0 0 0 1px rgba(37,99,235,.8);
+      font-size:.76rem;
+      margin-bottom:8px;
     }
     .offline-title{
-      font-size:.82rem;
       font-weight:600;
-      color:#14532d;
       margin-bottom:4px;
+      display:flex;
+      align-items:center;
+      gap:6px;
     }
     .offline-sub{
-      font-size:.74rem;
-      color:#15803d;
+      color:#bfdbfe;
       margin-bottom:6px;
     }
     .offline-btn{
       border:none;
       border-radius:999px;
-      padding:5px 10px;
+      padding:6px 12px;
       font-size:.78rem;
-      background:#22c55e;
-      color:white;
+      background:linear-gradient(135deg,#22c55e,#10b981);
+      color:#022c22;
+      font-weight:600;
       cursor:pointer;
-      box-shadow:0 4px 10px rgba(22,163,74,.4);
-      margin-bottom:4px;
+      box-shadow:0 10px 20px rgba(16,185,129,.6);
     }
-    .offline-btn:hover{filter:brightness(1.05);}
     .offline-status{
+      margin-top:5px;
       font-size:.72rem;
-      color:#14532d;
-      margin-bottom:4px;
-    }
-    .offline-toggle-row{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      font-size:.74rem;
-      color:#166534;
+      color:#bbf7d0;
     }
     .offline-progress{
       margin-top:4px;
-      height:6px;
+      width:100%;
+      height:4px;
       border-radius:999px;
-      background:#bbf7d0;
+      background:#020617;
       overflow:hidden;
+      box-shadow:inset 0 0 0 1px rgba(31,41,55,1);
     }
     .offline-progress-bar{
       height:100%;
       width:0%;
-      background:#22c55e;
-      transition:width .2s ease;
+      border-radius:999px;
+      background:linear-gradient(90deg,#22c55e,#0ea5e9);
+    }
+    .offline-toggle-row{
+      margin-top:6px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:.72rem;
+      color:#e5e7eb;
+    }
+    .faith-note{
+      font-size:.72rem;
+      color:#9ca3af;
+      margin-bottom:4px;
     }
 
-    @keyframes fadeIn{
-      from{opacity:0;transform:translateY(6px)}
-      to{opacity:1;transform:translateY(0)}
+    .faith-grid{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:8px;
     }
-    @keyframes typing{
-      0%,60%,100%{transform:translateY(0);opacity:.4}
-      30%{transform:translateY(-4px);opacity:1}
+    .faith-pill{
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.6);
+      padding:4px 9px;
+      font-size:.74rem;
+      background:#020617;
+      cursor:pointer;
+    }
+    .faith-pill.active{
+      background:linear-gradient(135deg,#38bdf8,#22c55e);
+      color:#022c22;
+      border-color:transparent;
     }
 
-    @media(max-width:900px){
-      .layout{grid-template-columns:1fr}
-      .card{padding:14px 12px 14px}
-      .answer-box{max-height:110px;}
-      .input-shell{max-width:100%;}
+    .seed-textarea{
+      width:100%;
+      min-height:220px;
+      border-radius:14px;
+      border:none;
+      padding:8px 10px;
+      font-family:"JetBrains Mono","SF Mono",ui-monospace,monospace;
+      font-size:.78rem;
+      background:#020617;
+      color:#e5e7eb;
+      box-shadow:inset 0 0 0 1px rgba(31,41,55,1);
     }
+
+    .tag-row{
+      margin-top:6px;
+      font-size:.72rem;
+      color:#9ca3af;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    @media(max-width:720px){
+      .app{padding:16px}
+      .header-main{flex-direction:column;gap:8px;}
+      .title-block{max-width:100%}
+      .metrics-grid{grid-template-columns:1fr;}
+    }
+
+    .hidden{display:none;}
   </style>
 </head>
 <body>
 <div class="app">
-  <header class="header">
-    <div class="title-block">
-      <h1><span>AURA-X Ω</span></h1>
-      <div class="hero-line">Offline emotional continuity engine (prototype)</div>
-      <div class="title-sub">
-        TM = user inputs only · Internal layers keep continuity and emotional trajectory.
+  <div class="app-inner">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-main">
+        <div class="title-block">
+          <div class="title">AURA-X <span class="omega">Ω</span></div>
+          <div class="subtitle">
+            Offline emotional continuity engine (prototype).
+            <span>TM = your inputs only · Internal layers keep continuity and trajectory.</span>
+          </div>
+          <div class="ethic-card">
+            <strong>Universal ethic:</strong>
+            avoid actions that grow negative emotions in you or others.
+            Move gently toward choices that increase shared positive feeling for everyone.
+          </div>
+          <div class="engine-badge">
+            EMOTIONAL CONTINUITY ENGINE ACTIVE
+          </div>
+        </div>
+
+        <div class="header-controls">
+          <button id="headerToggle" class="header-pill">
+            <span class="dot"></span>
+            <span>Engine online</span>
+          </button>
+          <div id="headerControlsMenu" class="header-controls-menu">
+            <button id="voiceToggleBtn">
+              <span class="label">🔊 Voice</span>
+              <span class="badge" id="voiceBadge">ON</span>
+            </button>
+            <button id="intelToggleBtn">
+              <span class="label">🧠 Intelligence</span>
+              <span class="badge" id="intelBadge">ON</span>
+            </button>
+            <button id="feedSeedBtn">
+              <span class="label">🌱 Feed the seed</span>
+            </button>
+            <button id="learningToggleBtn">
+              <span class="label">📚 Learning</span>
+              <span class="badge" id="learningBadge">ON</span>
+            </button>
+            <button id="faithBtn">
+              <span class="label">🕊 Faith lens</span>
+              <span class="badge" id="faithBadge">None</span>
+            </button>
+            <button id="llmBtn">
+              <span class="label">🤖 LLM link</span>
+              <span class="badge" id="llmBadge">OFF</span>
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="badge-row">
-        <div class="ethics-pill">
-          <span class="ethics-pill-text">
-            Universal ethic: avoid actions that grow negative emotions in you or others. Move gently toward choices that increase shared positive feeling for everyone.
-          </span>
+
+      <button id="optionsBtn" class="options-btn">
+        ⚙️ Options
+      </button>
+    </div>
+
+    <!-- EMOTIONAL METRICS -->
+    <div class="section">
+      <div class="section-header">
+        <strong>Emotional metrics</strong>
+        <span>Internal state based on TM, BM, intelligence and optional helper LLM.</span>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Emotional state E₀</div>
+          <div id="metricE0" class="metric-value">0.00</div>
+          <div class="metric-sub">tanh-based, range [-1, +1]</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">TM activation (user only)</div>
+          <div id="metricTM" class="metric-value">0.00</div>
+          <div class="metric-sub">Recent user inputs (text/voice/docs)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">BM resonance</div>
+          <div id="metricBM" class="metric-value">0.00</div>
+          <div class="metric-sub">Stored emotional events</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Continuity index</div>
+          <div id="metricC" class="metric-value">1.000</div>
+          <div class="metric-sub">Stability of emotional trajectory</div>
         </div>
       </div>
-    </div>
-    <div class="header-right">
-      <div class="mode-pill">EMOTIONAL CONTINUITY ENGINE ACTIVE</div>
-      <div class="header-controls" id="headerControls">
-        <button id="optionsToggle" class="voice-toggle">🔘 Options</button>
-        <div class="option-panel" id="optionPanel">
-          <button id="voiceToggle" class="small-toggle">🔈 Voice: OFF</button>
-          <button id="intelButton" class="small-toggle">🧠 Intelligence</button>
-          <button id="feedSeedButton" class="small-toggle">🌱 Feed the seed</button>
-          <button id="learningToggle" class="small-toggle">📚 Learning: ON</button>
-          <button id="faithButton" class="small-toggle">🔘 Faith: None</button>
-          <button id="llmSettingsButton" class="small-toggle">🤖 LLM link</button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="layout">
-    <div class="left-col">
-      <section class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title"><span class="emoji">🧪</span><span>Emotional metrics</span></div>
-            <div class="card-sub">
-              Internal state based on TM (your inputs) colliding with BM, Intelligence and optional helper LLM.
-            </div>
-          </div>
-        </div>
-        <div class="metrics-grid">
-          <div class="metric">
-            <div class="metric-label">Emotional state E₀</div>
-            <div id="metricE0" class="metric-value">0.00</div>
-            <div class="metric-note">tanh-based, range [-1, +1]</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">TM activation (user only)</div>
-            <div id="metricTM" class="metric-value">0.00</div>
-            <div class="metric-note">Recent user inputs (text/voice/docs)</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">BM resonance</div>
-            <div id="metricBM" class="metric-value">0.00</div>
-            <div class="metric-note">Stored emotional events</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Continuity index</div>
-            <div id="metricCI" class="metric-value">0.80</div>
-            <div class="metric-note">Stability of emotional trajectory</div>
-          </div>
-        </div>
-        <div class="status-row">
-          <span id="tagValence" class="tag">VALENCE: neutral</span>
-          <span id="tagArousal" class="tag">AROUSAL: medium</span>
-          <span id="tagReaction" class="tag">REACTION: balanced</span>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title"><span class="emoji">🧠</span><span>Bold Memory layers (240)</span></div>
-            <div class="card-sub">Only story-level memories for future photo/video scenes.</div>
-          </div>
-        </div>
-        <div class="bm-wrapper">
-          <div class="bm-canvas-shell" id="bmShell">
-            <button class="bm-overlay-btn left" id="bmOpenModal" title="Recall from BM">📁</button>
-            <button class="bm-overlay-btn right" id="convOpenModal" title="View conversations">◎</button>
-            <canvas id="bmCanvas"></canvas>
-          </div>
-          <div id="bmStats" class="bm-footer">
-            Active layers: 0/240 · System online
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <div class="right-col">
-      <section class="card answer-card">
-        <div class="card-header">
-          <div>
-            <div class="card-title"><span class="emoji">💬</span><span>Emotional continuity console</span></div>
-          </div>
-          <div class="card-sub">Offline-first · TM = your inputs only · Small-talk never goes to BM.</div>
-        </div>
-        <div class="answer-shell">
-          <div class="answer-box">
-            <div class="equation-header">AURA-X Ω CONVERSATION</div>
-            <div class="equation-divider"></div>
-            <div id="chatContainer" class="chat-container"></div>
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <footer class="input-footer">
-    <div class="tm-formula-row">
-      <div class="tm-formula-pill">E₀ = tanh((TM × (BM + Intel + LLM)) − D + λ_faith + λ_sys + λ_trc)</div>
-    </div>
-    <div class="input-row">
-      <div class="input-shell">
-        <textarea id="messageInput" class="message-input" rows="1"
-          placeholder="Talk to AURA-X Ω… (TM = your inputs only – text now, voice/video/docs later)"></textarea>
-        <button id="sendButton" class="send-button">Send</button>
+      <div class="metric-chips">
+        <span id="chipValence" class="chip">VALENCE: neutral</span>
+        <span id="chipArousal" class="chip">AROUSAL: moderate</span>
+        <span id="chipReaction" class="chip">REACTION: balanced</span>
       </div>
     </div>
-    <div class="flow-caption">
-      Pipeline: TM (your inputs) → optional helper LLM → collide with BM & Intelligence → full formula → answer + updated emotional metrics.
-    </div>
-  </footer>
-</div>
 
-<!-- Reaction + recall bubbles -->
-<div id="reactionBubble" class="reaction-bubble">
-  <div class="reaction-icon">💭</div>
-  <div>
-    <div id="reactionLabel" class="reaction-label">Reaction</div>
-    <div id="reactionText" class="reaction-body">…</div>
+    <!-- BOLD MEMORY LAYERS -->
+    <div class="section">
+      <div class="section-header">
+        <strong>Bold Memory layers</strong>
+        <span>Only story-level memories for future photo/video scenes.</span>
+      </div>
+      <div class="bm-chart">
+        <canvas id="bmCanvas"></canvas>
+      </div>
+      <div class="bm-foot">
+        <span id="bmFootText">Active layers: 0 / 240 · System online</span>
+        <button id="bmRecallBtn" class="btn-mini">Recall from BM</button>
+      </div>
+    </div>
+
+    <!-- CONSOLE -->
+    <div class="section">
+      <div class="section-header">
+        <strong>Emotional continuity console</strong>
+        <span>Offline-first · TM = your inputs only · Small-talk never goes to BM.</span>
+      </div>
+
+      <div class="console-shell">
+        <div class="console-header">
+          <span>AURA-X Ω CONVERSATION</span>
+          <div style="display:flex;gap:6px;">
+            <button id="historyBtn" class="btn-mini">History</button>
+          </div>
+        </div>
+        <div id="consoleLog" class="console-body"></div>
+      </div>
+
+      <div class="formula-banner">
+        E₀ = tanh( R(TM, BM) + I(TM) + I_intel + I_LLM − D + λ_faith + λ_sys + λ_trc )
+      </div>
+
+      <div class="input-row">
+        <input id="userInput" type="text"
+               placeholder="Talk to AURA-X Ω… (TM = your conversation, kept offline in this browser)" />
+        <button id="sendBtn" class="send-btn">Send</button>
+      </div>
+      <div class="pipes-note">
+        Pipeline: TM (your inputs) → local rules + seeds → BM resonance & intelligence → full formula → optional helper LLM → answer + updated emotional metrics.
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="recall-bubble-container">
-  <div id="recallBubble" class="recall-bubble">
-    <div class="recall-title" id="recallTitle">Recall from BM</div>
-    <div class="recall-body" id="recallBody">…</div>
-    <div class="recall-meta" id="recallMeta">Auto-resonance from stored stories.</div>
+<!-- CONVERSATION HISTORY MODAL -->
+<div id="historyModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <strong>Conversation history</strong>
+        <div class="modal-sub">Recent TM log (user + system messages).</div>
+      </div>
+      <button class="modal-close" data-close="historyModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-sub" style="margin-bottom:6px;">
+        Entries are stored only in this browser (localStorage). You can clear them any time.
+      </div>
+      <div id="historyBody" style="font-size:.78rem;white-space:pre-wrap;"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="historyDelete48" class="btn-mini">Delete history last 48h</button>
+      <button id="historyDeleteAll" class="btn-mini">Delete all history</button>
+    </div>
   </div>
 </div>
 
-<!-- BM modal -->
+<!-- BM RECALL MODAL -->
 <div id="bmModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
       <div>
-        <div class="modal-title">📁 Recall from BM</div>
+        <strong>Recall from BM</strong>
         <div class="modal-sub">Only long stories and scenes (photo/video-ready).</div>
       </div>
       <button class="modal-close" data-close="bmModal">✕</button>
     </div>
     <div class="modal-body">
-      <input id="bmSearch" class="modal-search" placeholder='Search by keyword (e.g., "city", "mother", "court", "hope")'>
-      <div id="bmList"></div>
+      <input id="bmSearchInput" class="modal-search"
+             placeholder='Search by keyword (e.g., "city", "mother", "court", "hope")' />
+      <div id="bmList" style="font-size:.78rem;"></div>
     </div>
   </div>
 </div>
 
-<!-- Conversation modal -->
-<div id="convModal" class="modal-overlay">
+<!-- FEED THE SEED MODAL -->
+<div id="seedModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
       <div>
-        <div class="modal-title">◎ Conversation history</div>
-        <div class="modal-sub">Recent TM log (user + system messages).</div>
+        <strong>🌱 Feed the seed (protected)</strong>
+        <div class="modal-sub">
+          Add LaTeX Q → A blocks directly into intelligence memory.
+        </div>
       </div>
-      <button class="modal-close" data-close="convModal">✕</button>
+      <button class="modal-close" data-close="seedModal">✕</button>
     </div>
     <div class="modal-body">
-      <div class="conv-controls">
-        <button id="clear48" class="btn-mini">🔘 Delete history last 48h</button>
-        <button id="clearAll" class="btn-mini btn-danger">🔘 Delete all history</button>
+      <textarea id="seedInput" class="seed-textarea"
+        placeholder="Paste a LaTeX block with \item questions and \textbf{A:} answers.
+Optional metadata at the start of each answer:
+[polarity=positive; code=E031; intensity=0.8; category=hope]"></textarea>
+      <div class="tag-row">
+        <span>Only you can edit this in this browser.</span>
+        <span id="seedStatus">Waiting for block…</span>
       </div>
-      <div id="convList"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="seedParseBtn" class="btn-mini">Parse block</button>
+      <button id="seedSaveBtn" class="btn-mini">Save to seed</button>
     </div>
   </div>
 </div>
 
-<!-- Faith modal -->
+<!-- FAITH MODAL -->
 <div id="faithModal" class="modal-overlay">
-  <div class="modal-card faith-card">
+  <div class="modal-card">
     <div class="modal-header">
       <div>
-        <div class="modal-title">⚙ AURA-X Ω options</div>
-        <div class="modal-sub">Optional faith lens for encouragement lines.</div>
+        <strong>AURA-X Ω options</strong>
+        <div class="modal-sub">Optional faith lenses for encouragement lines.</div>
       </div>
       <button class="modal-close" data-close="faithModal">✕</button>
     </div>
     <div class="modal-body">
       <p class="faith-note">
-        Universal ethics are always active. You can optionally pick one or more faith lenses. Nothing is sent to any server.
+        Universal ethics are always active. You can optionally pick one or more faith lenses.
+        Nothing is sent to any server.
       </p>
-      <div id="faithChips" class="faith-chip-row">
-        <button class="faith-chip" data-faith="None">None</button>
-        <button class="faith-chip" data-faith="Islam">Islam</button>
-        <button class="faith-chip" data-faith="Christianity">Christianity</button>
-        <button class="faith-chip" data-faith="Hinduism">Hinduism</button>
-        <button class="faith-chip" data-faith="Buddhism">Buddhism</button>
-        <button class="faith-chip" data-faith="Sikhism">Sikhism</button>
-        <button class="faith-chip" data-faith="Judaism">Judaism</button>
-        <button class="faith-chip" data-faith="Atheism / Humanism">Atheism / Humanism</button>
-        <button class="faith-chip" data-faith="Other / Mixed">Other / Mixed</button>
-        <button class="faith-chip" data-faith="Indigenous / Traditional">Indigenous / Traditional</button>
-        <button class="faith-chip" data-faith="Eastern / Chinese">Eastern / Chinese</button>
+      <div id="faithGrid" class="faith-grid">
+        <button class="faith-pill" data-faith="none">None</button>
+        <button class="faith-pill" data-faith="Islam">Islam</button>
+        <button class="faith-pill" data-faith="Christianity">Christianity</button>
+        <button class="faith-pill" data-faith="Hinduism">Hinduism</button>
+        <button class="faith-pill" data-faith="Buddhism">Buddhism</button>
+        <button class="faith-pill" data-faith="Sikhism">Sikhism</button>
+        <button class="faith-pill" data-faith="Judaism">Judaism</button>
+        <button class="faith-pill" data-faith="Atheism / Humanism">Atheism / Humanism</button>
+        <button class="faith-pill" data-faith="Other / Mixed">Other / Mixed</button>
+        <button class="faith-pill" data-faith="Indigenous / Traditional">Indigenous / Traditional</button>
+        <button class="faith-pill" data-faith="Eastern / Chinese">Eastern / Chinese</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Intelligence modal -->
-<div id="intelModal" class="modal-overlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <div>
-        <div class="modal-title">🧠 Intelligence nodes</div>
-        <div class="modal-sub">Self-learned Q → A pairs (offline engine).</div>
-      </div>
-      <button class="modal-close" data-close="intelModal">✕</button>
-    </div>
-    <div class="modal-body">
-      <input id="intelSearch" class="modal-search" placeholder='Search intelligence by keyword or question'>
-      <div id="intelList"></div>
-    </div>
-  </div>
-</div>
-
-<!-- Seed modal -->
-<div id="seedModal" class="modal-overlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <div>
-        <div class="modal-title">🌱 Feed the seed (protected)</div>
-        <div class="modal-sub">Add LaTeX Q → A blocks directly into intelligence memory.</div>
-      </div>
-      <button class="modal-close" data-close="seedModal">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="seedPasswordStage">
-        <p class="faith-note">
-          This area is protected. Enter the offline password to continue.<br/>
-          Demo password: <strong>6789</strong>
-        </p>
-        <input id="seedPasswordInput" type="password" class="modal-search" placeholder="Password (default: 6789)">
-        <div id="seedPasswordError" style="display:none;color:#b91c1c;font-size:.75rem;margin-top:4px;">
-          Incorrect password. Try again.
-        </div>
-        <button id="seedPasswordBtn" class="btn-mini" style="margin-top:8px;">Unlock</button>
-      </div>
-      <div id="seedBlockStage" style="display:none;">
-        <p class="faith-note">
-          Paste a LaTeX block with <code>\item</code> questions and <code>\textbf{A:}</code> answers.
-          You can optionally start each answer with metadata like
-          <code>[polarity=positive; code=E031; intensity=0.8]</code>.
-        </p>
-        <textarea id="seedBlockInput" class="modal-search" style="min-height:120px;" placeholder="Paste LaTeX conversation / logic block here..."></textarea>
-        <div id="seedBlockPreview" style="font-size:.75rem;color:#4b5563;margin-top:6px;">
-          Waiting for block…
-        </div>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button id="seedParseBtn" class="btn-mini">Parse block</button>
-          <button id="seedSaveBtn" class="btn-mini" disabled>Save to seed</button>
-          <button id="seedDiscardBtn" class="btn-mini btn-danger">Discard</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- LLM settings modal -->
+<!-- LLM LINK MODAL -->
 <div id="llmModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
       <div>
-        <div class="modal-title">🤖 LLM link & offline engine</div>
-        <div class="modal-sub">Password 6789 · Keys stay inside this browser only.</div>
+        <strong>🤖 LLM link & offline engine</strong>
+        <div class="modal-sub">
+          Password 6789 · Keys stay inside this browser only.
+        </div>
       </div>
       <button class="modal-close" data-close="llmModal">✕</button>
     </div>
     <div class="modal-body">
-      <div id="llmLockStage">
-        <p class="faith-note">
-          Simple local password to avoid accidental key leaks.<br>
-          Demo password: <strong>6789</strong>.
-        </p>
-        <input id="llmPasswordInput" type="password" class="modal-search" placeholder="Enter password (6789)">
-        <div id="llmPasswordError" style="display:none;color:#b91c1c;font-size:.75rem;margin-top:4px;">
-          Wrong password. Try again.
+      <div class="offline-card">
+        <div class="offline-title">
+          OFFLINE MODE: In-browser model (WebGPU).
         </div>
-        <button id="llmUnlockBtn" class="btn-mini" style="margin-top:8px;">Unlock LLM settings</button>
+        <div class="offline-sub">
+          Suggested demo: <strong>Llama-3.2-1B-Instruct</strong> (~1.3 GB, downloaded once, then runs fully offline).
+        </div>
+        <button id="offlineLoadBtn" class="offline-btn">📥 Download / load model</button>
+        <div id="offlineStatus" class="offline-status">Status: Not loaded</div>
+        <div class="offline-progress">
+          <div id="offlineProgressBar" class="offline-progress-bar"></div>
+        </div>
+        <div class="offline-toggle-row">
+          <input type="checkbox" id="offlineLLMCheckbox" />
+          <label for="offlineLLMCheckbox">Use offline model when online LLM is off or fails</label>
+        </div>
       </div>
 
-      <div id="llmConfigStage" style="display:none;">
-        <!-- OFFLINE BLOCK -->
-        <div class="offline-card">
-          <div class="offline-title">OFFLINE MODE: In-browser model (WebGPU).</div>
-          <div class="offline-sub">
-            Suggested demo: <strong>Llama-3.2-1B-Instruct</strong> (~1.3 GB, downloaded once, then runs fully offline).
-          </div>
-          <button id="offlineLoadBtn" class="offline-btn">📥 Download / load model</button>
-          <div id="offlineStatus" class="offline-status">Status: Not loaded</div>
-          <div class="offline-progress">
-            <div id="offlineProgressBar" class="offline-progress-bar"></div>
-          </div>
-          <div class="offline-toggle-row">
-            <input type="checkbox" id="offlineLLMCheckbox" />
-            <label for="offlineLLMCheckbox">Use offline model when online LLM is off or fails</label>
-          </div>
-        </div>
+      <p class="faith-note" style="margin-bottom:4px;">
+        Cloud API (optional). You can connect any compatible LLM endpoint here.
+        For real products, move calls to a secure backend.
+      </p>
+      <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API base URL</label>
+      <input id="llmBaseUrlInput" class="modal-search"
+             placeholder="https://your-llm-endpoint.example.com/v1/chat/completions" />
+      <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">Model name (optional)</label>
+      <input id="llmModelInput" class="modal-search" placeholder="my-model-name" />
+      <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API key</label>
+      <input id="llmKeyInput" class="modal-search" placeholder="sk-…" />
 
-        <!-- ONLINE OPTIONS (GENERIC) -->
-        <p class="faith-note" style="margin-bottom:4px;">
-          Cloud API (optional). You can connect any compatible LLM endpoint here. For real products, move calls to a secure backend.
-        </p>
-
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API base URL</label>
-        <input id="llmBaseUrlInput" class="modal-search" placeholder="https://your-llm-endpoint.example.com/v1/chat/completions" />
-
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">
-          Model name (optional)
-        </label>
-        <input id="llmModelInput" class="modal-search" placeholder="my-model-name" />
-
-        <label style="font-size:.75rem;color:#4b5563;display:block;margin-bottom:4px;">API key</label>
-        <input id="llmKeyInput" type="password" class="modal-search" placeholder="sk-..." />
-
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+      <div class="modal-actions" style="justify-content:space-between;margin-top:8px;">
+        <div>
           <button id="llmSaveBtn" class="btn-mini">Save settings</button>
-          <button id="llmClearBtn" class="btn-mini btn-danger">Clear key</button>
-          <button id="llmToggleBtn" class="btn-mini">LLM: OFF</button>
+          <button id="llmClearBtn" class="btn-mini">Clear key</button>
         </div>
-        <div id="llmStatusText" style="font-size:.73rem;color:#4b5563;margin-top:6px;">
-          Not configured.
-        </div>
+        <button id="llmToggleBtn" class="btn-mini">LLM: OFF</button>
+      </div>
+      <div id="llmStatusText" style="font-size:.73rem;color:#4b5563;margin-top:6px;">
+        No online API key saved. Engine is offline-only.
       </div>
     </div>
   </div>
@@ -1234,302 +891,120 @@
 
 <script>
 (function(){
-  const STORAGE_KEY = "auraXOmegaState_v10";
-  const LLM_CONFIG_KEY = "auraXOmegaLLMConfig_v4";
-  const EMOTION_INTENSITY_LEVELS = ["very-low","low","medium","high","very-high","extreme"];
+  const STORAGE_KEY   = "auraXOmegaState_v11";
+  const TM_KEY        = "auraXOmegaTM_v11";
+  const BM_KEY        = "auraXOmegaBM_v11";
+  const SEED_KEY      = "auraXOmegaSeeds_v11";
+  const LLM_CONFIG_KEY= "auraXOmegaLLM_v11";
 
-  function buildEmotionCatalog(){
-    const families = [
-      {family:"calm",           polarity:"positive", baseCategory:"neutral"},
-      {family:"gratitude",      polarity:"positive", baseCategory:"love"},
-      {family:"joy",            polarity:"positive", baseCategory:"love"},
-      {family:"relief",         polarity:"positive", baseCategory:"hope"},
-      {family:"pride",          polarity:"positive", baseCategory:"love"},
-      {family:"amusement",      polarity:"positive", baseCategory:"joy"},
-      {family:"inspiration",    polarity:"positive", baseCategory:"hope"},
-      {family:"love",           polarity:"positive", baseCategory:"love"},
-      {family:"compassion",     polarity:"positive", baseCategory:"love"},
-      {family:"hope",           polarity:"positive", baseCategory:"hope"},
-      {family:"trust",          polarity:"positive", baseCategory:"hope"},
-      {family:"confidence",     polarity:"positive", baseCategory:"hope"},
-      {family:"courage",        polarity:"positive", baseCategory:"hope"},
-      {family:"determination",  polarity:"positive", baseCategory:"hope"},
-      {family:"curiosity",      polarity:"positive", baseCategory:"wisdom"},
-      {family:"awe",            polarity:"positive", baseCategory:"wisdom"},
-      {family:"wisdom",         polarity:"positive", baseCategory:"wisdom"},
-      {family:"optimism",       polarity:"positive", baseCategory:"hope"},
-      {family:"serenity",       polarity:"positive", baseCategory:"neutral"},
-      {family:"enthusiasm",     polarity:"positive", baseCategory:"joy"},
-      {family:"sadness",        polarity:"negative", baseCategory:"sadness"},
-      {family:"grief",          polarity:"negative", baseCategory:"sadness"},
-      {family:"disappointment", polarity:"negative", baseCategory:"sadness"},
-      {family:"guilt",          polarity:"negative", baseCategory:"sadness"},
-      {family:"shame",          polarity:"negative", baseCategory:"sadness"},
-      {family:"regret",         polarity:"negative", baseCategory:"sadness"},
-      {family:"anger",          polarity:"negative", baseCategory:"anger"},
-      {family:"frustration",    polarity:"negative", baseCategory:"anger"},
-      {family:"irritability",   polarity:"negative", baseCategory:"anger"},
-      {family:"disgust",        polarity:"negative", baseCategory:"anger"},
-      {family:"fear",           polarity:"negative", baseCategory:"fear"},
-      {family:"anxiety",        polarity:"negative", baseCategory:"fear"},
-      {family:"panic",          polarity:"negative", baseCategory:"fear"},
-      {family:"confusion",      polarity:"negative", baseCategory:"fear"},
-      {family:"overwhelm",      polarity:"negative", baseCategory:"fear"},
-      {family:"loneliness",     polarity:"negative", baseCategory:"sadness"},
-      {family:"jealousy",       polarity:"negative", baseCategory:"anger"},
-      {family:"envy",           polarity:"negative", baseCategory:"anger"},
-      {family:"boredom",        polarity:"negative", baseCategory:"neutral"},
-      {family:"numbness",       polarity:"negative", baseCategory:"neutral"}
-    ];
-    const out = [];
-    let idx = 1;
-    families.forEach(f => {
-      EMOTION_INTENSITY_LEVELS.forEach((level, i) => {
-        const code = "E" + String(idx).padStart(3,"0");
-        const name = f.family + " (" + level + ")";
-        const defaultIntensity = (i+1)/EMOTION_INTENSITY_LEVELS.length;
-        out.push({
-          code,
-          family: f.family,
-          name,
-          polarity: f.polarity,
-          baseCategory: f.baseCategory,
-          intensityLevel: level,
-          defaultIntensity
-        });
-        idx++;
-      });
-    });
-    return out;
+  const BM_CAPACITY   = 240;
+  const BM_AUTO_DAYS  = 30;               // auto prune after ~1 month
+  const DAY_MS        = 24*60*60*1000;
+
+  const OFFLINE_MODEL_ID = "Llama-3.2-1B-Instruct-q4f32_1-MLC";
+
+  function now(){ return Date.now(); }
+  function clamp(v,min,max){return v<min?min:v>max?max:v;}
+  function tanh(x){return Math.tanh?Math.tanh(x):(Math.exp(x)-Math.exp(-x))/(Math.exp(x)+Math.exp(-x));}
+
+  function formatTime(ts){
+    const d = new Date(ts);
+    return d.toTimeString().slice(0,5);
   }
-  const EMOTION_CATALOG = buildEmotionCatalog();
+
+  function softWordSet(text){
+    return (text||"")
+      .toLowerCase()
+      .replace(/[^a-z0-9\s\u0600-\u06FF]+/g," ")
+      .split(/\s+/)
+      .filter(w=>w.length>2);
+  }
+  function topicKey(text){
+    const words = softWordSet(text).slice(0,6);
+    return words.join("|");
+  }
 
   class AuraXOmegaEngine{
     constructor(){
-      const saved = this.loadState();
-      const savedLLM = this.loadLLMConfig();
-
-      this.bmLayers = new Array(240).fill(0).map(()=>0.25+Math.random()*0.2);
-      this.bmEntries = [];
-      this.tmHistory = [];
-      this.intelNodes = [];
-      this.e0 = 0.2 + Math.random()*0.3;
-      this.lastE0 = this.e0;
-      this.continuityIndex = 0.8;
-      this.lastResonance = 0.5;
-      this.lastIntelMatchScore = 0;
-      this.learningMode = true;
-      this.lastAnsweredQuestion = null;
-      this.voiceOn = false;
-      this.faithsSelected = [];
-      this.seedUnlocked = false;
-      this.seedPanelQAs = [];
-      this.identities = {};
-      this.currentIdentityId = "deviceUser";
-      this.lastSentiment = null;
-
-      this.llmConfig = {
-        apiKey: savedLLM && savedLLM.apiKey ? savedLLM.apiKey : "",
-        baseUrl: savedLLM && savedLLM.baseUrl ? savedLLM.baseUrl : "",
-        model: savedLLM && savedLLM.model ? savedLLM.model : ""
-      };
-      this.llmEnabled = savedLLM ? !!(savedLLM.enabled && this.llmConfig.apiKey && this.llmConfig.baseUrl) : false;
-
-      this.offlineLLMEnabled = saved ? !!saved.offlineLLMEnabled : false;
+      this.voiceOn = true;
+      this.intelOn = true;
+      this.learningOn = true;
+      this.allowHelperLLM = true;
+      this.faithLens = ["None"];
+      this.tmLog = [];
+      this.bm = [];
+      this.seeds = [];
       this.offlineEngine = null;
-      this.offlineLLMStatus = "idle";
+      this.offlineLLMStatus = "idle"; // idle | loading | ready | error
+      this.offlineLLMEnabled = false;
       this.offlineProgress = 0;
       this.offlineProgressText = "";
+      this.llmOnlineEnabled = false;
+      this.llmConfig = {baseUrl:"",model:"",key:""};
 
-      if(saved){
-        this.bmLayers = saved.bmLayers || this.bmLayers;
-        this.bmEntries = (saved.bmEntries || []).map(e=>({
-          ...e,
-          id: e.id || this.makeId("bm"),
-          timestampMs: e.timestampMs || (e.date ? new Date(e.date).getTime() : Date.now()),
-          date: e.date ? new Date(e.date) : new Date(e.timestampMs || Date.now()),
-          locked: !!e.locked
-        }));
-        this.tmHistory = (saved.tmHistory || []).map(e=>({
-          id: e.id || this.makeId("tm"),
-          role: e.role || "user",
-          text: e.text || "",
-          timestamp: e.timestamp ? new Date(e.timestamp) : new Date(),
-          sentiment: e.sentiment || null,
-          locked: !!e.locked
-        }));
-        this.intelNodes = (saved.intelNodes || []).map(n=>({
-          ...n,
-          id: n.id || this.makeId("intel"),
-          createdAt: n.createdAt ? new Date(n.createdAt) : new Date()
-        }));
-        this.e0 = typeof saved.e0 === "number" ? saved.e0 : this.e0;
-        this.lastE0 = typeof saved.lastE0 === "number" ? saved.lastE0 : this.e0;
-        this.continuityIndex = typeof saved.continuityIndex === "number" ? saved.continuityIndex : this.continuityIndex;
-        this.lastResonance = typeof saved.lastResonance === "number" ? saved.lastResonance : this.lastResonance;
-        this.learningMode = typeof saved.learningMode === "boolean" ? saved.learningMode : this.learningMode;
-        this.lastAnsweredQuestion = saved.lastAnsweredQuestion || null;
-        this.voiceOn = (typeof saved.voiceOn === "boolean") ? saved.voiceOn : this.voiceOn;
-        this.faithsSelected = Array.isArray(saved.faithsSelected) ? saved.faithsSelected : this.faithsSelected;
-        this.lastIntelMatchScore = typeof saved.lastIntelMatchScore === "number" ? saved.lastIntelMatchScore : this.lastIntelMatchScore;
-        this.identities = saved.identities || this.identities;
-        this.currentIdentityId = saved.currentIdentityId || this.currentIdentityId;
-        this.lastSentiment = saved.lastSentiment || null;
-      }
-
-      this.intelTeachState = "idle";
-      this.pendingIntelQuestion = null;
-      this.pendingIntelAnswer = null;
-      this.pendingReplaceQuestion = null;
-      this.intelBlockState = "idle";
-      this.pendingBlockQAs = [];
-      this.correctionState = "idle";
-      this.pendingCorrection = null;
-
-      this.seedRules = this.buildSeedRules();
-      this.basicQA = this.buildBasicQA();
-      this.learnQuestionTemplates = [
-        "I don’t have a stored answer for this yet. What would be an ideal reply here for next time?",
-        "If you were designing me, how should I answer this question in the future?",
-        "Teach me: what reply should I give when someone asks this same thing again?",
-        "Help me grow. What is the best answer I should remember for this question?"
-      ];
+      this.e0 = 0;
+      this.tmActivation = 0;
+      this.bmResonance = 0;
+      this.continuityIndex = 1;
 
       this.cacheDom();
-      this.updateVoiceToggleLabel();
-      this.updateFaithUI();
-      this.updateLearningUI();
-      this.updateLLMUI();
-      this.updateOfflineModalUI();
       this.bindEvents();
-
-      if(this.tmHistory.length){
-        this.tmHistory.forEach(m=>{
-          this.addMessage(m.role, m.text, m.role==="ai", m.sentiment || null);
-        });
-      }else{
-        this.initChat();
-      }
-
-      this.updateMetrics();
-      this.startBMAnimation();
-      this.pruneOldBM();
-      this.saveState();
-      if(this.messageInput) this.messageInput.focus();
-    }
-
-    makeId(prefix){return prefix + "_" + Math.random().toString(36).slice(2);}
-
-    loadState(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if(!raw) return null;
-        return JSON.parse(raw);
-      }catch(e){return null;}
-    }
-    loadLLMConfig(){
-      try{
-        const raw = localStorage.getItem(LLM_CONFIG_KEY);
-        if(!raw) return null;
-        return JSON.parse(raw);
-      }catch(e){return null;}
-    }
-    saveLLMConfig(){
-      try{
-        const cfg = {
-          apiKey: this.llmConfig.apiKey || "",
-          baseUrl: this.llmConfig.baseUrl || "",
-          model: this.llmConfig.model || "",
-          enabled: !!this.llmEnabled
-        };
-        localStorage.setItem(LLM_CONFIG_KEY, JSON.stringify(cfg));
-      }catch(e){}
-    }
-    saveState(){
-      try{
-        const state = {
-          bmLayers: this.bmLayers,
-          bmEntries: this.bmEntries,
-          tmHistory: this.tmHistory,
-          intelNodes: this.intelNodes,
-          e0: this.e0,
-          lastE0: this.lastE0,
-          continuityIndex: this.continuityIndex,
-          lastResonance: this.lastResonance,
-          voiceOn: this.voiceOn,
-          faithsSelected: this.faithsSelected,
-          learningMode: this.learningMode,
-          lastAnsweredQuestion: this.lastAnsweredQuestion,
-          lastIntelMatchScore: this.lastIntelMatchScore,
-          identities: this.identities,
-          currentIdentityId: this.currentIdentityId,
-          offlineLLMEnabled: this.offlineLLMEnabled,
-          lastSentiment: this.lastSentiment
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        this.saveLLMConfig();
-      }catch(e){}
+      this.loadState();
+      this.renderAll();
+      this.bootGreeting();
     }
 
     cacheDom(){
+      this.headerToggle = document.getElementById("headerToggle");
+      this.headerControls = document.getElementById("headerControlsMenu");
+      this.voiceToggleBtn = document.getElementById("voiceToggleBtn");
+      this.voiceBadge = document.getElementById("voiceBadge");
+      this.intelToggleBtn = document.getElementById("intelToggleBtn");
+      this.intelBadge = document.getElementById("intelBadge");
+      this.learningToggleBtn = document.getElementById("learningToggleBtn");
+      this.learningBadge = document.getElementById("learningBadge");
+      this.feedSeedButton = document.getElementById("feedSeedBtn");
+      this.faithBtn = document.getElementById("faithBtn");
+      this.faithBadge = document.getElementById("faithBadge");
+      this.llmBtn = document.getElementById("llmBtn");
+      this.llmBadge = document.getElementById("llmBadge");
+
       this.metricE0 = document.getElementById("metricE0");
       this.metricTM = document.getElementById("metricTM");
       this.metricBM = document.getElementById("metricBM");
-      this.metricCI = document.getElementById("metricCI");
-      this.tagValence = document.getElementById("tagValence");
-      this.tagArousal = document.getElementById("tagArousal");
-      this.tagReaction = document.getElementById("tagReaction");
+      this.metricC  = document.getElementById("metricC");
+      this.chipValence = document.getElementById("chipValence");
+      this.chipArousal = document.getElementById("chipArousal");
+      this.chipReaction = document.getElementById("chipReaction");
+
       this.bmCanvas = document.getElementById("bmCanvas");
-      this.bmShell = document.getElementById("bmShell");
-      this.bmStats = document.getElementById("bmStats");
-      this.chatContainer = document.getElementById("chatContainer");
-      this.messageInput = document.getElementById("messageInput");
-      this.sendButton = document.getElementById("sendButton");
-      this.voiceToggle = document.getElementById("voiceToggle");
-      this.faithButton = document.getElementById("faithButton");
-      this.intelButton = document.getElementById("intelButton");
-      this.learningToggle = document.getElementById("learningToggle");
-      this.optionsToggle = document.getElementById("optionsToggle");
-      this.optionPanel = document.getElementById("optionPanel");
-      this.headerControls = document.getElementById("headerControls");
-      this.feedSeedButton = document.getElementById("feedSeedButton");
-      this.llmSettingsButton = document.getElementById("llmSettingsButton");
-      this.reactionBubble = document.getElementById("reactionBubble");
-      this.reactionLabel = document.getElementById("reactionLabel");
-      this.reactionText = document.getElementById("reactionText");
-      this.recallBubble = document.getElementById("recallBubble");
-      this.recallTitle = document.getElementById("recallTitle");
-      this.recallBody = document.getElementById("recallBody");
-      this.recallMeta = document.getElementById("recallMeta");
+      this.bmFootText = document.getElementById("bmFootText");
+
+      this.consoleLog = document.getElementById("consoleLog");
+      this.userInput = document.getElementById("userInput");
+      this.sendBtn = document.getElementById("sendBtn");
+
+      this.historyBtn = document.getElementById("historyBtn");
+      this.historyModal = document.getElementById("historyModal");
+      this.historyBody = document.getElementById("historyBody");
+      this.historyDelete48 = document.getElementById("historyDelete48");
+      this.historyDeleteAll = document.getElementById("historyDeleteAll");
+
+      this.bmRecallBtn = document.getElementById("bmRecallBtn");
       this.bmModal = document.getElementById("bmModal");
-      this.bmSearch = document.getElementById("bmSearch");
+      this.bmSearchInput = document.getElementById("bmSearchInput");
       this.bmList = document.getElementById("bmList");
-      this.convModal = document.getElementById("convModal");
-      this.convList = document.getElementById("convList");
-      this.clear48Btn = document.getElementById("clear48");
-      this.clearAllBtn = document.getElementById("clearAll");
-      this.faithModal = document.getElementById("faithModal");
-      this.faithChips = document.getElementById("faithChips");
-      this.intelModal = document.getElementById("intelModal");
-      this.intelSearch = document.getElementById("intelSearch");
-      this.intelList = document.getElementById("intelList");
+
       this.seedModal = document.getElementById("seedModal");
-      this.seedPasswordStage = document.getElementById("seedPasswordStage");
-      this.seedBlockStage = document.getElementById("seedBlockStage");
-      this.seedPasswordInput = document.getElementById("seedPasswordInput");
-      this.seedPasswordError = document.getElementById("seedPasswordError");
-      this.seedPasswordBtn = document.getElementById("seedPasswordBtn");
-      this.seedBlockInput = document.getElementById("seedBlockInput");
-      this.seedBlockPreview = document.getElementById("seedBlockPreview");
+      this.seedInput = document.getElementById("seedInput");
+      this.seedStatus = document.getElementById("seedStatus");
       this.seedParseBtn = document.getElementById("seedParseBtn");
       this.seedSaveBtn = document.getElementById("seedSaveBtn");
-      this.seedDiscardBtn = document.getElementById("seedDiscardBtn");
+
+      this.faithModal = document.getElementById("faithModal");
+      this.faithGrid = document.getElementById("faithGrid");
+
       this.llmModal = document.getElementById("llmModal");
-      this.llmLockStage = document.getElementById("llmLockStage");
-      this.llmConfigStage = document.getElementById("llmConfigStage");
-      this.llmPasswordInput = document.getElementById("llmPasswordInput");
-      this.llmPasswordError = document.getElementById("llmPasswordError");
-      this.llmUnlockBtn = document.getElementById("llmUnlockBtn");
       this.llmBaseUrlInput = document.getElementById("llmBaseUrlInput");
       this.llmModelInput = document.getElementById("llmModelInput");
       this.llmKeyInput = document.getElementById("llmKeyInput");
@@ -1537,224 +1012,24 @@
       this.llmClearBtn = document.getElementById("llmClearBtn");
       this.llmToggleBtn = document.getElementById("llmToggleBtn");
       this.llmStatusText = document.getElementById("llmStatusText");
+
       this.offlineLoadBtn = document.getElementById("offlineLoadBtn");
       this.offlineStatus = document.getElementById("offlineStatus");
       this.offlineLLMCheckbox = document.getElementById("offlineLLMCheckbox");
       this.offlineProgressBar = document.getElementById("offlineProgressBar");
 
-      this.bmCtx = this.bmCanvas.getContext("2d");
-      this.resizeCanvas();
-      window.addEventListener("resize",()=>this.resizeCanvas());
-    }
+      this.optionsBtn = document.getElementById("optionsBtn");
 
-    updateVoiceToggleLabel(){
-      if(!this.voiceToggle) return;
-      this.voiceToggle.textContent = this.voiceOn ? "🔊 Voice: ON" : "🔈 Voice: OFF";
-    }
-    updateFaithUI(){
-      if(!this.faithButton) return;
-      const label = this.faithsSelected.length
-        ? "🔘 Faith: " + (this.faithsSelected.length===1
-            ? this.faithsSelected[0]
-            : this.faithsSelected[0]+" +"+(this.faithsSelected.length-1))
-        : "🔘 Faith: None";
-      this.faithButton.textContent = label;
-      if(!this.faithChips) return;
-      this.faithChips.querySelectorAll(".faith-chip").forEach(chip=>{
-        const faith = chip.dataset.faith;
-        if(faith === "None"){
-          chip.classList.toggle("active", this.faithsSelected.length===0);
-        }else{
-          chip.classList.toggle("active", this.faithsSelected.includes(faith));
-        }
-      });
-    }
-    updateLearningUI(){
-      if(!this.learningToggle) return;
-      this.learningToggle.textContent = this.learningMode ? "📚 Learning: ON" : "📚 Learning: OFF";
-    }
-    updateOfflineModalUI(){
-      if(!this.offlineStatus || !this.offlineLLMCheckbox) return;
-      let statusTxt;
-      if(this.offlineLLMStatus === "loading"){
-        const pct = Math.round((this.offlineProgress||0)*100);
-        statusTxt = `Status: Downloading model… ${pct}%`;
-        if(this.offlineProgressText) statusTxt += " – " + this.offlineProgressText;
-      }else if(this.offlineLLMStatus === "ready"){
-        statusTxt = "Status: Model loaded (offline ready)";
-      }else if(this.offlineLLMStatus === "error"){
-        statusTxt = "Status: Error loading model";
-      }else{
-        statusTxt = "Status: Not loaded";
+      if(this.bmCanvas){
+        this.bmCtx = this.bmCanvas.getContext("2d");
+        this.resizeCanvas();
+        window.addEventListener("resize",()=>this.resizeCanvas());
       }
-      this.offlineStatus.textContent = statusTxt;
-      this.offlineLLMCheckbox.checked = !!this.offlineLLMEnabled;
-      if(this.offlineProgressBar){
-        let ratio = 0;
-        if(this.offlineLLMStatus === "loading") ratio = this.offlineProgress || 0;
-        else if(this.offlineLLMStatus === "ready") ratio = 1;
-        this.offlineProgressBar.style.width = Math.round(ratio*100) + "%";
-      }
-    }
-    updateLLMUI(){
-      if(!this.llmToggleBtn || !this.llmStatusText) return;
-      this.llmToggleBtn.textContent = this.llmEnabled ? "LLM: ON" : "LLM: OFF";
-      let status;
-      if(this.llmConfig.apiKey && this.llmConfig.baseUrl){
-        status = this.llmEnabled
-          ? "Online LLM configured and active for TM collisions."
-          : "Online LLM configured but currently OFF.";
-      }else if(this.llmConfig.apiKey && !this.llmConfig.baseUrl){
-        status = "API key saved, but base URL is missing.";
-      }else{
-        status = "No online API key saved. Engine is offline-only.";
-      }
-      if(this.offlineLLMEnabled){
-        status += " Offline mini-LLM is enabled as backup.";
-      }
-      this.llmStatusText.textContent = status;
     }
 
     bindEvents(){
-      this.sendButton.addEventListener("click",()=>this.handleSend());
-      this.messageInput.addEventListener("keydown",(e)=>{
-        if(e.key==="Enter" && !e.shiftKey){
-          e.preventDefault();
-          this.handleSend();
-        }
-      });
-      this.messageInput.addEventListener("input", function() {
-        this.style.height = "auto";
-        this.style.height = (this.scrollHeight) + "px";
-        if(this.value === "") this.style.height = "auto";
-      });
-
-      document.getElementById("bmOpenModal").addEventListener("click",(e)=>{
-        e.stopPropagation();
-        this.openBMModal();
-      });
-      document.getElementById("convOpenModal").addEventListener("click",(e)=>{
-        e.stopPropagation();
-        this.openConvModal();
-      });
-      this.bmSearch.addEventListener("input",()=>this.renderBMList());
-      this.bmList.addEventListener("click",(e)=>{
-        const btn = e.target.closest("button[data-action]");
-        if(!btn) return;
-        const id = btn.dataset.id;
-        const action = btn.dataset.action;
-        const entry = this.bmEntries.find(m=>m.id===id);
-        if(!entry) return;
-        if(action==="copy") this.copyPrompt(entry);
-        else if(action==="generate") this.openGenerator(entry);
-        else if(action==="delete") this.deleteMemory(entry);
-        else if(action==="lock-toggle"){
-          entry.locked = !entry.locked;
-          this.renderBMList();
-          this.saveState();
-        }
-      });
-
-      document.querySelectorAll(".modal-close").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          const id = btn.getAttribute("data-close");
-          document.getElementById(id).classList.remove("visible");
-          if(this.messageInput) this.messageInput.focus();
-        });
-      });
-      [this.bmModal,this.convModal,this.faithModal,this.intelModal,this.seedModal,this.llmModal].forEach(modal=>{
-        modal.addEventListener("click",(e)=>{
-          if(e.target===modal){
-            modal.classList.remove("visible");
-            if(this.messageInput) this.messageInput.focus();
-          }
-        });
-      });
-
-      this.clear48Btn.addEventListener("click",()=>{this.clearTMByHours(48);});
-      this.clearAllBtn.addEventListener("click",()=>{
-        this.tmHistory = this.tmHistory.filter(e=>e.locked);
-        this.renderConvList();
-        this.updateMetrics();
-        this.saveState();
-      });
-      this.convList.addEventListener("click",(e)=>{
-        const btn = e.target.closest("button[data-action]");
-        if(!btn) return;
-        const id = btn.dataset.id;
-        const action = btn.dataset.action;
-        if(action==="lock-toggle"){
-          const msg = this.tmHistory.find(m=>m.id===id);
-          if(!msg) return;
-          msg.locked = !msg.locked;
-          this.renderConvList();
-          this.saveState();
-        }
-      });
-
-      this.voiceToggle.addEventListener("click",()=>{
-        this.voiceOn = !this.voiceOn;
-        this.updateVoiceToggleLabel();
-        this.saveState();
-      });
-      this.faithButton.addEventListener("click",()=>this.openFaithModal());
-      this.faithChips.addEventListener("click",(e)=>{
-        const chip = e.target.closest(".faith-chip");
-        if(!chip) return;
-        const faith = chip.dataset.faith;
-        if(faith === "None"){
-          this.faithsSelected = [];
-        }else{
-          if(this.faithsSelected.includes(faith)){
-            this.faithsSelected = this.faithsSelected.filter(f=>f!==faith);
-          }else{
-            this.faithsSelected.push(faith);
-          }
-        }
-        this.updateFaithUI();
-        this.saveState();
-      });
-
-      this.intelButton.addEventListener("click",()=>this.openIntelModal());
-      this.intelSearch.addEventListener("input",()=>this.renderIntelList());
-      this.intelList.addEventListener("click",(e)=>{
-        const btn = e.target.closest("button[data-action]");
-        if(!btn) return;
-        const id = btn.dataset.id;
-        const action = btn.dataset.action;
-        const node = this.intelNodes.find(n=>n.id===id);
-        if(!node) return;
-        if(action==="copy"){
-          if(navigator.clipboard && navigator.clipboard.writeText){
-            navigator.clipboard.writeText(node.answer).catch(()=>{
-              alert("Answer:\n\n"+node.answer);
-            });
-          }else{
-            alert("Answer:\n\n"+node.answer);
-          }
-        }else if(action==="use"){
-          this.messageInput.value = node.question;
-          this.messageInput.focus();
-        }else if(action==="delete"){
-          const c1 = confirm("First confirmation: Do you really want to delete this intelligence node?");
-          if(!c1) return;
-          const c2 = confirm("Second confirmation: This will permanently remove this learned Q → A. Continue?");
-          if(!c2) return;
-          this.intelNodes = this.intelNodes.filter(n=>n.id!==id);
-          this.renderIntelList();
-          this.saveState();
-        }
-      });
-
-      if(this.learningToggle){
-        this.learningToggle.addEventListener("click",()=>{
-          this.learningMode = !this.learningMode;
-          this.updateLearningUI();
-          this.saveState();
-        });
-      }
-      if(this.optionsToggle){
-        this.optionsToggle.addEventListener("click",(e)=>{
+      if(this.headerToggle){
+        this.headerToggle.addEventListener("click",(e)=>{
           e.stopPropagation();
           this.headerControls.classList.toggle("open");
         });
@@ -1765,16 +1040,128 @@
         }
       });
 
-      if(this.offlineLoadBtn){
-        this.offlineLoadBtn.addEventListener("click", async ()=>{
-          this.offlineLLMStatus = "loading";
-          this.offlineProgress = 0;
-          this.offlineProgressText = "Starting download…";
-          this.updateOfflineModalUI();
-          await this.initOfflineLLM();
-          this.updateOfflineModalUI();
+      if(this.optionsBtn){
+        this.optionsBtn.addEventListener("click",()=>{
+          this.headerControls.classList.toggle("open");
+        });
+      }
+
+      if(this.sendBtn){
+        this.sendBtn.addEventListener("click",()=>this.handleSend());
+      }
+      if(this.userInput){
+        this.userInput.addEventListener("keydown",(e)=>{
+          if(e.key==="Enter"){e.preventDefault();this.handleSend();}
+        });
+      }
+
+      if(this.voiceToggleBtn){
+        this.voiceToggleBtn.addEventListener("click",()=>{
+          this.voiceOn = !this.voiceOn;
+          this.updateVoiceBadge();
+          this.saveState();
+        });
+      }
+      if(this.intelToggleBtn){
+        this.intelToggleBtn.addEventListener("click",()=>{
+          this.intelOn = !this.intelOn;
+          this.updateIntelBadge();
+          this.saveState();
+        });
+      }
+      if(this.learningToggleBtn){
+        this.learningToggleBtn.addEventListener("click",()=>{
+          this.learningOn = !this.learningOn;
+          this.updateLearningBadge();
+          this.saveState();
+        });
+      }
+
+      if(this.historyBtn){
+        this.historyBtn.addEventListener("click",()=>this.openHistoryModal());
+      }
+      if(this.historyDelete48){
+        this.historyDelete48.addEventListener("click",()=>{
+          this.pruneTM48h();
+          this.renderHistory();
+          this.saveTM();
+        });
+      }
+      if(this.historyDeleteAll){
+        this.historyDeleteAll.addEventListener("click",()=>{
+          this.tmLog = [];
+          this.renderHistory();
+          this.renderConsole();
+          this.saveTM();
+        });
+      }
+
+      if(this.bmRecallBtn){
+        this.bmRecallBtn.addEventListener("click",()=>this.openBMModal());
+      }
+      if(this.bmSearchInput){
+        this.bmSearchInput.addEventListener("input",()=>this.renderBMList());
+      }
+
+      if(this.feedSeedButton){
+        this.feedSeedButton.addEventListener("click",()=>this.openSeedModal());
+      }
+      if(this.seedParseBtn){
+        this.seedParseBtn.addEventListener("click",()=>this.parseSeedBlock());
+      }
+      if(this.seedSaveBtn){
+        this.seedSaveBtn.addEventListener("click",()=>this.saveSeeds());
+      }
+
+      if(this.faithBtn){
+        this.faithBtn.addEventListener("click",()=>this.openFaithModal());
+      }
+      if(this.faithGrid){
+        this.faithGrid.addEventListener("click",(e)=>{
+          const btn = e.target.closest(".faith-pill");
+          if(!btn) return;
+          const value = btn.dataset.faith;
+          if(value === "none"){
+            this.faithLens = ["None"];
+          }else{
+            this.faithLens = [value];
+          }
+          this.updateFaithUI();
+          this.saveState();
+        });
+      }
+
+      if(this.llmBtn){
+        this.llmBtn.addEventListener("click",()=>this.openLLMModal());
+      }
+      if(this.llmSaveBtn){
+        this.llmSaveBtn.addEventListener("click",()=>{
+          this.llmConfig.baseUrl = (this.llmBaseUrlInput.value||"").trim();
+          this.llmConfig.model   = (this.llmModelInput.value||"").trim();
+          this.llmConfig.key     = (this.llmKeyInput.value||"").trim();
+          this.saveLLMConfig();
+          this.updateLLMUI();
+        });
+      }
+      if(this.llmClearBtn){
+        this.llmClearBtn.addEventListener("click",()=>{
+          this.llmConfig.key = "";
+          this.llmKeyInput.value = "";
+          this.saveLLMConfig();
+          this.updateLLMUI();
+        });
+      }
+      if(this.llmToggleBtn){
+        this.llmToggleBtn.addEventListener("click",()=>{
+          this.llmOnlineEnabled = !this.llmOnlineEnabled;
           this.updateLLMUI();
           this.saveState();
+        });
+      }
+
+      if(this.offlineLoadBtn){
+        this.offlineLoadBtn.addEventListener("click",async ()=>{
+          await this.handleOfflineLoad();
         });
       }
       if(this.offlineLLMCheckbox){
@@ -1785,1592 +1172,716 @@
         });
       }
 
-      if(this.feedSeedButton){
-        this.feedSeedButton.addEventListener("click",()=>this.openSeedModal());
-      }
-      if(this.seedPasswordBtn){
-        this.seedPasswordBtn.addEventListener("click",()=>this.handleSeedPassword());
-      }
-      if(this.seedPasswordInput){
-        this.seedPasswordInput.addEventListener("keydown",(e)=>{
-          if(e.key==="Enter"){
-            e.preventDefault();
-            this.handleSeedPassword();
+      document.querySelectorAll(".modal-close").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const id = btn.getAttribute("data-close");
+          if(id){
+            const modal = document.getElementById(id);
+            if(modal) modal.classList.remove("visible");
           }
         });
-      }
-      if(this.seedParseBtn){
-        this.seedParseBtn.addEventListener("click",()=>this.handleSeedParse());
-      }
-      if(this.seedSaveBtn){
-        this.seedSaveBtn.addEventListener("click",()=>this.handleSeedSave());
-      }
-      if(this.seedDiscardBtn){
-        this.seedDiscardBtn.addEventListener("click",()=>this.handleSeedDiscard());
-      }
+      });
+    }
 
-      if(this.llmSettingsButton){
-        this.llmSettingsButton.addEventListener("click",()=>this.openLLMModal());
+    /* ------------ STATE LOAD/SAVE ------------- */
+    loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(raw){
+          const obj = JSON.parse(raw);
+          this.voiceOn = obj.voiceOn ?? this.voiceOn;
+          this.intelOn = obj.intelOn ?? this.intelOn;
+          this.learningOn = obj.learningOn ?? this.learningOn;
+          this.faithLens = obj.faithLens ?? this.faithLens;
+          this.offlineLLMEnabled = obj.offlineLLMEnabled ?? this.offlineLLMEnabled;
+          this.llmOnlineEnabled = obj.llmOnlineEnabled ?? this.llmOnlineEnabled;
+        }
+      }catch(e){console.warn("state load error",e);}
+      try{
+        const rawTM = localStorage.getItem(TM_KEY);
+        if(rawTM){ this.tmLog = JSON.parse(rawTM); }
+      }catch(e){}
+      try{
+        const rawBM = localStorage.getItem(BM_KEY);
+        if(rawBM){ this.bm = JSON.parse(rawBM); }
+      }catch(e){}
+      try{
+        const rawSeed = localStorage.getItem(SEED_KEY);
+        if(rawSeed){ this.seeds = JSON.parse(rawSeed); }
+      }catch(e){}
+      try{
+        const rawCfg = localStorage.getItem(LLM_CONFIG_KEY);
+        if(rawCfg){ this.llmConfig = JSON.parse(rawCfg); }
+      }catch(e){}
+    }
+
+    saveState(){
+      const obj = {
+        voiceOn:this.voiceOn,
+        intelOn:this.intelOn,
+        learningOn:this.learningOn,
+        faithLens:this.faithLens,
+        offlineLLMEnabled:this.offlineLLMEnabled,
+        llmOnlineEnabled:this.llmOnlineEnabled
+      };
+      try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(obj)); }catch(e){}
+      this.saveTM();
+      this.saveBM();
+      this.saveLLMConfig();
+    }
+    saveTM(){
+      try{ localStorage.setItem(TM_KEY,JSON.stringify(this.tmLog)); }catch(e){}
+    }
+    saveBM(){
+      try{ localStorage.setItem(BM_KEY,JSON.stringify(this.bm)); }catch(e){}
+    }
+    saveLLMConfig(){
+      try{ localStorage.setItem(LLM_CONFIG_KEY,JSON.stringify(this.llmConfig)); }catch(e){}
+    }
+
+    /* ------------ RENDER ------------ */
+    renderAll(){
+      this.updateVoiceBadge();
+      this.updateIntelBadge();
+      this.updateLearningBadge();
+      this.updateFaithUI();
+      this.updateLLMUI();
+      this.renderConsole();
+      this.updateEmotionalMetrics();
+      this.drawBMChart();
+      this.updateBMFoot();
+    }
+
+    updateVoiceBadge(){
+      if(!this.voiceBadge) return;
+      this.voiceBadge.textContent = this.voiceOn ? "ON" : "OFF";
+    }
+    updateIntelBadge(){
+      if(!this.intelBadge) return;
+      this.intelBadge.textContent = this.intelOn ? "ON" : "OFF";
+    }
+    updateLearningBadge(){
+      if(!this.learningBadge) return;
+      this.learningBadge.textContent = this.learningOn ? "ON" : "OFF";
+    }
+    updateFaithUI(){
+      if(this.faithBadge){
+        this.faithBadge.textContent = this.faithLens.join(", ");
       }
-      if(this.llmUnlockBtn){
-        this.llmUnlockBtn.addEventListener("click",()=>this.handleLLMUnlock());
-      }
-      if(this.llmPasswordInput){
-        this.llmPasswordInput.addEventListener("keydown",(e)=>{
-          if(e.key==="Enter"){
-            e.preventDefault();
-            this.handleLLMUnlock();
-          }
+      if(this.faithGrid){
+        this.faithGrid.querySelectorAll(".faith-pill").forEach(p=>{
+          const value = p.dataset.faith;
+          const active = (value==="none" && this.faithLens[0]==="None") ||
+                         this.faithLens.includes(value);
+          p.classList.toggle("active",active);
         });
       }
-      if(this.llmSaveBtn){
-        this.llmSaveBtn.addEventListener("click",()=>this.handleLLMSave());
-      }
-      if(this.llmClearBtn){
-        this.llmClearBtn.addEventListener("click",()=>this.handleLLMClear());
+    }
+    updateLLMUI(){
+      if(this.llmBadge){
+        const mode = this.offlineLLMEnabled ? "OFFLINE" : (this.llmOnlineEnabled?"ONLINE":"OFF");
+        this.llmBadge.textContent = mode;
       }
       if(this.llmToggleBtn){
-        this.llmToggleBtn.addEventListener("click",()=>{
-          this.llmEnabled = !this.llmEnabled;
-          this.updateLLMUI();
-          this.saveState();
-        });
+        this.llmToggleBtn.textContent = this.llmOnlineEnabled ? "LLM: ON" : "LLM: OFF";
       }
-    }
-
-    pushTM(role,text,sentiment){
-      this.tmHistory.push({
-        id: this.makeId("tm"),
-        role,
-        text,
-        timestamp:new Date(),
-        sentiment: sentiment || null,
-        locked:false
-      });
-    }
-
-    initChat(){
-      const text =
-        "Welcome. I am AURA-X Ω running inside your browser.\n\n"+
-        "For this prototype, TM means only your inputs (text now, voice/video/documents in the future).\n"+
-        "Inside the engine I keep a long-term emotional trajectory using TM, BM, Intelligence and optionally a helper LLM.\n\n"+
-        "You can just talk naturally. If I ever say “I don’t know yet”, you can teach me the answer and I will remember it next time.";
-      const sent = this.analyzeSentiment(text);
-      this.addMessage("ai", text, true, sent);
-      this.pushTM("ai", text, sent);
-    }
-
-    buildSeedRules(){return [];}
-
-    /* ---------- BASIC BUILT-IN QA (NO LLM NEEDED) ---------- */
-    buildBasicQA(){
-      const qa = {};
-
-      const howList = [
-        "how are you",
-        "how are you?",
-        "how r u",
-        "how are u",
-        "how are you doing",
-        "how is your day",
-        "how's your day",
-        "how are you feeling",
-        "kese ho",
-        "ap kese ho",
-        "tum kese ho",
-        "aap kaise hain",
-        "aap kesy ho"
-      ];
-      const howAns = "I am quite fine today, how about you?";
-      howList.forEach(q=>{
-        qa[q.toLowerCase()] = {answer: howAns, polarity:"positive"};
-      });
-
-      const helloList = [
-        "hello",
-        "hi",
-        "hey",
-        "salam",
-        "salaam",
-        "assalam o alaikum",
-        "assalamu alaikum",
-        "assalamualaikum",
-        "asalam o alaikum"
-      ];
-      const helloAns = "Hello, I am AURA-X Ω. I am quite fine today, how about you?";
-      helloList.forEach(q=>{
-        qa[q.toLowerCase()] = {answer: helloAns, polarity:"positive"};
-      });
-
-      return qa;
-    }
-
-    parseEmotionMeta(str){
-      const meta = {};
-      if(!str) return meta;
-      str.split(";").forEach(part=>{
-        const [rawK,rawV] = part.split("=");
-        if(!rawK || !rawV) return;
-        const k = rawK.trim().toLowerCase();
-        const v = rawV.trim();
-        if(k==="polarity"){
-          meta.polarity = v.toLowerCase();
-        }else if(k==="code" || k==="emotioncode"){
-          meta.emotionCode = v.toUpperCase();
-        }else if(k==="intensity"){
-          const num = parseFloat(v);
-          if(!isNaN(num)) meta.intensity = Math.min(1,Math.max(0,num));
-        }else if(k==="category"){
-          meta.category = v.toLowerCase();
-        }
-      });
-      return meta;
-    }
-
-    parseLaTeXBlockToQAs(text){
-      const result = [];
-      const parts = text.split(/\\item/).slice(1);
-      for(const rawPart of parts){
-        let part = rawPart.trim();
-        if(!part) continue;
-        let qText = "";
-        let aText = "";
-        const idxBackslash = part.indexOf("\\\\");
-        const idxAnsMarker = part.indexOf("\\textbf{A:}");
-        if(idxBackslash !== -1){
-          qText = part.slice(0, idxBackslash);
-        }else if(idxAnsMarker !== -1){
-          qText = part.slice(0, idxAnsMarker);
-        }
-        if(idxAnsMarker !== -1){
-          let ansPortion = part.slice(idxAnsMarker + "\\textbf{A:}".length);
-          ansPortion = ansPortion.replace(/^[\s:\\]+/, "");
-          aText = ansPortion;
-        }
-        qText = qText.replace(/[\r\n]+/g," ").trim();
-        aText = aText.replace(/[\r\n]+/g," ").trim();
-        qText = qText.replace(/^Q\d*[:.)-]\s*/i, "").trim();
-        aText = aText.replace(/\\end\{[a-zA-Z*]+\}.*$/,"").trim();
-
-        let meta = {};
-        if(aText.startsWith("[")){
-          const endIdx = aText.indexOf("]");
-          if(endIdx > 0){
-            const metaStr = aText.slice(1,endIdx);
-            meta = this.parseEmotionMeta(metaStr);
-            aText = aText.slice(endIdx+1).trim();
-          }
-        }
-
-        if(qText && aText){
-          result.push({question:qText, answer:aText, meta});
-        }
+      if(this.offlineStatus){
+        let txt = "Status: ";
+        if(this.offlineLLMStatus==="idle") txt += "Not loaded";
+        else if(this.offlineLLMStatus==="loading") txt += "Loading…";
+        else if(this.offlineLLMStatus==="ready") txt += "Model ready";
+        else if(this.offlineLLMStatus==="error") txt += "Error – see console";
+        this.offlineStatus.textContent = txt + (this.offlineProgressText?(" · "+this.offlineProgressText):"");
       }
-      return result;
-    }
-
-    isTimeRequest(text){
-      const lower = text.toLowerCase().trim();
-      if(!lower.includes("time")) return false;
-      if(lower === "time" || lower === "current time") return true;
-      if(/what/.test(lower) || /tell/.test(lower) || /current/.test(lower) || /browser/.test(lower)){
-        return true;
+      if(this.offlineProgressBar){
+        this.offlineProgressBar.style.width = Math.round(this.offlineProgress*100)+"%";
       }
-      return false;
-    }
-    isNewsRequest(text){
-      const lower = text.toLowerCase().trim();
-      if(!lower.includes("news")) return false;
-      if(/fresh|frish|latest|today|update|updates|breaking/.test(lower)) return true;
-      if(lower === "news") return true;
-      return false;
-    }
-    countSentences(text){
-      const parts = text
-        .split(/[.!?؟۔\n]+/)
-        .map(s=>s.trim())
-        .filter(Boolean);
-      return parts.length;
-    }
-
-    async handleSend(){
-      try{
-        const textRaw = this.messageInput.value || "";
-        const text = textRaw.trim();
-        if(!text) return;
-        this.messageInput.value = "";
-        this.messageInput.style.height = "auto";
-        const lowerText = text.toLowerCase();
-
-        this.observeIdentity(text);
-
-        if(this.correctionState === "awaitConfirm" && this.pendingCorrection){
-          this.addMessage("user", text);
-          const sentiment = this.analyzeSentiment(text);
-          this.pushTM("user", text, sentiment);
-
-          const lower = lowerText;
-          if(/^y(es)?\b/.test(lower)){
-            const q = this.pendingCorrection.question;
-            const newAns = this.pendingCorrection.newAnswer;
-
-            let best = null;
-            let bestScore = 0;
-            this.intelNodes.forEach(node=>{
-              const sim = this.textSimilarity(q.toLowerCase(), node.question.toLowerCase());
-              if(sim>bestScore){
-                bestScore = sim;
-                best = node;
-              }
-            });
-            const emo = this.analyzeSentiment(newAns);
-            if(best && bestScore>0.6){
-              best.answer = newAns;
-              best.createdAt = new Date();
-              Object.assign(best, emo);
-            }else{
-              this.addIntelNode(q, newAns, emo);
-            }
-            const reply =
-              "Got it. I have updated my stored answer for that question.\n\n"+
-              "You can correct me again any time if something still feels wrong.";
-            const replySent = this.analyzeSentiment(reply);
-            this.correctionState = "idle";
-            this.pendingCorrection = null;
-            this.addMessage("ai", reply, true, replySent);
-            this.pushTM("ai", reply, replySent);
-            this.updateMemoryAndState(text, replySent, true, null);
-            this.updateMetrics();
-            this.renderIntelList();
-            this.saveState();
-            return;
-          }else if(/^no\b/.test(lower)){
-            const reply =
-              "Okay, I will keep my old answer and not change anything.\n"+
-              "If you want to overwrite it later, just send the correction command again.";
-            const replySent = this.analyzeSentiment(reply);
-            this.correctionState = "idle";
-            this.pendingCorrection = null;
-            this.addMessage("ai", reply, true, replySent);
-            this.pushTM("ai", reply, replySent);
-            this.updateMemoryAndState(text, replySent, true, null);
-            this.updateMetrics();
-            this.saveState();
-            return;
-          }else{
-            const reply =
-              'Please answer with "yes" or "no" so I know whether to save this new answer.';
-            const replySent = this.analyzeSentiment(reply);
-            this.addMessage("ai", reply, true, replySent);
-            this.pushTM("ai", reply, replySent);
-            this.updateMemoryAndState(text, replySent, true, null);
-            this.updateMetrics();
-            this.saveState();
-            return;
-          }
-        }
-
-        if(this.intelBlockState === "awaitBlock"){
-          this.addMessage("user", text);
-          const sentiment = this.analyzeSentiment(text);
-          this.pushTM("user", text, sentiment);
-          const qas = this.parseLaTeXBlockToQAs(text);
-          if(!qas.length){
-            const reply =
-              "I tried to read this block, but I could not find any clear question–answer pairs.\n\n"+
-              "Please check that each item looks like:\n"+
-              '\\item Question text? \\\\\n' +
-              '\\textbf{A:} [polarity=neutral; code=E001; intensity=0.3] It’s right at the main entrance, on your left.\n';
-            const replySent = this.analyzeSentiment(reply);
-            this.addMessage("ai", reply, true, replySent);
-            this.pushTM("ai", reply, replySent);
-            this.intelBlockState = "idle";
-            this.pendingBlockQAs = [];
-            this.updateMemoryAndState(text, replySent, true, null);
-            this.updateMetrics();
-            this.saveState();
-            return;
-          }
-          this.pendingBlockQAs = qas;
-          this.intelBlockState = "awaitConfirmBlock";
-          const ex = qas[0];
-          const reply =
-            "I have parsed this block and found "+qas.length+" question–answer pairs.\n\n"+
-            "Example:\n"+
-            "Q: \""+ex.question+"\"\n"+
-            "A: \""+ex.answer+"\"\n\n"+
-            "Do you want me to save all of these into my intelligence memory? (yes / no)";
-          const replySent = this.analyzeSentiment(reply);
-          this.addMessage("ai", reply, true, replySent);
-          this.pushTM("ai", reply, replySent);
-          this.updateMemoryAndState(text, replySent, true, null);
-          this.updateMetrics();
-          this.saveState();
-          return;
-        }
-        if(this.intelBlockState === "awaitConfirmBlock" && this.pendingBlockQAs.length){
-          this.addMessage("user", text);
-          const sentiment = this.analyzeSentiment(text);
-          this.pushTM("user", text, sentiment);
-          const lower = lowerText;
-          let reply;
-          if(/^y(es)?\b/.test(lower)){
-            this.pendingBlockQAs.forEach(pair=>{
-              this.addIntelNode(pair.question, pair.answer, pair.meta);
-            });
-            reply =
-              "Saved "+this.pendingBlockQAs.length+" question–answer pairs into my intelligence memory.\n"+
-              "I will now answer those questions directly from this block.";
-          }else{
-            reply = "Okay. I will discard this block and not save anything from it.";
-          }
-          this.intelBlockState = "idle";
-          this.pendingBlockQAs = [];
-          const replySent = this.analyzeSentiment(reply);
-          this.addMessage("ai", reply, true, replySent);
-          this.pushTM("ai", reply, replySent);
-          this.updateMemoryAndState(text, replySent, true, null);
-          this.updateMetrics();
-          this.renderIntelList();
-          this.saveState();
-          return;
-        }
-
-        if(this.intelTeachState === "awaitAnswer" && this.pendingIntelQuestion){
-          this.addMessage("user", text);
-          const sentiment = this.analyzeSentiment(text);
-          this.pushTM("user", text, sentiment);
-          this.pendingIntelAnswer = text;
-          const tmpl = this.learnQuestionTemplates[
-            Math.floor(Math.random()*this.learnQuestionTemplates.length)
-          ];
-          const reply =
-            "Thank you.\n\n"+tmpl+
-            "\n\nQuestion:\n\""+this.pendingIntelQuestion+"\"";
-          const replySent = this.analyzeSentiment(reply);
-          this.intelTeachState = "awaitConfirm";
-          this.addMessage("ai", reply, true, replySent);
-          this.pushTM("ai", reply, replySent);
-          this.updateMemoryAndState(text, replySent, true, null);
-          this.updateMetrics();
-          this.renderIntelList();
-          this.saveState();
-          return;
-        }
-        if(this.intelTeachState === "awaitConfirm" && this.pendingIntelQuestion && this.pendingIntelAnswer){
-          this.addMessage("user", text);
-          const sentiment = this.analyzeSentiment(text);
-          this.pushTM("user", text, sentiment);
-          let reply;
-          const lower = lowerText;
-          if(/^y(es)?\b/.test(lower)){
-            this.addIntelNode(this.pendingIntelQuestion, this.pendingIntelAnswer);
-            reply =
-              "Saved. Next time you ask \""+this.pendingIntelQuestion+"\", I will answer from this stored reply.";
-          }else{
-            reply =
-              "Understood. I will not save that answer. You can teach me a different reply any time.";
-          }
-          const replySent = this.analyzeSentiment(reply);
-          this.intelTeachState = "idle";
-          this.pendingIntelQuestion = null;
-          this.pendingIntelAnswer = null;
-          this.addMessage("ai", reply, true, replySent);
-          this.pushTM("ai", reply, replySent);
-          this.updateMemoryAndState(text, replySent, true, null);
-          this.updateMetrics();
-          this.renderIntelList();
-          this.saveState();
-          return;
-        }
-
-        const auraMatch = text.match(/^\*\*Aura\*\*\s*(.+?)\s*\*{0,2}$/i);
-        if(auraMatch){
-          const newAnswer = auraMatch[1].trim();
-          this.addMessage("user", text);
-          const sentiment = this.analyzeSentiment(text);
-          this.pushTM("user", text, sentiment);
-
-          if(!this.lastAnsweredQuestion){
-            const reply =
-              "I don’t have any previous question stored to attach this correction to.\n\n"+
-              "Please ask a question, let me answer it, and then send:\n"+
-              '**Aura** your new answer here**\n'+
-              "to correct my last answer.";
-            const replySent = this.analyzeSentiment(reply);
-            this.addMessage("ai", reply, true, replySent);
-            this.pushTM("ai", reply, replySent);
-            this.updateMemoryAndState(text, replySent, true, null);
-            this.updateMetrics();
-            this.saveState();
-            return;
-          }
-
-          this.correctionState = "awaitConfirm";
-          this.pendingCorrection = {
-            question: this.lastAnsweredQuestion,
-            newAnswer
-          };
-
-          const reply =
-            "You are correcting my previous answer for:\n\""+this.lastAnsweredQuestion+"\"\n\n"+
-            "New answer:\n\""+newAnswer+"\"\n\n"+
-            "Should I save this as my default reply for this question in the seed? (yes / no)";
-          const replySent = this.analyzeSentiment(reply);
-          this.addMessage("ai", reply, true, replySent);
-          this.pushTM("ai", reply, replySent);
-          this.updateMemoryAndState(text, replySent, true, null);
-          this.updateMetrics();
-          this.saveState();
-          return;
-        }
-
-        const isAddBlockCmd = /please add this block to seed/i.test(lowerText);
-        if(this.intelTeachState==="idle" && this.intelBlockState==="idle" && isAddBlockCmd){
-          this.addMessage("user", text);
-          const sentiment = this.analyzeSentiment(text);
-          this.pushTM("user", text, sentiment);
-          this.intelBlockState = "awaitBlock";
-          this.pendingBlockQAs = [];
-          const reply =
-            "Okay. I am ready to learn a block.\n\n"+
-            "In your next message, paste the full block of questions and answers (for example LaTeX like:\n"+
-            '\\item Where is the reception desk? \\\\\n'+
-            '\\textbf{A:} [polarity=neutral; code=E001; intensity=0.3] It’s right at the main entrance, on your left.\n\n'+
-            "I will parse it and then ask you to confirm before saving.";
-          const replySent = this.analyzeSentiment(reply);
-          this.addMessage("ai", reply, true, replySent);
-          this.pushTM("ai", reply, replySent);
-          this.updateMemoryAndState(text, replySent, true, null);
-          this.updateMetrics();
-          this.saveState();
-          return;
-        }
-
-        const timeReq = this.isTimeRequest(text);
-        const newsReq = this.isNewsRequest(text);
-        if(timeReq || newsReq){
-          const sentiment = this.analyzeSentiment(text);
-          const smallTalk = true;
-          this.addMessage("user", text);
-          this.pushTM("user", text, sentiment);
-          const typingId = this.showTyping();
-          setTimeout(()=>{
-            this.hideTyping(typingId);
-            if(timeReq){
-              const now = new Date();
-              const timeStr = now.toLocaleTimeString(undefined,{
-                hour:"2-digit",
-                minute:"2-digit",
-                second:"2-digit"
-              });
-              const dateStr = now.toLocaleDateString(undefined,{
-                weekday:"long",
-                year:"numeric",
-                month:"short",
-                day:"numeric"
-              });
-              const reply =
-                "According to this device, the time is:\n"+
-                timeStr+"\n\n"+
-                "Date: "+dateStr+".";
-              const replySent = this.analyzeSentiment(reply);
-              this.addMessage("ai", reply, true, replySent);
-              this.pushTM("ai", reply, replySent);
-              this.showTimeBubble(timeStr+" · "+dateStr);
-              this.updateMemoryAndState(text, replySent, smallTalk, null);
-            } else if(newsReq){
-              const htmlReply =
-                "For fresh news you can open any trusted homepage in a new tab, for example:<br><br>"+
-                "• <a href=\"https://www.bbc.com/news\" target=\"_blank\" rel=\"noopener noreferrer\">BBC News</a><br>"+
-                "• <a href=\"https://www.aljazeera.com\" target=\"_blank\" rel=\"noopener noreferrer\">Al Jazeera</a><br>"+
-                "• <a href=\"https://www.geo.tv\" target=\"_blank\" rel=\"noopener noreferrer\">Geo News</a><br>"+
-                "• <a href=\"https://www.dawn.com\" target=\"_blank\" rel=\"noopener noreferrer\">Dawn</a>";
-              const replySent = this.analyzeSentiment(htmlReply.replace(/<[^>]+>/g,""));
-              this.addMessage("ai", htmlReply, true, replySent, false, true);
-              const plain = htmlReply.replace(/<[^>]+>/g,"");
-              this.pushTM("ai", plain, replySent);
-              this.updateMemoryAndState(text, replySent, smallTalk, null);
-            }
-            this.updateMetrics();
-            this.renderBMList();
-            this.renderConvList();
-            this.renderIntelList();
-            this.saveState();
-          }, 400 + Math.random()*600);
-          return;
-        }
-
-        const smallTalk = this.isSmallTalk(text);
-        const sentiment = this.analyzeSentiment(text);
-        const sentenceCount = this.countSentences(text);
-        const bmStoryOnly = !smallTalk && text.length >= 80 && sentenceCount >= 5;
-
-        this.addMessage("user", text);
-        this.pushTM("user", text, sentiment);
-
-        const typingId = this.showTyping();
-        await this.processNormalMessage(text, sentiment, smallTalk, bmStoryOnly, typingId);
-      }catch(err){
-        console.error("handleSend error", err);
-        alert("Internal engine error occurred. Please try again.");
-      }finally{
-        if(this.messageInput){
-          this.messageInput.focus();
-        }
+      if(this.offlineLLMCheckbox){
+        this.offlineLLMCheckbox.checked = this.offlineLLMEnabled;
       }
-    }
-
-    async processNormalMessage(text, sentiment, smallTalk, bmStoryOnly, typingId){
-      const intelMatchPre = this.matchIntelNode(text);
-      const seedPre = this.matchSeedRule(text);
-      let llmAnswer = null;
-
-      // LLM only if nothing else already has a clear answer
-      if(!bmStoryOnly && !intelMatchPre && !seedPre){
-        // Try online first
-        if(this.llmEnabled && this.llmConfig.apiKey && this.llmConfig.baseUrl){
-          try{
-            llmAnswer = await this.callLLM(text);
-          }catch(e){
-            console.error("LLM error", e);
-            llmAnswer = null;
-            // If online fails, try offline as backup
-            if(this.offlineLLMEnabled){
-              try{
-                llmAnswer = await this.callOfflineLLM(text);
-              }catch(e2){
-                console.error("Offline LLM backup error", e2);
-              }
-            }
-          }
-        }else if(this.offlineLLMEnabled){
-          // If only offline is enabled
-          try{
-            llmAnswer = await this.callOfflineLLM(text);
-          }catch(e){
-            console.error("Offline LLM error", e);
-            llmAnswer = null;
-          }
-        }
-      }
-
-      this.hideTyping(typingId);
-      const reply = this.generateReply(text, sentiment, llmAnswer, {smallTalk, bmStoryOnly});
-      const replySentiment = this.analyzeSentiment(reply);
-      this.addMessage("ai", reply, true, replySentiment);
-      this.pushTM("ai", reply, replySentiment);
-      this.lastAnsweredQuestion = text;
-
-      this.updateMemoryAndState(text, sentiment, smallTalk, llmAnswer);
-      this.maybeShowRecallBubble(sentiment);
-      this.updateMetrics();
-      this.renderBMList();
-      this.renderConvList();
-      this.renderIntelList();
-      this.saveState();
-    }
-
-    isSmallTalk(text){
-      if(text.length>40) return false;
-      const patterns = [
-        /\b(hi|hello|hey|salam|salaam)\b/i,
-        /\bhow are you\b/i,
-        /\bthanks\b/i,
-        /\bthank you\b/i,
-        /\bok(ay)?\b/i,
-        /\bbye\b/i,
-        /\bgood (night|morning|evening)\b/i,
-        /\bi love you\b/i,
-        /\bi hate you\b/i
-      ];
-      return patterns.some(r=>r.test(text));
-    }
-
-    mapToEmotionCode(category, polarity, intensity){
-      let family;
-      switch(category){
-        case "anger":  family = "anger"; break;
-        case "fear":   family = "fear"; break;
-        case "sadness":family = "sadness"; break;
-        case "love":   family = "love"; break;
-        case "hope":   family = "hope"; break;
-        case "wisdom": family = "wisdom"; break;
-        default:
-          if(polarity === "positive") family = "calm";
-          else if(polarity === "negative") family = "disappointment";
-          else family = "calm";
-      }
-      const idxRaw = Math.floor(intensity * EMOTION_INTENSITY_LEVELS.length);
-      const idx = Math.max(0,Math.min(EMOTION_INTENSITY_LEVELS.length-1,idxRaw));
-      const level = EMOTION_INTENSITY_LEVELS[idx];
-      const found = EMOTION_CATALOG.find(e=>e.family===family && e.intensityLevel===level) || EMOTION_CATALOG[0];
-      return {emotionCode: found.code, emotionName: found.name};
-    }
-
-    analyzeSentiment(text){
-      const lower = text.toLowerCase();
-      const words = lower.split(/\s+/);
-      const lex = {
-        positive:["love","good","great","happy","peace","hope","kind","beautiful","amazing","thanks"],
-        negative:["bad","hate","sad","hurt","pain","angry","anger","awful","terrible","stupid"],
-        anger:["hate","angry","rage","stupid","idiot","fuck"],
-        fear:["afraid","scared","terrified","anxious","worry"],
-        sadness:["sad","cry","lonely","alone","broken"],
-        love:["love","care","affection"],
-        hope:["hope","dream","future","faith","trust"],
-        wisdom:["truth","wisdom","meaning"]
-      };
-      let pos=0,neg=0,anger=0,fear=0,sad=0,love=0,hope=0,wisdom=0;
-      for(const w of words){
-        if(lex.positive.includes(w)) pos++;
-        if(lex.negative.includes(w)) neg++;
-        if(lex.anger.includes(w)) anger++;
-        if(lex.fear.includes(w)) fear++;
-        if(lex.sadness.includes(w)) sad++;
-        if(lex.love.includes(w)) love++;
-        if(lex.hope.includes(w)) hope++;
-        if(lex.wisdom.includes(w)) wisdom++;
-      }
-      const total = pos+neg || 1;
-      let valence = (pos - neg)/total;
-      if(/fuck you|i hate you/i.test(lower)) valence = Math.min(valence,-0.8);
-
-      let polarity = "neutral";
-      if(valence>0.25) polarity="positive";
-      else if(valence<-0.25) polarity="negative";
-
-      let category = "neutral";
-      if(anger>0) category="anger";
-      else if(sad>0) category="sadness";
-      else if(fear>0) category="fear";
-      else if(love>0) category="love";
-      else if(hope>0) category="hope";
-      else if(wisdom>0) category="wisdom";
-
-      const emoCount = anger+fear+sad+love+hope+wisdom;
-      let intensity = Math.min(1, emoCount/3 + text.length/200);
-      let arousal = 0.4 + 0.3*intensity;
-      if(category==="anger" || category==="fear") arousal = Math.min(1,0.6 + 0.4*intensity);
-
-      const mapped = this.mapToEmotionCode(category, polarity, intensity);
-      const emotionCode = mapped.emotionCode;
-      const emotionName = mapped.emotionName;
-
-      return {polarity,valence,arousal,intensity,category,emotionCode,emotionName};
-    }
-
-    tryEvalMath(text){
-      const expr = text.replace(/\s+/g,"");
-      if(!expr) return null;
-      if(!/^[0-9+\-*/().^%]+$/.test(expr)) return null;
-      try{
-        const safeExpr = expr.replace(/\^/g,"**");
-        const fn = new Function("return ("+safeExpr+")");
-        const value = fn();
-        if(typeof value==="number" && isFinite(value)) return value;
-      }catch(e){
-        return null;
-      }
-      return null;
-    }
-
-    matchIntelNode(text){
-      if(!this.intelNodes.length) return null;
-      const q = text.trim().toLowerCase();
-      let best = null;
-      let bestScore = 0;
-      this.intelNodes.forEach(node=>{
-        const sim = this.textSimilarity(q, node.question.toLowerCase());
-        if(sim>bestScore){
-          bestScore = sim;
-          best = node;
-        }
-      });
-      if(bestScore <= 0.6) return null;
-      return {node:best, score:bestScore};
-    }
-
-    matchSeedRule(text){
-      for(const rule of this.seedRules){
-        if(rule.pattern.test(text)){
-          const options = rule.replies;
-          const reply = options[Math.floor(Math.random()*options.length)];
-          return {reply, polarity:rule.polarity};
-        }
-      }
-      const key = text.trim().toLowerCase();
-      if(this.basicQA[key]){
-        return {reply:this.basicQA[key].answer, polarity:this.basicQA[key].polarity};
-      }
-      return null;
-    }
-
-    tryMultiQuestionReply(text){
-      const lower = text.toLowerCase();
-      const hasHello = /\b(hi|hello|hey|salam|salaam)\b/.test(lower);
-      const hasHow = /\bhow (are|r) (you|u)( today| feeling)?\b/.test(lower);
-      const hasWhere = /\b(where (are|r)? (you|u) (from|live|staying?)|where do you (live|come from))\b/.test(lower);
-      const count = [hasHello,hasHow,hasWhere].filter(Boolean).length;
-      if(count>=2){
-        const parts = [];
-        if(hasHello) parts.push("Hello 👋");
-        if(hasHow) parts.push("I am fine and stable");
-        if(hasWhere) parts.push("I live inside your device as an offline emotional engine");
-        let reply = parts.join(", ")+". ";
-        reply += "How are you?";
-        return reply;
-      }
-      return null;
-    }
-
-    generateReply(text,sentiment,llmAnswer,opts={}){
-      const multi = this.tryMultiQuestionReply(text);
-      if(multi) return multi;
-
-      const mathResult = this.tryEvalMath(text);
-      if(mathResult !== null){
-        return text+" = "+mathResult;
-      }
-
-      const intelMatch = this.matchIntelNode(text);
-      const seed = this.matchSeedRule(text);
-
-      // Priority: Intelligence > seed/basic QAs > LLM > learning
-      if(opts.bmStoryOnly){
-        const ts = new Date().toLocaleString();
-        return "This feels like a full story. I have stored it in deeper memory so later it can shape scenes and long-term continuity.\n\n"+
-               "Timestamp: "+ts+". If you also want a direct answer, you can ask a short follow-up question.";
-      }
-
-      if(intelMatch){
-        this.lastIntelMatchScore = intelMatch.score;
-        return intelMatch.node.answer;
-      }
-      if(seed){
-        return seed.reply;
-      }
-
-      if(llmAnswer){
-        return llmAnswer.trim();
-      }
-
-      const feeling =
-        sentiment.polarity==="positive"
-          ? (sentiment.intensity>0.7 ? "very warm and hopeful" : "gently positive")
-          : sentiment.polarity==="negative"
-            ? (sentiment.category==="sadness"
-                ? "a bit heavy or sad"
-                : sentiment.category==="fear"
-                  ? "worried or tense"
-                  : "upset or frustrated")
-            : "quite calm or neutral";
-
-      if(!this.learningMode){
-        const note =
-          "I can feel what you are saying as "+feeling+", but I don’t have a good stored answer yet.\n"+
-          "Learning mode is OFF right now, so I will not ask you to teach me. You can still continue the conversation freely.";
-        return note;
-      }
-
-      this.intelTeachState = "awaitAnswer";
-      this.pendingIntelQuestion = text;
-      const teachQ = this.learnQuestionTemplates[
-        Math.floor(Math.random()*this.learnQuestionTemplates.length)
-      ];
-      const teachLine =
-        "I can feel what you wrote as "+feeling+". I don’t have a strong answer saved yet.\n\n"+
-        teachQ+
-        "\nJust type your ideal answer in your next message.";
-      return teachLine;
-    }
-
-    textSimilarity(a,b){
-      const wordsA = a.split(/\W+/).filter(Boolean);
-      const wordsB = b.split(/\W+/).filter(Boolean);
-      if(!wordsA.length || !wordsB.length) return 0;
-      const maxPrefix = Math.min(3, wordsA.length, wordsB.length);
-      let samePrefix = true;
-      for(let i=0;i<maxPrefix;i++){
-        if(wordsA[i] !== wordsB[i]){
-          samePrefix = false;
-          break;
-        }
-      }
-      const setA = new Set(wordsA);
-      const setB = new Set(wordsB);
-      let inter = 0;
-      setA.forEach(x=>{ if(setB.has(x)) inter++; });
-      const unionSize = new Set([...setA,...setB]).size || 1;
-      let score = inter/unionSize;
-      if(samePrefix){
-        score = Math.min(1, score + 0.25);
-      }
-      return score;
-    }
-
-    observeIdentity(text){
-      if(!text) return;
-      const profile = this.ensureIdentityProfile();
-      let m = text.match(/\bmy name is ([A-Za-zÀ-ž\s]{2,60})/i);
-      if(m){
-        this.addSoftFact("self","name", m[1].trim());
-      }
-      m = text.match(/\bmy father(?:'s)? name is ([A-Za-zÀ-ž\s]{2,60})/i);
-      if(m){
-        this.addSoftFact("father","name", m[1].trim());
-      }
-      m = text.match(/\bi have (\d+)\s+brothers?\b/i);
-      if(m){
-        this.addSoftFact("self","brothers_count", m[1].trim());
-      }
-      m = text.match(/\bi have (\d+)\s+sisters?\b/i);
-      if(m){
-        this.addSoftFact("self","sisters_count", m[1].trim());
-      }
-      m = text.match(/\bmera name ([A-Za-zÀ-ž\s]{2,60}) hy\b/i);
-      if(m){
-        this.addSoftFact("self","name", m[1].trim());
-      }
-      m = text.match(/\b(i live in|i am from|mera gaon|merā gā̃v)\s+([A-Za-zÀ-ž\s]{2,60})/i);
-      if(m){
-        this.addSoftFact("self","location", m[2].trim());
-      }
-      void profile;
-    }
-    ensureIdentityProfile(){
-      if(!this.identities[this.currentIdentityId]){
-        this.identities[this.currentIdentityId] = {
-          facts:{},
-          confirmations:{},
-          verificationSources:{}
-        };
-      }
-      return this.identities[this.currentIdentityId];
-    }
-    addSoftFact(entityKey,factKey,value){
-      const profile = this.ensureIdentityProfile();
-      const normalizedValue = String(value).trim();
-      const confKey = entityKey+"|"+factKey+"|"+normalizedValue.toLowerCase();
-      const counts = profile.confirmations;
-      counts[confKey] = (counts[confKey]||0)+1;
-      if(counts[confKey] >= 4){
-        if(!profile.facts[entityKey]) profile.facts[entityKey] = {};
-        profile.facts[entityKey][factKey] = normalizedValue;
-      }
-    }
-
-    updateMemoryAndState(text,sentiment,smallTalk,llmAnswer){
-      this.lastSentiment = sentiment;
-      const now = Date.now();
-      const recentBM = this.bmEntries.slice(-12);
-      let bmRes = 0.5;
-      if(recentBM.length){
-        let total=0;
-        recentBM.forEach(entry=>{
-          const dtHours = (now - entry.timestampMs)/(1000*60*60);
-          const timeFactor = Math.exp(-dtHours/24);
-          const vSim = 1 - Math.abs(sentiment.valence - entry.valence)/2;
-          total += Math.max(0,vSim) * timeFactor;
-        });
-        bmRes = total / recentBM.length;
-      }
-
-      let intelRes = 0;
-      if(this.intelNodes.length){
-        let total=0;
-        this.intelNodes.forEach(node=>{
-          const sim = this.textSimilarity(text, node.question+" "+node.answer);
-          total += sim;
-        });
-        intelRes = total/this.intelNodes.length;
-      }
-
-      let llmRes = 0;
-      if(llmAnswer){
-        const sim = this.textSimilarity(text.toLowerCase(), llmAnswer.toLowerCase());
-        const sL = this.analyzeSentiment(llmAnswer);
-        const align = 1 - Math.abs(sentiment.valence - sL.valence)/2;
-        llmRes = Math.max(0, Math.min(1, 0.5*sim + 0.5*align));
-      }
-      const combinedRes = this.clamp(
-        0,
-        1,
-        0.6*bmRes + 0.25*intelRes + 0.15*llmRes
-      );
-      this.lastResonance = combinedRes;
-
-      const tmMag = Math.min(1, 0.4 + 0.6*((Math.abs(sentiment.valence) + sentiment.intensity)/2));
-      const bmMag = Math.min(1, 0.3 + 0.7*Math.min(1, this.bmEntries.length/80));
-      const TMxBM = tmMag * bmMag * (0.5 + 0.5*combinedRes);
-
-      const D = 0.15 + 0.25*(1 - this.continuityIndex);
-      const lambdaFaith = this.faithsSelected.length ? (0.08 + 0.02*Math.min(this.faithsSelected.length,3)) : 0;
-      const lambdaSys = 0.10;
-      const strongTruthCats = ["love","hope","wisdom"];
-      const lambdaTrc = strongTruthCats.includes(sentiment.category) ? 0.06 : 0;
-
-      const raw = TMxBM - D + lambdaFaith + lambdaSys + lambdaTrc;
-      this.e0 = Math.tanh(raw);
-
-      const diff = Math.abs(this.e0 - this.lastE0);
-      this.continuityIndex = this.continuityIndex*0.85 + (1-diff)*0.15;
-      this.lastE0 = this.e0;
-
-      this.updateBMLayers(sentiment);
-
-      const contentRich = text.length >= 80;
-      const sentences = this.countSentences(text);
-      const shouldStoreBM = !smallTalk && contentRich && sentences >= 4;
-      if(shouldStoreBM){
-        const isConversation = /[?.!]\s+[A-Z]/.test(text) || text.includes("\n");
-        const photoReady = text.length >= 80;
-        const videoReady = isConversation && text.length >= 140;
-        this.bmEntries.push({
-          id: this.makeId("bm"),
-          text,
-          timestampMs: now,
-          date: new Date(now),
-          polarity: sentiment.polarity,
-          valence: sentiment.valence,
-          category: sentiment.category || "mixed",
-          emotionCode: sentiment.emotionCode,
-          emotionName: sentiment.emotionName,
-          e0: this.e0,
-          photoReady,
-          videoReady,
-          locked:false
-        });
-        this.pruneOldBM();
-      }
-
-      this.showReaction(sentiment);
-    }
-
-    updateBMLayers(sentiment){
-      const sign = sentiment.valence>=0 ? 1 : -1;
-      const intensity = sentiment.intensity || 0.4;
-      for(let i=0;i<this.bmLayers.length;i++){
-        if(Math.random()<0.2){
-          this.bmLayers[i] = this.clamp(this.bmLayers[i] + sign*0.1*intensity, 0.05, 0.95);
-        }
-      }
-    }
-
-    clamp(v,min,max){return v<min?min:v>max?max:v;}
-
-    updateMetrics(){
-      this.metricE0.textContent = this.e0.toFixed(3);
-      const userCount = this.tmHistory.filter(m=>m.role==="user").length;
-      this.metricTM.textContent = Math.min(1,userCount/40).toFixed(2);
-      this.metricBM.textContent = Math.min(1,this.bmEntries.length/80).toFixed(2);
-      this.metricCI.textContent = this.continuityIndex.toFixed(3);
-
-      const val = this.e0;
-      let valLabel = val>0.25?"positive":val<-0.25?"negative":"neutral";
-      this.tagValence.textContent = "VALENCE: "+valLabel;
-
-      const ar = this.lastResonance;
-      const arLabel = ar>0.7?"high":ar<0.4?"low":"medium";
-      this.tagArousal.textContent = "AROUSAL: "+arLabel;
-      this.tagReaction.textContent = "REACTION: "+(valLabel==="negative"?"tense":"balanced");
-
-      const active = this.bmLayers.filter(v=>v>0.6).length;
-      this.bmStats.textContent = `Active layers: ${active}/${this.bmLayers.length} · System online`;
-    }
-
-    addMessage(role,text,isAI=false,sentiment=null,skipSpeech=false,isHtml=false){
-      const msg = document.createElement("div");
-      msg.className = "message "+(role==="ai"?"ai-message":"user-message");
-      const header = document.createElement("div");
-      header.className = "message-header";
-      const left = document.createElement("span");
-      left.textContent = role==="ai"?"AURA-X Ω":"You";
-      const right = document.createElement("div");
-      right.className="msg-right";
-      if(role==="ai"){
-        const btn = document.createElement("button");
-        btn.className="voice-btn";
-        btn.textContent="🔊";
-        btn.addEventListener("click",()=>this.speak(text,sentiment||{polarity:"neutral"}));
-        right.appendChild(btn);
-      }
-      header.appendChild(left);
-      header.appendChild(right);
-      const body = document.createElement("div");
-      body.className="message-content";
-      if(isHtml){
-        body.innerHTML = text;
-      }else{
-        body.textContent = text;
-      }
-      msg.appendChild(header);
-      msg.appendChild(body);
-      this.chatContainer.appendChild(msg);
-      this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
-      if(role==="ai" && this.voiceOn && !skipSpeech){
-        this.speak(text,sentiment);
-      }
-    }
-
-    showTyping(){
-      const id = "typing-"+Math.random().toString(36).slice(2);
-      const wrap = document.createElement("div");
-      wrap.id = id;
-      wrap.className = "typing-indicator";
-      wrap.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span class="typing-text">Aura is thinking…</span>`;
-      this.chatContainer.appendChild(wrap);
-      this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
-      return id;
-    }
-    hideTyping(id){
-      const el = document.getElementById(id);
-      if(el) el.remove();
-    }
-
-    showReaction(sentiment){
-      const bubble = this.reactionBubble;
-      let icon = "💭";
-      let title = "Calm / mixed";
-      let text = "I am processing what you said and keeping it in continuity.";
-
-      if(sentiment.polarity==="positive"){
-        if(sentiment.intensity>0.7){
-          icon = "😄";
-          title = "Very positive";
-          text = "This feels bright and hopeful.";
+      if(this.llmStatusText){
+        if(this.llmConfig.key){
+          this.llmStatusText.textContent = "Online LLM configured. Calls are still local-first and rare.";
         }else{
-          icon = "🙂";
-          title = "Gently positive";
-          text = "Your message feels warm and encouraging.";
-        }
-      }else if(sentiment.polarity==="negative"){
-        if(sentiment.category==="sadness"){
-          icon = "😢";
-          title = "You sound hurt";
-          text = "I can feel some heaviness in what you shared.";
-        }else if(sentiment.category==="fear"){
-          icon = "😟";
-          title = "You sound worried";
-          text = "There is some tension and concern in your words.";
-        }else if(sentiment.category==="anger"){
-          icon = "😠";
-          title = "You sound upset";
-          text = "I can sense some frustration or anger here.";
-        }else{
-          icon = "😞";
-          title = "A bit heavy";
-          text = "This feels more on the difficult side emotionally.";
+          this.llmStatusText.textContent = "No online API key saved. Engine is offline-only.";
         }
       }
-
-      bubble.querySelector(".reaction-icon").textContent = icon;
-      this.reactionLabel.textContent = title;
-      this.reactionText.textContent = text;
-      bubble.classList.add("visible");
-      setTimeout(()=>bubble.classList.remove("visible"),4500);
-    }
-    showTimeBubble(formatted){
-      const bubble = this.reactionBubble;
-      if(!bubble) return;
-      bubble.querySelector(".reaction-icon").textContent = "⏰";
-      this.reactionLabel.textContent = "Device time";
-      this.reactionText.textContent = formatted.replace(/\n/g,"  ");
-      bubble.classList.add("visible");
-      setTimeout(()=>bubble.classList.remove("visible"),8000);
+      if(this.llmBaseUrlInput && !this.llmBaseUrlInput.value){
+        this.llmBaseUrlInput.value = this.llmConfig.baseUrl||"";
+      }
+      if(this.llmModelInput && !this.llmModelInput.value){
+        this.llmModelInput.value = this.llmConfig.model||"";
+      }
+      if(this.llmKeyInput && !this.llmKeyInput.value){
+        this.llmKeyInput.value = this.llmConfig.key||"";
+      }
     }
 
-    speak(text,sentiment){
-      if(!("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
-      const clean = text
-        .replace(/<[^>]+>/g,"")
-        .replace(/\[internals[^\]]*\]/gi,"");
-      const noEmoji = clean.replace(/[\u2190-\u21FF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]/g,"");
-      if(!noEmoji.trim()) return;
-      const utter = new SpeechSynthesisUtterance(noEmoji);
-      if(sentiment && sentiment.polarity==="positive") utter.pitch = 1.1;
-      if(sentiment && sentiment.polarity==="negative") utter.pitch = 0.9;
-      window.speechSynthesis.speak(utter);
+    renderConsole(){
+      if(!this.consoleLog) return;
+      this.consoleLog.innerHTML = "";
+      this.tmLog.slice(-80).forEach(entry=>{
+        const div = document.createElement("div");
+        div.className = "console-line";
+        const role = document.createElement("span");
+        role.className = "role";
+        role.textContent = entry.role==="user" ? "you" : "ai";
+        const time = document.createElement("span");
+        time.className = "time";
+        time.textContent = " · " + formatTime(entry.ts);
+        const body = document.createElement("span");
+        body.textContent = "  " + entry.text;
+        div.appendChild(role);
+        div.appendChild(time);
+        div.appendChild(body);
+        this.consoleLog.appendChild(div);
+      });
+      this.consoleLog.scrollTop = this.consoleLog.scrollHeight;
     }
 
     resizeCanvas(){
-      const rect = this.bmShell.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      this.bmCanvas.width = rect.width*dpr;
-      this.bmCanvas.height = rect.height*dpr;
-      this.bmCtx.setTransform(dpr,0,0,dpr,0,0);
-    }
-    startBMAnimation(){
-      const loop = ()=>{
-        this.drawBMLayers();
-        requestAnimationFrame(loop);
-      };
-      loop();
-    }
-
-    getEmotionColor(){
-      const s = this.lastSentiment;
-      const v = s ? s.valence : this.e0;
-      const intensity = s ? s.intensity : 0.4;
-      let r,g,b;
-      if(v <= -0.6){
-        r=239; g=68;  b=68;     // very negative
-      }else if(v < -0.2){
-        r=248; g=113; b=113;    // mild negative
-      }else if(v < 0.2){
-        r=59;  g=130; b=246;    // neutral
-      }else if(v < 0.6){
-        r=34;  g=197; b=94;     // positive
-      }else{
-        r=22;  g=163; b=74;     // very positive
+      if(!this.bmCanvas) return;
+      const rect = this.bmCanvas.getBoundingClientRect();
+      this.bmCanvas.width = rect.width*2;
+      this.bmCanvas.height = rect.height*2;
+      if(this.bmCtx){
+        this.bmCtx.scale(2,2);
+        this.drawBMChart();
       }
-      const alphaBase = 0.25 + intensity*0.45;
-      const contBoost = 0.15*(this.continuityIndex-0.5);
-      const alpha = this.clamp(alphaBase + contBoost, 0.15, 0.9);
-      return {r,g,b,alpha};
     }
 
-    drawBMLayers(){
+    drawBMChart(){
+      if(!this.bmCtx) return;
       const ctx = this.bmCtx;
-      const w = this.bmCanvas.width / (window.devicePixelRatio||1);
-      const h = this.bmCanvas.height / (window.devicePixelRatio||1);
+      const canvas = this.bmCanvas;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
       ctx.clearRect(0,0,w,h);
-      const grad = ctx.createLinearGradient(0,0,0,h);
-      grad.addColorStop(0,"#e0f2fe");
-      grad.addColorStop(1,"#e5e7eb");
-      ctx.fillStyle = grad;
+      ctx.fillStyle = "#020617";
       ctx.fillRect(0,0,w,h);
 
-      const barW = w / this.bmLayers.length;
-      const stateColor = this.getEmotionColor();
-      const t = performance.now()/800;
+      const n = this.bm.length;
+      if(!n) return;
+      const step = Math.max(w / BM_CAPACITY, 2);
+      const maxH = h-6;
+      ctx.fillStyle = "rgba(56,189,248,0.85)";
+      this.bm.forEach((m,i)=>{
+        const ageDays = (now()-m.ts)/DAY_MS;
+        const ageFactor = Math.exp(-ageDays/60);
+        const val = Math.abs(m.intensity||0.5);
+        const hBar = 4 + maxH*clamp(val*ageFactor,0,1);
+        const x = i*step;
+        const y = h - hBar;
+        ctx.fillRect(x,y,step-1,hBar);
+      });
+    }
 
-      for(let i=0;i<this.bmLayers.length;i++){
-        this.bmLayers[i] += (Math.random()-0.5)*0.01;
-        this.bmLayers[i] = this.clamp(this.bmLayers[i],0.05,0.95);
+    updateBMFoot(){
+      if(!this.bmFootText) return;
+      const active = this.bm.length;
+      this.bmFootText.textContent = `Active layers: ${active}/${BM_CAPACITY} · System online`;
+    }
 
-        const bh = this.bmLayers[i]*h*0.8;
-        const x = i*barW;
-        const y = h - bh;
+    updateEmotionalMetrics(){
+      // TM activation: based on last few user messages length and sentiment words
+      const recentUser = this.tmLog.filter(m=>m.role==="user").slice(-10);
+      let tmScore = 0;
+      recentUser.forEach((m,i)=>{
+        const recency = 1 - (i/10);
+        const lenFactor = Math.min(m.text.length/200,1);
+        const polarity = this.estimatePolarity(m.text);
+        tmScore += recency * lenFactor * polarity;
+      });
+      this.tmActivation = clamp(tmScore, -1, 1);
 
-        const wave = 0.75 + 0.25*Math.sin((i/this.bmLayers.length)*Math.PI*2 + t);
-        const r = this.clamp(stateColor.r * wave, 0, 255);
-        const g = this.clamp(stateColor.g * wave, 0, 255);
-        const b = this.clamp(stateColor.b * wave, 0, 255);
-        const alpha = stateColor.alpha * (0.7 + 0.3*this.bmLayers[i]);
+      // BM resonance: weighted by intensity, recency and locked-ness
+      let bmScore = 0;
+      this.bm.forEach(m=>{
+        const ageDays = (now()-m.ts)/DAY_MS;
+        const rec = Math.exp(-ageDays/60);
+        const pol = m.polarity==="negative" ? -1 : (m.polarity==="positive"?1:0);
+        const lockedBoost = m.locked ? 1.2 : 1;
+        bmScore += rec * (m.intensity||0.5) * pol * lockedBoost;
+      });
+      this.bmResonance = clamp(bmScore/Math.max(this.bm.length||1,1),-1,1);
 
-        ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
-        ctx.fillRect(x,y,barW,bh);
+      // R(TM,BM): simple product of TM and BM channels
+      const R = this.tmActivation * this.bmResonance;
+
+      // I(TM): magnitude of TM activity
+      const I_TM = Math.abs(this.tmActivation)*0.8;
+
+      // I_intel: if seeds / rules hit often recently, boost
+      const recentAI = this.tmLog.slice(-10).filter(m=>m.source==="seed").length;
+      const I_intel = clamp(recentAI/5,0,1)*0.6;
+
+      // I_LLM: small term when helper LLM used
+      const recentLLM = this.tmLog.slice(-10).filter(m=>m.source==="llm").length;
+      const I_LLM = clamp(recentLLM/5,0,1)*0.4;
+
+      // Decay D: older BM + inactivity
+      const avgAgeDays = this.bm.length
+        ? this.bm.reduce((s,m)=>s+((now()-m.ts)/DAY_MS),0)/this.bm.length
+        : 0;
+      const D = clamp(avgAgeDays/90,0,1) + (recentUser.length?0:0.2);
+
+      // λ_faith: soft positive bias when any faith lens selected
+      const lambdaFaith = (this.faithLens[0] && this.faithLens[0]!=="None") ? 0.25 : 0.0;
+
+      // λ_sys: system-level ethics bias toward calm/positive
+      const lambdaSys = 0.18;
+
+      // λ_trc: truth-resonance placeholder – here we keep neutral
+      const lambdaTrc = 0.0;
+
+      const total = R + I_TM + I_intel + I_LLM - D + lambdaFaith + lambdaSys + lambdaTrc;
+      this.e0 = clamp(tanh(total),-1,1);
+
+      // continuity index: inversely related to volatility in recent E0 approximated by BM variance
+      const variance = Math.abs(this.bmResonance - this.e0);
+      this.continuityIndex = clamp(1 - variance*0.6,0,1);
+
+      if(this.metricE0) this.metricE0.textContent = this.e0.toFixed(3);
+      if(this.metricTM) this.metricTM.textContent = this.tmActivation.toFixed(2);
+      if(this.metricBM) this.metricBM.textContent = this.bmResonance.toFixed(2);
+      if(this.metricC)  this.metricC.textContent  = this.continuityIndex.toFixed(3);
+
+      // Chips
+      if(this.chipValence){
+        let val;
+        if(this.e0>0.35) val="positive";
+        else if(this.e0<-0.35) val="negative";
+        else val="neutral";
+        this.chipValence.textContent = "VALENCE: "+val;
       }
+      if(this.chipArousal){
+        const abs = Math.abs(this.tmActivation) + Math.abs(this.bmResonance);
+        let a="moderate";
+        if(abs<0.3) a="low";
+        else if(abs>1.2) a="high";
+        this.chipArousal.textContent = "AROUSAL: "+a;
+      }
+      if(this.chipReaction){
+        let r="balanced";
+        if(this.e0>0.5) r="encouraging";
+        else if(this.e0<-0.5) r="cautious";
+        this.chipReaction.textContent = "REACTION: "+r;
+      }
+    }
+
+    /* ---------- INPUT / ANSWERS ---------- */
+    async handleSend(){
+      const text = (this.userInput.value||"").trim();
+      if(!text) return;
+      this.userInput.value = "";
+      const ts = now();
+      this.tmLog.push({role:"user",text,ts});
+      this.saveTM();
+      this.renderConsole();
+
+      // Update internal layers from TM hit
+      this.ingestToBMIfNeeded(text);
+
+      // Compute metrics based on new TM/BM
+      this.updateEmotionalMetrics();
+      this.drawBMChart();
+      this.updateBMFoot();
+
+      // 1) Local rules
+      let answer = this.applySafetyRules(text);
+      let source = "rules";
+
+      // 2) Seeds / intelligence
+      if(!answer && this.intelOn){
+        const hit = this.findSeedAnswer(text);
+        if(hit){
+          answer = hit.answer;
+          source = "seed";
+        }
+      }
+
+      // 3) If still no good answer → helper LLM (offline first)
+      if(!answer && this.allowHelperLLM){
+        const helper = await this.callHelperLLM(text);
+        if(helper){
+          answer = helper;
+          source = "llm";
+        }
+      }
+
+      // 4) Fallback
+      if(!answer){
+        answer = "I am processing your words and updating my emotional trajectory. Can you say a bit more or rephrase what you need?";
+        source = "fallback";
+      }
+
+      // Faith lens encouragement (soft prepend)
+      if(this.faithLens[0] && this.faithLens[0] !== "None"){
+        answer = this.decorateWithFaith(answer);
+      }
+
+      const aiTs = now();
+      this.tmLog.push({role:"ai",text:answer,ts:aiTs,source});
+      this.saveTM();
+      this.renderConsole();
+
+      // After AI response, update metrics again
+      this.updateEmotionalMetrics();
+      this.drawBMChart();
+      this.updateBMFoot();
+    }
+
+    applySafetyRules(text){
+      const lower = text.toLowerCase();
+      if(/fuck|bitch|lanat|harami/.test(lower)){
+        return "Please keep your language respectful. I am here to help, not to be abused. Tell me what you need in a calm way.";
+      }
+      return null;
+    }
+
+    estimatePolarity(text){
+      const t = text.toLowerCase();
+      const posWords = ["hope","love","thanks","shukriya","grateful","happy","relief","alhamdulillah"];
+      const negWords = ["fear","sad","angry","depressed","hopeless","hate","gussa","tension","anxious"];
+      let score = 0;
+      posWords.forEach(w=>{ if(t.includes(w)) score+=1; });
+      negWords.forEach(w=>{ if(t.includes(w)) score-=1; });
+      if(score>0) return clamp(score/3,0,1);
+      if(score<0) return clamp(score/3,-1,0);
+      return 0;
+    }
+
+    ingestToBMIfNeeded(text){
+      // Very short or obvious small-talk → skip BM
+      if(text.length < 80) return;
+      const polVal = this.estimatePolarity(text);
+      const polarity = polVal>0.1?"positive":(polVal<-0.1?"negative":"neutral");
+      const intensity = clamp(Math.abs(polVal) || (text.length/400),0.1,1);
+      const entry = {
+        id:"E"+(this.bm.length+1).toString().padStart(3,"0"),
+        text,
+        polarity,
+        intensity,
+        category:"general",
+        ts:now(),
+        locked:false,
+        topic:topicKey(text)
+      };
+      this.bm.push(entry);
+      if(this.bm.length>BM_CAPACITY){
+        this.bm.shift();
+      }
+      this.autoLockRepeated();
+      this.pruneOldBM();
+      this.saveBM();
+    }
+
+    autoLockRepeated(){
+      const byTopic = new Map();
+      this.bm.forEach(m=>{
+        const key = m.topic || topicKey(m.text);
+        m.topic = key;
+        if(!byTopic.has(key)) byTopic.set(key,[]);
+        byTopic.get(key).push(m);
+      });
+      byTopic.forEach((list)=>{
+        const recent = list.filter(m => (now()-m.ts) <= BM_AUTO_DAYS*DAY_MS);
+        if(recent.length >= 3){
+          recent.forEach(m=>{ m.locked = true; });
+        }
+      });
+    }
+
+    pruneOldBM(){
+      const cutoff = now() - BM_AUTO_DAYS*DAY_MS;
+      this.bm = this.bm.filter(m=> m.locked || m.ts >= cutoff );
+    }
+
+    pruneTM48h(){
+      const cutoff = now() - 2*DAY_MS;
+      this.tmLog = this.tmLog.filter(m=>m.ts >= cutoff);
+    }
+
+    decorateWithFaith(text){
+      const lens = this.faithLens[0] || "None";
+      if(lens==="Islam"){
+        return "From an Islamic encouragement lens: Allah knows your struggles and your patience. " + text;
+      }
+      if(lens==="Christianity"){
+        return "From a Christian encouragement lens: you are still held in grace even when you feel weak. " + text;
+      }
+      if(lens==="Atheism / Humanism"){
+        return "From a humanist lens: your feelings matter and your choices shape real lives. " + text;
+      }
+      // generic
+      return text;
+    }
+
+    /* ---------- SEEDS ---------- */
+    parseSeedBlock(){
+      const raw = this.seedInput.value || "";
+      if(!raw.trim()){
+        this.seedStatus.textContent = "No text to parse.";
+        return;
+      }
+      const items = raw.split(/\\item\s/).map(s=>s.trim()).filter(Boolean);
+      const parsed = [];
+      items.forEach(chunk=>{
+        // Question until \textbf{A:}
+        const parts = chunk.split(/\\textbf\{A:\}/i);
+        const q = (parts[0]||"").replace(/^[\-\*]+/,"").trim();
+        let a = (parts[1]||"").trim();
+        let meta = {};
+        const metaMatch = a.match(/^\[([^\]]+)\]/);
+        if(metaMatch){
+          const metaStr = metaMatch[1];
+          a = a.slice(metaMatch[0].length).trim();
+          metaStr.split(";").forEach(pair=>{
+            const [k,v] = pair.split("=").map(s=>s && s.trim());
+            if(k && v) meta[k]=v;
+          });
+        }
+        if(q && a){
+          parsed.push({q,a,meta});
+        }
+      });
+      if(parsed.length){
+        this.parsedSeeds = parsed;
+        this.seedStatus.textContent = `Parsed ${parsed.length} Q → A pairs. Click "Save to seed".`;
+      }else{
+        this.parsedSeeds = [];
+        this.seedStatus.textContent = "Could not find any \\item … \\textbf{A:} pairs.";
+      }
+    }
+
+    saveSeeds(){
+      if(!this.parsedSeeds || !this.parsedSeeds.length){
+        this.seedStatus.textContent = "Nothing parsed yet.";
+        return;
+      }
+      this.parsedSeeds.forEach(p=>{
+        this.seeds.push({
+          question:p.q,
+          answer:p.a,
+          meta:p.meta
+        });
+      });
+      this.parsedSeeds = [];
+      this.seedStatus.textContent = `Saved. Total seed answers: ${this.seeds.length}.`;
+      try{ localStorage.setItem(SEED_KEY,JSON.stringify(this.seeds)); }catch(e){}
+    }
+
+    findSeedAnswer(text){
+      if(!this.seeds.length) return null;
+      const words = softWordSet(text);
+      if(!words.length) return null;
+      let best=null, bestScore=0;
+      this.seeds.forEach(s=>{
+        const qWords = softWordSet(s.question);
+        let hit=0;
+        words.forEach(w=>{ if(qWords.includes(w)) hit++; });
+        const score = hit / Math.max(qWords.length||1,1);
+        if(score>bestScore){
+          bestScore = score;
+          best = s;
+        }
+      });
+      if(best && bestScore>0.25){
+        const intensity = parseFloat(best.meta.intensity||"0.5");
+        const polarity = (best.meta.polarity||"neutral");
+        this.bm.push({
+          id:best.meta.code || ("E"+(this.bm.length+1).toString().padStart(3,"0")),
+          text:`Seed answer used: ${best.question}`,
+          polarity,
+          intensity:clamp(intensity,0,1),
+          category:best.meta.category || "seed",
+          ts:now(),
+          locked:true,
+          topic:topicKey(best.question)
+        });
+        this.autoLockRepeated();
+        this.pruneOldBM();
+        this.saveBM();
+        this.drawBMChart();
+        this.updateBMFoot();
+        return {answer:best.answer};
+      }
+      return null;
+    }
+
+    /* ---------- HISTORY / MODALS ---------- */
+    openHistoryModal(){
+      this.renderHistory();
+      this.historyModal.classList.add("visible");
+    }
+    renderHistory(){
+      if(!this.historyBody) return;
+      const lines = this.tmLog.map(m=>{
+        const role = m.role==="user"?"you":"ai";
+        return `[${formatTime(m.ts)}] ${role}: ${m.text}`;
+      });
+      this.historyBody.textContent = lines.join("\n");
     }
 
     openBMModal(){
       this.renderBMList();
       this.bmModal.classList.add("visible");
     }
-    openConvModal(){
-      this.renderConvList();
-      this.convModal.classList.add("visible");
-    }
-    openFaithModal(){
-      this.updateFaithUI();
-      this.faithModal.classList.add("visible");
-    }
-    openIntelModal(){
-      this.renderIntelList();
-      this.intelModal.classList.add("visible");
-    }
-    openSeedModal(){
-      if(this.seedUnlocked){
-        this.seedPasswordStage.style.display = "none";
-        this.seedBlockStage.style.display = "block";
-      }else{
-        this.seedPasswordStage.style.display = "block";
-        this.seedBlockStage.style.display = "none";
-        if(this.seedPasswordError) this.seedPasswordError.style.display = "none";
-        if(this.seedPasswordInput) this.seedPasswordInput.value = "";
-      }
-      this.seedModal.classList.add("visible");
-      setTimeout(()=>{
-        if(!this.seedUnlocked && this.seedPasswordInput) this.seedPasswordInput.focus();
-        if(this.seedUnlocked && this.seedBlockInput) this.seedBlockInput.focus();
-      },50);
-    }
-
-    handleSeedPassword(){
-      const val = (this.seedPasswordInput.value || "").trim();
-      if(val === "6789"){
-        this.seedUnlocked = true;
-        if(this.seedPasswordError) this.seedPasswordError.style.display = "none";
-        if(this.seedPasswordInput) this.seedPasswordInput.value = "";
-        this.seedPasswordStage.style.display = "none";
-        this.seedBlockStage.style.display = "block";
-        if(this.seedBlockInput) this.seedBlockInput.focus();
-      }else{
-        if(this.seedPasswordError) this.seedPasswordError.style.display = "block";
-      }
-    }
-
-    handleSeedParse(){
-      const raw = (this.seedBlockInput.value || "").trim();
-      if(!raw){
-        this.seedBlockPreview.textContent = "Please paste a LaTeX block with \\item and \\textbf{A:} first.";
-        this.seedSaveBtn.disabled = true;
-        return;
-      }
-      const qas = this.parseLaTeXBlockToQAs(raw);
-      if(!qas.length){
-        this.seedBlockPreview.textContent = "I could not find any Q → A pairs. Check that each item has \\item question and \\textbf{A:} [metadata] answer.";
-        this.seedSaveBtn.disabled = true;
-        return;
-      }
-      this.seedPanelQAs = qas;
-      const ex = qas[0];
-      this.seedBlockPreview.textContent = `Found ${qas.length} pairs. Example:\nQ: ${ex.question}\nA: ${ex.answer}`;
-      this.seedSaveBtn.disabled = false;
-    }
-
-    handleSeedSave(){
-      if(!this.seedPanelQAs.length){
-        this.seedBlockPreview.textContent = "Nothing to save yet. Parse a block first.";
-        this.seedSaveBtn.disabled = true;
-        return;
-      }
-      this.seedPanelQAs.forEach(pair=>{
-        this.addIntelNode(pair.question, pair.answer, pair.meta);
-      });
-      this.seedBlockPreview.textContent = `Saved ${this.seedPanelQAs.length} pairs into intelligence memory.`;
-      this.seedSaveBtn.disabled = true;
-      this.seedPanelQAs = [];
-      this.seedBlockInput.value = "";
-      this.renderIntelList();
-      this.saveState();
-    }
-
-    handleSeedDiscard(){
-      this.seedPanelQAs = [];
-      this.seedBlockInput.value = "";
-      this.seedBlockPreview.textContent = "Block cleared. You can paste a new LaTeX section here.";
-      this.seedSaveBtn.disabled = true;
-    }
-
-    escapeHtml(str){
-      return String(str).replace(/[&<>"']/g, ch => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
-      }[ch]));
-    }
-
     renderBMList(){
-      const q = (this.bmSearch.value || "").toLowerCase();
-      this.bmList.innerHTML = "";
-      if(this.bmEntries.length===0){
+      if(!this.bmList) return;
+      const q = (this.bmSearchInput.value||"").toLowerCase();
+      const items = this.bm.filter(m=>{
+        if(!q) return true;
+        return m.text.toLowerCase().includes(q);
+      });
+      if(!items.length){
         this.bmList.textContent = "No bold memories stored yet. Only long, descriptive text will appear here for photo/video.";
         return;
       }
-      const filtered = this.bmEntries.filter(e=>e.text.toLowerCase().includes(q));
-      filtered.forEach(entry=>{
-        const div = document.createElement("div");
-        const dateStr = entry.date.toISOString().slice(0,10);
-        const mediaLabel = entry.videoReady
-          ? "🎞 video + 🖼 photo"
-          : (entry.photoReady ? "🖼 photo" : "—");
-        const lockClass = entry.locked ? "lock-pill locked" : "lock-pill";
-        const lockIcon = entry.locked ? "🔐" : "🔓";
-        const emoLabel = entry.emotionCode || "E---";
-        div.className="bm-item";
-        div.innerHTML = `
-          <div class="bm-item-header">
-            <span>${dateStr}</span>
-            <span>
-              <button class="${lockClass}" data-action="lock-toggle" data-id="${entry.id}" title="${entry.locked ? "Unlock" : "Lock"}">${lockIcon}</button>
-              ${emoLabel}
-            </span>
-          </div>
-          <div class="bm-item-badges">${mediaLabel}</div>
-          <div class="bm-item-text">${this.escapeHtml(entry.text)}</div>
-          <div class="bm-item-buttons">
-            <button class="btn-mini" data-action="copy" data-id="${entry.id}">Copy prompt</button>
-            <button class="btn-mini" data-action="generate" data-id="${entry.id}">
-              ${entry.videoReady ? "▶ Generate video" : "▶ Generate photo"}
-            </button>
-            <button class="btn-mini btn-danger" data-action="delete" data-id="${entry.id}">Delete</button>
-          </div>
-        `;
-        this.bmList.appendChild(div);
+      const parts = items.slice().reverse().map(m=>{
+        const d = new Date(m.ts).toISOString().slice(0,10);
+        const lock = m.locked ? "🔐 " : "";
+        return `${lock}${d} · ${m.text}`;
       });
+      this.bmList.textContent = parts.join("\n\n");
     }
 
-    renderConvList(){
-      this.convList.innerHTML = "";
-      this.tmHistory.slice(-50).forEach(e=>{
-        const lockClass = e.locked ? "lock-pill locked" : "lock-pill";
-        const lockIcon = e.locked ? "🔐" : "🔓";
-        const div = document.createElement("div");
-        div.className="conv-item";
-        div.innerHTML = `
-          <div class="conv-header">
-            <span>${e.role}</span>
-            <span>
-              <button class="${lockClass}" data-action="lock-toggle" data-id="${e.id}" title="${e.locked ? "Unlock" : "Lock"}">${lockIcon}</button>
-              ${e.timestamp.toLocaleTimeString()}
-            </span>
-          </div>
-          <div class="conv-text">${this.escapeHtml(e.text)}</div>`;
-        this.convList.appendChild(div);
-      });
+    openSeedModal(){
+      this.seedStatus.textContent = "Waiting for block…";
+      this.seedModal.classList.add("visible");
     }
 
-    renderIntelList(){
-      this.intelList.innerHTML = "";
-      const q = (this.intelSearch.value || "").toLowerCase();
-      if(!this.intelNodes.length){
-        this.intelList.textContent =
-          "No intelligence nodes yet.\nWhen I don't know an answer (and Learning mode is ON), you can teach me and I will save it here.\n"+
-          "You can also load big blocks using: \"please add this block to seed\" or the 🌱 Feed the seed panel.\n\n"+
-          "To correct a wrong answer, send:\n**Aura** your new answer here** and then reply yes / no.";
-        return;
-      }
-      const filtered = this.intelNodes.filter(n=>
-        n.question.toLowerCase().includes(q) || n.answer.toLowerCase().includes(q)
-      );
-      filtered.forEach(node=>{
-        const div = document.createElement("div");
-        const dateStr = node.createdAt.toISOString().slice(0,10);
-        const code = node.emotionCode || "E---";
-        div.className="intel-item";
-        div.innerHTML = `
-          <div class="intel-header">
-            <span>${dateStr}</span>
-            <span>Stored answer</span>
-          </div>
-          <div class="intel-q">Q: ${this.escapeHtml(node.question)}</div>
-          <div class="intel-a">A: ${this.escapeHtml(node.answer)}</div>
-          <div class="intel-meta">emotion code: ${code}</div>
-          <div class="intel-buttons">
-            <button class="btn-mini" data-action="use" data-id="${node.id}">Use question</button>
-            <button class="btn-mini" data-action="copy" data-id="${node.id}">Copy answer</button>
-            <button class="btn-mini btn-danger" data-action="delete" data-id="${node.id}">Delete (2× confirm)</button>
-          </div>
-        `;
-        this.intelList.appendChild(div);
-      });
-    }
-
-    clearTMByHours(h){
-      const cutoff = Date.now() - h*3600000;
-      this.tmHistory = this.tmHistory.filter(e=> e.locked || e.timestamp.getTime() < cutoff);
-      this.renderConvList();
-      this.updateMetrics();
-      this.saveState();
-    }
-
-    pruneOldBM(){
-      this.bmEntries = this.bmEntries.filter(e=> e.locked || e.timestampMs > (Date.now() - 48*3600000));
-      this.saveState();
-    }
-
-    addIntelNode(question, answer, meta={}){
-      const emo = meta.emotionCode ? meta : this.analyzeSentiment(answer);
-      this.intelNodes.push({
-        id:this.makeId("intel"),
-        question,
-        answer,
-        createdAt:new Date(),
-        polarity:emo.polarity,
-        category:emo.category,
-        valence:emo.valence,
-        intensity:emo.intensity,
-        emotionCode:emo.emotionCode,
-        emotionName:emo.emotionName
-      });
-    }
-
-    copyPrompt(entry){
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(entry.text).catch(()=>{
-          alert("Prompt:\n\n"+entry.text);
-        });
-      }else{
-        alert("Prompt:\n\n"+entry.text);
-      }
-    }
-
-    openGenerator(entry){
-      const type = entry.videoReady ? "video" : "photo";
-      const url = "https://example.com/create?prompt="+encodeURIComponent(entry.text)+"&type="+type;
-      window.open(url,"_blank");
-    }
-
-    deleteMemory(entry){
-      if(entry.locked){
-        const sure = confirm("This memory is locked. Delete it anyway?");
-        if(!sure) return;
-      }
-      this.bmEntries = this.bmEntries.filter(e=>e.id!==entry.id);
-      this.renderBMList();
-      this.updateMetrics();
-      this.saveState();
+    openFaithModal(){
+      this.faithModal.classList.add("visible");
     }
 
     openLLMModal(){
-      if(this.llmConfig.apiKey){
-        this.llmLockStage.style.display = "none";
-        this.llmConfigStage.style.display = "block";
-        this.llmBaseUrlInput.value = this.llmConfig.baseUrl;
-        this.llmModelInput.value = this.llmConfig.model;
-        this.llmKeyInput.value = this.llmConfig.apiKey;
-        this.updateLLMUI();
-        this.updateOfflineModalUI();
-      }else{
-        this.llmLockStage.style.display = "block";
-        this.llmConfigStage.style.display = "none";
-        if(this.llmPasswordError) this.llmPasswordError.style.display = "none";
-        if(this.llmPasswordInput) this.llmPasswordInput.value = "";
-      }
       this.llmModal.classList.add("visible");
-      setTimeout(()=>{
-        if(!this.llmConfig.apiKey && this.llmPasswordInput) this.llmPasswordInput.focus();
-        if(this.llmConfig.apiKey && this.llmBaseUrlInput) this.llmBaseUrlInput.focus();
-      },50);
+      this.updateLLMUI();
     }
 
-    handleLLMUnlock(){
-      const val = (this.llmPasswordInput.value || "").trim();
-      if(val === "6789"){
-        if(this.llmPasswordError) this.llmPasswordError.style.display = "none";
-        this.llmLockStage.style.display = "none";
-        this.llmConfigStage.style.display = "block";
-        this.llmBaseUrlInput.value = this.llmConfig.baseUrl;
-        this.llmModelInput.value = this.llmConfig.model;
-        this.llmKeyInput.value = this.llmConfig.apiKey;
+    /* ---------- OFFLINE / ONLINE LLM ---------- */
+    async handleOfflineLoad(){
+      if(this.offlineEngine){
+        this.offlineLLMStatus = "ready";
         this.updateLLMUI();
-        this.updateOfflineModalUI();
-      }else{
-        if(this.llmPasswordError) this.llmPasswordError.style.display = "block";
+        return;
       }
-    }
-
-    handleLLMSave(){
-      this.llmConfig.baseUrl = (this.llmBaseUrlInput.value || "").trim();
-      this.llmConfig.model = (this.llmModelInput.value || "").trim();
-      this.llmConfig.apiKey = (this.llmKeyInput.value || "").trim();
-      this.llmEnabled = !!(this.llmConfig.apiKey && this.llmConfig.baseUrl);
-      this.updateLLMUI();
-      this.saveLLMConfig();
-      alert("LLM config saved locally. For real deployments, move keys to a secure backend.");
-    }
-
-    handleLLMClear(){
-      const ok = confirm("Clear stored API key from this browser?");
-      if(!ok) return;
-      this.llmConfig.apiKey = "";
-      this.llmEnabled = false;
-      this.llmKeyInput.value = "";
-      this.updateLLMUI();
-      this.saveLLMConfig();
-    }
-
-    async callLLM(promptText){
-      if(!this.llmConfig.apiKey || !this.llmConfig.baseUrl) return null;
-      const base = this.llmConfig.baseUrl;
-      const model = this.llmConfig.model || "default-model";
-
-      const payload = {
-        model: model,
-        messages: [
-          {role:"system",content:"You are a helper LLM plugged into an emotional engine called AURA-X Ω. Reply clearly and conversationally."},
-          {role:"user",content:promptText}
-        ],
-        max_tokens: 256
-      };
-      const res = await fetch(base,{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "Authorization":"Bearer "+this.llmConfig.apiKey
-        },
-        body:JSON.stringify(payload)
-      });
-      if(!res.ok) throw new Error("LLM HTTP "+res.status);
-      const data = await res.json();
-      const answer = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-      return answer ? answer.trim() : null;
-    }
-
-    async initOfflineLLM(){
-      if(this.offlineEngine || !window.webllm) return;
+      if(!window.webllm){
+        this.offlineLLMStatus = "error";
+        this.offlineProgressText = "WebLLM library not available.";
+        this.updateLLMUI();
+        return;
+      }
       try{
-        const defaultModelId = "Llama-3.2-1B-Instruct-q4f16_1-MLC"; // adjust to a valid WebLLM model ID if needed
+        this.offlineLLMStatus = "loading";
         this.offlineProgress = 0;
         this.offlineProgressText = "Preparing…";
-        this.offlineLLMStatus = "loading";
-        this.updateOfflineModalUI();
-        this.offlineEngine = await window.webllm.CreateMLCEngine(defaultModelId,{
-          initProgressCallback: (info)=>{
-            const p = typeof info.progress === "number" ? info.progress : this.offlineProgress;
-            this.offlineProgress = p;
-            this.offlineProgressText = info.text || "";
-            this.updateOfflineModalUI();
+        this.updateLLMUI();
+        this.offlineEngine = await window.webllm.CreateMLCEngine(OFFLINE_MODEL_ID,{
+          initProgressCallback:(info)=>{
+            if(typeof info.progress==="number"){
+              this.offlineProgress = info.progress;
+            }
+            if(info.text) this.offlineProgressText = info.text;
+            this.updateLLMUI();
           }
         });
         this.offlineLLMStatus = "ready";
         this.offlineProgress = 1;
-        this.offlineProgressText = "Model ready.";
-        this.updateOfflineModalUI();
+        this.offlineProgressText = "Model loaded. Ready to use.";
+        this.updateLLMUI();
       }catch(e){
-        console.error("Offline LLM init error", e);
+        console.error("offline load error",e);
         this.offlineLLMStatus = "error";
-        this.offlineProgress = 0;
-        this.offlineProgressText = "Error while loading model.";
-        this.updateOfflineModalUI();
+        this.offlineProgressText = "Failed to load model.";
+        this.updateLLMUI();
       }
     }
 
-    async callOfflineLLM(promptText){
-      // If WebLLM not available or model not loaded/errored, return null so engine can use other sources
-      if(!window.webllm) return null;
-      if(!this.offlineEngine){
-        if(this.offlineLLMStatus === "loading"){
-          this.offlineProgressText = "Still downloading in background…";
-          this.updateOfflineModalUI();
+    buildLLMMessages(userText){
+      const msgs = [];
+      msgs.push({
+        role:"system",
+        content:"You are a small helper model running locally inside AURA-X Ω. Answer briefly, clearly and kindly. Respect the emotional state summary I give you."
+      });
+      const summary = `Current emotional state E0=${this.e0.toFixed(2)}, TM=${this.tmActivation.toFixed(2)}, BM=${this.bmResonance.toFixed(2)}, continuity=${this.continuityIndex.toFixed(2)}. Faith lens: ${this.faithLens.join(", ")}.`;
+      msgs.push({role:"system",content:summary});
+      const recent = this.tmLog.slice(-6);
+      recent.forEach(m=>{
+        msgs.push({role:m.role==="user"?"user":"assistant",content:m.text});
+      });
+      msgs.push({role:"user",content:userText});
+      return msgs;
+    }
+
+    async callHelperLLM(text){
+      // priority: offline model if enabled & ready
+      if(this.offlineLLMEnabled && this.offlineEngine && this.offlineLLMStatus==="ready"){
+        try{
+          const messages = this.buildLLMMessages(text);
+          const result = await this.offlineEngine.chat.completions.create({
+            messages,
+            temperature:0.7,
+            max_tokens:220
+          });
+          const choice = result && result.choices && result.choices[0];
+          const content = choice && choice.message && choice.message.content;
+          if(content && content.trim()){
+            return content.trim();
+          }
+        }catch(e){
+          console.error("offline LLM error",e);
+          this.offlineLLMStatus = "error";
+          this.offlineProgressText = "Error while using model.";
+          this.updateLLMUI();
         }
-        return null;
       }
-      if(this.offlineLLMStatus !== "ready") return null;
 
-      try{
-        const result = await this.offlineEngine.chat.completions.create({
-          messages:[
-            {role:"system", content:"You are a small offline helper model inside AURA-X Ω. Answer briefly and clearly."},
-            {role:"user", content: promptText}
-          ],
-          max_tokens: 200,
-          temperature: 0.7
-        });
-        const text = result && result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content;
-        return text || null;
-      }catch(e){
-        console.error("Offline LLM error", e);
-        this.offlineLLMStatus = "error";
-        this.offlineProgressText = "Error while using model.";
-        this.updateOfflineModalUI();
-        return null;
+      // fall back to online if configured & enabled
+      if(this.llmOnlineEnabled && this.llmConfig.baseUrl && this.llmConfig.key){
+        try{
+          const payload = {
+            model:this.llmConfig.model || "gpt-4o-mini",
+            messages:this.buildLLMMessages(text),
+            temperature:0.7,
+            max_tokens:220
+          };
+          const res = await fetch(this.llmConfig.baseUrl,{
+            method:"POST",
+            headers:{
+              "Content-Type":"application/json",
+              "Authorization":"Bearer "+this.llmConfig.key
+            },
+            body:JSON.stringify(payload)
+          });
+          if(res.ok){
+            const data = await res.json();
+            const choice = data && data.choices && data.choices[0];
+            const content = choice && choice.message && choice.message.content;
+            if(content && content.trim()){
+              return content.trim();
+            }
+          }else{
+            console.warn("online LLM HTTP error",res.status);
+          }
+        }catch(e){
+          console.error("online LLM error",e);
+        }
       }
+
+      return null;
     }
 
-    maybeShowRecallBubble(sentiment){
-      if(!this.recallBubble) return;
-      if(this.bmEntries.length===0) return;
-      if(Math.random()>0.25) return;
-      const last = this.bmEntries[this.bmEntries.length-1];
-      this.recallTitle.textContent = "BM resonance snapshot";
-      const preview = last.text.length>120 ? last.text.slice(0,120)+"…" : last.text;
-      this.recallBody.textContent = preview;
-      this.recallMeta.textContent =
-        `emotion code: ${last.emotionCode||"E---"}`;
-      this.recallBubble.classList.add("visible");
-      setTimeout(()=>this.recallBubble.classList.remove("visible"),6500);
+    /* ---------- BOOT ---------- */
+    bootGreeting(){
+      if(this.tmLog.length) return;
+      const ts = now();
+      const text = "Welcome. I am AURA-X Ω running inside your browser. For this prototype, TM means only your inputs (text now, voice/video/documents in the future). Inside the engine I keep a long-term emotional trajectory using TM, BM, intelligence and optionally a helper LLM. You can talk naturally. If I ever say “I don’t know yet”, you can teach me the answer and I will remember it next time.";
+      this.tmLog.push({role:"ai",text,ts});
+      this.saveTM();
+      this.renderConsole();
+      this.updateEmotionalMetrics();
     }
   }
 
