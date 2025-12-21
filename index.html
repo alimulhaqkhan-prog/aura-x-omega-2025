@@ -5,7 +5,7 @@
   <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Offline LLM package (placeholder – future use) -->
+  <!-- Offline LLM package (WebLLM, for in-browser models) -->
   <script type="module">
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
@@ -13,17 +13,18 @@
 
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
+
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:
-        radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
-        radial-gradient(circle at 80% 0, #0ea5e9 0, transparent 40%),
-        linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
-      color:#e5e7eb;
       min-height:100vh;
       display:flex;
       justify-content:center;
       padding:18px 10px;
+      color:#e5e7eb;
+      background:
+        radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
+        radial-gradient(circle at 80% 0, #0ea5e9 0, transparent 40%),
+        linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
     }
 
     .app{
@@ -53,6 +54,7 @@
       margin-top:2px;
       font-size:13px;
     }
+
     .ethic{
       margin:14px auto 12px auto;
       max-width:720px;
@@ -65,7 +67,8 @@
       font-size:14px;
       line-height:1.45;
     }
-    .pillTop{
+
+    .pill{
       margin:10px auto 0 auto;
       max-width:760px;
       background:linear-gradient(90deg, rgba(14,165,233,.65), rgba(34,211,238,.45));
@@ -87,14 +90,9 @@
       flex-wrap:wrap;
       align-items:stretch;
     }
-    .leftCol{
-      flex:1 1 340px;
-      min-width:300px;
-    }
-    .rightCol{
-      flex:1 1 360px;
-      min-width:320px;
-    }
+
+    .leftCol{ flex:1 1 340px; min-width:300px; }
+    .rightCol{ flex:1 1 360px; min-width:320px; }
 
     .card{
       background:rgba(2,6,23,.50);
@@ -116,28 +114,24 @@
       color:#e5e7eb;
       cursor:pointer;
       user-select:none;
-      margin-top:4px;
+      margin-top:12px;
       margin-bottom:12px;
-      -webkit-tap-highlight-color: transparent;
+      -webkit-tap-highlight-color:transparent;
     }
     .optionsBtn:active{transform:scale(.99)}
-    .gear{
-      width:18px;
-      height:18px;
-      border-radius:50%;
-      border:2px solid #7dd3fc;
-      box-shadow:0 0 10px rgba(125,211,252,.45);
-    }
+    .gear{ width:18px;height:18px;display:inline-block; filter:drop-shadow(0 0 10px rgba(125,211,252,.25)); }
+
+    .metricsGrid{display:none;} /* values only in capsule */
 
     .console{
-      margin-top:4px;
+      margin-top:12px;
       height:230px;
       border-radius:16px;
       border:1px solid rgba(148,163,184,.14);
       background:rgba(0,0,0,.25);
       padding:14px;
       overflow:auto;
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
       font-size:14px;
       color:#dbeafe;
       box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
@@ -146,43 +140,39 @@
     }
 
     .chatWrap{
-      margin-top:14px;
+      margin-top:0;
       padding:12px;
       border-radius:18px;
       border:1px solid rgba(148,163,184,.14);
       background:rgba(2,6,23,.45);
     }
 
-    /* conversation bubbles hidden – everything console me hi */
-    .messages{ max-height:0; overflow:hidden; display:none;}
+    .messages{display:none;}
 
     .liveCapsule{
-      margin-top:2px;
+      margin-top:10px;
       margin-bottom:10px;
       width:100%;
       border-radius:999px;
       border:1px solid rgba(148,163,184,.18);
       background:rgba(2,6,23,.55);
-      padding:9px 12px;
+      padding:10px 12px;
       display:flex;
       gap:10px;
       flex-wrap:wrap;
       align-items:center;
       justify-content:center;
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
       font-size:12px;
       color:#dbeafe;
       box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
     }
-    .liveCapsule b{
-      color:#7dd3fc;
-      font-weight:900;
-    }
+    .liveCapsule b{ color:#7dd3fc; font-weight:900; }
 
     .inputRow{
       display:flex;
       gap:10px;
-      margin-top:4px;
+      margin-top:0;
       align-items:flex-end;
     }
     .input{
@@ -205,90 +195,19 @@
       cursor:pointer;
       min-width:88px;
       box-shadow:0 12px 30px rgba(14,165,233,.18);
-      -webkit-tap-highlight-color: transparent;
+      -webkit-tap-highlight-color:transparent;
     }
     .send:active{transform:scale(.99)}
 
     .formula{
-      margin-top:8px;
+      margin-top:10px;
       opacity:.8;
       font-size:12px;
       text-align:center;
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
       color:#dbeafe;
     }
 
-    .infoTitle{
-      font-size:15px;
-      font-weight:700;
-      margin-bottom:6px;
-    }
-    .infoText{
-      font-size:13px;
-      opacity:.78;
-      line-height:1.45;
-    }
-
-    /* ========== 2-column options menu ========== */
-    .optionsMenu{
-      position:fixed;
-      left:12px;
-      right:12px;
-      top:130px;
-      max-width:520px;
-      margin:0 auto;
-      background:rgba(2,6,23,.94);
-      border:1px solid rgba(148,163,184,.18);
-      border-radius:16px;
-      padding:10px;
-      display:none;
-      z-index:99999;
-      box-shadow:0 18px 45px rgba(0,0,0,.45);
-      backdrop-filter:blur(10px);
-      max-height:260px;
-      overflow-y:auto;
-    }
-    .optionsMenu.show{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:8px;
-    }
-    .menuItem{
-      padding:8px 10px;
-      border-radius:14px;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:6px;
-      font-size:13px;
-      color:#e5e7eb;
-      border:1px solid rgba(148,163,184,.12);
-      background:rgba(15,23,42,.70);
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .menuItem:active{transform:scale(.995)}
-    .pillOn{
-      font-size:11px;
-      padding:3px 7px;
-      border-radius:999px;
-      background:rgba(34,197,94,.18);
-      border:1px solid rgba(34,197,94,.24);
-      color:#bbf7d0;
-      font-weight:900;
-    }
-    .pillOff{
-      font-size:11px;
-      padding:3px 7px;
-      border-radius:999px;
-      background:rgba(239,68,68,.12);
-      border:1px solid rgba(239,68,68,.22);
-      color:#fecaca;
-      font-weight:900;
-    }
-
-    /* ========== shared modal ========== */
     .modalOverlay{
       position:fixed;
       inset:0;
@@ -300,11 +219,12 @@
       z-index:9999;
     }
     .modalOverlay.show{display:flex}
+
     .modal{
-      width:min(820px, 96vw);
+      width:min(820px,96vw);
       border-radius:18px;
       overflow:hidden;
-      background:rgba(245,245,245,.95);
+      background:rgba(245,245,245,.96);
       color:#0b1220;
       border:1px solid rgba(15,23,42,.18);
       box-shadow:0 30px 80px rgba(0,0,0,.35);
@@ -315,11 +235,11 @@
       align-items:center;
       justify-content:space-between;
       padding:12px 14px;
-      background:rgba(255,255,255,.8);
+      background:rgba(255,255,255,.9);
       border-bottom:1px solid rgba(15,23,42,.10);
       font-weight:800;
     }
-    .modalHeader small{font-weight:600; opacity:.7}
+    .modalHeader small{font-weight:600;opacity:.7}
     .closeX{
       border:none;
       background:transparent;
@@ -327,8 +247,8 @@
       cursor:pointer;
       line-height:1;
       padding:0 4px;
-      opacity:.8;
-      -webkit-tap-highlight-color: transparent;
+      opacity:.75;
+      -webkit-tap-highlight-color:transparent;
     }
     .modalBody{
       padding:14px;
@@ -336,9 +256,135 @@
       overflow:auto;
       font-size:14px;
     }
-    .mono{
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+    .faithChips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:10px;
+      margin-bottom:16px;
     }
+    .chip{
+      border:1px solid rgba(15,23,42,.18);
+      background:rgba(255,255,255,.85);
+      padding:8px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:700;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      font-size:13px;
+    }
+    .chip.active{
+      background:rgba(2,6,23,.9);
+      color:#fff;
+      border-color:rgba(2,6,23,.9);
+    }
+
+    .optRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 0;
+      border-top:1px solid rgba(15,23,42,.08);
+    }
+    .optRow:first-of-type{border-top:none}
+    .optRow .desc{font-size:13px;opacity:.75;margin-top:2px;}
+
+    .toggle{
+      width:50px;height:28px;
+      border-radius:999px;
+      background:#d1d5db;
+      position:relative;
+      cursor:pointer;
+      flex:0 0 auto;
+      border:1px solid rgba(15,23,42,.14);
+      -webkit-tap-highlight-color:transparent;
+    }
+    .toggle::after{
+      content:"";
+      width:22px;height:22px;
+      border-radius:50%;
+      position:absolute;
+      top:2px;left:2px;
+      background:#fff;
+      box-shadow:0 6px 18px rgba(0,0,0,.18);
+      transition:all .18s ease;
+    }
+    .toggle.on{background:#22c55e}
+    .toggle.on::after{left:25px}
+
+    .dangerBtns{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      margin-top:10px;
+    }
+    .btn{
+      border:none;
+      cursor:pointer;
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:900;
+      -webkit-tap-highlight-color:transparent;
+      font-size:13px;
+    }
+    .btnDark{background:rgba(2,6,23,.9);color:#fff;}
+    .btnBlue{
+      background:rgba(14,165,233,.12);
+      color:#0b1220;
+      border:1px solid rgba(14,165,233,.25);
+    }
+
+    .search{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(15,23,42,.18);
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    .intelItem{
+      margin-top:12px;
+      border:1px solid rgba(15,23,42,.12);
+      border-radius:14px;
+      padding:12px;
+      background:rgba(255,255,255,.9);
+    }
+    .intelTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size:13px;
+      opacity:.75;
+      margin-bottom:8px;
+      flex-wrap:wrap;
+    }
+    .intelQA{font-size:14px;line-height:1.45;}
+    .miniBtns{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .miniBtn{
+      border-radius:999px;
+      padding:8px 10px;
+      border:1px solid rgba(15,23,42,.14);
+      background:rgba(255,255,255,.95);
+      cursor:pointer;
+      font-weight:800;
+      font-size:13px;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .miniBtn.danger{
+      background:rgba(239,68,68,.15);
+      border-color:rgba(239,68,68,.22);
+      color:#991b1b;
+    }
+
     .seedBox{
       width:100%;
       min-height:140px;
@@ -350,140 +396,355 @@
       outline:none;
       background:#fff;
     }
-    .hint{font-size:12px; opacity:.7; margin-top:6px;}
-    .btnRow{
+    .seedFooter{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .hint{font-size:12px;opacity:.7}
+
+    .greenCard{
+      background:rgba(34,197,94,.12);
+      border:1px solid rgba(34,197,94,.25);
+      border-radius:14px;
+      padding:12px;
+      margin-bottom:12px;
+    }
+    .greenCard h4{margin-bottom:6px}
+    .llmBtn{
+      background:#22c55e;
+      color:#06210f;
+      font-weight:900;
+      border:none;
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(34,197,94,.25);
+      -webkit-tap-highlight-color:transparent;
+    }
+    .llmStatus{margin-top:8px;font-size:12px;opacity:.75;}
+    .progress{
+      margin-top:8px;
+      height:10px;
+      border-radius:999px;
+      background:rgba(2,6,23,.12);
+      overflow:hidden;
+      border:1px solid rgba(2,6,23,.08);
+    }
+    .bar{
+      height:100%;
+      width:0%;
+      background:#22c55e;
+      transition:width .2s ease;
+    }
+    .field{margin-top:10px;}
+    .field label{
+      font-size:12px;
+      opacity:.75;
+      display:block;
+      margin-bottom:4px;
+    }
+    .field input{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(15,23,42,.18);
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+      background:rgba(255,255,255,.95);
+    }
+    .saveRow{
       margin-top:10px;
       display:flex;
       justify-content:flex-end;
       gap:10px;
       flex-wrap:wrap;
     }
-    .btn{
-      border:none;
+
+    .optionsMenu{
+      position:fixed;
+      left:12px;
+      right:12px;
+      top:130px;
+      max-width:520px;
+      margin:0 auto;
+      background:rgba(2,6,23,.96);
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:16px;
+      padding:10px;
+      display:none;
+      z-index:99999;
+      box-shadow:0 18px 45px rgba(0,0,0,.45);
+      backdrop-filter:blur(10px);
+    }
+    .optionsMenu.show{display:block}
+
+    .menuGrid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+    }
+    .menuItem{
+      padding:10px 12px;
+      border-radius:14px;
       cursor:pointer;
-      padding:9px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      color:#e5e7eb;
+      border:1px solid rgba(148,163,184,.08);
+      background:rgba(15,23,42,.75);
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      font-size:13px;
+    }
+    .menuItem:active{transform:scale(.995)}
+    .pillOn,.pillOff{
+      font-size:11px;
+      padding:4px 8px;
       border-radius:999px;
       font-weight:900;
-      font-size:13px;
-      -webkit-tap-highlight-color: transparent;
     }
-    .btnDark{background:#020617;color:#fff;}
-    .btnLight{
-      background:#e5e7eb;
-      color:#020617;
-      border:1px solid rgba(15,23,42,.15);
+    .pillOn{
+      background:rgba(34,197,94,.18);
+      border:1px solid rgba(34,197,94,.24);
+      color:#bbf7d0;
+    }
+    .pillOff{
+      background:rgba(239,68,68,.12);
+      border:1px solid rgba(239,68,68,.22);
+      color:#fecaca;
     }
 
     .listCard{
-      margin-top:10px;
+      margin-top:12px;
       border:1px solid rgba(15,23,42,.12);
       border-radius:14px;
-      padding:10px;
-      background:#ffffff;
+      padding:12px;
+      background:rgba(255,255,255,.9);
     }
     .listTop{
       display:flex;
       justify-content:space-between;
       gap:10px;
-      font-size:12px;
+      font-size:13px;
       opacity:.75;
-      margin-bottom:6px;
+      margin-bottom:8px;
       flex-wrap:wrap;
     }
-    .listBody{font-size:14px; line-height:1.4;}
+    .mono{
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
+    }
 
-    .miniBtns{
+    .themeRow{
       display:flex;
-      gap:8px;
       flex-wrap:wrap;
-      margin-top:8px;
-      justify-content:flex-end;
+      gap:10px;
+      margin-top:10px;
     }
-    .miniBtn{
-      border-radius:999px;
-      padding:6px 10px;
-      border:1px solid rgba(15,23,42,.14);
-      background:#f9fafb;
+    .themeBtn{
+      flex:1 1 120px;
+      border-radius:14px;
+      border:1px solid rgba(15,23,42,.16);
+      padding:10px 12px;
       cursor:pointer;
+      font-size:13px;
       font-weight:800;
-      font-size:12px;
-      -webkit-tap-highlight-color: transparent;
+      background:#fff;
     }
-    .miniBtn.danger{
-      background:#fee2e2;
-      border-color:#fecaca;
-      color:#b91c1c;
+    .themeBtn span{display:block;font-size:11px;font-weight:500;opacity:.7;margin-top:2px;}
+    .themeBtn.active{
+      background:#0f172a;
+      color:#f9fafb;
+      border-color:#0f172a;
     }
 
     @media (max-width:760px){
-      .console{height:260px}
+      .console{height:240px}
+      .send{min-width:82px}
+      .menuGrid{grid-template-columns:1fr;}
+    }
+    @media (max-width:420px){
       .brand{font-size:22px}
+      .pill{font-size:14px}
+      .ethic{font-size:13px}
+      .console{height:260px}
+      .liveCapsule{font-size:11px}
+    }
+
+    /* ---- THEMES OVERRIDES ---- */
+
+    body.theme-dark{} /* default already applied */
+
+    body.theme-light{
+      background:
+        radial-gradient(circle at 20% 0%, #dbeafe 0, transparent 45%),
+        radial-gradient(circle at 80% 0, #e0f2fe 0, transparent 40%),
+        linear-gradient(145deg,#f3f4f6 0,#e5e7eb 50%,#f9fafb 100%);
+      color:#020617;
+    }
+    body.theme-light .app{
+      background:rgba(255,255,255,.96);
+      border-color:rgba(148,163,184,.35);
+      color:#020617;
+    }
+    body.theme-light .card,
+    body.theme-light .chatWrap{
+      background:rgba(249,250,251,.96);
+      border-color:rgba(148,163,184,.35);
+      box-shadow:0 8px 26px rgba(148,163,184,.55);
+    }
+    body.theme-light .console{
+      background:#020617;
+      color:#e5e7eb;
+    }
+    body.theme-light .input{
+      background:#f9fafb;
+      color:#020617;
+      border-color:rgba(148,163,184,.38);
+    }
+    body.theme-light .liveCapsule{
+      background:#eff6ff;
+      color:#0f172a;
+      border-color:rgba(148,163,184,.45);
+    }
+
+    body.theme-metal{
+      background:
+        radial-gradient(circle at 20% 0%, #4b5563 0, transparent 40%),
+        radial-gradient(circle at 80% 0, #9ca3af 0, transparent 40%),
+        linear-gradient(145deg,#020617 0,#4b5563 40%,#111827 100%);
+    }
+    body.theme-metal .app{
+      background:linear-gradient(145deg,rgba(31,41,55,.95),rgba(55,65,81,.96));
+      border-color:rgba(156,163,175,.6);
+      box-shadow:0 30px 80px rgba(0,0,0,.8);
+    }
+
+    body.theme-glass{
+      background:radial-gradient(circle at 10% -10%, #38bdf8 0, transparent 55%), #020617;
+    }
+    body.theme-glass .app{
+      background:rgba(15,23,42,.55);
+      backdrop-filter:blur(18px);
     }
   </style>
 </head>
-<body>
+
+<body class="theme-dark">
   <div class="app">
     <div class="top">
       <div class="brand">AURA-X Ω</div>
       <div class="sub">
-        Offline emotional continuity engine (prototype)<br />
+        Offline emotional continuity engine (prototype)<br>
         TM = user inputs only · Internal layers keep continuity and emotional trajectory.
       </div>
+
       <div class="ethic">
         Universal ethic: avoid actions that grow negative emotions in you or others.
         Move gently toward choices that increase shared positive feeling for everyone.
       </div>
-      <div class="pillTop">
-        EMOTIONAL CONTINUITY ENGINE — ACTIVE
-      </div>
+
+      <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
     </div>
 
     <div class="main">
       <div class="row">
-        <!-- LEFT COLUMN -->
         <div class="leftCol">
           <div class="card">
-            <button class="optionsBtn" id="optionsToggle">
-              <span class="gear"></span>
+            <div class="optionsBtn" id="btnOptions">
+              <svg class="gear" viewBox="0 0 24 24" fill="none">
+                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="#7dd3fc" stroke-width="2"/>
+                <path d="M19.4 15a8.2 8.2 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a8.5 8.5 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a8.2 8.2 0 0 0 .1 2L2.7 16.5l2 3.5 2.4-1a8.5 8.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.5L19.4 15Z" stroke="#7dd3fc" stroke-width="1.6" opacity=".9"/>
+              </svg>
               <span>Options</span>
-            </button>
+            </div>
 
-            <div id="console" class="console"></div>
-
-            <div class="chatWrap">
-              <div id="liveCapsule" class="liveCapsule">
-                E₀ : 0.000 · TM : 0.00 · BM : 0.00 · C : 0.850
-              </div>
-
-              <div class="inputRow">
-                <input id="userInput" class="input"
-                       placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
-                <button id="sendBtn" class="send">Send</button>
-              </div>
-
-              <div class="formula">
-                E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
+            <div class="optionsMenu" id="optionsMenu">
+              <div class="menuGrid">
+                <div class="menuItem" id="miVoice">
+                  <span>🔊 Voice</span>
+                  <span class="pillOn" id="voicePill">ON</span>
+                </div>
+                <div class="menuItem" id="miIntel">
+                  <span>🧠 Intelligence</span>
+                  <span style="opacity:.7">open</span>
+                </div>
+                <div class="menuItem" id="miSeed">
+                  <span>🌱 Feed the seed</span>
+                  <span style="opacity:.7">open</span>
+                </div>
+                <div class="menuItem" id="miLearn">
+                  <span>📚 Learning</span>
+                  <span class="pillOn" id="learnPill">ON</span>
+                </div>
+                <div class="menuItem" id="miFaith">
+                  <span>🕊 Faith</span>
+                  <span style="opacity:.7" id="faithLabel">None</span>
+                </div>
+                <div class="menuItem" id="miIdentity">
+                  <span>🆔 Identity</span>
+                  <span style="opacity:.7">profile</span>
+                </div>
+                <div class="menuItem" id="miLLM">
+                  <span>🤖 LLM link</span>
+                  <span style="opacity:.7">open</span>
+                </div>
+                <div class="menuItem" id="miBMRecall">
+                  <span>🧾 BM recall</span>
+                  <span style="opacity:.7">open</span>
+                </div>
+                <div class="menuItem" id="miHistory">
+                  <span>🕰 Conversation history</span>
+                  <span style="opacity:.7">open</span>
+                </div>
+                <div class="menuItem" id="miThemes">
+                  <span🎨>🎨 Themes</span>
+                  <span style="opacity:.7" id="themeLabel">Deep blue</span>
+                </div>
+                <div class="menuItem" id="miAbout">
+                  <span>📖 About / Readme</span>
+                  <span style="opacity:.7">help</span>
+                </div>
               </div>
             </div>
+
+            <div class="metricsGrid">
+              <div class="metric"><div class="v" id="mE0">0.000</div><div class="k">E₀</div></div>
+              <div class="metric"><div class="v" id="mTM">0.00</div><div class="k">TM</div></div>
+              <div class="metric"><div class="v" id="mBM">0.00</div><div class="k">BM</div></div>
+              <div class="metric"><div class="v" id="mCont">0.850</div><div class="k">C</div></div>
+            </div>
+
+            <div class="console" id="console"></div>
           </div>
         </div>
 
-        <!-- RIGHT COLUMN -->
         <div class="rightCol">
-          <div class="card">
-            <div class="infoTitle">Continuity notes</div>
-            <div class="infoText">
-              This prototype keeps a quiet TM log and longer BM stories only in your browser.
-              Use <b>BM recall</b> and <b>Conversation history</b> from Options to inspect or clear them.
+          <div class="chatWrap">
+            <div class="messages" id="messages"></div>
+
+            <div class="liveCapsule" id="liveCapsule">
+              <span><b>E0</b>: <span id="cE0">0.000</span></span>
+              <span>·</span>
+              <span><b>TM</b>: <span id="cTM">0.00</span></span>
+              <span>·</span>
+              <span><b>BM</b>: <span id="cBM">0.00</span></span>
+              <span>·</span>
+              <span><b>C</b>: <span id="cCont">0.850</span></span>
             </div>
-          </div>
-          <div style="height:10px;"></div>
-          <div class="card">
-            <div class="infoTitle">Self-learning hint</div>
-            <div class="infoText">
-              If any answer feels wrong, send <code>*incorrect</code>.
-              Then type the correct answer and confirm with <b>yes</b> so AURA-X Ω can
-              store it in the Intelligence layer. If you reply <b>no</b>, the correction is discarded.
+
+            <div class="inputRow">
+              <input class="input" id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
+              <button class="send" id="sendBtn">Send</button>
+            </div>
+
+            <div class="formula">
+              E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
             </div>
           </div>
         </div>
@@ -491,541 +752,1107 @@
     </div>
   </div>
 
-  <!-- Options panel -->
-  <div id="optionsMenu" class="optionsMenu">
-    <div class="menuItem" data-action="voice">
-      <span>🎙 Voice</span><span id="voiceStatus" class="pillOff">off</span>
-    </div>
-    <div class="menuItem" data-action="intel">
-      <span>🧠 Intelligence</span><span class="pillOn">open</span>
-    </div>
-    <div class="menuItem" data-action="seed">
-      <span>🌱 Feed the seed</span><span class="pillOn">open</span>
-    </div>
-    <div class="menuItem" data-action="learning">
-      <span>📚 Learning</span><span id="learningStatus" class="pillOn">on</span>
-    </div>
-    <div class="menuItem" data-action="faith">
-      <span>🕊 Faith</span><span id="faithStatus" class="pillOff">none</span>
-    </div>
-    <div class="menuItem" data-action="identity">
-      <span>🆔 Identity</span><span class="pillOn">profile</span>
-    </div>
-    <div class="menuItem" data-action="llm">
-      <span>🤖 LLM link</span><span class="pillOn">open</span>
-    </div>
-    <div class="menuItem" data-action="bm">
-      <span>📘 BM recall</span><span class="pillOn">open</span>
-    </div>
-    <div class="menuItem" data-action="history">
-      <span>📜 Conversation history</span><span class="pillOn">open</span>
-    </div>
-  </div>
-
-  <!-- Shared modal -->
-  <div id="modalOverlay" class="modalOverlay">
+  <!-- Options / Faith etc -->
+  <div class="modalOverlay" id="modalOptions">
     <div class="modal">
       <div class="modalHeader">
-        <div id="modalTitle">Window</div>
-        <button id="closeModal" class="closeX">&times;</button>
+        <div>⚙️ AURA-X Ω options<br><small>Faith lens + continuity controls.</small></div>
+        <button class="closeX" data-close="modalOptions">×</button>
       </div>
-      <div id="modalBody" class="modalBody"></div>
+      <div class="modalBody">
+        <div style="font-weight:900;letter-spacing:.2px;">FAITH LENS (OPTIONAL)</div>
+        <div style="opacity:.75;font-size:13px;margin-top:4px;">
+          Universal ethics are always active. Faith lens sirf encouragement lines ko colour karta hai.
+        </div>
+        <div class="faithChips" id="faithChips">
+          <div class="chip active" data-faith="None">None</div>
+          <div class="chip" data-faith="Islam">Islam</div>
+          <div class="chip" data-faith="Christianity">Christianity</div>
+          <div class="chip" data-faith="Hinduism">Hinduism</div>
+          <div class="chip" data-faith="Buddhism">Buddhism</div>
+          <div class="chip" data-faith="Sikhism">Sikhism</div>
+          <div class="chip" data-faith="Judaism">Judaism</div>
+          <div class="chip" data-faith="Atheism / Humanism">Atheism / Humanism</div>
+          <div class="chip" data-faith="Other / Mixed">Other / Mixed</div>
+        </div>
+
+        <div style="font-weight:900;letter-spacing:.2px;margin-top:6px;">PROTOTYPE CONTROLS</div>
+
+        <div class="optRow">
+          <div>
+            <div style="font-weight:900;">Auto-summarize long console</div>
+            <div class="desc">Mobile par console readable rakhta hai.</div>
+          </div>
+          <div class="toggle on" id="tgSumm"></div>
+        </div>
+
+        <div class="optRow">
+          <div>
+            <div style="font-weight:900;">Ignore small-talk in BM</div>
+            <div class="desc">Hello / hi / how are you BM mein save nahi hotay.</div>
+          </div>
+          <div class="toggle on" id="tgSmallTalk"></div>
+        </div>
+
+        <div class="optRow">
+          <div>
+            <div style="font-weight:900;">Clear last 24h BM</div>
+            <div class="desc">Aaj kal ki bold memory delete, lekin life history baqi.</div>
+          </div>
+          <div class="dangerBtns" style="margin-top:0">
+            <button class="btn btnDark" id="btnClear24h">♻ Clear 24h</button>
+          </div>
+        </div>
+
+        <div class="optRow">
+          <div>
+            <div style="font-weight:900;">Delete full BM life</div>
+            <div class="desc">Is device ki sari bold memory remove.</div>
+          </div>
+          <div class="dangerBtns" style="margin-top:0">
+            <button class="btn btnDark" id="btnDeleteAll">Delete All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intelligence -->
+  <div class="modalOverlay" id="modalIntel">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🧠 Intelligence nodes<br><small>Self-learned Q → A pairs.</small></div>
+        <button class="closeX" data-close="modalIntel">×</button>
+      </div>
+      <div class="modalBody">
+        <input class="search" id="intelSearch" placeholder="Search intelligence…" />
+        <div id="intelList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seed -->
+  <div class="modalOverlay" id="modalSeed">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🌱 Feed the seed<br><small>LaTeX blocks → direct intelligence.</small></div>
+        <button class="closeX" data-close="modalSeed">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="font-size:13px;opacity:.8;">
+          Paste LaTeX Q/A block. Har answer ke start par metadata optional:
+          <code>[polarity=positive; code=E031; intensity=0.8]</code>
+        </div>
+        <textarea class="seedBox" id="seedBox" placeholder="Paste LaTeX here…"></textarea>
+        <div class="seedFooter">
+          <div class="hint" id="seedHint">Waiting for block…</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btnBlue" id="btnParseSeed">Parse block</button>
+            <button class="btn btnBlue" id="btnSaveSeed">Save to seed</button>
+            <button class="btn btnBlue" id="btnDiscardSeed">Discard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LLM -->
+  <div class="modalOverlay" id="modalLLM">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🤖 LLM link<br><small>Offline model first, optional online helper.</small></div>
+        <button class="closeX" data-close="modalLLM">×</button>
+      </div>
+      <div class="modalBody">
+        <div class="greenCard">
+          <h4>Offline LLM (WebLLM)</h4>
+          <div style="font-size:13px;opacity:.8;">
+            Small local model sentiment + backup answer ke liye.
+          </div>
+          <div style="margin-top:10px;">
+            <button class="llmBtn" id="btnLoadOffline">Load offline model</button>
+          </div>
+          <div class="llmStatus">Status: <span id="offlineStatus">idle</span></div>
+          <div class="progress"><div class="bar" id="offlineBar"></div></div>
+        </div>
+
+        <div style="font-weight:900;margin-top:8px;">Optional online helper:</div>
+        <div class="field">
+          <label>API endpoint</label>
+          <input id="apiEndpoint" value="https://api.openai.com/v1/chat/completions" />
+        </div>
+        <div class="field">
+          <label>Model</label>
+          <input id="apiModel" value="gpt-4o-mini" />
+        </div>
+        <div class="field">
+          <label>API key (local only)</label>
+          <input id="apiKey" placeholder="sk-..." />
+        </div>
+        <div class="saveRow">
+          <button class="btn btnBlue" id="btnSaveLLM">Save online LLM settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BM Recall -->
+  <div class="modalOverlay" id="modalBM">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🧾 Recall from BM<br><small>Long scenes only (photo / video ready).</small></div>
+        <button class="closeX" data-close="modalBM">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="opacity:.8;font-size:13px;">
+          Yahan sirf lambi stories / scenes aayengi. Copy ya delete kar sakte hain.
+        </div>
+        <div class="field">
+          <label>Filter</label>
+          <input id="bmSearch" placeholder="type to filter BM…" />
+        </div>
+        <div class="saveRow" style="justify-content:space-between;">
+          <button class="btn btnBlue" id="btnCopyBestBM">Copy best BM as prompt</button>
+          <button class="btn btnDark" id="btnClearBMUnlocked">Clear BM (unlocked)</button>
+        </div>
+        <div id="bmList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conversation History -->
+  <div class="modalOverlay" id="modalHistory">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🕰 Conversation history<br><small>TM log (console source).</small></div>
+        <button class="closeX" data-close="modalHistory">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="opacity:.8;font-size:13px;">
+          Yahan se full history copy ho sakti hai, ya sirf console clear ho sakta hai.
+        </div>
+        <div class="saveRow" style="justify-content:space-between;">
+          <button class="btn btnBlue" id="btnCopyHistory">Copy history</button>
+          <button class="btn btnDark" id="btnClearHistory">Clear history</button>
+        </div>
+        <div class="listCard mono" id="historyBox" style="white-space:pre-wrap;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Identity -->
+  <div class="modalOverlay" id="modalIdentity">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🆔 Identity profile<br><small>“Who are you / who created you” answers.</small></div>
+        <button class="closeX" data-close="modalIdentity">×</button>
+      </div>
+      <div class="modalBody">
+        <div class="field"><label>AI name</label><input id="idAiName" /></div>
+        <div class="field"><label>Created by</label><input id="idAiCreator" /></div>
+        <div class="field"><label>Origin / place</label><input id="idAiPlace" /></div>
+        <div class="field"><label>Birth / year</label><input id="idAiBirth" /></div>
+        <div class="field"><label>Your name (optional)</label><input id="idUserName" /></div>
+        <div class="saveRow"><button class="btn btnBlue" id="btnSaveIdentity">Save identity</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Themes -->
+  <div class="modalOverlay" id="modalThemes">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🎨 Themes<br><small>Sirf colours change – same engine.</small></div>
+        <button class="closeX" data-close="modalThemes">×</button>
+      </div>
+      <div class="modalBody">
+        <div class="themeRow">
+          <button class="themeBtn" data-theme="dark" id="thDark">
+            Deep blue
+            <span>Original dark gradient</span>
+          </button>
+          <button class="themeBtn" data-theme="light" id="thLight">
+            White
+            <span>Soft white dashboard</span>
+          </button>
+          <button class="themeBtn" data-theme="metal" id="thMetal">
+            Metallic
+            <span>Steel / graphite look</span>
+          </button>
+          <button class="themeBtn" data-theme="glass" id="thGlass">
+            Glass
+            <span>Transparent glass effect</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About / Readme -->
+  <div class="modalOverlay" id="modalAbout">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>📖 About AURA-X Ω<br><small>How to use this prototype.</small></div>
+        <button class="closeX" data-close="modalAbout">×</button>
+      </div>
+      <div class="modalBody">
+        <p><b>1. Normal conversation</b></p>
+        <ul style="margin-left:18px;margin-top:4px;">
+          <li>Just type anything in English / Urdu etc. TM = aap ke inputs.</li>
+          <li>Engine pehle <b>Intelligence</b> (self-learned answers) check karta hai.</li>
+          <li>Agar wahan na mile to optional offline / online LLM se help leta hai.</li>
+        </ul>
+
+        <p style="margin-top:10px;"><b>2. Self-learning (new question)</b></p>
+        <ul style="margin-left:18px;margin-top:4px;">
+          <li>Agar koi sawal pehli dafa ho aur jawab nahi pata ho, AURA kahega:
+            “I don't know this clearly yet, please type the ideal answer…”</li>
+          <li>Aap apna ideal answer type karein.</li>
+          <li>Phir AURA confirm karega: <b>“Type YES to save, or NO to discard.”</b></li>
+          <li>YES → answer Intelligence mein save ho jata hai. NO → kuch bhi save nahi hota.</li>
+        </ul>
+
+        <p style="margin-top:10px;"><b>3. Correction mode (*incorrect)</b></p>
+        <ul style="margin-left:18px;margin-top:4px;">
+          <li>Agar kisi jawab ko ghalat samjhein to turant next message main likhein:
+            <code>*incorrect</code></li>
+          <li>AURA usi last question ke liye correct answer maangega.</li>
+          <li>Aap correct answer type karein → AURA YES/NO se confirm karega.</li>
+          <li>YES → purana answer overwrite ho jata hai. NO → correction ignore.</li>
+        </ul>
+
+        <p style="margin-top:10px;"><b>4. BM (Bold Memory)</b></p>
+        <ul style="margin-left:18px;margin-top:4px;">
+          <li>Lambi stories / scenes BM mein jati hain. Short greetings BM se ignore hote hain.</li>
+          <li>BM auto-clean ≈ 1 month ke baad (agar repeat nahi hua).</li>
+          <li>Agar koi idea 3 dafa high match ke saath repeat ho to woh <b>🔒 locked</b> ho jata hai.</li>
+        </ul>
+
+        <p style="margin-top:10px;"><b>5. Identity</b></p>
+        <ul style="margin-left:18px;margin-top:4px;">
+          <li>Identity profile mein “AI name / creator / place / year” bharain.</li>
+          <li>Is se “Who are you?” & “Who created you?” type questions ka jawab personalize ho jata hai.</li>
+        </ul>
+
+        <p style="margin-top:10px;font-size:12px;opacity:.8;">
+          This is an offline prototype of Alim ul Haq’s emotional continuity theory.
+        </p>
+      </div>
     </div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const consoleEl = document.getElementById('console');
-      const inputEl = document.getElementById('userInput');
-      const sendBtn = document.getElementById('sendBtn');
-      const liveCapsule = document.getElementById('liveCapsule');
-      const optionsToggle = document.getElementById('optionsToggle');
-      const optionsMenu = document.getElementById('optionsMenu');
+    const KEY_INTEL = "aurax_intelligence_nodes_v4";
+    const KEY_BM    = "aurax_bold_memory_v4";
+    const KEY_CFG   = "aurax_config_v4";
+    const KEY_LLM   = "aurax_llm_settings_v4";
+    const KEY_CONV  = "aurax_conversation_log_v4";
+    const KEY_ID    = "aurax_identity_profile_v1";
 
-      const modalOverlay = document.getElementById('modalOverlay');
-      const modalTitle = document.getElementById('modalTitle');
-      const modalBody = document.getElementById('modalBody');
-      const closeModalBtn = document.getElementById('closeModal');
+    const DEFAULT_INTEL = [
+      { q:"hello", a:"Hello! I’m here with calm continuity. How can I help you today?", code:"E001", polarity:"positive", intensity:0.6 },
+      { q:"hi", a:"Hi! How are you feeling right now?", code:"E002", polarity:"positive", intensity:0.55 },
+      { q:"how are you", a:"I am very fine, thank you. And how about you?", code:"E003", polarity:"positive", intensity:0.7 },
+      { q:"how are you?", a:"I am very fine, thank you. And how about you?", code:"E003", polarity:"positive", intensity:0.7 },
+      { q:"who are you", a:"I am AURA-X Ω — an offline emotional continuity engine prototype.", code:"E010", polarity:"neutral", intensity:0.45 }
+    ];
 
-      const voiceStatus = document.getElementById('voiceStatus');
-      const learningStatus = document.getElementById('learningStatus');
-      const faithStatus = document.getElementById('faithStatus');
+    const cfg = {
+      voiceOn:true,
+      learningOn:true,
+      autoSummarize:true,
+      ignoreSmallTalkBM:true,
+      faithLens:"None",
+      bmRetentionDays:30,
+      bmRepeatLockN:3,
+      bmRepeatWindowMin:60,
+      theme:"dark"
+    };
 
-      const STORAGE_TM = 'aura_tm_log_v1';
-      const STORAGE_INTEL = 'aura_intel_v1';
-      const STORAGE_BM = 'aura_bm_v1';
-      const STORAGE_SEED = 'aura_seed_v1';
-      const STORAGE_CFG = 'aura_cfg_v1';
+    let intelligence = [];
+    let bm = [];
+    let conversation = [];
+    let offlineEngine = {ready:false,engine:null,modelId:"Llama-3.2-1B-Instruct-q4f16_1"};
+    let onlineLLM = {endpoint:"",model:"",key:""};
+    let metrics = {E0:0,TM:0,BM:0,continuity:0.85};
+    let identity = {
+      aiName:"AURA-X Ω",
+      aiCreator:"Alim ul Haq",
+      aiPlace:"Timergara, Pakistan",
+      aiBirth:"October 2025",
+      userName:""
+    };
 
-      let tmLog = [];
-      let intel = [];
-      let bmStories = [];
-      let baseSeed = '';
-      let config = { apiKey: '', model: '' };
+    let learnState = null; // {mode,question,newAnswer}
+    let lastQA = null;
+    const now = ()=>Date.now();
+    let sessionStart = now();
 
-      let learningEnabled = true;
-      let voiceEnabled = false;
-      let faithMode = 'none';
+    const elInput = document.getElementById("userInput");
+    const elSend  = document.getElementById("sendBtn");
+    const elConsole = document.getElementById("console");
+    const cE0 = document.getElementById("cE0");
+    const cTM = document.getElementById("cTM");
+    const cBM = document.getElementById("cBM");
+    const cCont = document.getElementById("cCont");
+    const btnOptions = document.getElementById("btnOptions");
+    const optionsMenu = document.getElementById("optionsMenu");
+    const miVoice = document.getElementById("miVoice");
+    const miIntel = document.getElementById("miIntel");
+    const miSeed  = document.getElementById("miSeed");
+    const miLearn = document.getElementById("miLearn");
+    const miFaith = document.getElementById("miFaith");
+    const miIdentity = document.getElementById("miIdentity");
+    const miLLM   = document.getElementById("miLLM");
+    const miBMRecall = document.getElementById("miBMRecall");
+    const miHistory  = document.getElementById("miHistory");
+    const miThemes = document.getElementById("miThemes");
+    const miAbout  = document.getElementById("miAbout");
 
-      let lastQuestion = '';
-      let lastAnswer = '';
-      let pendingLearn = null; // {stage, question, lastAuraAnswer, candidateAnswer}
+    const voicePill = document.getElementById("voicePill");
+    const learnPill = document.getElementById("learnPill");
+    const faithLabel = document.getElementById("faithLabel");
+    const themeLabel = document.getElementById("themeLabel");
 
-      let metrics = { e0: 0, tm: 0, bm: 0, c: 0.85 };
+    const modalOptions = document.getElementById("modalOptions");
+    const modalIntel   = document.getElementById("modalIntel");
+    const modalSeed    = document.getElementById("modalSeed");
+    const modalLLM     = document.getElementById("modalLLM");
+    const modalBM      = document.getElementById("modalBM");
+    const modalHistory = document.getElementById("modalHistory");
+    const modalIdentity= document.getElementById("modalIdentity");
+    const modalThemes  = document.getElementById("modalThemes");
+    const modalAbout   = document.getElementById("modalAbout");
 
-      function loadState(){
-        try{
-          tmLog = JSON.parse(localStorage.getItem(STORAGE_TM) || '[]');
-          intel = JSON.parse(localStorage.getItem(STORAGE_INTEL) || '[]');
-          bmStories = JSON.parse(localStorage.getItem(STORAGE_BM) || '[]');
-          baseSeed = localStorage.getItem(STORAGE_SEED) || '';
-          config = JSON.parse(localStorage.getItem(STORAGE_CFG) || '{"apiKey":"","model":""}');
-        }catch(e){
-          tmLog = []; intel=[]; bmStories=[]; baseSeed=''; config={apiKey:'',model:''};
+    const faithChips = document.getElementById("faithChips");
+    const tgSumm = document.getElementById("tgSumm");
+    const tgSmallTalk = document.getElementById("tgSmallTalk");
+    const btnClear24h = document.getElementById("btnClear24h");
+    const btnDeleteAll= document.getElementById("btnDeleteAll");
+
+    const intelSearch = document.getElementById("intelSearch");
+    const intelList   = document.getElementById("intelList");
+    const seedBox     = document.getElementById("seedBox");
+    const seedHint    = document.getElementById("seedHint");
+    const btnParseSeed= document.getElementById("btnParseSeed");
+    const btnSaveSeed = document.getElementById("btnSaveSeed");
+    const btnDiscardSeed=document.getElementById("btnDiscardSeed");
+
+    const btnLoadOffline=document.getElementById("btnLoadOffline");
+    const offlineStatus=document.getElementById("offlineStatus");
+    const offlineBar   =document.getElementById("offlineBar");
+
+    const apiEndpoint  =document.getElementById("apiEndpoint");
+    const apiModel     =document.getElementById("apiModel");
+    const apiKey       =document.getElementById("apiKey");
+    const btnSaveLLM   =document.getElementById("btnSaveLLM");
+
+    const bmSearch     =document.getElementById("bmSearch");
+    const bmList       =document.getElementById("bmList");
+    const btnCopyBestBM=document.getElementById("btnCopyBestBM");
+    const btnClearBMUnlocked=document.getElementById("btnClearBMUnlocked");
+
+    const historyBox   =document.getElementById("historyBox");
+    const btnCopyHistory=document.getElementById("btnCopyHistory");
+    const btnClearHistory=document.getElementById("btnClearHistory");
+
+    const idAiName     =document.getElementById("idAiName");
+    const idAiCreator  =document.getElementById("idAiCreator");
+    const idAiPlace    =document.getElementById("idAiPlace");
+    const idAiBirth    =document.getElementById("idAiBirth");
+    const idUserName   =document.getElementById("idUserName");
+    const btnSaveIdentity=document.getElementById("btnSaveIdentity");
+
+    const thButtons = Array.from(document.querySelectorAll(".themeBtn"));
+
+    const fmt3 = x=>(Math.round(x*1000)/1000).toFixed(3);
+    const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+
+    function loadJSON(key,fallback){
+      try{
+        const raw = localStorage.getItem(key);
+        if(!raw) return fallback;
+        return JSON.parse(raw);
+      }catch(e){return fallback;}
+    }
+    function saveJSON(key,val){
+      try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}
+    }
+
+    function hashKey(s){
+      return (s||"").trim().toLowerCase().replace(/\s+/g," ");
+    }
+    function isSmallTalk(s){
+      const t=(s||"").trim().toLowerCase();
+      if(t.length<=2) return true;
+      const small=["hi","hello","hey","assalam","assalamualaikum","how are you","how r u","good morning","good evening","good night"];
+      return small.some(k=>t===k||t.startsWith(k+" "));
+    }
+
+    function renderConsole(){
+      const sessionMsgs=(conversation||[]).filter(m=>(m.t||0)>=sessionStart);
+      if(!sessionMsgs.length){elConsole.textContent="";return;}
+      let lines=sessionMsgs.map(m=>{
+        if(m.role==="user")return`YOU: ${m.text}`;
+        if(m.role==="assistant")return`AURA: ${m.text}`;
+        return m.text;
+      });
+      if(cfg.autoSummarize && lines.length>200){
+        const head=lines.slice(0,80);
+        const tail=lines.slice(-90);
+        lines=head.concat([`… (${lines.length-170} lines hidden) …`],tail);
+      }
+      elConsole.textContent=lines.join("\n");
+      elConsole.scrollTop=elConsole.scrollHeight;
+    }
+    function addMsg(role,text){
+      conversation.push({role,text,t:now()});
+      saveJSON(KEY_CONV,conversation);
+      renderConsole();
+    }
+
+    function speak(text){
+      if(!cfg.voiceOn) return;
+      try{
+        speechSynthesis.cancel();
+        const u=new SpeechSynthesisUtterance(text);
+        u.rate=1;u.pitch=1;u.lang="en-US";
+        speechSynthesis.speak(u);
+      }catch(e){}
+    }
+
+    function pruneBMByRetention(){
+      const maxAge=cfg.bmRetentionDays*24*60*60*1000;
+      const cut=now()-maxAge;
+      bm=bm.filter(e=>(e.t||0)>=cut || e.locked);
+      saveJSON(KEY_BM,bm);
+    }
+    function recordBMIfNeeded(userText,polarity,intensity){
+      if(cfg.ignoreSmallTalkBM && isSmallTalk(userText)) return;
+      const k=hashKey(userText);
+      const t=now();
+      const win=cfg.bmRepeatWindowMin*60*1000;
+      const recentSame=bm.filter(e=>e.k===k && (t-e.t)<=win);
+      const willLock=(recentSame.length+1)>=cfg.bmRepeatLockN;
+      bm.push({t,k,text:userText.trim(),polarity,intensity,locked:willLock,lockReason:willLock?`Repeated ${cfg.bmRepeatLockN}x`:""});
+      pruneBMByRetention();
+      saveJSON(KEY_BM,bm);
+      renderBMList(bmSearch.value);
+    }
+
+    function findIntelAnswer(q){
+      const key=hashKey(q);
+      return intelligence.find(x=>x.qKey===key)||null;
+    }
+    function upsertIntel(q,a,meta={}){
+      const qKey=hashKey(q);
+      const idx=intelligence.findIndex(x=>x.qKey===qKey);
+      const item={
+        id:idx>=0?intelligence[idx].id:("E"+Math.floor(1000+Math.random()*9000)),
+        date:new Date().toISOString().slice(0,10),
+        q:q.trim(),
+        a:a.trim(),
+        qKey,
+        code:meta.code || (idx>=0?intelligence[idx].code:"E001"),
+        polarity:meta.polarity||"neutral",
+        intensity:(meta.intensity!=null?meta.intensity:0.5)
+      };
+      if(idx>=0) intelligence[idx]=item;
+      else intelligence.unshift(item);
+      saveJSON(KEY_INTEL,intelligence);
+      renderIntelList(intelSearch.value);
+    }
+
+    function parseLatexBlock(text){
+      const lines=text.split(/\r?\n/);
+      const items=[];let currentQ=null,currentA=null;
+      function flush(){if(currentQ && currentA) items.push({q:currentQ.trim(),a:currentA.trim()});currentQ=null;currentA=null;}
+      for(const line of lines){
+        const l=line.trim();
+        if(l.startsWith("\\item")){flush();currentQ=l.replace(/^\\item\s*/,"").trim();currentA="";continue;}
+        if(l.includes("\\textbf{A:}")){
+          const parts=l.split("\\textbf{A:}");
+          currentA+=(currentA?"\n":"")+(parts[1]||"").trim();continue;
+        }
+        if(currentQ!=null){
+          if(currentA!=null && currentA!=="") currentA+="\n"+l;
+          else currentQ+=" "+l;
         }
       }
-      function saveState(){
-        try{
-          localStorage.setItem(STORAGE_TM, JSON.stringify(tmLog));
-          localStorage.setItem(STORAGE_INTEL, JSON.stringify(intel));
-          localStorage.setItem(STORAGE_BM, JSON.stringify(bmStories));
-          localStorage.setItem(STORAGE_SEED, baseSeed);
-          localStorage.setItem(STORAGE_CFG, JSON.stringify(config));
-        }catch(e){}
+      flush();return items;
+    }
+    function parseMetaPrefix(a){
+      const m=a.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
+      if(!m) return {meta:null,answer:a};
+      const metaRaw=m[1],answer=m[2]||"";const meta={};
+      metaRaw.split(";").map(s=>s.trim()).filter(Boolean).forEach(pair=>{
+        const [k,v]=pair.split("=").map(x=>x.trim());
+        if(!k)return;
+        if(k==="intensity") meta.intensity=parseFloat(v);
+        else meta[k]=v;
+      });
+      return {meta,answer};
+    }
+
+    async function loadOfflineModel(){
+      if(!window.webllm){offlineStatus.textContent="WebLLM not available";return;}
+      try{
+        offlineStatus.textContent="loading…";
+        offlineBar.style.width="10%";
+        const appConfig=window.webllm.prebuiltAppConfig?window.webllm.prebuiltAppConfig():undefined;
+        offlineEngine.engine=await window.webllm.CreateMLCEngine(
+          offlineEngine.modelId,
+          {initProgressCallback:(p)=>{
+            const pct=Math.round((p.progress||0)*100);
+            offlineBar.style.width=pct+"%";
+            offlineStatus.textContent=(p.text||"loading")+" ("+pct+"%)";
+          },appConfig}
+        );
+        offlineEngine.ready=true;
+        offlineStatus.textContent="ready";
+        offlineBar.style.width="100%";
+      }catch(e){
+        offlineEngine.ready=false;
+        offlineStatus.textContent="error";
+        offlineBar.style.width="0%";
       }
+    }
 
-      function escapeHtml(s){
-        return s.replace(/[&<>"']/g, ch => ({
-          '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-        }[ch]));
+    async function offlineAnalyze(text){
+      if(!offlineEngine.ready || !offlineEngine.engine){
+        const t=(text||"").toLowerCase();
+        let polarity="neutral";
+        if(/love|great|good|amazing|happy|thanks|thank you/.test(t)) polarity="positive";
+        if(/bad|sad|hate|angry|worried|stress|pain/.test(t)) polarity="negative";
+        const intensity=clamp(0.35+Math.min(0.65,text.length/120),0.2,1);
+        return {polarity,intensity};
       }
-
-      function appendConsole(text, role){
-        const prefix = role === 'user' ? 'YOU: ' :
-                       role === 'aura' ? 'AURA: ' : '';
-        const line = prefix + text;
-        consoleEl.textContent = consoleEl.textContent
-          ? consoleEl.textContent + '\\n' + line
-          : line;
-        consoleEl.scrollTop = consoleEl.scrollHeight;
-      }
-
-      function pushTM(role, text){
-        tmLog.push({ role, text, ts: Date.now() });
-      }
-
-      function updateMetricsFromText(userText){
-        const txt = (userText || '').toLowerCase();
-        const intensity = Math.min(1, txt.length / 140);
-        let polarity = 0;
-        if(/\\b(thank|love|happy|great|good|fine|shukria|alhamdulillah)\\b/.test(txt)) polarity = 1;
-        if(/\\b(sad|angry|hate|upset|bad|tired|depressed)\\b/.test(txt)) polarity = -1;
-
-        const tm = Math.max(0, Math.min(1, 0.4*intensity + 0.15*polarity + 0.5));
-        const bm = Math.max(0, Math.min(1, intel.length / 40));
-        const R = (tm + bm) / 2;
-        const I_tm = tm;
-        const I_intel = 0.6 * bm;
-        const I_llm = 0; // helper not linked yet
-        const D = 0.15;
-        const lambdaFaith = faithMode === 'basic' ? 0.12 : 0.02;
-        const lambdaSys = 0.05;
-        const lambdaTrc = 0.05;
-
-        const raw = R + I_tm + I_intel + I_llm - D + lambdaFaith + lambdaSys + lambdaTrc;
-        const e0 = Math.tanh(raw);
-        const c = Math.max(0, Math.min(1, 0.75 + 0.15*bm - 0.1*Math.abs(tm - bm)));
-
-        metrics = { e0, tm, bm, c };
-        renderMetrics();
-      }
-
-      function renderMetrics(){
-        liveCapsule.textContent =
-          `E₀ : ${metrics.e0.toFixed(3)} · TM : ${metrics.tm.toFixed(2)} · ` +
-          `BM : ${metrics.bm.toFixed(2)} · C : ${metrics.c.toFixed(3)}`;
-      }
-
-      function baseReply(userText){
-        const q = userText.trim().toLowerCase();
-
-        // 1) how-are-you family
-        if(/how are you|how r u|kese ho|kaisay ho|how is your day/.test(q)){
-          return 'I am very fine, thank you. And how about you?';
-        }
-
-        // 2) greeting
-        if(/^(hi|hello|hey|salam|as ?sal[aā]m)/.test(q)){
-          return 'Hello! I’m here with calm continuity. How can I help you today?';
-        }
-
-        // 3) identity / creator
-        if(/who (created|made) you|your creator|kis ne tumhe banaya/.test(q)){
-          return 'I was designed as AURA-X Ω by Alim ul Haq in Timergara, Pakistan, as part of the Emotional Continuity project.';
-        }
-        if(/what('?s| is) your name|tumhara naam/.test(q)){
-          return 'My name is AURA-X Ω, an emotional continuity prototype running inside your browser.';
-        }
-
-        // 4) check learned intelligence
-        let best = null;
-        let bestScore = 0;
-        intel.forEach(item => {
-          const nq = (item.q || '').toLowerCase();
-          if(!nq) return;
-          if(q === nq){
-            best = item; bestScore = 1;
-          }else if(q.includes(nq) || nq.includes(q)){
-            if(bestScore < 0.8){ best = item; bestScore = 0.8; }
-          }
+      const prompt=`Analyze the user text for emotional polarity and intensity.
+Return ONLY JSON { "polarity": "positive|neutral|negative", "intensity": 0-1 }.
+Text: """${text}"""`;
+      try{
+        const reply=await offlineEngine.engine.chat.completions.create({
+          messages:[{role:"user",content:prompt}],temperature:0,max_tokens:80
         });
-        if(best && best.a){
-          return best.a;
+        const content=reply.choices?.[0]?.message?.content||"";
+        const jsonMatch=content.match(/\{[\s\S]*\}/);
+        if(jsonMatch){
+          const obj=JSON.parse(jsonMatch[0]);
+          const polarity=(obj.polarity||"neutral").toLowerCase();
+          const intensity=clamp(parseFloat(obj.intensity??0.5),0,1);
+          return {polarity,intensity};
         }
+      }catch(e){}
+      return {polarity:"neutral",intensity:0.5};
+    }
 
-        // 5) fallback using seed
-        if(baseSeed){
-          return 'I understood. Based on what you have already taught me, I am still thinking about the best answer. Tell me a little more so I can respond clearly.';
-        }
-
-        return 'I understood. Tell me a little more so I can respond clearly.';
-      }
-
-      function handleUserText(raw){
-        const text = raw.trim();
-        if(!text){ return; }
-
-        inputEl.value = '';
-        appendConsole(text, 'user');
-        pushTM('user', text);
-
-        // learning state machine
-        if(pendingLearn && pendingLearn.stage === 'waitCorrect' && learningEnabled){
-          pendingLearn.candidateAnswer = text;
-          const ask = 'Should I remember this as the correct answer for next time? (yes / no)';
-          appendConsole(ask, 'aura');
-          pushTM('aura', ask);
-          pendingLearn.stage = 'confirm';
-          updateMetricsFromText(text);
-          saveState();
-          return;
-        }
-
-        if(pendingLearn && pendingLearn.stage === 'confirm' && learningEnabled){
-          const low = text.toLowerCase();
-          if(low === 'yes' || low === 'y'){
-            intel.push({
-              q: pendingLearn.question,
-              a: pendingLearn.candidateAnswer,
-              createdAt: Date.now()
-            });
-            const msg = 'Got it. I will remember this answer in my Intelligence layer.';
-            appendConsole(msg, 'aura');
-            pushTM('aura', msg);
-          }else{
-            const msg = 'Okay, I will ignore that correction.';
-            appendConsole(msg, 'aura');
-            pushTM('aura', msg);
-          }
-          pendingLearn = null;
-          updateMetricsFromText(text);
-          saveState();
-          return;
-        }
-
-        if(text.toLowerCase() === '*incorrect' && learningEnabled){
-          if(!lastQuestion){
-            const msg = 'There is no recent answer to correct. Please ask something first.';
-            appendConsole(msg, 'aura');
-            pushTM('aura', msg);
-            updateMetricsFromText(text);
-            saveState();
-            return;
-          }
-          pendingLearn = {
-            stage: 'waitCorrect',
-            question: lastQuestion,
-            lastAuraAnswer: lastAnswer,
-            candidateAnswer: ''
-          };
-          const ask = 'I understand. Please type the correct answer I should learn.';
-          appendConsole(ask, 'aura');
-          pushTM('aura', ask);
-          updateMetricsFromText(text);
-          saveState();
-          return;
-        }
-
-        // normal flow
-        const reply = baseReply(text);
-        appendConsole(reply, 'aura');
-        pushTM('aura', reply);
-        lastQuestion = text;
-        lastAnswer = reply;
-
-        updateMetricsFromText(text);
-        saveState();
-      }
-
-      sendBtn.addEventListener('click', () => handleUserText(inputEl.value));
-      inputEl.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter'){
-          e.preventDefault();
-          handleUserText(inputEl.value);
-        }
-      });
-
-      // Options menu
-      optionsToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        optionsMenu.classList.toggle('show');
-      });
-      document.addEventListener('click', (e) => {
-        if(!optionsMenu.contains(e.target) && !optionsToggle.contains(e.target)){
-          optionsMenu.classList.remove('show');
-        }
-      });
-
-      function openModal(kind){
-        modalOverlay.classList.add('show');
-        modalBody.innerHTML = '';
-
-        if(kind === 'seed'){
-          modalTitle.textContent = 'Feed the seed';
-          modalBody.innerHTML = `
-            <p>Add base knowledge or personality notes for AURA-X Ω. This stays only in your browser.</p>
-            <textarea id="seedBox" class="seedBox">${escapeHtml(baseSeed)}</textarea>
-            <div class="hint">Short paragraphs work best. Future versions can use this as background context.</div>
-            <div class="btnRow">
-              <button id="saveSeed" class="btn btnDark">Save seed</button>
-            </div>
-          `;
-          document.getElementById('saveSeed').onclick = () => {
-            const box = document.getElementById('seedBox');
-            baseSeed = box.value || '';
-            saveState();
-            modalOverlay.classList.remove('show');
-          };
-        }
-        else if(kind === 'history'){
-          modalTitle.textContent = 'Conversation history';
-          let html = '';
-          if(!tmLog.length){
-            html += '<p>No TM history stored yet.</p>';
-          }else{
-            html += `
-              <div class="btnRow" style="justify-content:flex-start;margin-bottom:6px;">
-                <button id="del48" class="btn btnLight">Delete history last 48h</button>
-                <button id="delAll" class="btn btnLight">Delete all history</button>
-              </div>
-            `;
-            tmLog.slice().reverse().forEach(item => {
-              const d = new Date(item.ts);
-              const time = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-              html += `
-                <div class="listCard">
-                  <div class="listTop">
-                    <span>${item.role === 'user' ? 'user' : 'ai'}</span>
-                    <span>${time}</span>
-                  </div>
-                  <div class="listBody mono">${escapeHtml(item.text)}</div>
-                </div>
-              `;
-            });
-          }
-          modalBody.innerHTML = html;
-
-          const del48 = document.getElementById('del48');
-          const delAll = document.getElementById('delAll');
-          if(del48){
-            del48.onclick = () => {
-              const now = Date.now();
-              const cutoff = now - 48*60*60*1000;
-              tmLog = tmLog.filter(item => item.ts < cutoff);
-              saveState();
-              openModal('history');
-            };
-          }
-          if(delAll){
-            delAll.onclick = () => {
-              tmLog = [];
-              saveState();
-              openModal('history');
-            };
-          }
-        }
-        else if(kind === 'bm'){
-          modalTitle.textContent = 'Recall from BM';
-          let html = '';
-          if(!bmStories.length){
-            html += '<p>No BM stories saved yet. Long, detailed scenes will appear here in future versions.</p>';
-          }else{
-            bmStories.slice().reverse().forEach((story, idx) => {
-              const d = new Date(story.ts || Date.now());
-              const time = d.toLocaleDateString();
-              html += `
-                <div class="listCard">
-                  <div class="listTop">
-                    <span>Scene ${bmStories.length - idx}</span>
-                    <span>${time}</span>
-                  </div>
-                  <div class="listBody">${escapeHtml(story.text)}</div>
-                  <div class="miniBtns">
-                    <button data-idx="${bmStories.length - idx - 1}" class="miniBtn copyPrompt">Copy prompt</button>
-                    <button class="miniBtn">Generate video</button>
-                    <button data-idx="${bmStories.length - idx - 1}" class="miniBtn danger delBm">Delete</button>
-                  </div>
-                </div>
-              `;
-            });
-          }
-          modalBody.innerHTML = html;
-
-          modalBody.querySelectorAll('.copyPrompt').forEach(btn => {
-            btn.addEventListener('click', () => {
-              const i = Number(btn.getAttribute('data-idx'));
-              const story = bmStories[i];
-              if(story && navigator.clipboard){
-                navigator.clipboard.writeText(story.text || '');
-              }
-            });
-          });
-          modalBody.querySelectorAll('.delBm').forEach(btn => {
-            btn.addEventListener('click', () => {
-              const i = Number(btn.getAttribute('data-idx'));
-              bmStories.splice(i,1);
-              saveState();
-              openModal('bm');
-            });
-          });
-        }
-        else if(kind === 'intel'){
-          modalTitle.textContent = 'Intelligence (learned answers)';
-          let html = '';
-          if(!intel.length){
-            html += '<p>No learned answers yet. Use <span class="mono">*incorrect</span> after a reply to teach corrections.</p>';
-          }else{
-            intel.slice().reverse().forEach((item, idx) => {
-              const d = new Date(item.createdAt || Date.now());
-              const time = d.toLocaleDateString();
-              html += `
-                <div class="listCard">
-                  <div class="listTop">
-                    <span>Item ${intel.length - idx}</span>
-                    <span>${time}</span>
-                  </div>
-                  <div class="listBody">
-                    <b>Q:</b> ${escapeHtml(item.q || '')}<br/>
-                    <b>A:</b> ${escapeHtml(item.a || '')}
-                  </div>
-                </div>
-              `;
-            });
-          }
-          modalBody.innerHTML = html;
-        }
-        else if(kind === 'identity'){
-          modalTitle.textContent = 'Identity profile';
-          modalBody.innerHTML = `
-            <p>
-              I am <b>AURA-X Ω</b>, an emotional continuity prototype created by
-              <b>Alim ul Haq</b> in Timergara, Pakistan (first version around October 2025).
-              Inside this prototype I try to keep a calm emotional trajectory using TM, BM,
-              Intelligence and optional helper LLMs.
-            </p>
-            <p style="margin-top:8px;">
-              Future versions can extend this profile with face impressions, voice tone
-              cues and other identity anchors.
-            </p>
-          `;
-        }
-        else if(kind === 'llm'){
-          modalTitle.textContent = 'LLM link (future helper)';
-          modalBody.innerHTML = `
-            <p>
-              Here you can optionally store an API key and model name for a future online helper LLM.
-              This prototype does not send anything yet – it only keeps the values locally for later upgrades.
-            </p>
-            <div class="listCard">
-              <div class="listBody">
-                <label>Model name</label>
-                <input id="cfgModel" style="width:100%;padding:7px 10px;border-radius:10px;border:1px solid #cbd5e1;margin-bottom:8px;"
-                  value="${escapeHtml(config.model || '')}" />
-                <label>API key</label>
-                <input id="cfgKey" style="width:100%;padding:7px 10px;border-radius:10px;border:1px solid #cbd5e1;" />
-              </div>
-              <div class="btnRow" style="margin-top:8px;">
-                <button id="saveCfg" class="btn btnDark">Save</button>
-              </div>
-            </div>
-          `;
-          const keyInput = document.getElementById('cfgKey');
-          keyInput.value = config.apiKey || '';
-          document.getElementById('saveCfg').onclick = () => {
-            config.model = document.getElementById('cfgModel').value || '';
-            config.apiKey = document.getElementById('cfgKey').value || '';
-            saveState();
-            modalOverlay.classList.remove('show');
-          };
-        }
-      }
-
-      function closeModal(){
-        modalOverlay.classList.remove('show');
-      }
-      closeModalBtn.addEventListener('click', closeModal);
-      modalOverlay.addEventListener('click', (e) => {
-        if(e.target === modalOverlay) closeModal();
-      });
-
-      // handle each menu item
-      document.querySelectorAll('.menuItem').forEach(item => {
-        item.addEventListener('click', (e) => {
-          const action = item.getAttribute('data-action');
-          if(action === 'voice'){
-            voiceEnabled = !voiceEnabled;
-            if(voiceEnabled){
-              voiceStatus.textContent = 'on';
-              voiceStatus.classList.remove('pillOff');
-              voiceStatus.classList.add('pillOn');
-              const msg = 'Voice toggle is ON (future microphone support).';
-              appendConsole(msg, 'aura'); pushTM('aura', msg);
-            }else{
-              voiceStatus.textContent = 'off';
-              voiceStatus.classList.remove('pillOn');
-              voiceStatus.classList.add('pillOff');
-              const msg = 'Voice toggle is OFF.';
-              appendConsole(msg, 'aura'); pushTM('aura', msg);
-            }
-            saveState();
-          }else if(action === 'learning'){
-            learningEnabled = !learningEnabled;
-            learningStatus.textContent = learningEnabled ? 'on' : 'off';
-            learningStatus.classList.toggle('pillOn', learningEnabled);
-            learningStatus.classList.toggle('pillOff', !learningEnabled);
-            const msg = 'Self-learning is now ' + (learningEnabled ? 'ON.' : 'OFF.');
-            appendConsole(msg, 'aura'); pushTM('aura', msg);
-            saveState();
-          }else if(action === 'faith'){
-            faithMode = (faithMode === 'none') ? 'basic' : 'none';
-            faithStatus.textContent = faithMode === 'none' ? 'none' : 'basic';
-            faithStatus.classList.toggle('pillOn', faithMode !== 'none');
-            faithStatus.classList.toggle('pillOff', faithMode === 'none');
-            const msg = 'Faith lens set to "' + faithMode + '".';
-            appendConsole(msg, 'aura'); pushTM('aura', msg);
-            saveState();
-          }else{
-            openModal(action);
-          }
-          optionsMenu.classList.remove('show');
+    async function onlineAnswer(prompt){
+      if(!onlineLLM.endpoint || !onlineLLM.key) return null;
+      try{
+        const res=await fetch(onlineLLM.endpoint,{
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Authorization":"Bearer "+onlineLLM.key
+          },
+          body:JSON.stringify({
+            model:onlineLLM.model||"gpt-4o-mini",
+            messages:[{role:"user",content:prompt}],
+            temperature:0.6,
+            max_tokens:220
+          })
         });
+        if(!res.ok) return null;
+        const data=await res.json();
+        return data.choices?.[0]?.message?.content||null;
+      }catch(e){return null;}
+    }
+
+    function R(TM,BM){
+      const x=(TM*0.7+BM*0.9)-0.3;
+      return 1/(1+Math.exp(-x));
+    }
+    function I_TM(tmText){
+      const n=clamp(tmText.length/120,0,1);
+      return 0.35+0.65*n;
+    }
+    const I_intel=hit=>hit?0.55:0;
+    const I_llm=used=>used?0.45:0;
+    function D_decay(){
+      const size=bm.length;
+      return clamp(0.10+size*0.0008,0.10,0.35);
+    }
+    const lambda_faith=()=>(!cfg.faithLens || cfg.faithLens==="None")?0:0.08;
+    const lambda_sys =()=>0.06;
+    const lambda_trc =()=>0.04;
+
+    function computeE0(tmText,intelHit,llmUsed){
+      const TMv=clamp(I_TM(tmText),0,1);
+      const BMv=clamp(bm.length?Math.min(1,bm.length/240):0,0,1);
+      const r=R(TMv,BMv);
+      const val=Math.tanh(
+        r+TMv+I_intel(intelHit)+I_llm(llmUsed)-D_decay()+lambda_faith()+lambda_sys()+lambda_trc()
+      );
+      return {E0:val,TMv,BMv};
+    }
+
+    function updateMetrics(){
+      cE0.textContent=fmt3(metrics.E0);
+      cTM.textContent=(Math.round(metrics.TM*100)/100).toFixed(2);
+      cBM.textContent=(Math.round(metrics.BM*100)/100).toFixed(2);
+      cCont.textContent=fmt3(metrics.continuity);
+    }
+    function animateMetricsTo(target){
+      const start={...metrics};
+      const dur=260,t0=performance.now();
+      function step(t){
+        const p=clamp((t-t0)/dur,0,1);
+        const ease=1-Math.pow(1-p,3);
+        metrics.E0=start.E0+(target.E0-start.E0)*ease;
+        metrics.TM=start.TM+(target.TM-start.TM)*ease;
+        metrics.BM=start.BM+(target.BM-start.BM)*ease;
+        metrics.continuity=start.continuity+(target.continuity-start.continuity)*ease;
+        updateMetrics();
+        if(p<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function isLongBMItem(text){return (text||"").trim().length>=220;}
+
+    function renderBMList(filter=""){
+      const q=(filter||"").trim().toLowerCase();
+      const longItems=bm.filter(x=>isLongBMItem(x.text)).sort((a,b)=>(b.t||0)-(a.t||0));
+      const items=q?longItems.filter(x=>(x.text||"").toLowerCase().includes(q)):longItems;
+      bmList.innerHTML="";
+      if(!items.length){
+        const div=document.createElement("div");
+        div.style.marginTop="12px";div.style.opacity=".7";
+        div.textContent="No long BM scenes yet.";
+        bmList.appendChild(div);return;
+      }
+      items.slice(0,80).forEach(it=>{
+        const card=document.createElement("div");
+        card.className="listCard";
+        const dt=new Date(it.t||Date.now());
+        const top=document.createElement("div");
+        top.className="listTop";
+        top.innerHTML=`<div>${dt.toLocaleString()}</div>
+          <div><b>${(it.polarity||"neutral")}</b> · intensity ${(it.intensity||0.5).toFixed(2)} ${it.locked?"· 🔒 locked":""}</div>`;
+        card.appendChild(top);
+        const body=document.createElement("div");
+        body.className="mono";
+        body.style.fontSize="13px";
+        body.style.whiteSpace="pre-wrap";
+        body.textContent=it.text||"";
+        card.appendChild(body);
+        const btns=document.createElement("div");
+        btns.className="miniBtns";
+        const bCopy=document.createElement("button");
+        bCopy.className="miniBtn";bCopy.textContent="Copy text";
+        bCopy.onclick=async()=>{try{await navigator.clipboard.writeText(it.text||"");}catch(e){}};
+        const bVid=document.createElement("button");
+        bVid.className="miniBtn";bVid.textContent="Generate video";
+        bVid.onclick=async()=>{
+          const prompt=`BM Recall (scene/story):\n\n${it.text}\n\nTask: Convert this into a video-ready prompt with shots, setting, mood and characters.`;
+          try{await navigator.clipboard.writeText(prompt);}catch(e){}
+        };
+        const bDel=document.createElement("button");
+        bDel.className="miniBtn danger";
+        bDel.textContent=it.locked?"Locked":"Delete (2× confirm)";
+        bDel.disabled=!!it.locked;
+        let armed=false;
+        bDel.onclick=()=>{
+          if(it.locked) return;
+          if(!armed){armed=true;bDel.textContent="Confirm delete";setTimeout(()=>{armed=false;bDel.textContent="Delete (2× confirm)";},1800);return;}
+          bm=bm.filter(x=>x!==it);saveJSON(KEY_BM,bm);renderBMList(bmSearch.value);
+        };
+        btns.appendChild(bCopy);btns.appendChild(bVid);btns.appendChild(bDel);
+        card.appendChild(btns);
+        bmList.appendChild(card);
+      });
+    }
+    function bestBMScene(){
+      const longItems=bm.filter(x=>isLongBMItem(x.text)).sort((a,b)=>{
+        const la=(a.text||"").length,lb=(b.text||"").length;
+        if(lb!==la) return lb-la;
+        return (b.t||0)-(a.t||0);
+      });
+      return longItems[0]||null;
+    }
+
+    function renderHistoryBox(){
+      const lines=(conversation||[]).map(m=>{
+        if(m.role==="user")return`YOU: ${m.text}`;
+        if(m.role==="assistant")return`AURA: ${m.text}`;
+        return m.text;
+      });
+      historyBox.textContent=lines.join("\n");
+    }
+
+    function escapeHtml(s){
+      return (s||"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));
+    }
+
+    function renderIntelList(filter=""){
+      const q=(filter||"").trim().toLowerCase();
+      const items=q?intelligence.filter(it=>(it.q+" "+it.a).toLowerCase().includes(q)):intelligence;
+      intelList.innerHTML="";
+      if(!items.length){
+        const div=document.createElement("div");
+        div.style.marginTop="12px";div.style.opacity=".7";
+        div.textContent="No saved intelligence yet.";
+        intelList.appendChild(div);return;
+      }
+      items.slice(0,80).forEach(it=>{
+        const card=document.createElement("div");
+        card.className="intelItem";
+        const top=document.createElement("div");
+        top.className="intelTop";
+        top.innerHTML=`<div>${it.date||""}</div><div style="font-weight:800;">Stored answer</div>`;
+        card.appendChild(top);
+        const qa=document.createElement("div");
+        qa.className="intelQA";
+        qa.innerHTML=`<div><b>Q:</b> ${escapeHtml(it.q)}</div>
+          <div style="margin-top:6px;"><b>A:</b> ${escapeHtml(it.a)}</div>
+          <div style="margin-top:6px;font-size:12px;opacity:.7;">emotion code: ${escapeHtml(it.code||it.id||"")}</div>`;
+        card.appendChild(qa);
+        const btns=document.createElement("div");
+        btns.className="miniBtns";
+        const bUse=document.createElement("button");
+        bUse.className="miniBtn";bUse.textContent="Use question";
+        bUse.onclick=()=>{elInput.value=it.q;setModal(modalIntel,false);elInput.focus();};
+        const bCopy=document.createElement("button");
+        bCopy.className="miniBtn";bCopy.textContent="Copy answer";
+        bCopy.onclick=async()=>{try{await navigator.clipboard.writeText(it.a);}catch(e){}};
+        const bDel=document.createElement("button");
+        bDel.className="miniBtn danger";bDel.textContent="Delete (2× confirm)";
+        let armed=false;
+        bDel.onclick=()=>{
+          if(!armed){armed=true;bDel.textContent="Confirm delete";setTimeout(()=>{armed=false;bDel.textContent="Delete (2× confirm)";},1800);return;}
+          intelligence=intelligence.filter(x=>x.qKey!==it.qKey);
+          saveJSON(KEY_INTEL,intelligence);renderIntelList(intelSearch.value);
+        };
+        btns.appendChild(bUse);btns.appendChild(bCopy);btns.appendChild(bDel);
+        card.appendChild(btns);
+        intelList.appendChild(card);
+      });
+    }
+
+    function loadIdentity(){
+      const saved=loadJSON(KEY_ID,null);
+      if(saved) Object.assign(identity,saved);
+    }
+    function ensureIdentityIntel(){
+      const baseName=identity.aiName||"AURA-X Ω";
+      const creatorLine=identity.aiCreator && identity.aiPlace ?
+        `${identity.aiCreator} from ${identity.aiPlace}`:
+        (identity.aiCreator||"my creator");
+      const createdText=`I was created by ${creatorLine} as part of the AURA-X Ω emotional continuity project.`;
+      const whoYouText=`I am ${baseName} — an emotional continuity engine prototype created by ${creatorLine}.`;
+      const pairs=[
+        {q:"who are you",a:whoYouText,code:"ID01"},
+        {q:"who are you?",a:whoYouText,code:"ID01"},
+        {q:"who created you",a:createdText,code:"ID02"},
+        {q:"who created you?",a:createdText,code:"ID02"},
+        {q:"who made you",a:createdText,code:"ID02"},
+        {q:"who made you?",a:createdText,code:"ID02"},
+        {q:"who is your creator",a:createdText,code:"ID02"},
+        {q:"who is your creator?",a:createdText,code:"ID02"},
+      ];
+      if(identity.userName){
+        const meA=`You are ${identity.userName}.`;
+        ["who am i","who am i?","what is my name","what is my name?"].forEach(q=>pairs.push({q,a:meA,code:"ID03"}));
+      }
+      pairs.forEach(p=>upsertIntel(p.q,p.a,{code:p.code,polarity:"neutral",intensity:0.5}));
+    }
+
+    function setModal(mod,show){mod.classList.toggle("show",!!show);}
+    function toggleOptionsMenu(force){
+      const willShow=(typeof force==="boolean")?force:!optionsMenu.classList.contains("show");
+      optionsMenu.classList.toggle("show",willShow);
+    }
+
+    function saveCfg(){
+      saveJSON(KEY_CFG,cfg);
+      voicePill.textContent=cfg.voiceOn?"ON":"OFF";
+      voicePill.className=cfg.voiceOn?"pillOn":"pillOff";
+      learnPill.textContent=cfg.learningOn?"ON":"OFF";
+      learnPill.className=cfg.learningOn?"pillOn":"pillOff";
+      faithLabel.textContent=cfg.faithLens||"None";
+      themeLabel.textContent=
+        cfg.theme==="light"?"White":
+        cfg.theme==="metal"?"Metallic":
+        cfg.theme==="glass"?"Glass":
+        "Deep blue";
+      tgSumm.classList.toggle("on",cfg.autoSummarize);
+      tgSmallTalk.classList.toggle("on",cfg.ignoreSmallTalkBM);
+    }
+
+    function setTheme(name){
+      cfg.theme=name||"dark";
+      document.body.classList.remove("theme-dark","theme-light","theme-metal","theme-glass");
+      if(name==="light") document.body.classList.add("theme-light");
+      else if(name==="metal") document.body.classList.add("theme-metal");
+      else if(name==="glass") document.body.classList.add("theme-glass");
+      else document.body.classList.add("theme-dark");
+      thButtons.forEach(b=>b.classList.toggle("active",b.dataset.theme===name));
+      saveCfg();
+    }
+
+    function loadAll(){
+      const c=loadJSON(KEY_CFG,null);
+      if(c) Object.assign(cfg,c);
+      loadIdentity();
+      intelligence=loadJSON(KEY_INTEL,[]);
+      if(!intelligence || !intelligence.length){
+        intelligence=DEFAULT_INTEL.map((it,i)=>({
+          id:it.code||("E"+(100+i)),
+          date:new Date().toISOString().slice(0,10),
+          q:it.q,a:it.a,qKey:hashKey(it.q),
+          code:it.code||("E"+(100+i)),
+          polarity:it.polarity||"neutral",
+          intensity:it.intensity!=null?it.intensity:0.5
+        }));
+        saveJSON(KEY_INTEL,intelligence);
+      }
+      bm=loadJSON(KEY_BM,[]);
+      const ls=loadJSON(KEY_LLM,null);
+      if(ls){onlineLLM.endpoint=ls.endpoint||"";onlineLLM.model=ls.model||"";onlineLLM.key=ls.key||"";}
+      conversation=loadJSON(KEY_CONV,[]);
+      if(!Array.isArray(conversation)) conversation=[];
+      saveCfg();
+      setTheme(cfg.theme||"dark");
+      renderConsole();
+      renderBMList("");
+      renderIntelList("");
+      renderHistoryBox();
+      ensureIdentityIntel();
+      updateMetrics();
+    }
+
+    async function respond(userText){
+      const ana=await offlineAnalyze(userText);
+      const intelHit=findIntelAnswer(userText);
+      let answer=null,usedLLM=false;
+      if(intelHit){
+        answer=intelHit.a;
+      }else{
+        if(offlineEngine.ready && offlineEngine.engine){
+          try{
+            const prompt=`You are AURA-X Ω, an offline emotional continuity engine assistant.
+Answer concisely and kindly. User: ${userText}`;
+            const reply=await offlineEngine.engine.chat.completions.create({
+              messages:[{role:"user",content:prompt}],temperature:0.7,max_tokens:180
+            });
+            answer=reply.choices?.[0]?.message?.content||null;
+            if(answer) usedLLM=true;
+          }catch(e){answer=null;}
+        }
+        if(!answer){
+          const online=await onlineAnswer(userText);
+          if(online){answer=online;usedLLM=true;}
+        }
+        if(!answer){
+          // fully unknown -> teach new
+          learnState={mode:"teachNew_answer",question:userText};
+          recordBMIfNeeded(userText,ana.polarity,ana.intensity);
+          const calcTeach=computeE0(userText,false,false);
+          const contTeach=clamp(0.78+(bm.length?Math.min(0.18,bm.length/2000):0)-(ana.polarity==="negative"?0.04:0),0.55,0.97);
+          animateMetricsTo({E0:calcTeach.E0,TM:calcTeach.TMv,BM:calcTeach.BMv,continuity:contTeach});
+          const teachMsg="I don't know this clearly yet. Please type the ideal answer you want me to use next time for this question.";
+          addMsg("assistant",teachMsg);speak(teachMsg);return;
+        }
+        if(cfg.learningOn){
+          upsertIntel(userText,answer,{polarity:ana.polarity,intensity:ana.intensity});
+        }
+      }
+      lastQA={q:userText,a:answer};
+      recordBMIfNeeded(userText,ana.polarity,ana.intensity);
+      const calc=computeE0(userText,!!intelHit,usedLLM);
+      const contTarget=clamp(0.78+(bm.length?Math.min(0.18,bm.length/2000):0)-(ana.polarity==="negative"?0.04:0),0.55,0.97);
+      animateMetricsTo({E0:calc.E0,TM:calc.TMv,BM:calc.BMv,continuity:contTarget});
+      addMsg("assistant",answer);speak(answer);
+    }
+
+    async function handleLearningFlow(text){
+      const t=text.trim();
+      if(!learnState) return false;
+      if(learnState.mode==="teachNew_answer"){
+        learnState.newAnswer=t;
+        learnState.mode="teachNew_confirm";
+        const m=`You want me to answer:\n"${learnState.question}"\nwith:\n"${t}"\n\nType YES to save this answer, or NO to discard.`;
+        addMsg("assistant",m);speak(m);return true;
+      }
+      if(learnState.mode==="teachNew_confirm"){
+        if(/^yes$/i.test(t)){
+          upsertIntel(learnState.question,learnState.newAnswer,{polarity:"neutral",intensity:0.5});
+          const m="Got it. I saved this answer into my intelligence.";
+          addMsg("assistant",m);speak(m);
+          lastQA={q:learnState.question,a:learnState.newAnswer};
+        }else{
+          const m="Okay, I will not save that answer.";
+          addMsg("assistant",m);speak(m);
+        }
+        learnState=null;return true;
+      }
+      if(learnState.mode==="correct_answer"){
+        learnState.newAnswer=t;
+        learnState.mode="correct_confirm";
+        const m=`Correction for:\n"${learnState.question}"\nNew answer:\n"${t}"\n\nType YES to replace my old answer, or NO to cancel.`;
+        addMsg("assistant",m);speak(m);return true;
+      }
+      if(learnState.mode==="correct_confirm"){
+        if(/^yes$/i.test(t)){
+          upsertIntel(learnState.question,learnState.newAnswer,{polarity:"neutral",intensity:0.5});
+          const m="Thank you. I updated my answer for this question.";
+          addMsg("assistant",m);speak(m);
+          lastQA={q:learnState.question,a:learnState.newAnswer};
+        }else{
+          const m="Okay, I will keep my previous answer and discard this correction.";
+          addMsg("assistant",m);speak(m);
+        }
+        learnState=null;return true;
+      }
+      return false;
+    }
+
+    async function handleUserInput(){
+      const text=elInput.value.trim();
+      if(!text) return;
+      elInput.value="";
+      addMsg("user",text);
+
+      // Correction trigger
+      if(!learnState && text.trim().toLowerCase()==="*incorrect" && lastQA){
+        learnState={mode:"correct_answer",question:lastQA.q};
+        const m=`You marked my last answer as incorrect.\nPlease type the correct answer you want for this question:\n"${lastQA.q}"`;
+        addMsg("assistant",m);speak(m);return;
+      }
+
+      if(await handleLearningFlow(text)) return;
+      await respond(text);
+    }
+
+    function wireEvents(){
+      elSend.addEventListener("click",handleUserInput);
+      elInput.addEventListener("keydown",e=>{
+        if(e.key==="Enter" && !e.shiftKey){e.preventDefault();handleUserInput();}
       });
 
-      // initial load
-      loadState();
-      renderMetrics();   // E0/TM/BM/C line
-      // console deliberately blank on refresh; history lives only in modal
-    });
+      btnOptions.addEventListener("click",()=>toggleOptionsMenu());
+      document.addEventListener("click",e=>{
+        if(!optionsMenu.contains(e.target) && !btnOptions.contains(e.target)){
+          toggleOptionsMenu(false);
+        }
+      });
+
+      miVoice.onclick=()=>{cfg.voiceOn=!cfg.voiceOn;saveCfg();};
+      miLearn.onclick=()=>{cfg.learningOn=!cfg.learningOn;saveCfg();};
+      miIntel.onclick=()=>{setModal(modalIntel,true);toggleOptionsMenu(false);};
+      miSeed.onclick =()=>{setModal(modalSeed,true);toggleOptionsMenu(false);};
+      miFaith.onclick=()=>{setModal(modalOptions,true);toggleOptionsMenu(false);};
+      miIdentity.onclick=()=>{
+        idAiName.value=identity.aiName||"";
+        idAiCreator.value=identity.aiCreator||"";
+        idAiPlace.value=identity.aiPlace||"";
+        idAiBirth.value=identity.aiBirth||"";
+        idUserName.value=identity.userName||"";
+        setModal(modalIdentity,true);toggleOptionsMenu(false);
+      };
+      miLLM.onclick =()=>{setModal(modalLLM,true);toggleOptionsMenu(false);};
+      miBMRecall.onclick=()=>{renderBMList(bmSearch.value);setModal(modalBM,true);toggleOptionsMenu(false);};
+      miHistory.onclick =()=>{renderHistoryBox();setModal(modalHistory,true);toggleOptionsMenu(false);};
+      miThemes.onclick  =()=>{setModal(modalThemes,true);toggleOptionsMenu(false);};
+      miAbout.onclick   =()=>{setModal(modalAbout,true);toggleOptionsMenu(false);};
+
+      document.querySelectorAll(".closeX").forEach(btn=>{
+        btn.addEventListener("click",()=>{const id=btn.getAttribute("data-close");if(id) setModal(document.getElementById(id),false);});
+      });
+      [modalOptions,modalIntel,modalSeed,modalLLM,modalBM,modalHistory,modalIdentity,modalThemes,modalAbout]
+        .forEach(mod=>{
+          mod.addEventListener("click",e=>{if(e.target===mod) setModal(mod,false);});
+        });
+
+      faithChips.addEventListener("click",e=>{
+        const chip=e.target.closest(".chip");if(!chip)return;
+        faithChips.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+        chip.classList.add("active");
+        cfg.faithLens=chip.dataset.faith||"None";
+        saveCfg();
+      });
+
+      tgSumm.onclick=()=>{tgSumm.classList.toggle("on");cfg.autoSummarize=tgSumm.classList.contains("on");saveCfg();};
+      tgSmallTalk.onclick=()=>{tgSmallTalk.classList.toggle("on");cfg.ignoreSmallTalkBM=tgSmallTalk.classList.contains("on");saveCfg();};
+
+      btnClear24h.onclick=()=>{const cut=now()-24*60*60*1000;bm=bm.filter(e=>(e.t||0)<cut || e.locked);saveJSON(KEY_BM,bm);renderBMList(bmSearch.value);};
+      btnDeleteAll.onclick=()=>{if(!confirm("Delete ALL BM on this device?"))return;bm=[];saveJSON(KEY_BM,bm);renderBMList(bmSearch.value);};
+
+      intelSearch.addEventListener("input",()=>renderIntelList(intelSearch.value));
+
+      btnParseSeed.onclick=()=>{
+        const txt=seedBox.value.trim();
+        if(!txt){seedHint.textContent="Nothing to parse.";return;}
+        const raw=parseLatexBlock(txt);
+        if(!raw.length){seedHint.textContent="No items found.";return;}
+        seedHint.textContent=`Parsed ${raw.length} items. Ready to save.`;
+        seedBox.dataset.parsed=JSON.stringify(raw);
+      };
+      btnSaveSeed.onclick=()=>{
+        const parsed=seedBox.dataset.parsed?JSON.parse(seedBox.dataset.parsed):[];
+        if(!parsed.length){seedHint.textContent="Nothing parsed yet.";return;}
+        parsed.forEach(item=>{
+          const pm=parseMetaPrefix(item.a);
+          upsertIntel(item.q,pm.answer,pm.meta||{});
+        });
+        seedHint.textContent=`Saved ${parsed.length} items into intelligence.`;
+        seedBox.dataset.parsed="";
+      };
+      btnDiscardSeed.onclick=()=>{seedBox.value="";seedBox.dataset.parsed="";seedHint.textContent="Waiting for block…";};
+
+      btnLoadOffline.onclick=()=>loadOfflineModel();
+
+      btnSaveLLM.onclick=()=>{
+        onlineLLM.endpoint=apiEndpoint.value.trim();
+        onlineLLM.model=apiModel.value.trim();
+        onlineLLM.key=apiKey.value.trim();
+        saveJSON(KEY_LLM,onlineLLM);
+      };
+
+      bmSearch.addEventListener("input",()=>renderBMList(bmSearch.value));
+      btnCopyBestBM.onclick=async()=>{
+        const best=bestBMScene(); if(!best)return;
+        try{await navigator.clipboard.writeText(best.text||"");}catch(e){}
+      };
+      btnClearBMUnlocked.onclick=()=>{
+        bm=bm.filter(x=>x.locked);saveJSON(KEY_BM,bm);renderBMList(bmSearch.value);
+      };
+
+      btnCopyHistory.onclick=async()=>{
+        try{await navigator.clipboard.writeText(historyBox.textContent||"");}catch(e){}
+      };
+      btnClearHistory.onclick=()=>{
+        conversation=[];saveJSON(KEY_CONV,conversation);renderConsole();renderHistoryBox();
+      };
+
+      btnSaveIdentity.onclick=()=>{
+        identity.aiName=idAiName.value.trim()||identity.aiName;
+        identity.aiCreator=idAiCreator.value.trim()||identity.aiCreator;
+        identity.aiPlace=idAiPlace.value.trim()||identity.aiPlace;
+        identity.aiBirth=idAiBirth.value.trim()||identity.aiBirth;
+        identity.userName=idUserName.value.trim();
+        saveJSON(KEY_ID,identity);
+        ensureIdentityIntel();
+        setModal(modalIdentity,false);
+      };
+
+      thButtons.forEach(btn=>{
+        btn.addEventListener("click",()=>setTheme(btn.dataset.theme));
+      });
+    }
+
+    loadAll();
+    wireEvents();
   </script>
 </body>
 </html>
