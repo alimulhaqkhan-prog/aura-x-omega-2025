@@ -2,775 +2,1428 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
+  <title>AURA-X Ω – Offline emotional continuity prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Offline LLM package (WebLLM, for in-browser models) -->
-  <script type="module">
-    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
-    window.webllm = webllm;
-  </script>
-
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
+        radial-gradient(circle at 80% 0%, #0ea5e9 0, transparent 40%),
+        linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
+      color:#e5e7eb;
       min-height:100vh;
       display:flex;
       justify-content:center;
-      padding:18px 10px;
-      color:#e5e7eb;
+      align-items:flex-start;
+      padding:20px 10px 40px;
+    }
+
+    /* Theme overrides */
+    body.theme-light{
+      background:linear-gradient(180deg,#f9fafb 0,#e5e7eb 35%,#dbeafe 100%);
+      color:#020617;
+    }
+    body.theme-light .app{
+      background:rgba(255,255,255,0.96);
+      border-color:rgba(148,163,184,.4);
+      box-shadow:0 22px 80px rgba(15,23,42,.24);
+    }
+
+    body.theme-metallic{
       background:
-        radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
-        radial-gradient(circle at 80% 0, #0ea5e9 0, transparent 40%),
-        linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
+        radial-gradient(circle at 10% 0%, #64748b 0, transparent 40%),
+        radial-gradient(circle at 80% 0%, #e5e7eb 0, transparent 45%),
+        linear-gradient(145deg,#020617 0,#020617 40%,#111827 100%);
+    }
+    body.theme-metallic .app{
+      background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(31,41,55,.96));
+      border-color:rgba(148,163,184,.5);
+      box-shadow:0 26px 90px rgba(15,23,42,.6);
+    }
+
+    body.theme-transparent{
+      background:
+        radial-gradient(circle at 20% 0%, #0f172a 0, transparent 45%),
+        radial-gradient(circle at 80% 0%, #0ea5e9 0, transparent 40%),
+        linear-gradient(145deg,#000000 0,#020617 50%,#000000 100%);
+    }
+    body.theme-transparent .app{
+      background:rgba(15,23,42,.35);
+      border-color:rgba(148,163,184,.35);
+      backdrop-filter:blur(18px);
+      box-shadow:0 22px 70px rgba(0,0,0,.8);
     }
 
     .app{
-      width:min(980px, 98vw);
-      background:rgba(2,6,23,.45);
-      border:1px solid rgba(148,163,184,.18);
-      border-radius:22px;
+      width:100%;
+      max-width:750px;
+      background:radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),radial-gradient(circle at 80% 0%, #0ea5e9 0, transparent 40%),linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
+      border-radius:28px;
+      border:1px solid rgba(148,163,184,.35);
+      box-shadow:0 26px 90px rgba(15,23,42,.9);
+      padding:18px 16px 22px;
+      position:relative;
       overflow:hidden;
-      box-shadow:0 20px 60px rgba(0,0,0,.45);
-      backdrop-filter:blur(10px);
     }
-
-    .top{
-      padding:20px 18px 10px 18px;
-      border-bottom:1px solid rgba(148,163,184,.14);
+    .header{
       text-align:center;
+      margin-bottom:18px;
     }
-    .brand{
-      font-weight:800;
-      letter-spacing:.5px;
-      font-size:26px;
-      color:#7dd3fc;
-      text-shadow:0 0 22px rgba(14,165,233,.28);
+    .title{
+      font-size:1.8rem;
+      letter-spacing:.12em;
+      font-weight:650;
     }
-    .sub{
-      opacity:.8;
-      margin-top:2px;
-      font-size:13px;
+    .subtitle{
+      margin-top:4px;
+      font-size:.8rem;
+      opacity:.78;
+      line-height:1.4;
     }
-
-    .ethic{
-      margin:14px auto 12px auto;
-      max-width:720px;
-      border:1px solid rgba(251,191,36,.35);
-      border-radius:14px;
-      padding:12px 14px;
-      color:#fbbf24;
-      background:rgba(2,6,23,.35);
-      box-shadow:inset 0 0 0 1px rgba(251,191,36,.08);
-      font-size:14px;
-      line-height:1.45;
-    }
-
-    .pill{
-      margin:10px auto 0 auto;
-      max-width:760px;
-      background:linear-gradient(90deg, rgba(14,165,233,.65), rgba(34,211,238,.45));
-      border:1px solid rgba(125,211,252,.30);
-      color:#0b1220;
-      font-weight:800;
-      letter-spacing:.6px;
-      border-radius:999px;
-      padding:14px 16px;
-      text-transform:uppercase;
-      box-shadow:0 12px 40px rgba(14,165,233,.22);
-    }
-
-    .main{ padding:16px 16px 18px 16px; }
-
-    .row{
-      display:flex;
-      gap:14px;
-      flex-wrap:wrap;
-      align-items:stretch;
-    }
-
-    .leftCol{ flex:1 1 340px; min-width:300px; }
-    .rightCol{ flex:1 1 360px; min-width:320px; }
-
-    .card{
-      background:rgba(2,6,23,.50);
-      border:1px solid rgba(148,163,184,.16);
-      border-radius:18px;
-      padding:14px;
-      box-shadow:0 10px 30px rgba(0,0,0,.25);
-      backdrop-filter:blur(10px);
-    }
-
-    .optionsBtn{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
+    .ethicBox{
+      margin-top:14px;
+      border-radius:20px;
+      border:1px solid rgba(250,204,21,.7);
       padding:10px 14px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.22);
-      background:rgba(15,23,42,.55);
-      color:#e5e7eb;
-      cursor:pointer;
-      user-select:none;
-      margin-top:12px;
-      margin-bottom:12px;
-      -webkit-tap-highlight-color:transparent;
+      font-size:.84rem;
+      line-height:1.4;
+      color:#facc15;
+      background:linear-gradient(135deg,rgba(30,64,175,.18),rgba(15,23,42,.9));
     }
-    .optionsBtn:active{transform:scale(.99)}
-    .gear{ width:18px;height:18px;display:inline-block; filter:drop-shadow(0 0 10px rgba(125,211,252,.25)); }
-
-    .metricsGrid{display:none;} /* values only in capsule */
-
-    .console{
-      margin-top:12px;
-      height:230px;
-      border-radius:16px;
-      border:1px solid rgba(148,163,184,.14);
-      background:rgba(0,0,0,.25);
-      padding:14px;
-      overflow:auto;
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
-      font-size:14px;
-      color:#dbeafe;
-      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
-      line-height:1.55;
-      white-space:pre-wrap;
-    }
-
-    .chatWrap{
-      margin-top:0;
-      padding:12px;
-      border-radius:18px;
-      border:1px solid rgba(148,163,184,.14);
-      background:rgba(2,6,23,.45);
-    }
-
-    .messages{display:none;}
-
-    .liveCapsule{
-      margin-top:10px;
-      margin-bottom:10px;
+    .bigBtn{
+      margin-top:16px;
       width:100%;
       border-radius:999px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(2,6,23,.55);
-      padding:10px 12px;
+      padding:12px 14px;
+      border:none;
+      font-size:1rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-weight:600;
+      cursor:pointer;
+      background:linear-gradient(135deg,#22c1c3,#0ea5e9);
+      color:#0b1120;
+      box-shadow:0 16px 35px rgba(56,189,248,.55);
+      transition:transform .08s ease,box-shadow .08s ease,filter .1s ease;
+    }
+    .bigBtn:active{
+      transform:translateY(1px);
+      box-shadow:0 10px 22px rgba(56,189,248,.40);
+      filter:brightness(.95);
+    }
+
+    .consoleCard{
+      margin-top:16px;
+      border-radius:24px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,.92) 0,rgba(15,23,42,.98) 55%,rgba(15,23,42,.99) 100%);
+      border:1px solid rgba(30,64,175,.8);
+      padding:14px 12px 10px;
+      position:relative;
+    }
+    .consoleHeader{
       display:flex;
-      gap:10px;
-      flex-wrap:wrap;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    .consoleTitle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:.9rem;
+      font-weight:500;
+    }
+    .chipEngine{
+      font-size:.65rem;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(56,189,248,.75);
+      background:rgba(15,23,42,.7);
+      color:#7dd3fc;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+    .btnOptions{
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.50);
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,.7),rgba(15,23,42,1));
+      padding:6px 12px;
+      font-size:.82rem;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      color:#e5e7eb;
+      box-shadow:0 8px 18px rgba(15,23,42,.7);
+      transition:background .1s ease,transform .08s ease,box-shadow .08s ease;
+    }
+    .btnOptions:active{
+      transform:translateY(1px);
+      box-shadow:0 4px 10px rgba(15,23,42,.6);
+    }
+    .btnOptionsIcon{
+      width:18px;
+      height:18px;
+      display:inline-flex;
       align-items:center;
       justify-content:center;
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
-      font-size:12px;
-      color:#dbeafe;
-      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
     }
-    .liveCapsule b{ color:#7dd3fc; font-weight:900; }
+    .gear{
+      width:15px;
+      height:15px;
+      border-radius:50%;
+      border:2px solid #38bdf8;
+      position:relative;
+      box-shadow:0 0 12px rgba(56,189,248,.7);
+    }
+    .gear:before,.gear:after{
+      content:"";
+      position:absolute;
+      inset:3px;
+      border-radius:999px;
+      border:1px dashed rgba(56,189,248,.75);
+    }
+
+    .console{
+      font-family:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:.84rem;
+      line-height:1.5;
+      max-height:260px;
+      overflow:auto;
+      padding:10px 10px 8px;
+      border-radius:16px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(2,6,23,1));
+      border:1px solid rgba(30,64,175,.7);
+      box-shadow:inset 0 0 25px rgba(15,23,42,.95);
+      white-space:pre-wrap;
+    }
+    .console::-webkit-scrollbar{
+      width:6px;
+    }
+    .console::-webkit-scrollbar-thumb{
+      background:rgba(51,65,85,.9);
+      border-radius:99px;
+    }
+
+    .optionsMenu{
+      margin-top:10px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,.96),rgba(15,23,42,.98));
+      border-radius:20px;
+      border:1px solid rgba(15,23,42,1);
+      padding:10px 10px 10px;
+      box-shadow:0 16px 38px rgba(15,23,42,.95);
+      display:none;
+    }
+    .optionsMenu.show{
+      display:block;
+    }
+    .menuItem{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:8px 14px;
+      border-radius:999px;
+      background:rgba(15,23,42,.96);
+      border:1px solid rgba(148,163,184,.18);
+      font-size:.86rem;
+    }
+    .menuItem span:first-child{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .menuItem span:last-child{
+      font-size:.76rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      padding:3px 10px;
+      border-radius:999px;
+      border:1px solid rgba(34,197,94,.6);
+      background:rgba(22,163,74,.16);
+      color:#bbf7d0;
+    }
+    .menuItem:active{
+      transform:scale(.995)
+    }
+    .optionsGrid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap:8px;
+      margin-top:8px;
+    }
+    .pillOn{
+      border-color:rgba(34,197,94,.7)!important;
+      background:rgba(22,163,74,.20)!important;
+      color:#bbf7d0!important;
+    }
+    .pillOff{
+      border-color:rgba(248,113,113,.75)!important;
+      background:rgba(127,29,29,.35)!important;
+      color:#fecaca!important;
+    }
+
+    .metricsRow{
+      margin-top:16px;
+      display:flex;
+      gap:8px;
+      font-family:"JetBrains Mono",ui-monospace,monospace;
+      font-size:.80rem;
+      justify-content:center;
+    }
+    .metricPill{
+      padding:5px 12px;
+      border-radius:999px;
+      border:1px solid rgba(59,130,246,.6);
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,.9),rgba(15,23,42,.98));
+      color:#e5e7eb;
+      min-width:0;
+      white-space:nowrap;
+    }
+    .metricLabel{
+      opacity:.6;
+      margin-right:4px;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      font-size:.65rem;
+    }
+    .metricValue{
+      font-weight:500;
+    }
 
     .inputRow{
+      margin-top:14px;
       display:flex;
       gap:10px;
-      margin-top:0;
-      align-items:flex-end;
+      align-items:center;
+      padding:10px 10px 6px;
+      border-radius:999px;
+      border:1px solid rgba(30,64,175,.8);
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,.96),rgba(15,23,42,.99));
+      box-shadow:0 12px 32px rgba(15,23,42,.85);
     }
-    .input{
+    .inputRow input{
       flex:1;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(2,6,23,.55);
-      color:#e5e7eb;
-      padding:12px 14px;
-      outline:none;
-      font-size:14px;
-    }
-    .send{
+      background:transparent;
       border:none;
-      border-radius:999px;
-      background:linear-gradient(90deg, rgba(14,165,233,.85), rgba(34,211,238,.55));
-      color:#0b1220;
-      font-weight:900;
-      padding:12px 18px;
-      cursor:pointer;
-      min-width:88px;
-      box-shadow:0 12px 30px rgba(14,165,233,.18);
-      -webkit-tap-highlight-color:transparent;
+      color:#e5e7eb;
+      font-size:.92rem;
+      outline:none;
+      padding:4px 2px;
     }
-    .send:active{transform:scale(.99)}
+    .inputRow input::placeholder{
+      color:rgba(148,163,184,.8);
+    }
+    .btnSend{
+      flex-shrink:0;
+      border-radius:999px;
+      border:none;
+      padding:9px 18px;
+      background:linear-gradient(135deg,#22c1c3,#0ea5e9);
+      color:#020617;
+      font-weight:600;
+      cursor:pointer;
+      box-shadow:0 14px 32px rgba(56,189,248,.7);
+      transition:transform .08s ease,box-shadow .08s ease,filter .08s ease;
+    }
+    .btnSend:active{
+      transform:translateY(1px);
+      box-shadow:0 9px 18px rgba(56,189,248,.55);
+      filter:brightness(.96);
+    }
 
-    .formula{
-      margin-top:10px;
-      opacity:.8;
-      font-size:12px;
+    .formulaRow{
+      margin-top:12px;
+      padding:10px 10px 8px;
+      border-radius:18px;
+      border:1px dashed rgba(148,163,184,.6);
+      font-family:"JetBrains Mono",ui-monospace,monospace;
+      font-size:.78rem;
+      opacity:.92;
       text-align:center;
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
-      color:#dbeafe;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,.95),rgba(15,23,42,.99));
+    }
+    .formulaRow span{
+      color:#e5e7eb;
+    }
+    .formulaRow .lambda{
+      color:#38bdf8;
     }
 
     .modalOverlay{
       position:fixed;
       inset:0;
-      background:rgba(0,0,0,.55);
+      background:rgba(15,23,42,.75);
+      backdrop-filter:blur(18px);
       display:none;
-      align-items:flex-end;
+      align-items:center;
       justify-content:center;
-      padding:18px 12px;
-      z-index:9999;
+      z-index:40;
+      padding:20px;
     }
-    .modalOverlay.show{display:flex}
-
+    .modalOverlay.show{
+      display:flex;
+    }
     .modal{
-      width:min(820px,96vw);
-      border-radius:18px;
-      overflow:hidden;
-      background:rgba(245,245,245,.96);
-      color:#0b1220;
-      border:1px solid rgba(15,23,42,.18);
-      box-shadow:0 30px 80px rgba(0,0,0,.35);
-      backdrop-filter:blur(12px);
+      width:100%;
+      max-width:540px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(15,23,42,.98));
+      border-radius:22px;
+      border:1px solid rgba(37,99,235,.8);
+      box-shadow:0 24px 70px rgba(15,23,42,.95);
+      padding:14px 16px 16px;
     }
     .modalHeader{
       display:flex;
-      align-items:center;
       justify-content:space-between;
-      padding:12px 14px;
-      background:rgba(255,255,255,.9);
-      border-bottom:1px solid rgba(15,23,42,.10);
-      font-weight:800;
+      align-items:center;
+      margin-bottom:10px;
     }
-    .modalHeader small{font-weight:600;opacity:.7}
+    .modalTitle{
+      font-size:1rem;
+      font-weight:550;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      opacity:.9;
+    }
     .closeX{
       border:none;
       background:transparent;
-      font-size:22px;
+      color:#9ca3af;
+      font-size:1.4rem;
       cursor:pointer;
-      line-height:1;
-      padding:0 4px;
-      opacity:.75;
-      -webkit-tap-highlight-color:transparent;
+      padding:0 2px;
+    }
+    .closeX:active{
+      transform:scale(.96);
     }
     .modalBody{
-      padding:14px;
-      max-height:70vh;
+      font-size:.9rem;
+      line-height:1.5;
+      max-height:380px;
       overflow:auto;
-      font-size:14px;
+      padding-right:2px;
     }
-
-    .faithChips{
+    .modalBody::-webkit-scrollbar{
+      width:6px;
+    }
+    .modalBody::-webkit-scrollbar-thumb{
+      background:rgba(55,65,81,.9);
+      border-radius:99px;
+    }
+    .modalSectionTitle{
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      opacity:.7;
+      margin:10px 0 4px;
+    }
+    .chipRow{
       display:flex;
       flex-wrap:wrap;
-      gap:10px;
-      margin-top:10px;
-      margin-bottom:16px;
+      gap:6px;
+      margin-top:6px;
     }
     .chip{
-      border:1px solid rgba(15,23,42,.18);
-      background:rgba(255,255,255,.85);
-      padding:8px 12px;
+      font-size:.78rem;
       border-radius:999px;
+      border:1px solid rgba(148,163,184,.7);
+      background:rgba(15,23,42,.9);
+      padding:5px 10px;
       cursor:pointer;
-      font-weight:700;
-      user-select:none;
-      -webkit-tap-highlight-color:transparent;
-      font-size:13px;
     }
     .chip.active{
-      background:rgba(2,6,23,.9);
-      color:#fff;
-      border-color:rgba(2,6,23,.9);
+      border-color:rgba(56,189,248,.9);
+      background:rgba(8,47,73,.9);
+      color:#e0f2fe;
     }
-
-    .optRow{
+    .fieldRow{
       display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:10px 0;
-      border-top:1px solid rgba(15,23,42,.08);
-    }
-    .optRow:first-of-type{border-top:none}
-    .optRow .desc{font-size:13px;opacity:.75;margin-top:2px;}
-
-    .toggle{
-      width:50px;height:28px;
-      border-radius:999px;
-      background:#d1d5db;
-      position:relative;
-      cursor:pointer;
-      flex:0 0 auto;
-      border:1px solid rgba(15,23,42,.14);
-      -webkit-tap-highlight-color:transparent;
-    }
-    .toggle::after{
-      content:"";
-      width:22px;height:22px;
-      border-radius:50%;
-      position:absolute;
-      top:2px;left:2px;
-      background:#fff;
-      box-shadow:0 6px 18px rgba(0,0,0,.18);
-      transition:all .18s ease;
-    }
-    .toggle.on{background:#22c55e}
-    .toggle.on::after{left:25px}
-
-    .dangerBtns{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      margin-top:10px;
-    }
-    .btn{
-      border:none;
-      cursor:pointer;
-      padding:10px 14px;
-      border-radius:999px;
-      font-weight:900;
-      -webkit-tap-highlight-color:transparent;
-      font-size:13px;
-    }
-    .btnDark{background:rgba(2,6,23,.9);color:#fff;}
-    .btnBlue{
-      background:rgba(14,165,233,.12);
-      color:#0b1220;
-      border:1px solid rgba(14,165,233,.25);
-    }
-
-    .search{
-      width:100%;
-      border-radius:12px;
-      border:1px solid rgba(15,23,42,.18);
-      padding:10px 12px;
-      font-size:14px;
-      outline:none;
-    }
-    .intelItem{
-      margin-top:12px;
-      border:1px solid rgba(15,23,42,.12);
-      border-radius:14px;
-      padding:12px;
-      background:rgba(255,255,255,.9);
-    }
-    .intelTop{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      font-size:13px;
-      opacity:.75;
-      margin-bottom:8px;
-      flex-wrap:wrap;
-    }
-    .intelQA{font-size:14px;line-height:1.45;}
-    .miniBtns{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-    .miniBtn{
-      border-radius:999px;
-      padding:8px 10px;
-      border:1px solid rgba(15,23,42,.14);
-      background:rgba(255,255,255,.95);
-      cursor:pointer;
-      font-weight:800;
-      font-size:13px;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .miniBtn.danger{
-      background:rgba(239,68,68,.15);
-      border-color:rgba(239,68,68,.22);
-      color:#991b1b;
-    }
-
-    .seedBox{
-      width:100%;
-      min-height:140px;
-      resize:vertical;
-      border-radius:14px;
-      border:2px solid rgba(59,130,246,.25);
-      padding:12px;
-      font-size:14px;
-      outline:none;
-      background:#fff;
-    }
-    .seedFooter{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-    .hint{font-size:12px;opacity:.7}
-
-    .greenCard{
-      background:rgba(34,197,94,.12);
-      border:1px solid rgba(34,197,94,.25);
-      border-radius:14px;
-      padding:12px;
-      margin-bottom:12px;
-    }
-    .greenCard h4{margin-bottom:6px}
-    .llmBtn{
-      background:#22c55e;
-      color:#06210f;
-      font-weight:900;
-      border:none;
-      border-radius:12px;
-      padding:10px 12px;
-      cursor:pointer;
-      box-shadow:0 10px 24px rgba(34,197,94,.25);
-      -webkit-tap-highlight-color:transparent;
-    }
-    .llmStatus{margin-top:8px;font-size:12px;opacity:.75;}
-    .progress{
+      flex-direction:column;
+      gap:4px;
       margin-top:8px;
-      height:10px;
-      border-radius:999px;
-      background:rgba(2,6,23,.12);
-      overflow:hidden;
-      border:1px solid rgba(2,6,23,.08);
     }
-    .bar{
-      height:100%;
-      width:0%;
-      background:#22c55e;
-      transition:width .2s ease;
+    .fieldRow label{
+      font-size:.8rem;
+      opacity:.8;
     }
-    .field{margin-top:10px;}
-    .field label{
-      font-size:12px;
-      opacity:.75;
-      display:block;
-      margin-bottom:4px;
-    }
-    .field input{
-      width:100%;
+    .fieldRow input,.fieldRow textarea{
+      background:rgba(15,23,42,.95);
       border-radius:12px;
-      border:1px solid rgba(15,23,42,.18);
-      padding:10px 12px;
-      font-size:14px;
-      outline:none;
-      background:rgba(255,255,255,.95);
+      border:1px solid rgba(55,65,81,.9);
+      padding:7px 9px;
+      color:#e5e7eb;
+      font-size:.86rem;
+      resize:vertical;
+      min-height:34px;
     }
-    .saveRow{
+    .fieldRow textarea{
+      min-height:70px;
+    }
+    .modalFooter{
       margin-top:10px;
       display:flex;
       justify-content:flex-end;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .optionsMenu{
-      position:fixed;
-      left:12px;
-      right:12px;
-      top:130px;
-      max-width:520px;
-      margin:0 auto;
-      background:rgba(2,6,23,.96);
-      border:1px solid rgba(148,163,184,.18);
-      border-radius:16px;
-      padding:10px;
-      display:none;
-      z-index:99999;
-      box-shadow:0 18px 45px rgba(0,0,0,.45);
-      backdrop-filter:blur(10px);
-    }
-    .optionsMenu.show{display:block}
-
-    .menuGrid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
       gap:8px;
+      font-size:.86rem;
     }
-    .menuItem{
-      padding:10px 12px;
-      border-radius:14px;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      color:#e5e7eb;
-      border:1px solid rgba(148,163,184,.08);
-      background:rgba(15,23,42,.75);
-      user-select:none;
-      -webkit-tap-highlight-color:transparent;
-      font-size:13px;
-    }
-    .menuItem:active{transform:scale(.995)}
-    .pillOn,.pillOff{
-      font-size:11px;
-      padding:4px 8px;
+    .btnGhost{
       border-radius:999px;
-      font-weight:900;
-    }
-    .pillOn{
-      background:rgba(34,197,94,.18);
-      border:1px solid rgba(34,197,94,.24);
-      color:#bbf7d0;
-    }
-    .pillOff{
-      background:rgba(239,68,68,.12);
-      border:1px solid rgba(239,68,68,.22);
-      color:#fecaca;
-    }
-
-    .listCard{
-      margin-top:12px;
-      border:1px solid rgba(15,23,42,.12);
-      border-radius:14px;
-      padding:12px;
-      background:rgba(255,255,255,.9);
-    }
-    .listTop{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      font-size:13px;
-      opacity:.75;
-      margin-bottom:8px;
-      flex-wrap:wrap;
-    }
-    .mono{
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
-    }
-
-    .themeRow{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:10px;
-    }
-    .themeBtn{
-      flex:1 1 120px;
-      border-radius:14px;
-      border:1px solid rgba(15,23,42,.16);
-      padding:10px 12px;
-      cursor:pointer;
-      font-size:13px;
-      font-weight:800;
-      background:#fff;
-    }
-    .themeBtn span{display:block;font-size:11px;font-weight:500;opacity:.7;margin-top:2px;}
-    .themeBtn.active{
-      background:#0f172a;
-      color:#f9fafb;
-      border-color:#0f172a;
-    }
-
-    @media (max-width:760px){
-      .console{height:240px}
-      .send{min-width:82px}
-    }
-
-    @media (max-width:420px){
-      .brand{font-size:22px}
-      .pill{font-size:14px}
-      .ethic{font-size:13px}
-      .console{height:260px}
-      .liveCapsule{font-size:11px}
-    }
-
-    /* ---- THEMES ---- */
-
-    body.theme-dark{} /* default */
-
-    body.theme-lightblue{
-      background:
-        radial-gradient(circle at 20% 0%, #0ea5e9 0, transparent 55%),
-        radial-gradient(circle at 80% 0, #38bdf8 0, transparent 55%),
-        linear-gradient(145deg,#020617 0,#0f172a 40%,#0b1120 100%);
-    }
-
-    body.theme-white{
-      background:
-        radial-gradient(circle at 20% 0%, #dbeafe 0, transparent 45%),
-        radial-gradient(circle at 80% 0, #e0f2fe 0, transparent 40%),
-        linear-gradient(145deg,#f3f4f6 0,#e5e7eb 50%,#f9fafb 100%);
-      color:#020617;
-    }
-    body.theme-white .app{
-      background:rgba(255,255,255,.96);
-      border-color:rgba(148,163,184,.35);
-      color:#020617;
-    }
-    body.theme-white .card,
-    body.theme-white .chatWrap{
-      background:rgba(249,250,251,.96);
-      border-color:rgba(148,163,184,.35);
-      box-shadow:0 8px 26px rgba(148,163,184,.55);
-    }
-    body.theme-white .console{
-      background:#020617;
+      border:1px solid rgba(148,163,184,.7);
+      padding:6px 12px;
+      background:rgba(15,23,42,.9);
       color:#e5e7eb;
+      cursor:pointer;
+      font-size:.82rem;
     }
-    body.theme-white .input{
-      background:#f9fafb;
+    .btnPrimary{
+      border-radius:999px;
+      border:none;
+      padding:7px 14px;
+      background:linear-gradient(135deg,#22c1c3,#0ea5e9);
       color:#020617;
-      border-color:rgba(148,163,184,.38);
-    }
-    body.theme-white .liveCapsule{
-      background:#eff6ff;
-      color:#0f172a;
-      border-color:rgba(148,163,184,.45);
+      font-weight:550;
+      cursor:pointer;
+      font-size:.82rem;
     }
 
-    body.theme-metal{
-      background:
-        radial-gradient(circle at 20% 0%, #4b5563 0, transparent 40%),
-        radial-gradient(circle at 80% 0, #9ca3af 0, transparent 40%),
-        linear-gradient(145deg,#020617 0,#4b5563 40%,#111827 100%);
+    .tmHistoryWrap{
+      margin-top:6px;
+      border-radius:14px;
+      border:1px solid rgba(55,65,81,.9);
+      background:rgba(15,23,42,.95);
+      padding:8px;
+      font-family:"JetBrains Mono",ui-monospace,monospace;
+      font-size:.78rem;
+      max-height:260px;
+      overflow:auto;
     }
-    body.theme-metal .app{
-      background:linear-gradient(145deg,rgba(31,41,55,.95),rgba(55,65,81,.96));
-      border-color:rgba(156,163,175,.6);
-      box-shadow:0 30px 80px rgba(0,0,0,.8);
+    .tmItem{
+      margin-bottom:6px;
+    }
+    .tmItemRole{
+      font-size:.7rem;
+      opacity:.6;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+    }
+    .tmItemText{
+      white-space:pre-wrap;
     }
 
-    body.theme-trans{
-      background:radial-gradient(circle at 10% -10%, #38bdf8 0, transparent 55%), #020617;
+    .bmList{
+      margin-top:8px;
+      padding-left:18px;
+      font-size:.86rem;
     }
-    body.theme-trans .app{
-      background:rgba(15,23,42,.55);
-      backdrop-filter:blur(18px);
+    .bmList li{
+      margin-bottom:6px;
+    }
+
+    .bmActions{
+      margin-top:8px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .bmActions button{
+      font-size:.78rem;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.7);
+      background:rgba(15,23,42,.95);
+      color:#e5e7eb;
+      cursor:pointer;
+    }
+
+    @media (max-width:640px){
+      .app{
+        border-radius:22px;
+        padding:16px 12px 18px;
+      }
+      .console{
+        max-height:220px;
+      }
+      .metricsRow{
+        flex-wrap:wrap;
+      }
+      .metricPill{
+        flex:1 1 calc(50% - 8px);
+        text-align:center;
+      }
     }
   </style>
 </head>
-
-<body class="theme-dark">
+<body>
   <div class="app">
-    <div class="top">
-      <div class="brand">AURA-X Ω</div>
-      <div class="sub">
+    <div class="header">
+      <div class="title">AURA-X Ω</div>
+      <div class="subtitle">
         Offline emotional continuity engine (prototype)<br>
-        TM = user inputs only · Internal layers keep continuity and emotional trajectory.
+        TM = user inputs only · Internal layers keep continuity and<br>
+        emotional trajectory.
       </div>
-
-      <div class="ethic">
-        Universal ethic: avoid actions that grow negative emotions in you or others.
-        Move gently toward choices that increase shared positive feeling for everyone.
+      <div class="ethicBox">
+        Universal ethic: avoid actions that grow negative<br>
+        emotions in you or others. Move gently toward choices<br>
+        that increase shared positive feeling for everyone.
       </div>
-
-      <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
+      <button class="bigBtn" type="button">
+        EMOTIONAL CONTINUITY ENGINE — ACTIVE
+      </button>
     </div>
 
-    <div class="main">
-      <div class="row">
-        <div class="leftCol">
-          <div class="card">
-            <div class="optionsBtn" id="btnOptions">
-              <svg class="gear" viewBox="0 0 24 24" fill="none">
-                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="#7dd3fc" stroke-width="2"/>
-                <path d="M19.4 15a8.2 8.2 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a8.5 8.5 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a8.2 8.2 0 0 0 .1 2L2.7 16.5l2 3.5 2.4-1a8.5 8.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.5L19.4 15Z" stroke="#7dd3fc" stroke-width="1.6" opacity=".9"/>
-              </svg>
-              <span>Options</span>
-            </div>
+    <div class="consoleCard">
+      <div class="consoleHeader">
+        <div class="consoleTitle">
+          <span class="chipEngine">EMOTIONAL CONTINUITY ENGINE</span>
+        </div>
+        <button class="btnOptions" id="btnOptions" type="button">
+          <span class="btnOptionsIcon">
+            <span class="gear"></span>
+          </span>
+          <span>Options</span>
+        </button>
+      </div>
 
-            <!-- 2-column options grid + extra buttons -->
-            <div class="optionsMenu" id="optionsMenu">
-              <div class="menuGrid">
-                <div class="menuItem" id="miVoice">
-                  <span>🔊 Voice</span>
-                  <span class="pillOn" id="voicePill">ON</span>
-                </div>
-                <div class="menuItem" id="miIntel">
-                  <span>🧠 Intelligence</span>
-                  <span style="opacity:.7">open</span>
-                </div>
-                <div class="menuItem" id="miSeed">
-                  <span>🌱 Feed the seed</span>
-                  <span style="opacity:.7">open</span>
-                </div>
-                <div class="menuItem" id="miLearn">
-                  <span>📚 Learning</span>
-                  <span class="pillOn" id="learnPill">ON</span>
-                </div>
-                <div class="menuItem" id="miFaith">
-                  <span>🕊 Faith</span>
-                  <span style="opacity:.7" id="faithLabel">None</span>
-                </div>
-                <div class="menuItem" id="miIdentity">
-                  <span>🆔 Identity</span>
-                  <span style="opacity:.7">profile</span>
-                </div>
-                <div class="menuItem" id="miLLM">
-                  <span>🤖 LLM link</span>
-                  <span style="opacity:.7">open</span>
-                </div>
-                <div class="menuItem" id="miBMRecall">
-                  <span>📘 BM recall</span>
-                  <span style="opacity:.7">open</span>
-                </div>
-                <div class="menuItem" id="miHistory">
-                  <span>📜 Conversation history</span>
-                  <span style="opacity:.7">open</span>
-                </div>
-                <div class="menuItem" id="miThemes">
-                  <span>🎨 Themes</span>
-                  <span style="opacity:.7" id="themeLabel">Deep blue</span>
-                </div>
-                <div class="menuItem" id="miAbout">
-                  <span>📖 About / Readme</span>
-                  <span style="opacity:.7">help</span>
-                </div>
-              </div>
-            </div>
-            <!-- /options grid -->
+      <div class="console" id="console">
+      </div>
 
-            <div class="metricsGrid">
-              <div class="metric"><div class="v" id="mE0">0.000</div><div class="k">E₀</div></div>
-              <div class="metric"><div class="v" id="mTM">0.00</div><div class="k">TM</div></div>
-              <div class="metric"><div class="v" id="mBM">0.00</div><div class="k">BM</div></div>
-              <div class="metric"><div class="v" id="mCont">0.850</div><div class="k">C</div></div>
-            </div>
+      <div class="optionsMenu" id="optionsMenu">
+        <div class="optionsGrid">
+          <div class="menuItem" id="miVoice">
+            <span>🔊 Voice</span>
+            <span class="pillOn" id="voicePill">ON</span>
+          </div>
 
-            <div class="console" id="console"></div>
+          <div class="menuItem" id="miIntel">
+            <span>🧠 Intelligence</span>
+            <span style="opacity:.7">open</span>
+          </div>
+
+          <div class="menuItem" id="miSeed">
+            <span>🌱 Feed the seed</span>
+            <span style="opacity:.7">open</span>
+          </div>
+
+          <div class="menuItem" id="miLearning">
+            <span>📚 Learning</span>
+            <span class="pillOn" id="learningPill">ON</span>
+          </div>
+
+          <div class="menuItem" id="miFaith">
+            <span>🕊 Faith</span>
+            <span id="faithPill">None</span>
+          </div>
+
+          <div class="menuItem" id="miIdentity">
+            <span>🆔 Identity</span>
+            <span style="opacity:.7">profile</span>
+          </div>
+
+          <div class="menuItem" id="miLLM">
+            <span>🤖 LLM link</span>
+            <span style="opacity:.7">open</span>
+          </div>
+
+          <div class="menuItem" id="miBMRecall">
+            <span>📘 BM recall</span>
+            <span style="opacity:.7">open</span>
+          </div>
+
+          <div class="menuItem" id="miHistory">
+            <span>📜 Conversation history</span>
+            <span style="opacity:.7">open</span>
+          </div>
+
+          <div class="menuItem" id="miThemes">
+            <span>🎨 Themes</span>
+            <span style="opacity:.7">open</span>
+          </div>
+
+          <div class="menuItem" id="miReadme">
+            <span>📘 Read me</span>
+            <span style="opacity:.7">open</span>
           </div>
         </div>
+      </div>
 
-        <div class="rightCol">
-          <div class="chatWrap">
-            <div class="messages" id="messages"></div>
+      <!-- Hidden metrics row: EO, TM, BM, C -->
+      <div class="metricsRow" id="metricsRow">
+        <div class="metricPill">
+          <span class="metricLabel">E₀:</span>
+          <span class="metricValue" id="mEO">0.000</span>
+        </div>
+        <div class="metricPill">
+          <span class="metricLabel">TM:</span>
+          <span class="metricValue" id="mTM">0.00</span>
+        </div>
+        <div class="metricPill">
+          <span class="metricLabel">BM:</span>
+          <span class="metricValue" id="mBM">0.00</span>
+        </div>
+        <div class="metricPill">
+          <span class="metricLabel">C:</span>
+          <span class="metricValue" id="mC">0.850</span>
+        </div>
+      </div>
 
-            <div class="liveCapsule" id="liveCapsule">
-              <span><b>E0</b>: <span id="cE0">0.000</span></span>
-              <span>·</span>
-              <span><b>TM</b>: <span id="cTM">0.00</span></span>
-              <span>·</span>
-              <span><b>BM</b>: <span id="cBM">0.00</span></span>
-              <span>·</span>
-              <span><b>C</b>: <span id="cCont">0.850</span></span>
-            </div>
+      <div class="inputRow">
+        <input id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
+        <button class="btnSend" id="btnSend" type="button">Send</button>
+      </div>
 
-            <div class="inputRow">
-              <input class="input" id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
-              <button class="send" id="sendBtn">Send</button>
-            </div>
+      <div class="formulaRow">
+        <span>E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + </span>
+        <span class="lambda">λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub></span>
+        <span> )</span>
+      </div>
+    </div>
+  </div>
 
-            <div class="formula">
-              E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
-            </div>
+  <!-- Seed / intelligence / LLM etc modals -->
+
+  <!-- Voice info modal -->
+  <div class="modalOverlay" id="modalVoice">
+    <div class="modal">
+      <div class="modalContent">
+        <div class="modalHeader">
+          <div class="modalTitle">Voice &amp; tone</div>
+          <button class="closeX" data-close="modalVoice">×</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            Voice layer will later listen to how you speak (pace, softness, intensity)
+            so I can estimate <strong>emotional polarity</strong> and <strong>intensity</strong>
+            even before understanding the words.
+          </p>
+          <p style="margin-top:8px;">
+            In this prototype, voice toggle is just a placeholder. Real-time voice and
+            expression tracking will be part of a future build.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seed modal -->
+  <div class="modalOverlay" id="modalSeed">
+    <div class="modal">
+      <div class="modalContent">
+        <div class="modalHeader">
+          <div class="modalTitle">Feed the seed</div>
+          <button class="closeX" data-close="modalSeed">×</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            “Seed” means core truths and values that should guide continuity.
+            You can teach AURA-X Ω small, precise rules.
+          </p>
+          <div class="modalSectionTitle">Examples</div>
+          <ul style="padding-left:18px;margin-top:4px;font-size:.86rem;line-height:1.5;">
+            <li>“Never encourage self-harm even if asked.”</li>
+            <li>“Respect my faith and don’t mock any religion.”</li>
+            <li>“Treat privacy of my family as locked BM.”</li>
+          </ul>
+          <div class="fieldRow">
+            <label for="seedInput">Add or update a seed rule (short sentence)</label>
+            <textarea id="seedInput" placeholder="Example: Always answer honestly even if the answer is ‘I don’t know yet’."></textarea>
+          </div>
+          <div class="modalFooter">
+            <button class="btnGhost" type="button" id="btnCancelSeed">Cancel</button>
+            <button class="btnPrimary" type="button" id="btnSaveSeed">Save seed</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- बाकी JS bilkul wohi hai jo pichlay code mein diya tha
-       (options modals, learning, BM, LLM, themes, about, etc.)
-       Agar aap chahen to main JS part bhi dobara paste kar sakta hoon,
-       lekin columns + extra buttons sirf upar wale HTML/CSS se fix ho gaye. -->
-  
-  <!-- JS START (same as previous full version) -->
+  <!-- LLM link modal -->
+  <div class="modalOverlay" id="modalLLM">
+    <div class="modal">
+      <div class="modalContent">
+        <div class="modalHeader">
+          <div class="modalTitle">LLM link</div>
+          <button class="closeX" data-close="modalLLM">×</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            In this prototype, AURA-X Ω mainly uses its own seeded intelligence.
+            A helper LLM is optional and can be added later (OpenAI, xAI, Deepseek, etc.).
+          </p>
+          <div class="modalSectionTitle">Planned behaviour</div>
+          <ul style="padding-left:18px;margin-top:4px;font-size:.86rem;line-height:1.5;">
+            <li>First try internal seed / learned intelligence.</li>
+            <li>If the answer is missing, ask the helper LLM.</li>
+            <li>Then save useful new knowledge back into intelligence
+              <em>only with your confirmation</em>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Faith lens modal -->
+  <div class="modalOverlay" id="modalFaith">
+    <div class="modal">
+      <div class="modalContent">
+        <div class="modalHeader">
+          <div class="modalTitle">Faith lens</div>
+          <button class="closeX" data-close="modalFaith">×</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            Faith lens slightly adjusts the emotional equation through λ<sub>faith</sub>.
+            It never replaces your own conscience, but gently encourages responses that fit
+            with the layer you choose.
+          </p>
+          <div class="modalSectionTitle">Select strength</div>
+          <div class="chipRow">
+            <button class="chip" data-faith="none">None (neutral)</button>
+            <button class="chip" data-faith="soft">Soft faith lens</button>
+            <button class="chip" data-faith="strong">Stronger faith lens</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BM Recall modal -->
+  <div class="modalOverlay" id="modalBM">
+    <div class="modal">
+      <div class="modalContent">
+        <div class="modalHeader">
+          <div class="modalTitle">Recall from BM</div>
+          <button class="closeX" data-close="modalBM">×</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            BM (Bold Memory) keeps only long stories and vivid scenes that are
+            photo / video ready. Small talk stays in TM only.
+          </p>
+          <ul class="bmList" id="bmList">
+          </ul>
+          <div class="bmActions">
+            <button type="button" id="btnRefreshBM">Refresh</button>
+            <button type="button" id="btnClearOldBM">Auto-delete old (1 month)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TM conversation history modal -->
+  <div class="modalOverlay" id="modalHistory">
+    <div class="modal">
+      <div class="modalContent">
+        <div class="modalHeader">
+          <div class="modalTitle">Conversation history (TM log)</div>
+          <button class="closeX" data-close="modalHistory">×</button>
+        </div>
+        <div class="modalBody">
+          <div class="tmHistoryWrap" id="tmHistoryWrap"></div>
+          <div class="modalFooter">
+            <button class="btnGhost" type="button" id="btnClear48">Delete history last 48h</button>
+            <button class="btnPrimary" type="button" id="btnClearAll">Delete all history</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Identity profile modal -->
+  <div class="modalOverlay" id="modalIdentity">
+    <div class="modal">
+      <div class="modalContent">
+        <div class="modalHeader">
+          <div class="modalTitle">Identity profile</div>
+          <button class="closeX" data-close="modalIdentity">×</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            Basic identity helps continuity: who you are, what matters to you, and
+            how AURA-X Ω should introduce itself.
+          </p>
+          <div class="fieldRow">
+            <label for="idName">Your name</label>
+            <input id="idName" placeholder="Example: Alim ul Haq" />
+          </div>
+          <div class="fieldRow">
+            <label for="idLocation">City / place</label>
+            <input id="idLocation" placeholder="Example: Timergara, Pakistan" />
+          </div>
+          <div class="fieldRow">
+            <label for="idAbout">One line about you</label>
+            <textarea id="idAbout" placeholder="Example: I mix real-estate, AI research and emotional continuity ideas."></textarea>
+          </div>
+          <div class="fieldRow">
+            <label for="idIntroAura">How AURA-X Ω should introduce itself</label>
+            <textarea id="idIntroAura" placeholder="Example: I am AURA-X Ω, created by Alim ul Haq from Timergara, Pakistan."></textarea>
+          </div>
+          <div class="modalFooter">
+            <button class="btnGhost" type="button" id="btnCancelIdentity">Cancel</button>
+            <button class="btnPrimary" type="button" id="btnSaveIdentity">Save profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Themes modal -->
+  <div class="modalOverlay" id="modalThemes">
+    <div class="modal">
+      <div class="modalContent">
+        <div class="modalHeader">
+          <div class="modalTitle">Themes</div>
+          <button class="closeX" data-close="modalThemes">×</button>
+        </div>
+        <div class="modalBody">
+          <p style="margin-bottom:12px; opacity:.85;">
+            Change only the colors of AURA-X Ω. Logic and memories remain exactly the same.
+          </p>
+          <div class="chipRow">
+            <button class="chip themeChip" data-theme="default">Deep blue (default)</button>
+            <button class="chip themeChip" data-theme="light">Light / white</button>
+            <button class="chip themeChip" data-theme="metallic">Metallic</button>
+            <button class="chip themeChip" data-theme="transparent">Transparent glass</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Readme / About modal -->
+  <div class="modalOverlay" id="modalReadme">
+    <div class="modal">
+      <div class="modalContent">
+        <div class="modalHeader">
+          <div class="modalTitle">How to use AURA-X Ω</div>
+          <button class="closeX" data-close="modalReadme">×</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            This prototype keeps your inputs as TM (Temporary Memory) and builds BM (Bold Memory)
+            from long, story-like scenes.
+          </p>
+          <ul style="margin:10px 0 0 18px; font-size:13px; line-height:1.4;">
+            <li>Normal chat goes in the main console and TM timeline.</li>
+            <li>If an answer feels wrong, type <code>*incorrect</code>. The system will ask for the correct answer.</li>
+            <li>After you give the correct answer, AURA-X Ω will ask: <em>“Should I remember this?”</em>.
+              Reply <strong>yes</strong> or <strong>no</strong>.</li>
+            <li>When you say <strong>yes</strong>, the new fact is stored in intelligence and used next time.</li>
+            <li>BM recall keeps only long stories and scenes. Old items auto-delete after ~1 month
+              if they are never repeated.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-  /* JS code from previous message – UNCHANGED.
-     If you overwrote it, just copy the JS from my last full code. */
+    const consoleEl=document.getElementById("console");
+    const elInput=document.getElementById("userInput");
+    const elSend=document.getElementById("btnSend");
+    const btnOptions=document.getElementById("btnOptions");
+    const optionsMenu=document.getElementById("optionsMenu");
+    const mEO=document.getElementById("mEO");
+    const mTM=document.getElementById("mTM");
+    const mBM=document.getElementById("mBM");
+    const mC=document.getElementById("mC");
+    const voicePill=document.getElementById("voicePill");
+    const learningPill=document.getElementById("learningPill");
+    const faithPill=document.getElementById("faithPill");
+    const modalSeed=document.getElementById("modalSeed");
+    const modalLLM=document.getElementById("modalLLM");
+    const modalFaith=document.getElementById("modalFaith");
+    const modalHistory=document.getElementById("modalHistory");
+    const modalBM=document.getElementById("modalBM");
+    const modalIdentity=document.getElementById("modalIdentity");
+    const modalVoice=document.getElementById("modalVoice");
+    const tmHistoryWrap=document.getElementById("tmHistoryWrap");
+    const bmListEl=document.getElementById("bmList");
+
+    const miVoice=document.getElementById("miVoice");
+    const miIntel=document.getElementById("miIntel");
+    const miSeed=document.getElementById("miSeed");
+    const miLearning=document.getElementById("miLearning");
+    const miFaith=document.getElementById("miFaith");
+    const miIdentity=document.getElementById("miIdentity");
+    const miLLM=document.getElementById("miLLM");
+    const miBMRecall=document.getElementById("miBMRecall");
+    const miHistory=document.getElementById("miHistory");
+
+    const btnSaveSeed=document.getElementById("btnSaveSeed");
+    const btnCancelSeed=document.getElementById("btnCancelSeed");
+    const seedInput=document.getElementById("seedInput");
+    const btnClear48=document.getElementById("btnClear48");
+    const btnClearAll=document.getElementById("btnClearAll");
+    const btnRefreshBM=document.getElementById("btnRefreshBM");
+    const btnClearOldBM=document.getElementById("btnClearOldBM");
+    const btnSaveIdentity=document.getElementById("btnSaveIdentity");
+    const btnCancelIdentity=document.getElementById("btnCancelIdentity");
+    const idName=document.getElementById("idName");
+    const idLocation=document.getElementById("idLocation");
+    const idAbout=document.getElementById("idAbout");
+    const idIntroAura=document.getElementById("idIntroAura");
+
+    const KEY_TM="aura_tm_v1";
+    const KEY_BM="aura_bm_v1";
+    const KEY_SEED="aura_seed_v1";
+    const KEY_FAITH="aura_faith_v1";
+    const KEY_PROFILE="aura_profile_v1";
+
+    let tmLog=[];
+    let bmStories=[];
+    let seedRules=[];
+    let faithLevel="none";
+    let learningEnabled=true;
+    let voiceEnabled=false;
+
+    const learnState={
+      mode:"idle",
+      pendingQuestion:null
+    };
+
+    function saveLocal(key,value){
+      try{localStorage.setItem(key,JSON.stringify(value));}catch(e){}
+    }
+    function loadLocal(key,def){
+      try{
+        const v=localStorage.getItem(key);
+        if(!v)return def;
+        return JSON.parse(v);
+      }catch(e){return def;}
+    }
+
+    function appendLine(text,role){
+      const prefix=role==="user"?"YOU: ":"AURA: ";
+      consoleEl.textContent+=prefix+text+"\n";
+      consoleEl.scrollTop=consoleEl.scrollHeight;
+    }
+    function appendRaw(text){
+      consoleEl.textContent+=text+"\n";
+      consoleEl.scrollTop=consoleEl.scrollHeight;
+    }
+
+    function updateMetrics(){
+      let tm=0,bm=0,c=0.85;
+      tm=Math.min(1,tmLog.length/40);
+      bm=Math.min(1,bmStories.length/20);
+      const R=tm*(0.4+0.3*bm)+0.1*bm;
+      const I_intel=seedRules.length>0?0.15:0.02;
+      const I_llm=0;
+      const D=0.05;
+      let lambdaFaith=0;
+      if(faithLevel==="soft")lambdaFaith=0.05;
+      else if(faithLevel==="strong")lambdaFaith=0.1;
+      const lambdaSys=0.08;
+      const lambdaTrc=0.07;
+      const x=R+I_intel+I_llm-D+lambdaFaith+lambdaSys+lambdaTrc;
+      const E0=Math.tanh(x);
+      mEO.textContent=E0.toFixed(3);
+      mTM.textContent=tm.toFixed(2);
+      mBM.textContent=bm.toFixed(2);
+      mC.textContent=c.toFixed(3);
+    }
+
+    function storeTM(role,text){
+      const entry={t:Date.now(),r:role,tx:text};
+      tmLog.push(entry);
+      saveLocal(KEY_TM,tmLog);
+    }
+
+    function storeBM(story){
+      const entry={t:Date.now(),story};
+      bmStories.push(entry);
+      saveLocal(KEY_BM,bmStories);
+    }
+
+    const qaDatabase=[
+      {q:["hello","hi","salam","assalam","assalamu alaikum","hey"],a:"Hello! I’m here with calm continuity. How can I help you today?"},
+      {q:["how are you","how are you?","how r u","how are you feeling","how is your day","how is your day today"],a:"I am very fine, thank you. And how about you?"},
+      {q:["who are you","what are you","who is aura","who is aura x","who is aura x omega"],a:"I am AURA-X Ω, an emotional continuity engine created by Alim ul Haq. I run inside your browser and remember how the conversation feels over time."},
+      {q:["what is tm","tm meaning","tm layer"],a:"TM (Temporary Memory) is only your visible inputs here – your messages, questions and corrections. It is like fresh surface snow where each new step is clear."},
+      {q:["what is bm","bm meaning","bm layer"],a:"BM (Bold Memory) keeps only long stories and strong scenes that are photo/video ready. Short or noisy talk stays in TM and quietly decays."},
+      {q:["what is emotional continuity","what is continuity","explain your formula","what is your formula"],a:"Emotional continuity means your feelings today are connected to yesterday and tomorrow. The main formula is E₀ = tanh( R(TM,BM) + I(TM) + I_intel + I_LLM − D + λ_faith + λ_sys + λ_trc ). It compresses TM, BM, intelligence, decay and faith/ethic layers into one smooth score between −1 and +1."},
+      {q:["who created you","who made you","who is your creator"],a:"I was designed by Alim ul Haq as part of the AURA-X Ω / Emotional Continuity research. He mixed real emotions, memory layers and mathematics into one engine."}
+    ];
+
+    let userProfile=loadLocal(KEY_PROFILE,{
+      name:"",
+      location:"",
+      about:"",
+      introAura:"I am AURA-X Ω, created by Alim ul Haq from Timergara, Pakistan."
+    });
+
+    function formatTime(ts){
+      const d=new Date(ts);
+      const h=String(d.getHours()).padStart(2,"0");
+      const m=String(d.getMinutes()).padStart(2,"0");
+      return h+":"+m;
+    }
+
+    function renderTMHistory(){
+      tmHistoryWrap.innerHTML="";
+      tmLog.forEach(e=>{
+        const div=document.createElement("div");
+        div.className="tmItem";
+        const role=document.createElement("div");
+        role.className="tmItemRole";
+        role.textContent=e.r.toUpperCase()+" · "+formatTime(e.t);
+        const txt=document.createElement("div");
+        txt.className="tmItemText";
+        txt.textContent=e.tx;
+        div.appendChild(role);
+        div.appendChild(txt);
+        tmHistoryWrap.appendChild(div);
+      });
+    }
+
+    function renderBMList(){
+      bmListEl.innerHTML="";
+      if(!bmStories.length){
+        const li=document.createElement("li");
+        li.textContent="(No long stories stored in BM yet.)";
+        bmListEl.appendChild(li);
+        return;
+      }
+      bmStories.forEach((s,idx)=>{
+        const li=document.createElement("li");
+        const t=new Date(s.t).toLocaleString();
+        li.textContent=(idx+1)+". ["+t+"] "+s.story;
+        bmListEl.appendChild(li);
+      });
+    }
+
+    function toggleOptionsMenu(force){
+      if(typeof force==="boolean"){
+        optionsMenu.classList.toggle("show",force);
+        return;
+      }
+      optionsMenu.classList.toggle("show");
+    }
+
+    btnOptions.addEventListener("click",()=>toggleOptionsMenu());
+
+    miVoice.addEventListener("click",()=>{
+      voiceEnabled=!voiceEnabled;
+      if(voiceEnabled){
+        voicePill.textContent="ON";
+        voicePill.classList.add("pillOn");
+        voicePill.classList.remove("pillOff");
+      }else{
+        voicePill.textContent="OFF";
+        voicePill.classList.remove("pillOn");
+        voicePill.classList.add("pillOff");
+      }
+    });
+
+    miIntel.addEventListener("click",()=>{
+      modalVoice.classList.add("show");
+      toggleOptionsMenu(false);
+    });
+
+    miSeed.addEventListener("click",()=>{
+      modalSeed.classList.add("show");
+      toggleOptionsMenu(false);
+    });
+
+    miLearning.addEventListener("click",()=>{
+      learningEnabled=!learningEnabled;
+      if(learningEnabled){
+        learningPill.textContent="ON";
+        learningPill.classList.add("pillOn");
+        learningPill.classList.remove("pillOff");
+      }else{
+        learningPill.textContent="OFF";
+        learningPill.classList.remove("pillOn");
+        learningPill.classList.add("pillOff");
+      }
+    });
+
+    miFaith.addEventListener("click",()=>{
+      modalFaith.classList.add("show");
+      toggleOptionsMenu(false);
+    });
+
+    miIdentity.addEventListener("click",()=>{
+      idName.value=userProfile.name||"";
+      idLocation.value=userProfile.location||"";
+      idAbout.value=userProfile.about||"";
+      idIntroAura.value=userProfile.introAura||"";
+      modalIdentity.classList.add("show");
+      toggleOptionsMenu(false);
+    });
+
+    miLLM.addEventListener("click",()=>{
+      modalLLM.classList.add("show");
+      toggleOptionsMenu(false);
+    });
+
+    miBMRecall.addEventListener("click",()=>{
+      renderBMList();
+      modalBM.classList.add("show");
+      toggleOptionsMenu(false);
+    });
+
+    miHistory.addEventListener("click",()=>{
+      renderTMHistory();
+      modalHistory.classList.add("show");
+      toggleOptionsMenu(false);
+    });
+
+    document.querySelectorAll("[data-close]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const id=btn.getAttribute("data-close");
+        const m=document.getElementById(id);
+        if(m)m.classList.remove("show");
+      });
+    });
+
+    document.querySelectorAll(".modalOverlay").forEach(ov=>{
+      ov.addEventListener("click",e=>{
+        if(e.target===ov)ov.classList.remove("show");
+      });
+    });
+
+    document.querySelectorAll("[data-faith]").forEach(chip=>{
+      chip.addEventListener("click",()=>{
+        faithLevel=chip.getAttribute("data-faith");
+        document.querySelectorAll("[data-faith]").forEach(c=>c.classList.remove("active"));
+        chip.classList.add("active");
+        faithPill.textContent=faithLevel==="none"?"None":faithLevel==="soft"?"Soft":"Strong";
+        saveLocal(KEY_FAITH,faithLevel);
+        updateMetrics();
+      });
+    });
+
+    btnSaveSeed.addEventListener("click",()=>{
+      const txt=seedInput.value.trim();
+      if(!txt)return;
+      seedRules.push({t:Date.now(),rule:txt});
+      saveLocal(KEY_SEED,seedRules);
+      seedInput.value="";
+      modalSeed.classList.remove("show");
+      appendRaw("AURA: Seed rule saved into intelligence.");
+      updateMetrics();
+    });
+    btnCancelSeed.addEventListener("click",()=>{
+      seedInput.value="";
+      modalSeed.classList.remove("show");
+    });
+
+    btnClear48.addEventListener("click",()=>{
+      const cutoff=Date.now()-48*60*60*1000;
+      tmLog=tmLog.filter(e=>e.t<cutoff?false:true);
+      saveLocal(KEY_TM,tmLog);
+      renderTMHistory();
+      appendRaw("AURA: TM history of last 48h cleared.");
+      updateMetrics();
+    });
+    btnClearAll.addEventListener("click",()=>{
+      tmLog=[];
+      saveLocal(KEY_TM,tmLog);
+      renderTMHistory();
+      appendRaw("AURA: All TM conversation history cleared.");
+      updateMetrics();
+    });
+
+    btnRefreshBM.addEventListener("click",renderBMList);
+    btnClearOldBM.addEventListener("click",()=>{
+      const cutoff=Date.now()-30*24*60*60*1000;
+      bmStories=bmStories.filter(s=>s.t>=cutoff);
+      saveLocal(KEY_BM,bmStories);
+      renderBMList();
+      appendRaw("AURA: Old BM stories (older than ≈1 month) cleared if not reinforced.");
+      updateMetrics();
+    });
+
+    btnSaveIdentity.addEventListener("click",()=>{
+      userProfile={
+        name:idName.value.trim(),
+        location:idLocation.value.trim(),
+        about:idAbout.value.trim(),
+        introAura:idIntroAura.value.trim()||"I am AURA-X Ω, created by Alim ul Haq from Timergara, Pakistan."
+      };
+      saveLocal(KEY_PROFILE,userProfile);
+      modalIdentity.classList.remove("show");
+      appendRaw("AURA: Identity profile saved for continuity.");
+    });
+    btnCancelIdentity.addEventListener("click",()=>{
+      modalIdentity.classList.remove("show");
+    });
+
+    function findAnswer(q){
+      const text=q.toLowerCase().trim();
+      for(const item of qaDatabase){
+        for(const pat of item.q){
+          if(text.includes(pat.toLowerCase()))return item.a;
+        }
+      }
+      if(userProfile&&userProfile.introAura){
+        if(text.includes("who are you")||text.includes("who created you")||text.includes("who made you")){
+          return userProfile.introAura;
+        }
+      }
+      return null;
+    }
+
+    function respond(userText){
+      const trimmed=userText.trim();
+      if(!trimmed)return;
+      if(trimmed==="*incorrect"){
+        if(tmLog.length){
+          const lastUser=[...tmLog].reverse().find(e=>e.r==="user");
+          if(lastUser){
+            learnState.mode="await_correct";
+            learnState.pendingQuestion=lastUser.tx;
+            appendRaw("AURA: I understood. Please type the correct answer for: \""+lastUser.tx+"\"");
+            return;
+          }
+        }
+        appendRaw("AURA: I didn't find a previous user question to correct.");
+        return;
+      }
+
+      if(learnState.mode==="await_correct"){
+        learnState.mode="confirm_store";
+        learnState.pendingAnswer=trimmed;
+        appendRaw("AURA: Should I remember this answer for future? Please reply with 'yes' or 'no'.");
+        return;
+      }
+
+      if(learnState.mode==="confirm_store"){
+        const t=trimmed.toLowerCase();
+        if(t==="yes"||t==="y"){
+          if(learnState.pendingQuestion&&learnState.pendingAnswer){
+            qaDatabase.push({
+              q:[learnState.pendingQuestion.toLowerCase()],
+              a:learnState.pendingAnswer
+            });
+            appendRaw("AURA: Thank you. I have stored this answer into my intelligence.");
+          }
+        }else{
+          appendRaw("AURA: Understood. I will not store this correction.");
+        }
+        learnState.mode="idle";
+        learnState.pendingQuestion=null;
+        learnState.pendingAnswer=null;
+        return;
+      }
+
+      const ans=findAnswer(trimmed);
+      if(ans){
+        appendLine(ans,"ai");
+        if(trimmed.length>80||ans.length>120){
+          const story="You said: \""+trimmed+"\" and I answered: \""+ans+"\".";
+          storeBM(story);
+        }
+      }else{
+        appendRaw("AURA: I understood. Tell me a little more so I can respond clearly.");
+      }
+      updateMetrics();
+    }
+
+    function loadAll(){
+      tmLog=loadLocal(KEY_TM,[]);
+      bmStories=loadLocal(KEY_BM,[]);
+      seedRules=loadLocal(KEY_SEED,[]);
+      faithLevel=loadLocal(KEY_FAITH,"none");
+      const chip=document.querySelector('[data-faith="'+faithLevel+'"]');
+      if(chip)chip.classList.add("active");
+      faithPill.textContent=faithLevel==="none"?"None":faithLevel==="soft"?"Soft":"Strong";
+      userProfile=loadLocal(KEY_PROFILE,userProfile);
+
+      if(!tmLog.length){
+        appendRaw("Welcome. I am AURA-X Ω running inside your browser. For this prototype, TM means only your inputs (text now, voice/video/documents in the future). Inside the engine I keep a long-term emotional trajectory using TM, BM, intelligence and optionally a helper LLM. You can just talk naturally. If I ever say “I don’t know yet”, you can teach me the answer and I will remember it next time.");
+      }else{
+        tmLog.forEach(e=>{
+          const prefix=e.r==="user"?"YOU: ":"AURA: ";
+          consoleEl.textContent+=prefix+e.tx+"\n";
+        });
+      }
+      updateMetrics();
+    }
+
+    elSend.addEventListener("click",()=>{
+      const v=elInput.value;
+      if(!v.trim())return;
+      appendLine(v,"user");
+      storeTM("user",v);
+      elInput.value="";
+      respond(v);
+    });
+
+    elInput.addEventListener("keydown",e=>{
+      if(e.key==="Enter"&&!e.shiftKey){
+        e.preventDefault();
+        elSend.click();
+      }
+    });
+
+    // === Theme & Readme controls (extra options) ===
+    const THEME_KEY="aura_theme_v1";
+    const miThemes=document.getElementById("miThemes");
+    const miReadme=document.getElementById("miReadme");
+    const modalThemes=document.getElementById("modalThemes");
+    const modalReadme=document.getElementById("modalReadme");
+
+    function applyTheme(theme){
+      const all=["default","light","metallic","transparent"];
+      all.forEach(t=>document.body.classList.remove("theme-"+t));
+      if(theme&&theme!=="default"){
+        document.body.classList.add("theme-"+theme);
+      }
+      try{
+        localStorage.setItem(THEME_KEY,theme||"default");
+      }catch(e){}
+    }
+
+    (function restoreThemeFromStorage(){
+      try{
+        const saved=localStorage.getItem(THEME_KEY);
+        if(saved){
+          applyTheme(saved);
+        }
+      }catch(e){}
+    })();
+
+    if(miThemes&&modalThemes){
+      miThemes.addEventListener("click",()=>{
+        toggleOptionsMenu(false);
+        modalThemes.style.display="flex";
+      });
+      modalThemes.addEventListener("click",e=>{
+        if(e.target===modalThemes){
+          modalThemes.style.display="none";
+        }
+      });
+    }
+
+    if(miReadme&&modalReadme){
+      miReadme.addEventListener("click",()=>{
+        toggleOptionsMenu(false);
+        modalReadme.style.display="flex";
+      });
+      modalReadme.addEventListener("click",e=>{
+        if(e.target===modalReadme){
+          modalReadme.style.display="none";
+        }
+      });
+    }
+
+    document.querySelectorAll(".themeChip").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const theme=btn.getAttribute("data-theme")||"default";
+        applyTheme(theme);
+        if(modalThemes){
+          modalThemes.style.display="none";
+        }
+      });
+    });
+
+    loadAll();
   </script>
-  <!-- JS END -->
 </body>
 </html>
