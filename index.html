@@ -12,7 +12,10 @@
   </script>
 
   <style>
-    /* RESET & BASICS (Code 2 UI) */
+    /* =======================
+       CODE 2 UI (kept as base)
+       ======================= */
+
     *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -128,12 +131,13 @@
     .optionsBtn:active{transform:scale(.99)}
     .gear{ width:18px;height:18px;display:inline-block; filter:drop-shadow(0 0 10px rgba(125,211,252,.25)); }
 
-    /* big metrics hidden – values capsule میں ہوں گے */
     .metricsGrid{
-      display:none;
+      display:grid;
       grid-template-columns:repeat(4, 1fr);
       gap:12px;
       margin-top:10px;
+      /* HIDE big metrics row, values now only in capsule */
+      display:none;
     }
     .metric{
       background:rgba(2,6,23,.55);
@@ -200,7 +204,7 @@
       clear:both;
     }
 
-    /* LIVE CAPSULE LINE */
+    /* NEW: live capsule line above input */
     .liveCapsule{
       margin-top:10px;
       margin-bottom:10px;
@@ -219,7 +223,10 @@
       color:#dbeafe;
       box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
     }
-    .liveCapsule b{ color:#7dd3fc; font-weight:900; }
+    .liveCapsule b{
+      color:#7dd3fc;
+      font-weight:900;
+    }
 
     .inputRow{
       display:flex;
@@ -261,7 +268,7 @@
       color:#dbeafe;
     }
 
-    /* MODALS */
+    /* ======= Modals (Code2 windows) ======= */
     .modalOverlay{
       position:fixed;
       inset:0;
@@ -518,7 +525,9 @@
       flex-wrap:wrap;
     }
 
-    /* OPTIONS MENU (Quick controls via Options button) */
+    /* ===========================
+       Options menu overlay
+       ============================ */
     .optionsMenu{
       position:fixed;
       left:12px;
@@ -573,7 +582,7 @@
       font-weight:900;
     }
 
-    /* BM recall + history */
+    /* BM Recall / History lists */
     .listCard{
       margin-top:12px;
       border:1px solid rgba(15,23,42,.12);
@@ -616,10 +625,7 @@
   <div class="app">
     <div class="top">
       <div class="brand">AURA-X Ω</div>
-      <div class="sub">
-        Offline emotional continuity engine (prototype)<br>
-        TM = user inputs only · Internal layers keep continuity and emotional trajectory.
-      </div>
+      <div class="sub">Offline emotional continuity engine (prototype)<br>TM = user inputs only · Internal layers keep continuity and emotional trajectory.</div>
 
       <div class="ethic">
         Universal ethic: avoid actions that grow negative emotions in you or others. Move gently toward choices that increase shared positive feeling for everyone.
@@ -630,7 +636,6 @@
 
     <div class="main">
       <div class="row">
-        <!-- LEFT -->
         <div class="leftCol">
           <div class="card">
 
@@ -642,43 +647,55 @@
               <span>Options</span>
             </div>
 
-            <!-- Quick controls as options menu -->
+            <!-- Options Menu Overlay -->
             <div class="optionsMenu" id="optionsMenu">
               <div class="menuItem" id="miVoice">
                 <span>🔊 Voice</span>
                 <span class="pillOn" id="voicePill">ON</span>
               </div>
+
               <div class="menuItem" id="miIntel">
                 <span>🧠 Intelligence</span>
                 <span style="opacity:.7">open</span>
               </div>
+
               <div class="menuItem" id="miSeed">
                 <span>🌱 Feed the seed</span>
                 <span style="opacity:.7">open</span>
               </div>
+
               <div class="menuItem" id="miLearn">
                 <span>📚 Learning</span>
                 <span class="pillOn" id="learnPill">ON</span>
               </div>
+
               <div class="menuItem" id="miFaith">
                 <span>🕊 Faith</span>
                 <span style="opacity:.7" id="faithLabel">None</span>
               </div>
+
+              <div class="menuItem" id="miIdentity">
+                <span>🆔 Identity</span>
+                <span style="opacity:.7">profile</span>
+              </div>
+
               <div class="menuItem" id="miLLM">
                 <span>🤖 LLM link</span>
                 <span style="opacity:.7">open</span>
               </div>
+
               <div class="menuItem" id="miBMRecall">
                 <span>🧾 BM recall</span>
                 <span style="opacity:.7">open</span>
               </div>
+
               <div class="menuItem" id="miHistory">
                 <span>🕰 Conversation history</span>
                 <span style="opacity:.7">open</span>
               </div>
             </div>
 
-            <!-- hidden grid (kept for future) -->
+            <!-- Hidden metrics row (kept for logic, not visible) -->
             <div class="metricsGrid">
               <div class="metric">
                 <div class="v" id="mE0">0.000</div>
@@ -699,14 +716,15 @@
             </div>
 
             <div class="console" id="console"></div>
+
           </div>
         </div>
 
-        <!-- RIGHT -->
         <div class="rightCol">
           <div class="chatWrap">
             <div class="messages" id="messages"></div>
 
+            <!-- live metrics capsule -->
             <div class="liveCapsule" id="liveCapsule">
               <span><b>E0</b>: <span id="cE0">0.000</span></span>
               <span>·</span>
@@ -722,9 +740,10 @@
               <button class="send" id="sendBtn">Send</button>
             </div>
 
-            <div class="formula">
+            <div class="formula" id="formulaText">
               E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
             </div>
+
           </div>
         </div>
 
@@ -732,13 +751,12 @@
     </div>
   </div>
 
-  <!-- OPTIONS MODAL (faith etc.) -->
+  <!-- Options (Faith lens window) -->
   <div class="modalOverlay" id="modalOptions">
     <div class="modal">
       <div class="modalHeader">
         <div>
-          ⚙️ AURA-X Ω options<br>
-          <small>Optional faith lens for encouragement lines.</small>
+          ⚙️ AURA-X Ω options<br><small>Optional faith lens for encouragement lines.</small>
         </div>
         <button class="closeX" data-close="modalOptions">×</button>
       </div>
@@ -808,7 +826,7 @@
     </div>
   </div>
 
-  <!-- INTELLIGENCE MODAL -->
+  <!-- Intelligence -->
   <div class="modalOverlay" id="modalIntel">
     <div class="modal">
       <div class="modalHeader">
@@ -822,7 +840,7 @@
     </div>
   </div>
 
-  <!-- SEED MODAL -->
+  <!-- Seed -->
   <div class="modalOverlay" id="modalSeed">
     <div class="modal">
       <div class="modalHeader">
@@ -835,7 +853,9 @@
           You can optionally start each answer with metadata like <code>[polarity=positive; code=E031; intensity=0.8]</code>.
         </div>
 
-        <textarea class="seedBox" id="seedBox" placeholder="Paste LaTeX conversation / logic block here..."></textarea>
+        <div style="margin-top:10px;">
+          <textarea class="seedBox" id="seedBox" placeholder="Paste LaTeX conversation / logic block here..."></textarea>
+        </div>
 
         <div class="seedFooter">
           <div class="hint" id="seedHint">Waiting for block…</div>
@@ -849,7 +869,7 @@
     </div>
   </div>
 
-  <!-- LLM MODAL -->
+  <!-- LLM -->
   <div class="modalOverlay" id="modalLLM">
     <div class="modal">
       <div class="modalHeader">
@@ -893,16 +913,16 @@
     </div>
   </div>
 
-  <!-- BM RECALL MODAL -->
+  <!-- BM Recall -->
   <div class="modalOverlay" id="modalBM">
     <div class="modal">
       <div class="modalHeader">
-        <div>🧾 Recall from BM<br><small>Only long stories and scenes (photo/video-ready).</small></div>
+        <div>🧾 Recall from BM<br><small>Only long stories / scenes (photo/video-ready).</small></div>
         <button class="closeX" data-close="modalBM">×</button>
       </div>
       <div class="modalBody">
         <div style="opacity:.8; font-size:13px; line-height:1.35">
-          Shows longer BM entries (by length). Copy or delete items, or generate a video-style prompt.
+          Shows longer BM entries (by length). You can copy or delete items.
         </div>
 
         <div class="field">
@@ -920,38 +940,83 @@
     </div>
   </div>
 
-  <!-- TM CONVERSATION HISTORY MODAL -->
+  <!-- Conversation History -->
   <div class="modalOverlay" id="modalHistory">
     <div class="modal">
       <div class="modalHeader">
-        <div>🕰 Conversation history<br><small>Recent TM log (user + system messages).</small></div>
+        <div>🕰 Conversation history<br><small>Full local conversation log (console source).</small></div>
         <button class="closeX" data-close="modalHistory">×</button>
       </div>
       <div class="modalBody">
-        <div class="saveRow" style="justify-content:flex-start;">
-          <button class="btn btnBlue" id="btnDelHistory48">Delete history last 48h</button>
-          <button class="btn btnDark" style="background:#fecaca;color:#7f1d1d;" id="btnDelHistoryAll">Delete all history</button>
+        <div style="opacity:.8; font-size:13px; line-height:1.35">
+          You can copy the full history or clear it (does not delete BM/intelligence).
         </div>
 
-        <div class="listCard mono" id="historyBox" style="white-space:pre-wrap; margin-top:12px;"></div>
+        <div class="saveRow" style="justify-content:space-between;">
+          <button class="btn btnBlue" id="btnCopyHistory">Copy history</button>
+          <button class="btn btnDark" id="btnClearHistory">Clear history</button>
+        </div>
+
+        <div class="listCard mono" id="historyBox" style="white-space:pre-wrap;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Identity Profile -->
+  <div class="modalOverlay" id="modalIdentity">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🆔 Identity profile<br><small>Used for “who are you / who created you” answers.</small></div>
+        <button class="closeX" data-close="modalIdentity">×</button>
+      </div>
+      <div class="modalBody">
+        <div class="field">
+          <label>AI name</label>
+          <input id="idAiName" />
+        </div>
+        <div class="field">
+          <label>Created by</label>
+          <input id="idAiCreator" />
+        </div>
+        <div class="field">
+          <label>Origin / place</label>
+          <input id="idAiPlace" />
+        </div>
+        <div class="field">
+          <label>Birth / year</label>
+          <input id="idAiBirth" />
+        </div>
+        <div class="field">
+          <label>Your name (optional)</label>
+          <input id="idUserName" placeholder="How should I address you?" />
+        </div>
+        <div class="saveRow">
+          <button class="btn btnBlue" id="btnSaveIdentity">Save identity</button>
+        </div>
+        <div style="margin-top:8px; font-size:12px; opacity:.75;">
+          Identity data stays only in this browser and is used for greetings and identity questions.
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    /* STORAGE KEYS */
+    /* ==============================
+       Logic (CodeX) + Code2 Answers
+       ============================== */
+
     const KEY_INTEL = "aurax_intelligence_nodes_v4";
     const KEY_BM    = "aurax_bold_memory_v4";
     const KEY_CFG   = "aurax_config_v4";
     const KEY_LLM   = "aurax_llm_settings_v4";
     const KEY_CONV  = "aurax_conversation_log_v4";
+    const KEY_ID    = "aurax_identity_profile_v1";
 
-    /* DEFAULT INTELLIGENCE */
     const DEFAULT_INTEL = [
       { q: "hello", a: "Hello! I’m here with calm continuity. How can I help you today?", code: "E001", polarity: "positive", intensity: 0.6 },
       { q: "hi", a: "Hi! How are you feeling right now?", code: "E002", polarity: "positive", intensity: 0.55 },
-      { q: "how are you", a: "I am quite fine today, how about you?", code: "E003", polarity: "positive", intensity: 0.7 },
-      { q: "how are you?", a: "I am quite fine today, how about you?", code: "E003", polarity: "positive", intensity: 0.7 },
+      { q: "how are you", a: "I am very fine, thank you. And how about you?", code: "E003", polarity: "positive", intensity: 0.7 },
+      { q: "how are you?", a: "I am very fine, thank you. And how about you?", code: "E003", polarity: "positive", intensity: 0.7 },
       { q: "who are you", a: "I am AURA-X Ω — an offline emotional continuity engine prototype.", code: "E010", polarity: "neutral", intensity: 0.45 }
     ];
 
@@ -961,9 +1026,9 @@
       autoSummarize: true,
       ignoreSmallTalkBM: true,
       faithLens: "None",
-      bmRetentionDays: 30,        // 1 month
-      bmRepeatLockN: 3,           // 3 bar repeat par lock
-      bmRepeatWindowMin: 60       // 60 min window
+      bmRetentionDays: 30,
+      bmRepeatLockN: 3,
+      bmRepeatWindowMin: 60,
     };
 
     let intelligence = [];
@@ -972,8 +1037,25 @@
     let offlineEngine = { ready:false, engine:null, modelId:"Llama-3.2-1B-Instruct-q4f16_1" };
     let onlineLLM = { endpoint:"", model:"", key:"" };
 
-    let metrics = { E0:0.0, TM:0.0, BM:0.0, continuity:0.85 };
-    let sessionStart = Date.now();   // front UI console اسی session سے شروع ہو گا
+    let metrics = {
+      E0: 0.0,
+      TM: 0.0,
+      BM: 0.0,
+      continuity: 0.85,
+      lastPolarity: "neutral",
+      lastIntensity: 0.5
+    };
+
+    let identity = {
+      aiName: "AURA-X Ω",
+      aiCreator: "Alim ul Haq",
+      aiPlace: "Timergara, Pakistan",
+      aiBirth: "October 2025",
+      userName: ""
+    };
+
+    // pending self-learning question: next user message will be its answer
+    let teachPendingQuestion = null;
 
     const elMsgs = document.getElementById("messages");
     const elInput = document.getElementById("userInput");
@@ -983,19 +1065,24 @@
     const elTM = document.getElementById("mTM");
     const elBM = document.getElementById("mBM");
     const elCont = document.getElementById("mCont");
+
+    // capsule values
     const cE0 = document.getElementById("cE0");
     const cTM = document.getElementById("cTM");
     const cBM = document.getElementById("cBM");
     const cCont = document.getElementById("cCont");
 
+    // options button + menu
     const btnOptions = document.getElementById("btnOptions");
     const optionsMenu = document.getElementById("optionsMenu");
 
+    // menu items
     const miVoice = document.getElementById("miVoice");
     const miIntel = document.getElementById("miIntel");
     const miSeed  = document.getElementById("miSeed");
     const miLearn = document.getElementById("miLearn");
     const miFaith = document.getElementById("miFaith");
+    const miIdentity = document.getElementById("miIdentity");
     const miLLM   = document.getElementById("miLLM");
     const miBMRecall = document.getElementById("miBMRecall");
     const miHistory  = document.getElementById("miHistory");
@@ -1010,6 +1097,7 @@
     const modalLLM     = document.getElementById("modalLLM");
     const modalBM      = document.getElementById("modalBM");
     const modalHistory = document.getElementById("modalHistory");
+    const modalIdentity = document.getElementById("modalIdentity");
 
     const tgSumm = document.getElementById("tgSumm");
     const tgSmallTalk = document.getElementById("tgSmallTalk");
@@ -1035,16 +1123,28 @@
     const apiKey = document.getElementById("apiKey");
     const btnSaveLLM = document.getElementById("btnSaveLLM");
 
+    // BM recall elements
     const bmSearch = document.getElementById("bmSearch");
     const bmList = document.getElementById("bmList");
     const btnCopyBestBM = document.getElementById("btnCopyBestBM");
     const btnClearBMUnlocked = document.getElementById("btnClearBMUnlocked");
 
+    // History elements
     const historyBox = document.getElementById("historyBox");
-    const btnDelHistory48 = document.getElementById("btnDelHistory48");
-    const btnDelHistoryAll = document.getElementById("btnDelHistoryAll");
+    const btnCopyHistory = document.getElementById("btnCopyHistory");
+    const btnClearHistory = document.getElementById("btnClearHistory");
+
+    // Identity inputs
+    const idAiName = document.getElementById("idAiName");
+    const idAiCreator = document.getElementById("idAiCreator");
+    const idAiPlace = document.getElementById("idAiPlace");
+    const idAiBirth = document.getElementById("idAiBirth");
+    const idUserName = document.getElementById("idUserName");
+    const btnSaveIdentity = document.getElementById("btnSaveIdentity");
 
     const now = () => Date.now();
+    let sessionStart = now(); // UI should show only messages of this session in console
+
     const fmt3 = (x) => (Math.round(x*1000)/1000).toFixed(3);
     const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
 
@@ -1053,10 +1153,10 @@
         const raw = localStorage.getItem(key);
         if(!raw) return fallback;
         return JSON.parse(raw);
-      }catch(e){return fallback;}
+      }catch(e){ return fallback; }
     }
-    function saveJSON(key,val){
-      try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}
+    function saveJSON(key, val){
+      try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
     }
 
     function setModal(mod, show){
@@ -1068,48 +1168,51 @@
     }
 
     function isSmallTalk(s){
-      const t=(s||"").trim().toLowerCase();
-      if(t.length<=2) return true;
-      const small=["hi","hello","hey","assalam","assalamualaikum","how are you","how r u","good morning","good evening","good night"];
-      return small.some(k=>t===k||t.startsWith(k+" "));
+      const t = (s||"").trim().toLowerCase();
+      if(t.length <= 2) return true;
+      const small = ["hi","hello","hey","assalam","assalamualaikum","how are you","how r u","good morning","good evening","good night"];
+      return small.some(k => t === k || t.startsWith(k+" "));
     }
 
     function toastConsole(line){
       const stamp = new Date().toLocaleTimeString();
-      conversation.push({role:"system", text:`[${stamp}] ${line}`, t:now()});
+      conversation.push({role:"system", text:`[${stamp}] ${line}`, t: now()});
       saveJSON(KEY_CONV, conversation);
       renderConsole();
     }
 
     function renderConsole(){
-      // صرف current session کا log
-      const lines = conversation
-        .filter(m => (m.t || 0) >= sessionStart)
-        .map(m=>{
-          if(m.role==="user") return `YOU: ${m.text}`;
-          if(m.role==="assistant") return `AURA: ${m.text}`;
-          return m.text;
-        });
-
-      let out = lines;
-      if(cfg.autoSummarize && out.length>200){
-        const head=out.slice(0,80);
-        const tail=out.slice(-90);
-        out=head.concat([`… (${out.length-170} lines hidden) …`],tail);
+      // show only this-session messages in console UI
+      const sessionMsgs = (conversation||[]).filter(m => (m.t || 0) >= sessionStart);
+      if(!sessionMsgs.length){
+        elConsole.textContent = "";
+        return;
       }
-      elConsole.textContent = out.join("\n");
+      let lines = sessionMsgs.map(m=>{
+        if(m.role==="user") return `YOU: ${m.text}`;
+        if(m.role==="assistant") return `AURA: ${m.text}`;
+        return m.text;
+      });
+
+      if(cfg.autoSummarize && lines.length > 200){
+        const head = lines.slice(0, 80);
+        const tail = lines.slice(-90);
+        lines = head.concat([`… (${lines.length-170} lines hidden) …`], tail);
+      }
+
+      elConsole.textContent = lines.join("\n");
       elConsole.scrollTop = elConsole.scrollHeight;
     }
 
-    function addMsg(role,text){
-      const div=document.createElement("div");
-      div.className=`msg ${role==="user"?"user":"bot"}`;
-      div.textContent=text;
+    function addMsg(role, text){
+      const div = document.createElement("div");
+      div.className = `msg ${role==="user" ? "user" : "bot"}`;
+      div.textContent = text;
       elMsgs.appendChild(div);
-      elMsgs.scrollTop=elMsgs.scrollHeight;
+      elMsgs.scrollTop = elMsgs.scrollHeight;
 
-      conversation.push({role,text,t:now()});
-      saveJSON(KEY_CONV,conversation);
+      conversation.push({role, text, t: now()});
+      saveJSON(KEY_CONV, conversation);
       renderConsole();
       renderHistoryBox();
     }
@@ -1118,27 +1221,29 @@
       if(!cfg.voiceOn) return;
       try{
         speechSynthesis.cancel();
-        const u=new SpeechSynthesisUtterance(text);
-        u.rate=1.0;u.pitch=1.0;u.lang="en-US";
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 1.0;
+        u.pitch = 1.0;
+        u.lang = "en-US";
         speechSynthesis.speak(u);
       }catch(e){}
     }
 
     function pruneBMByRetention(){
-      const maxAge = cfg.bmRetentionDays*24*60*60*1000;
-      const cut = now()-maxAge;
+      const maxAge = cfg.bmRetentionDays * 24*60*60*1000;
+      const cut = now() - maxAge;
       bm = bm.filter(e => (e.t||0) >= cut || e.locked);
-      saveJSON(KEY_BM,bm);
+      saveJSON(KEY_BM, bm);
     }
 
-    function recordBMIfNeeded(userText,polarity,intensity){
+    function recordBMIfNeeded(userText, polarity, intensity){
       if(cfg.ignoreSmallTalkBM && isSmallTalk(userText)) return;
 
-      const k=hashKey(userText);
-      const t=now();
-      const win = cfg.bmRepeatWindowMin*60*1000;
-      const recentSame = bm.filter(e=>e.k===k && (t-(e.t||0))<=win);
-      const willLock = (recentSame.length+1)>=cfg.bmRepeatLockN;
+      const k = hashKey(userText);
+      const t = now();
+      const win = cfg.bmRepeatWindowMin * 60*1000;
+      const recentSame = bm.filter(e => e.k === k && (t - e.t) <= win);
+      const willLock = (recentSame.length + 1) >= cfg.bmRepeatLockN;
 
       bm.push({
         t,
@@ -1146,64 +1251,69 @@
         text:userText.trim(),
         polarity,
         intensity,
-        locked: willLock,
-        lockReason:willLock?`Repeated ${cfg.bmRepeatLockN}x in ${cfg.bmRepeatWindowMin}min`:""
+        locked: willLock ? true : false,
+        lockReason: willLock ? `Repeated ${cfg.bmRepeatLockN}x in ${cfg.bmRepeatWindowMin}min` : ""
       });
 
       pruneBMByRetention();
-      saveJSON(KEY_BM,bm);
+      saveJSON(KEY_BM, bm);
       renderBMList(bmSearch.value);
     }
 
     function findIntelAnswer(q){
-      const key=hashKey(q);
-      return intelligence.find(x=>x.qKey===key)||null;
+      const key = hashKey(q);
+      return intelligence.find(x => x.qKey === key) || null;
     }
 
-    function upsertIntel(q,a,meta={}){
-      const qKey=hashKey(q);
-      const idx=intelligence.findIndex(x=>x.qKey===qKey);
-      const item={
-        id: idx>=0?intelligence[idx].id:("E"+Math.floor(1000+Math.random()*9000)),
-        date:new Date().toISOString().slice(0,10),
-        q:q.trim(),
-        a:a.trim(),
+    function upsertIntel(q, a, meta={}){
+      const qKey = hashKey(q);
+      const idx = intelligence.findIndex(x => x.qKey === qKey);
+      const item = {
+        id: idx>=0 ? intelligence[idx].id : ("E"+Math.floor(1000+Math.random()*9000)),
+        date: new Date().toISOString().slice(0,10),
+        q: q.trim(),
+        a: a.trim(),
         qKey,
-        code:meta.code||(idx>=0?intelligence[idx].code:"E001"),
-        polarity:meta.polarity||"neutral",
-        intensity:(meta.intensity!=null?meta.intensity:0.5)
+        code: meta.code || (idx>=0 ? intelligence[idx].code : "E001"),
+        polarity: meta.polarity || "neutral",
+        intensity: (meta.intensity!=null ? meta.intensity : 0.5),
       };
-      if(idx>=0) intelligence[idx]=item; else intelligence.unshift(item);
-      saveJSON(KEY_INTEL,intelligence);
+      if(idx>=0) intelligence[idx] = item;
+      else intelligence.unshift(item);
+
+      saveJSON(KEY_INTEL, intelligence);
       renderIntelList(intelSearch.value);
     }
 
     function parseLatexBlock(text){
-      const lines=text.split(/\r?\n/);
-      const items=[];
-      let currentQ=null,currentA=null;
+      const lines = text.split(/\r?\n/);
+      const items = [];
+      let currentQ = null;
+      let currentA = null;
 
       function flush(){
-        if(currentQ && currentA) items.push({q:currentQ.trim(),a:currentA.trim()});
-        currentQ=null;currentA=null;
+        if(currentQ && currentA){
+          items.push({q:currentQ.trim(), a:currentA.trim()});
+        }
+        currentQ = null; currentA = null;
       }
 
       for(const line of lines){
-        const l=line.trim();
+        const l = line.trim();
         if(l.startsWith("\\item")){
           flush();
-          currentQ=l.replace(/^\\item\s*/,"").trim();
-          currentA="";
+          currentQ = l.replace(/^\\item\s*/,"").trim();
+          currentA = "";
           continue;
         }
         if(l.includes("\\textbf{A:}")){
-          const parts=l.split("\\textbf{A:}");
-          currentA+=(currentA?"\n":"")+(parts[1]||"").trim();
+          const parts = l.split("\\textbf{A:}");
+          currentA += (currentA? "\n":"") + (parts[1]||"").trim();
           continue;
         }
         if(currentQ!=null){
-          if(currentA!=null && currentA!=="") currentA+="\n"+l;
-          else currentQ+=" "+l;
+          if(currentA!=null && currentA!=="") currentA += "\n" + l;
+          else currentQ += " " + l;
         }
       }
       flush();
@@ -1211,269 +1321,296 @@
     }
 
     function parseMetaPrefix(a){
-      const m=a.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
-      if(!m) return {meta:null,answer:a};
-      const metaRaw=m[1];
-      const answer=m[2]||"";
-      const meta={};
+      const m = a.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
+      if(!m) return {meta:null, answer:a};
+      const metaRaw = m[1];
+      const answer = m[2] || "";
+      const meta = {};
       metaRaw.split(";").map(s=>s.trim()).filter(Boolean).forEach(pair=>{
-        const [k,v]=pair.split("=").map(x=>x.trim());
+        const [k,v] = pair.split("=").map(x=>x.trim());
         if(!k) return;
-        if(k==="intensity") meta.intensity=parseFloat(v);
-        else meta[k]=v;
+        if(k==="intensity") meta.intensity = parseFloat(v);
+        else meta[k] = v;
       });
-      return {meta,answer};
+      return {meta, answer};
     }
 
     async function loadOfflineModel(){
       if(!window.webllm){
-        offlineStatus.textContent="WebLLM not available (blocked?)";
+        offlineStatus.textContent = "WebLLM not available (blocked?)";
         return;
       }
       try{
-        offlineStatus.textContent="loading...";
-        offlineBar.style.width="10%";
-        const appConfig=window.webllm.prebuiltAppConfig?window.webllm.prebuiltAppConfig():undefined;
+        offlineStatus.textContent = "loading...";
+        offlineBar.style.width = "10%";
+        const appConfig = window.webllm.prebuiltAppConfig ? window.webllm.prebuiltAppConfig() : undefined;
 
-        offlineEngine.engine=await window.webllm.CreateMLCEngine(
+        offlineEngine.engine = await window.webllm.CreateMLCEngine(
           offlineEngine.modelId,
           {
-            initProgressCallback:(p)=>{
-              const pct=Math.round((p.progress||0)*100);
-              offlineBar.style.width=pct+"%";
-              offlineStatus.textContent=(p.text||"loading")+` (${pct}%)`;
+            initProgressCallback: (p) => {
+              const pct = Math.round((p.progress || 0) * 100);
+              offlineBar.style.width = pct + "%";
+              offlineStatus.textContent = (p.text || "loading") + ` (${pct}%)`;
             },
             appConfig
           }
         );
-        offlineEngine.ready=true;
-        offlineStatus.textContent="ready";
-        offlineBar.style.width="100%";
+
+        offlineEngine.ready = true;
+        offlineStatus.textContent = "ready";
+        offlineBar.style.width = "100%";
       }catch(e){
-        offlineEngine.ready=false;
-        offlineStatus.textContent="error loading model";
-        offlineBar.style.width="0%";
+        offlineEngine.ready = false;
+        offlineStatus.textContent = "error loading model";
+        offlineBar.style.width = "0%";
+        console.warn(e);
       }
     }
 
     async function offlineAnalyze(text){
       if(!offlineEngine.ready || !offlineEngine.engine){
-        const t=(text||"").toLowerCase();
-        let polarity="neutral";
+        const t = (text||"").toLowerCase();
+        let polarity = "neutral";
         if(/love|great|good|amazing|happy|thanks|thank you/.test(t)) polarity="positive";
         if(/bad|sad|hate|angry|worried|stress|pain/.test(t)) polarity="negative";
-        const intensity=clamp(0.35+Math.min(0.65,(text.length/120)),0.2,1.0);
-        return {polarity,intensity};
+        const intensity = clamp(0.35 + Math.min(0.65, (text.length/120)), 0.2, 1.0);
+        return {polarity, intensity};
       }
-      const prompt=`Analyze the user text for emotional polarity and intensity.
+
+      const prompt = `Analyze the user text for emotional polarity and intensity.
 Return ONLY valid JSON with keys "polarity" (positive/neutral/negative) and "intensity" (0 to 1).
 Text: """${text}"""`;
 
       try{
-        const reply=await offlineEngine.engine.chat.completions.create({
-          messages:[{role:"user",content:prompt}],
-          temperature:0.0,
-          max_tokens:80,
+        const reply = await offlineEngine.engine.chat.completions.create({
+          messages: [{role:"user", content: prompt}],
+          temperature: 0.0,
+          max_tokens: 80,
         });
-        const content=reply.choices?.[0]?.message?.content||"";
-        const jsonMatch=content.match(/\{[\s\S]*\}/);
+        const content = reply.choices?.[0]?.message?.content || "";
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
         if(jsonMatch){
-          const obj=JSON.parse(jsonMatch[0]);
-          const polarity=(obj.polarity||"neutral").toLowerCase();
-          const intensity=clamp(parseFloat(obj.intensity??0.5),0,1);
-          return {polarity,intensity};
+          const obj = JSON.parse(jsonMatch[0]);
+          const polarity = (obj.polarity || "neutral").toLowerCase();
+          const intensity = clamp(parseFloat(obj.intensity ?? 0.5), 0, 1);
+          return {polarity, intensity};
         }
-      }catch(e){}
-      return {polarity:"neutral",intensity:0.5};
+      }catch(e){ console.warn(e); }
+
+      return {polarity:"neutral", intensity:0.5};
     }
 
     async function onlineAnswer(prompt){
       if(!onlineLLM.endpoint || !onlineLLM.key) return null;
       try{
-        const res=await fetch(onlineLLM.endpoint,{
+        const res = await fetch(onlineLLM.endpoint, {
           method:"POST",
           headers:{
             "Content-Type":"application/json",
-            "Authorization":"Bearer "+onlineLLM.key
+            "Authorization":"Bearer " + onlineLLM.key
           },
-          body:JSON.stringify({
-            model:onlineLLM.model||"gpt-4o-mini",
-            messages:[{role:"user",content:prompt}],
-            temperature:0.6,
-            max_tokens:220
+          body: JSON.stringify({
+            model: onlineLLM.model || "gpt-4o-mini",
+            messages: [{role:"user", content: prompt}],
+            temperature: 0.6,
+            max_tokens: 220
           })
         });
         if(!res.ok) return null;
-        const data=await res.json();
-        return data.choices?.[0]?.message?.content||null;
-      }catch(e){return null;}
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || null;
+      }catch(e){
+        return null;
+      }
     }
 
-    function R(TM,BM){
-      const x=(TM*0.7+BM*0.9)-0.3;
+    function R(TM, BM){
+      const x = (TM*0.7 + BM*0.9) - 0.3;
       return 1/(1+Math.exp(-x));
     }
     function I_TM(tmText){
-      const n=clamp((tmText.length/120),0,1);
-      return 0.35+0.65*n;
+      const n = clamp((tmText.length/120), 0, 1);
+      return 0.35 + 0.65*n;
     }
-    function I_intel(hit){return hit?0.55:0.0;}
-    function I_llm(used){return used?0.45:0.0;}
+    function I_intel(hit){ return hit ? 0.55 : 0.0; }
+    function I_llm(used){ return used ? 0.45 : 0.0; }
     function D_decay(){
-      const size=bm.length;
-      return clamp(0.10+size*0.0008,0.10,0.35);
+      const size = bm.length;
+      return clamp(0.10 + size*0.0008, 0.10, 0.35);
     }
-    function lambda_faith(){return (!cfg.faithLens || cfg.faithLens==="None")?0.0:0.08;}
-    function lambda_sys(){return 0.06;}
-    function lambda_trc(){return 0.04;}
+    function lambda_faith(){ return (!cfg.faithLens || cfg.faithLens==="None") ? 0.0 : 0.08; }
+    function lambda_sys(){ return 0.06; }
+    function lambda_trc(){ return 0.04; }
 
-    function computeE0(tmText,intelHit,llmUsed){
-      const TMv=clamp(I_TM(tmText),0,1);
-      const BMv=clamp(bm.length?Math.min(1,bm.length/240):0,0,1);
-      const r=R(TMv,BMv);
-      const val=Math.tanh(
+    function computeE0(tmText, intelHit, llmUsed){
+      const TMv = clamp(I_TM(tmText), 0, 1);
+      const BMv = clamp(bm.length ? Math.min(1, bm.length/240) : 0, 0, 1);
+      const r = R(TMv, BMv);
+      const val = Math.tanh(
         r + TMv + I_intel(intelHit) + I_llm(llmUsed)
         - D_decay() + lambda_faith() + lambda_sys() + lambda_trc()
       );
-      return {E0:val,TMv,BMv};
+      return {E0: val, TMv, BMv};
     }
 
     function updateMetrics(){
-      elE0.textContent=fmt3(metrics.E0);
-      elTM.textContent=(Math.round(metrics.TM*100)/100).toFixed(2);
-      elBM.textContent=(Math.round(metrics.BM*100)/100).toFixed(2);
-      elCont.textContent=fmt3(metrics.continuity);
+      elE0.textContent = fmt3(metrics.E0);
+      elTM.textContent = (Math.round(metrics.TM*100)/100).toFixed(2);
+      elBM.textContent = (Math.round(metrics.BM*100)/100).toFixed(2);
+      elCont.textContent = fmt3(metrics.continuity);
 
-      cE0.textContent=fmt3(metrics.E0);
-      cTM.textContent=(Math.round(metrics.TM*100)/100).toFixed(2);
-      cBM.textContent=(Math.round(metrics.BM*100)/100).toFixed(2);
-      cCont.textContent=fmt3(metrics.continuity);
+      cE0.textContent = fmt3(metrics.E0);
+      cTM.textContent = (Math.round(metrics.TM*100)/100).toFixed(2);
+      cBM.textContent = (Math.round(metrics.BM*100)/100).toFixed(2);
+      cCont.textContent = fmt3(metrics.continuity);
     }
 
     function animateMetricsTo(target){
-      const start={...metrics};
-      const dur=260;
-      const t0=performance.now();
+      const start = {...metrics};
+      const dur = 260;
+      const t0 = performance.now();
       function step(t){
-        const p=clamp((t-t0)/dur,0,1);
-        const ease=1-Math.pow(1-p,3);
-        metrics.E0=start.E0+(target.E0-start.E0)*ease;
-        metrics.TM=start.TM+(target.TM-start.TM)*ease;
-        metrics.BM=start.BM+(target.BM-start.BM)*ease;
-        metrics.continuity=start.continuity+(target.continuity-start.continuity)*ease;
+        const p = clamp((t - t0)/dur, 0, 1);
+        const ease = 1 - Math.pow(1-p, 3);
+        metrics.E0 = start.E0 + (target.E0 - start.E0) * ease;
+        metrics.TM = start.TM + (target.TM - start.TM) * ease;
+        metrics.BM = start.BM + (target.BM - start.BM) * ease;
+        metrics.continuity = start.continuity + (target.continuity - start.continuity) * ease;
         updateMetrics();
-        if(p<1) requestAnimationFrame(step);
+        if(p < 1) requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
     }
 
     async function respond(userText){
-      const ana=await offlineAnalyze(userText);
-      const intelHit=findIntelAnswer(userText);
-      let answer=null;
-      let usedLLM=false;
+      const ana = await offlineAnalyze(userText);
+
+      // 1) intelligence first
+      const intelHit = findIntelAnswer(userText);
+      let answer = null;
+      let usedLLM = false;
 
       if(intelHit){
-        answer=intelHit.a;
-      }else{
+        answer = intelHit.a;
+      } else {
+        // 2) offline LLM answer if available
         if(offlineEngine.ready && offlineEngine.engine){
-          usedLLM=true;
           try{
-            const prompt=`You are AURA-X Ω, an offline emotional continuity engine assistant.
+            const prompt = `You are AURA-X Ω, an offline emotional continuity engine assistant.
 Answer concisely and kindly. User: ${userText}`;
-            const reply=await offlineEngine.engine.chat.completions.create({
-              messages:[{role:"user",content:prompt}],
-              temperature:0.7,
-              max_tokens:180,
+            const reply = await offlineEngine.engine.chat.completions.create({
+              messages: [{role:"user", content: prompt}],
+              temperature: 0.7,
+              max_tokens: 180,
             });
-            answer=reply.choices?.[0]?.message?.content||null;
-          }catch(e){answer=null;}
+            answer = reply.choices?.[0]?.message?.content || null;
+            if(answer) usedLLM = true;
+          }catch(e){ answer = null; }
         }
+
+        // 3) optional online
         if(!answer){
-          const online=await onlineAnswer(userText);
-          if(online){usedLLM=true;answer=online;}
+          const online = await onlineAnswer(userText);
+          if(online){ usedLLM = true; answer = online; }
         }
+
+        // 4) اگر پھر بھی جواب نہیں تو self-learning موڈ
         if(!answer){
-          answer="I understood. Tell me a little more so I can respond clearly.";
+          teachPendingQuestion = userText;
+
+          recordBMIfNeeded(userText, ana.polarity, ana.intensity);
+
+          const calcTeach = computeE0(userText, false, false);
+          const contTeach = clamp(
+            0.78 + (bm.length ? Math.min(0.18, bm.length/2000) : 0) - (ana.polarity==="negative" ? 0.04 : 0),
+            0.55, 0.97
+          );
+          animateMetricsTo({ E0: calcTeach.E0, TM: calcTeach.TMv, BM: calcTeach.BMv, continuity: contTeach });
+
+          const teachMsg = "I don't know this clearly yet. Please type the ideal answer you want me to remember for this question.";
+          addMsg("assistant", teachMsg);
+          speak(teachMsg);
+          return;
         }
+
+        // 5) self-learning from LLM answer (اگر allowed)
         if(cfg.learningOn){
-          upsertIntel(userText,answer,{polarity:ana.polarity,intensity:ana.intensity});
+          upsertIntel(userText, answer, {polarity: ana.polarity, intensity: ana.intensity});
         }
       }
 
-      recordBMIfNeeded(userText,ana.polarity,ana.intensity);
+      // BM record
+      recordBMIfNeeded(userText, ana.polarity, ana.intensity);
 
-      const calc=computeE0(userText,!!intelHit,usedLLM);
-      const contTarget=clamp(
-        0.78 + (bm.length?Math.min(0.18,bm.length/2000):0) - (ana.polarity==="negative"?0.04:0),
-        0.55,0.97
+      // formula + metrics
+      const calc = computeE0(userText, !!intelHit, usedLLM);
+      const contTarget = clamp(
+        0.78 + (bm.length ? Math.min(0.18, bm.length/2000) : 0) - (ana.polarity==="negative" ? 0.04 : 0),
+        0.55, 0.97
       );
-      animateMetricsTo({E0:calc.E0,TM:calc.TMv,BM:calc.BMv,continuity:contTarget});
 
-      addMsg("assistant",answer);
+      animateMetricsTo({ E0: calc.E0, TM: calc.TMv, BM: calc.BMv, continuity: contTarget });
+      addMsg("assistant", answer);
       speak(answer);
     }
 
-    function escapeHtml(s){
-      return (s||"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-
     function renderIntelList(filter=""){
-      const q=(filter||"").trim().toLowerCase();
-      const items=q?intelligence.filter(it=>(it.q+" "+it.a).toLowerCase().includes(q)):intelligence;
+      const q = (filter||"").trim().toLowerCase();
+      const items = q ? intelligence.filter(it => (it.q+" "+it.a).toLowerCase().includes(q)) : intelligence;
 
-      intelList.innerHTML="";
+      intelList.innerHTML = "";
       if(items.length===0){
-        const div=document.createElement("div");
-        div.style.marginTop="12px";
-        div.style.opacity=".7";
-        div.textContent="No saved intelligence yet.";
+        const div = document.createElement("div");
+        div.style.marginTop = "12px";
+        div.style.opacity = ".7";
+        div.textContent = "No saved intelligence yet.";
         intelList.appendChild(div);
         return;
       }
 
-      items.slice(0,80).forEach(it=>{
-        const card=document.createElement("div");
-        card.className="intelItem";
+      items.slice(0, 80).forEach(it=>{
+        const card = document.createElement("div");
+        card.className = "intelItem";
 
-        const top=document.createElement("div");
-        top.className="intelTop";
-        top.innerHTML=`<div>${it.date||""}</div><div style="font-weight:800;">Stored answer</div>`;
+        const top = document.createElement("div");
+        top.className = "intelTop";
+        top.innerHTML = `<div>${it.date || ""}</div><div style="font-weight:800;">Stored answer</div>`;
         card.appendChild(top);
 
-        const qa=document.createElement("div");
-        qa.className="intelQA";
-        qa.innerHTML=`<div><b>Q:</b> ${escapeHtml(it.q)}</div>
-                      <div style="margin-top:6px;"><b>A:</b> ${escapeHtml(it.a)}</div>
-                      <div style="margin-top:6px; font-size:12px; opacity:.7;">emotion code: ${escapeHtml(it.code||it.id||"")}</div>`;
+        const qa = document.createElement("div");
+        qa.className = "intelQA";
+        qa.innerHTML = `<div><b>Q:</b> ${escapeHtml(it.q)}</div>
+                        <div style="margin-top:6px;"><b>A:</b> ${escapeHtml(it.a)}</div>
+                        <div style="margin-top:6px; font-size:12px; opacity:.7;">emotion code: ${escapeHtml(it.code || it.id || "")}</div>`;
         card.appendChild(qa);
 
-        const btns=document.createElement("div");
-        btns.className="miniBtns";
+        const btns = document.createElement("div");
+        btns.className = "miniBtns";
 
-        const bUse=document.createElement("button");
-        bUse.className="miniBtn";
-        bUse.textContent="Use question";
-        bUse.onclick=()=>{elInput.value=it.q;setModal(modalIntel,false);elInput.focus();};
+        const bUse = document.createElement("button");
+        bUse.className = "miniBtn";
+        bUse.textContent = "Use question";
+        bUse.onclick = ()=>{ elInput.value = it.q; setModal(modalIntel,false); elInput.focus(); };
 
-        const bCopy=document.createElement("button");
-        bCopy.className="miniBtn";
-        bCopy.textContent="Copy answer";
-        bCopy.onclick=async()=>{try{await navigator.clipboard.writeText(it.a);}catch(e){}};
+        const bCopy = document.createElement("button");
+        bCopy.className = "miniBtn";
+        bCopy.textContent = "Copy answer";
+        bCopy.onclick = async ()=>{ try{ await navigator.clipboard.writeText(it.a); }catch(e){} };
 
-        const bDel=document.createElement("button");
-        bDel.className="miniBtn danger";
-        bDel.textContent="Delete (2× confirm)";
-        let armed=false;
-        bDel.onclick=()=>{
+        const bDel = document.createElement("button");
+        bDel.className = "miniBtn danger";
+        bDel.textContent = "Delete (2× confirm)";
+        let armed = false;
+        bDel.onclick = ()=>{
           if(!armed){
-            armed=true;
-            bDel.textContent="Confirm delete";
-            setTimeout(()=>{armed=false;bDel.textContent="Delete (2× confirm)";},1800);
+            armed = true;
+            bDel.textContent = "Confirm delete";
+            setTimeout(()=>{ armed=false; bDel.textContent="Delete (2× confirm)"; }, 1800);
             return;
           }
-          intelligence=intelligence.filter(x=>x.qKey!==it.qKey);
-          saveJSON(KEY_INTEL,intelligence);
+          intelligence = intelligence.filter(x => x.qKey !== it.qKey);
+          saveJSON(KEY_INTEL, intelligence);
           renderIntelList(intelSearch.value);
         };
 
@@ -1481,102 +1618,145 @@ Answer concisely and kindly. User: ${userText}`;
         btns.appendChild(bCopy);
         btns.appendChild(bDel);
         card.appendChild(btns);
+
         intelList.appendChild(card);
       });
     }
 
+    function escapeHtml(s){
+      return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
     function saveCfg(){
-      saveJSON(KEY_CFG,cfg);
-      voicePill.textContent=cfg.voiceOn?"ON":"OFF";
-      voicePill.className=cfg.voiceOn?"pillOn":"pillOff";
-      learnPill.textContent=cfg.learningOn?"ON":"OFF";
-      learnPill.className=cfg.learningOn?"pillOn":"pillOff";
-      faithLabel.textContent=cfg.faithLens||"None";
+      saveJSON(KEY_CFG, cfg);
+      voicePill.textContent = cfg.voiceOn ? "ON" : "OFF";
+      voicePill.className = cfg.voiceOn ? "pillOn" : "pillOff";
+      learnPill.textContent = cfg.learningOn ? "ON" : "OFF";
+      learnPill.className = cfg.learningOn ? "pillOn" : "pillOff";
+      faithLabel.textContent = cfg.faithLens || "None";
     }
 
     function toggleOptionsMenu(force){
-      const willShow=(typeof force==="boolean")?force:!optionsMenu.classList.contains("show");
-      optionsMenu.classList.toggle("show",willShow);
+      const willShow = (typeof force==="boolean") ? force : !optionsMenu.classList.contains("show");
+      optionsMenu.classList.toggle("show", willShow);
     }
 
-    /* BM RECALL RENDERING */
+    /* ===== Identity helpers ===== */
+    function loadIdentity(){
+      const saved = loadJSON(KEY_ID, null);
+      if(saved) Object.assign(identity, saved);
+    }
+
+    function ensureIdentityIntel(){
+      const baseName = identity.aiName || "AURA-X Ω";
+      const creatorLine = identity.aiCreator && identity.aiPlace
+        ? `${identity.aiCreator} from ${identity.aiPlace}`
+        : (identity.aiCreator || "my creator");
+      const createdText = `I was created by ${creatorLine} as part of the AURA-X Ω emotional continuity project.`;
+      const whoYouText = `I am ${baseName} — an emotional continuity engine prototype created by ${creatorLine}.`;
+
+      const pairs = [
+        {q:"who are you", a:whoYouText, code:"ID01"},
+        {q:"who are you?", a:whoYouText, code:"ID01"},
+        {q:"who created you", a:createdText, code:"ID02"},
+        {q:"who created you?", a:createdText, code:"ID02"},
+        {q:"who made you", a:createdText, code:"ID02"},
+        {q:"who made you?", a:createdText, code:"ID02"},
+        {q:"who is your creator", a:createdText, code:"ID02"},
+        {q:"who is your creator?", a:createdText, code:"ID02"},
+      ];
+
+      if(identity.userName){
+        const meA = `You are ${identity.userName}.`;
+        ["who am i","who am i?","what is my name","what is my name?"].forEach(q=>{
+          pairs.push({q, a:meA, code:"ID03"});
+        });
+      }
+
+      pairs.forEach(p=>{
+        upsertIntel(p.q, p.a, {code:p.code, polarity:"neutral", intensity:0.5});
+      });
+    }
+
+    /* ===== BM Recall ===== */
     function isLongBMItem(text){
-      return (text||"").trim().length>=220;
+      return (text || "").trim().length >= 220;
     }
 
     function renderBMList(filter=""){
-      const q=(filter||"").trim().toLowerCase();
-      const longItems=bm.filter(x=>isLongBMItem(x.text))
-                        .sort((a,b)=>(b.t||0)-(a.t||0));
-      const items=q?longItems.filter(x=>(x.text||"").toLowerCase().includes(q)):longItems;
+      const q = (filter||"").trim().toLowerCase();
+      const longItems = bm
+        .filter(x => isLongBMItem(x.text))
+        .sort((a,b)=>(b.t||0)-(a.t||0));
 
-      bmList.innerHTML="";
+      const items = q ? longItems.filter(x => (x.text||"").toLowerCase().includes(q)) : longItems;
+
+      bmList.innerHTML = "";
       if(items.length===0){
-        const div=document.createElement("div");
-        div.style.marginTop="12px";
-        div.style.opacity=".7";
-        div.textContent="No long BM scenes yet.";
+        const div = document.createElement("div");
+        div.style.marginTop = "12px";
+        div.style.opacity = ".7";
+        div.textContent = "No long BM scenes yet.";
         bmList.appendChild(div);
         return;
       }
 
-      items.slice(0,80).forEach(it=>{
-        const card=document.createElement("div");
-        card.className="listCard";
+      items.slice(0, 80).forEach(it=>{
+        const card = document.createElement("div");
+        card.className = "listCard";
 
-        const dt=new Date(it.t||Date.now());
-        const top=document.createElement("div");
-        top.className="listTop";
-        top.innerHTML=`<div>${dt.toLocaleString()}</div>
-                       <div><b>${escapeHtml(it.polarity||"neutral")}</b> · intensity ${Number(it.intensity||0.5).toFixed(2)} ${it.locked?"· 🔒 locked":""}</div>`;
+        const dt = new Date(it.t||Date.now());
+        const top = document.createElement("div");
+        top.className = "listTop";
+        top.innerHTML = `<div>${dt.toLocaleString()}</div>
+                         <div><b>${escapeHtml(it.polarity||"neutral")}</b> · intensity ${Number(it.intensity||0.5).toFixed(2)} ${it.locked ? "· 🔒 locked" : ""}</div>`;
         card.appendChild(top);
 
-        const body=document.createElement("div");
-        body.className="mono";
-        body.style.fontSize="13px";
-        body.style.whiteSpace="pre-wrap";
-        body.textContent=it.text||"";
+        const body = document.createElement("div");
+        body.className = "mono";
+        body.style.fontSize = "13px";
+        body.style.whiteSpace = "pre-wrap";
+        body.textContent = it.text || "";
         card.appendChild(body);
 
-        const btns=document.createElement("div");
-        btns.className="miniBtns";
+        const btns = document.createElement("div");
+        btns.className = "miniBtns";
 
-        const bCopy=document.createElement("button");
-        bCopy.className="miniBtn";
-        bCopy.textContent="Copy prompt";
-        bCopy.onclick=async()=>{
-          const prompt=`BM scene:\n\n${it.text}\n\nTask: Convert this into a detailed image / video prompt with scene, mood and camera hints.`;
-          try{await navigator.clipboard.writeText(prompt);}catch(e){}
+        const bCopyText = document.createElement("button");
+        bCopyText.className = "miniBtn";
+        bCopyText.textContent = "Copy text";
+        bCopyText.onclick = async ()=>{
+          try{ await navigator.clipboard.writeText(it.text || ""); }catch(e){}
         };
 
-        const bGen=document.createElement("button");
-        bGen.className="miniBtn";
-        bGen.textContent="Generate video";
-        bGen.onclick=async()=>{
-          const prompt=`Video generation task based on this BM scene:\n\n${it.text}\n\nConvert into a cinematic video script (shots, camera angles, lighting, emotions, dialogue if any) so it can be used in an AI video generator.`;
-          try{await navigator.clipboard.writeText(prompt);}catch(e){}
+        const bVideo = document.createElement("button");
+        bVideo.className = "miniBtn";
+        bVideo.textContent = "Generate video";
+        bVideo.onclick = async ()=>{
+          const prompt = `BM Recall (scene/story):\n\n${it.text}\n\nTask: Convert this into a video-ready prompt with shots, characters, setting, mood, and dialogue (if any).`;
+          try{ await navigator.clipboard.writeText(prompt); }catch(e){}
         };
 
-        const bDel=document.createElement("button");
-        bDel.className="miniBtn danger";
-        bDel.textContent=it.locked?"Locked":"Delete (2× confirm)";
-        let armed=false;
-        bDel.disabled=!!it.locked;
-        bDel.onclick=()=>{
+        const bDel = document.createElement("button");
+        bDel.className = "miniBtn danger";
+        bDel.textContent = it.locked ? "Locked" : "Delete (2× confirm)";
+        let armed = false;
+        bDel.disabled = !!it.locked;
+        bDel.onclick = ()=>{
           if(it.locked) return;
           if(!armed){
-            armed=true;
-            bDel.textContent="Confirm delete";
-            setTimeout(()=>{armed=false;bDel.textContent="Delete (2× confirm)";},1800);
+            armed = true;
+            bDel.textContent = "Confirm delete";
+            setTimeout(()=>{ armed=false; bDel.textContent="Delete (2× confirm)"; }, 1800);
             return;
           }
-          bm=bm.filter(x=>x!==it);
-          saveJSON(KEY_BM,bm);
+          bm = bm.filter(x => x !== it);
+          saveJSON(KEY_BM, bm);
           renderBMList(bmSearch.value);
         };
 
-        btns.appendChild(bCopy);
-        btns.appendChild(bGen);
+        btns.appendChild(bCopyText);
+        btns.appendChild(bVideo);
         btns.appendChild(bDel);
         card.appendChild(btns);
 
@@ -1585,299 +1765,362 @@ Answer concisely and kindly. User: ${userText}`;
     }
 
     function bestBMScene(){
-      const longItems=bm.filter(x=>isLongBMItem(x.text)).sort((a,b)=>{
-        const la=(a.text||"").length,lb=(b.text||"").length;
-        if(lb!==la) return lb-la;
+      const longItems = bm.filter(x => isLongBMItem(x.text)).sort((a,b)=>{
+        const la = (a.text||"").length, lb=(b.text||"").length;
+        if(lb !== la) return lb-la;
         return (b.t||0)-(a.t||0);
       });
-      return longItems[0]||null;
+      return longItems[0] || null;
     }
 
-    /* HISTORY RENDERING */
+    /* ===== History ===== */
     function renderHistoryBox(){
-      const lines=(conversation||[]).map(m=>{
-        let label="";
-        if(m.role==="user") label="user";
-        else if(m.role==="assistant") label="ai";
-        else label="sys";
-        return `${label}: ${m.text}`;
+      const lines = (conversation||[]).map(m=>{
+        if(m.role==="user") return `YOU: ${m.text}`;
+        if(m.role==="assistant") return `AURA: ${m.text}`;
+        return m.text;
       });
-      historyBox.textContent=lines.join("\n");
+      historyBox.textContent = lines.join("\n");
     }
 
-    /* LOAD ALL FROM STORAGE */
     function loadAll(){
-      const c=loadJSON(KEY_CFG,null);
-      if(c) Object.assign(cfg,c);
+      const c = loadJSON(KEY_CFG, null);
+      if(c) Object.assign(cfg, c);
 
-      intelligence=loadJSON(KEY_INTEL,[]);
-      if(!intelligence || !intelligence.length){
-        intelligence=DEFAULT_INTEL.map((it,i)=>({
-          id:it.code||("E"+(100+i)),
-          date:new Date().toISOString().slice(0,10),
-          q:it.q,
-          a:it.a,
-          qKey:hashKey(it.q),
-          code:it.code||("E"+(100+i)),
-          polarity:it.polarity||"neutral",
-          intensity:(it.intensity!=null?it.intensity:0.5)
+      loadIdentity();
+
+      intelligence = loadJSON(KEY_INTEL, []);
+      if(!intelligence || intelligence.length === 0){
+        intelligence = DEFAULT_INTEL.map((it, i)=>({
+          id: it.code || ("E"+(100+i)),
+          date: new Date().toISOString().slice(0,10),
+          q: it.q,
+          a: it.a,
+          qKey: hashKey(it.q),
+          code: it.code || ("E"+(100+i)),
+          polarity: it.polarity || "neutral",
+          intensity: (it.intensity!=null ? it.intensity : 0.5)
         }));
-        saveJSON(KEY_INTEL,intelligence);
+        saveJSON(KEY_INTEL, intelligence);
       }
 
-      bm=loadJSON(KEY_BM,[]);
-      pruneBMByRetention();
-
-      const ls=loadJSON(KEY_LLM,null);
+      bm = loadJSON(KEY_BM, []);
+      const ls = loadJSON(KEY_LLM, null);
       if(ls){
-        onlineLLM.endpoint=ls.endpoint||"";
-        onlineLLM.model=ls.model||"";
-        onlineLLM.key=ls.key||"";
+        onlineLLM.endpoint = ls.endpoint || "";
+        onlineLLM.model = ls.model || "";
+        onlineLLM.key = ls.key || "";
       }
 
-      conversation=loadJSON(KEY_CONV,[]);
-      if(!Array.isArray(conversation)) conversation=[];
+      conversation = loadJSON(KEY_CONV, []);
+      if(!Array.isArray(conversation)) conversation = [];
 
-      voicePill.textContent=cfg.voiceOn?"ON":"OFF";
-      voicePill.className=cfg.voiceOn?"pillOn":"pillOff";
-      learnPill.textContent=cfg.learningOn?"ON":"OFF";
-      learnPill.className=cfg.learningOn?"pillOn":"pillOff";
-      faithLabel.textContent=cfg.faithLens||"None";
+      // sync UI
+      voicePill.textContent = cfg.voiceOn ? "ON" : "OFF";
+      voicePill.className = cfg.voiceOn ? "pillOn" : "pillOff";
+      learnPill.textContent = cfg.learningOn ? "ON" : "OFF";
+      learnPill.className = cfg.learningOn ? "pillOn" : "pillOff";
+      faithLabel.textContent = cfg.faithLens || "None";
 
-      tgSumm.classList.toggle("on",!!cfg.autoSummarize);
-      tgSmallTalk.classList.toggle("on",!!cfg.ignoreSmallTalkBM);
+      tgSumm.classList.toggle("on", !!cfg.autoSummarize);
+      tgSmallTalk.classList.toggle("on", !!cfg.ignoreSmallTalkBM);
 
       [...faithChips.querySelectorAll(".chip")].forEach(ch=>{
-        ch.classList.toggle("active",ch.dataset.faith===cfg.faithLens);
+        ch.classList.toggle("active", ch.dataset.faith === cfg.faithLens);
       });
 
-      apiEndpoint.value=onlineLLM.endpoint||apiEndpoint.value;
-      apiModel.value=onlineLLM.model||apiModel.value;
-      apiKey.value=onlineLLM.key||"";
+      apiEndpoint.value = onlineLLM.endpoint || apiEndpoint.value;
+      apiModel.value = onlineLLM.model || apiModel.value;
+      apiKey.value = onlineLLM.key || "";
 
-      // FRONT UI: console blank on load
-      elConsole.textContent="";
+      pruneBMByRetention();
+
+      // identity profile fields
+      idAiName.value = identity.aiName || "";
+      idAiCreator.value = identity.aiCreator || "";
+      idAiPlace.value = identity.aiPlace || "";
+      idAiBirth.value = identity.aiBirth || "";
+      idUserName.value = identity.userName || "";
+
+      // make sure identity-related answers exist
+      ensureIdentityIntel();
+
+      // history box shows full old TM log; console stays empty until new session msgs
       renderIntelList();
       renderBMList();
       renderHistoryBox();
       updateMetrics();
+      renderConsole();
     }
 
-    /* EVENTS */
+    /* ========= Events ========= */
 
-    btnOptions.addEventListener("click",e=>{
+    btnOptions.addEventListener("click", (e)=>{
       e.preventDefault();
       toggleOptionsMenu();
     });
 
-    document.addEventListener("pointerdown",e=>{
+    // Outside tap closes options menu
+    document.addEventListener("pointerdown", (e)=>{
       if(optionsMenu.classList.contains("show")){
-        const inside=optionsMenu.contains(e.target)||btnOptions.contains(e.target);
+        const inside = optionsMenu.contains(e.target) || btnOptions.contains(e.target);
         if(!inside) toggleOptionsMenu(false);
       }
-    },{passive:true});
+    }, {passive:true});
 
     document.querySelectorAll("[data-close]").forEach(btn=>{
-      btn.addEventListener("click",e=>{
-        const id=e.currentTarget.getAttribute("data-close");
-        const mod=document.getElementById(id);
-        setModal(mod,false);
+      btn.addEventListener("click", (e)=>{
+        const id = e.currentTarget.getAttribute("data-close");
+        const mod = document.getElementById(id);
+        setModal(mod, false);
       });
     });
 
-    [modalOptions,modalIntel,modalSeed,modalLLM,modalBM,modalHistory].forEach(mod=>{
-      mod.addEventListener("click",e=>{
-        if(e.target===mod) setModal(mod,false);
+    [modalOptions, modalIntel, modalSeed, modalLLM, modalBM, modalHistory, modalIdentity].forEach(mod=>{
+      mod.addEventListener("click", (e)=>{
+        if(e.target === mod) setModal(mod, false);
       });
     });
 
-    tgSumm.addEventListener("click",()=>{
-      cfg.autoSummarize=!cfg.autoSummarize;
-      tgSumm.classList.toggle("on",cfg.autoSummarize);
+    tgSumm.addEventListener("click", ()=>{
+      cfg.autoSummarize = !cfg.autoSummarize;
+      tgSumm.classList.toggle("on", cfg.autoSummarize);
       saveCfg();
       renderConsole();
       renderHistoryBox();
     });
 
-    tgSmallTalk.addEventListener("click",()=>{
-      cfg.ignoreSmallTalkBM=!cfg.ignoreSmallTalkBM;
-      tgSmallTalk.classList.toggle("on",cfg.ignoreSmallTalkBM);
+    tgSmallTalk.addEventListener("click", ()=>{
+      cfg.ignoreSmallTalkBM = !cfg.ignoreSmallTalkBM;
+      tgSmallTalk.classList.toggle("on", cfg.ignoreSmallTalkBM);
       saveCfg();
     });
 
-    btnClear24h.addEventListener("click",()=>{
-      const cut=now()-24*60*60*1000;
-      bm=bm.filter(e=>(e.t||0)<cut || e.locked);
-      saveJSON(KEY_BM,bm);
+    btnClear24h.addEventListener("click", ()=>{
+      const cut = now() - 24*60*60*1000;
+      bm = bm.filter(e => (e.t||0) < cut || e.locked);
+      saveJSON(KEY_BM, bm);
       toastConsole("Cleared last 24h BM (locked items kept).");
       renderBMList(bmSearch.value);
       updateMetrics();
     });
 
-    btnDeleteAll.addEventListener("click",()=>{
+    btnDeleteAll.addEventListener("click", ()=>{
       if(!confirm("Delete ALL BM from this device?")) return;
       if(!confirm("Confirm again. This cannot be undone.")) return;
-      bm=[];
-      saveJSON(KEY_BM,bm);
+      bm = [];
+      saveJSON(KEY_BM, bm);
       toastConsole("Deleted all local BM.");
       renderBMList(bmSearch.value);
       updateMetrics();
     });
 
-    faithChips.addEventListener("click",e=>{
-      const chip=e.target.closest(".chip");
+    faithChips.addEventListener("click", (e)=>{
+      const chip = e.target.closest(".chip");
       if(!chip) return;
-      const faith=chip.dataset.faith;
-      cfg.faithLens=faith;
+      const faith = chip.dataset.faith;
+      cfg.faithLens = faith;
       [...faithChips.querySelectorAll(".chip")].forEach(ch=>{
-        ch.classList.toggle("active",ch.dataset.faith===faith);
+        ch.classList.toggle("active", ch.dataset.faith === faith);
       });
       saveCfg();
+      faithLabel.textContent = cfg.faithLens || "None";
     });
 
-    miVoice.addEventListener("click",()=>{
-      cfg.voiceOn=!cfg.voiceOn;
+    miVoice.addEventListener("click", ()=>{
+      cfg.voiceOn = !cfg.voiceOn;
       saveCfg();
       toggleOptionsMenu(false);
     });
 
-    miLearn.addEventListener("click",()=>{
-      cfg.learningOn=!cfg.learningOn;
+    miLearn.addEventListener("click", ()=>{
+      cfg.learningOn = !cfg.learningOn;
       saveCfg();
       toggleOptionsMenu(false);
     });
 
-    miIntel.addEventListener("click",()=>{
-      setModal(modalIntel,true);
+    miIntel.addEventListener("click", ()=>{
+      setModal(modalIntel, true);
       toggleOptionsMenu(false);
       renderIntelList(intelSearch.value);
     });
 
-    miSeed.addEventListener("click",()=>{
-      setModal(modalSeed,true);
+    miSeed.addEventListener("click", ()=>{
+      setModal(modalSeed, true);
       toggleOptionsMenu(false);
-      seedHint.textContent="Waiting for block…";
+      seedHint.textContent = "Waiting for block…";
     });
 
-    miLLM.addEventListener("click",()=>{
-      setModal(modalLLM,true);
-      toggleOptionsMenu(false);
-    });
-
-    miFaith.addEventListener("click",()=>{
-      setModal(modalOptions,true);
+    miLLM.addEventListener("click", ()=>{
+      setModal(modalLLM, true);
       toggleOptionsMenu(false);
     });
 
-    miBMRecall.addEventListener("click",()=>{
-      setModal(modalBM,true);
+    miFaith.addEventListener("click", ()=>{
+      setModal(modalOptions, true);
+      toggleOptionsMenu(false);
+    });
+
+    miBMRecall.addEventListener("click", ()=>{
+      setModal(modalBM, true);
       toggleOptionsMenu(false);
       renderBMList(bmSearch.value);
     });
 
-    miHistory.addEventListener("click",()=>{
-      setModal(modalHistory,true);
+    miHistory.addEventListener("click", ()=>{
+      setModal(modalHistory, true);
       toggleOptionsMenu(false);
       renderHistoryBox();
     });
 
-    intelSearch.addEventListener("input",()=>{
+    miIdentity.addEventListener("click", ()=>{
+      idAiName.value = identity.aiName || "";
+      idAiCreator.value = identity.aiCreator || "";
+      idAiPlace.value = identity.aiPlace || "";
+      idAiBirth.value = identity.aiBirth || "";
+      idUserName.value = identity.userName || "";
+      setModal(modalIdentity, true);
+      toggleOptionsMenu(false);
+    });
+
+    intelSearch.addEventListener("input", ()=>{
       renderIntelList(intelSearch.value);
     });
 
-    btnParseSeed.addEventListener("click",()=>{
-      const parsed=parseLatexBlock(seedBox.value);
-      seedHint.textContent=parsed.length?`Parsed ${parsed.length} Q→A items.`:"No items found. Check LaTeX format.";
+    btnParseSeed.addEventListener("click", ()=>{
+      const parsedSeed = parseLatexBlock(seedBox.value);
+      seedHint.textContent = parsedSeed.length ? `Parsed ${parsedSeed.length} Q→A items.` : "No items found. Check LaTeX format.";
     });
 
-    btnSaveSeed.addEventListener("click",()=>{
-      const parsed=parseLatexBlock(seedBox.value);
-      if(!parsed.length){
-        seedHint.textContent="Nothing to save.";
+    btnSaveSeed.addEventListener("click", ()=>{
+      let parsedSeed = parseLatexBlock(seedBox.value);
+      if(!parsedSeed.length){
+        seedHint.textContent = "Nothing to save.";
         return;
       }
-      let saved=0;
-      for(const it of parsed){
-        const mp=parseMetaPrefix(it.a);
-        upsertIntel(it.q,mp.answer,mp.meta||{});
+      let saved = 0;
+      for(const it of parsedSeed){
+        const metaParsed = parseMetaPrefix(it.a);
+        upsertIntel(it.q, metaParsed.answer, metaParsed.meta || {});
         saved++;
       }
-      seedHint.textContent=`Saved ${saved} items to intelligence.`;
-      seedBox.value="";
+      seedHint.textContent = `Saved ${saved} items to intelligence.`;
+      seedBox.value = "";
       renderIntelList(intelSearch.value);
     });
 
-    btnDiscardSeed.addEventListener("click",()=>{
-      seedBox.value="";
-      seedHint.textContent="Discarded.";
+    btnDiscardSeed.addEventListener("click", ()=>{
+      seedBox.value = "";
+      seedHint.textContent = "Discarded.";
     });
 
-    btnLoadOffline.addEventListener("click",loadOfflineModel);
+    btnLoadOffline.addEventListener("click", loadOfflineModel);
 
-    btnSaveLLM.addEventListener("click",()=>{
-      onlineLLM.endpoint=apiEndpoint.value.trim();
-      onlineLLM.model=apiModel.value.trim();
-      onlineLLM.key=apiKey.value.trim();
-      saveJSON(KEY_LLM,onlineLLM);
+    btnSaveLLM.addEventListener("click", ()=>{
+      onlineLLM.endpoint = apiEndpoint.value.trim();
+      onlineLLM.model = apiModel.value.trim();
+      onlineLLM.key = apiKey.value.trim();
+      saveJSON(KEY_LLM, onlineLLM);
       toastConsole("Saved online LLM settings.");
     });
 
-    bmSearch.addEventListener("input",()=>{
+    // BM recall events
+    bmSearch.addEventListener("input", ()=>{
       renderBMList(bmSearch.value);
     });
 
-    btnCopyBestBM.addEventListener("click",async()=>{
-      const best=bestBMScene();
-      if(!best){alert("No long BM scenes yet.");return;}
-      const prompt=`BM Recall (best long scene/story):\n\n${best.text}\n\nTask: Convert this into a cinematic, video-ready prompt with shots, characters, setting, mood, and dialogue (if any).`;
-      try{await navigator.clipboard.writeText(prompt);}catch(e){}
+    btnCopyBestBM.addEventListener("click", async ()=>{
+      const best = bestBMScene();
+      if(!best){
+        alert("No long BM scenes yet.");
+        return;
+      }
+      const prompt = `BM Recall (best long scene/story):\n\n${best.text}\n\nTask: Convert this into a cinematic, video-ready prompt with shots, characters, setting, mood, and dialogue (if any).`;
+      try{ await navigator.clipboard.writeText(prompt); }catch(e){}
     });
 
-    btnClearBMUnlocked.addEventListener("click",()=>{
+    btnClearBMUnlocked.addEventListener("click", ()=>{
       if(!confirm("Clear BM unlocked items (locked will stay)?")) return;
-      bm=bm.filter(x=>x.locked);
-      saveJSON(KEY_BM,bm);
+      bm = bm.filter(x => x.locked);
+      saveJSON(KEY_BM, bm);
       toastConsole("Cleared BM (unlocked items removed; locked kept).");
       renderBMList(bmSearch.value);
       updateMetrics();
     });
 
-    btnDelHistory48.addEventListener("click",()=>{
-      const cut=now()-48*60*60*1000;
-      conversation=conversation.filter(m=>(m.t||0)<cut);
-      saveJSON(KEY_CONV,conversation);
-      // نیا سیشن start ہو جائے
-      sessionStart=now();
-      elConsole.textContent="";
+    // history events
+    btnCopyHistory.addEventListener("click", async ()=>{
+      const lines = (conversation||[]).map(m=>{
+        if(m.role==="user") return `YOU: ${m.text}`;
+        if(m.role==="assistant") return `AURA: ${m.text}`;
+        return m.text;
+      }).join("\n");
+      try{ await navigator.clipboard.writeText(lines); }catch(e){}
+    });
+
+    btnClearHistory.addEventListener("click", ()=>{
+      if(!confirm("Clear conversation history (console log)?")) return;
+      conversation = [];
+      saveJSON(KEY_CONV, conversation);
+      toastConsole("Conversation history cleared.");
+      renderConsole();
       renderHistoryBox();
     });
 
-    btnDelHistoryAll.addEventListener("click",()=>{
-      if(!confirm("Delete ALL TM history from this device?")) return;
-      conversation=[];
-      saveJSON(KEY_CONV,conversation);
-      sessionStart=now();
-      elConsole.textContent="";
-      renderHistoryBox();
+    // Identity save
+    btnSaveIdentity.addEventListener("click", ()=>{
+      identity.aiName = idAiName.value.trim() || "AURA-X Ω";
+      identity.aiCreator = idAiCreator.value.trim() || "Alim ul Haq";
+      identity.aiPlace = idAiPlace.value.trim() || "Timergara, Pakistan";
+      identity.aiBirth = idAiBirth.value.trim() || identity.aiBirth;
+      identity.userName = idUserName.value.trim();
+      saveJSON(KEY_ID, identity);
+      ensureIdentityIntel();
+      toastConsole("Saved identity profile.");
+      setModal(modalIdentity,false);
     });
 
     async function doSend(){
-      const text=elInput.value.trim();
+      const text = elInput.value.trim();
       if(!text) return;
-      elInput.value="";
-      addMsg("user",text);
+      elInput.value = "";
+      addMsg("user", text);
+
+      // اگر پہلے سوال کیلئے self-learning on ہے تو یہ message اس کا جواب بنے گا
+      if(teachPendingQuestion){
+        const q = teachPendingQuestion;
+        teachPendingQuestion = null;
+
+        const anaAns = await offlineAnalyze(text);
+        upsertIntel(q, text, {polarity: anaAns.polarity, intensity: anaAns.intensity});
+
+        recordBMIfNeeded(text, anaAns.polarity, anaAns.intensity);
+
+        const calc = computeE0(text, false, false);
+        const contTarget = clamp(
+          0.78 + (bm.length ? Math.min(0.18, bm.length/2000) : 0) - (anaAns.polarity==="negative" ? 0.04 : 0),
+          0.55, 0.97
+        );
+        animateMetricsTo({ E0: calc.E0, TM: calc.TMv, BM: calc.BMv, continuity: contTarget });
+
+        const confirm = "Thank you. I have stored this answer and will remember it next time you ask this question.";
+        addMsg("assistant", confirm);
+        speak(confirm);
+        return;
+      }
+
       await respond(text);
     }
 
-    elSend.addEventListener("click",doSend);
-    elInput.addEventListener("keydown",e=>{
-      if(e.key==="Enter"){
+    elSend.addEventListener("click", doSend);
+    elInput.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){
         e.preventDefault();
         doSend();
       }
     });
 
-    /* INIT */
+    /* init */
     loadAll();
   </script>
 </body>
