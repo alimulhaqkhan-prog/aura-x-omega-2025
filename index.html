@@ -5,264 +5,149 @@
   <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- Offline LLM package (WebLLM, for in-browser models) -->
+  <script type="module">
+    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+    window.webllm = webllm;
+  </script>
+
   <style>
-    /* RESET & BASICS */
+    /* =======================
+       CODE 2 UI (kept as base)
+       ======================= */
+
     *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       background:
         radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
-        radial-gradient(circle at 80% 0%, #0ea5e9 0, transparent 40%),
+        radial-gradient(circle at 80% 0, #0ea5e9 0, transparent 40%),
         linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
       color:#e5e7eb;
       min-height:100vh;
       display:flex;
       justify-content:center;
-      align-items:center;
-      padding:10px;
+      padding:18px 10px;
     }
-    ::-webkit-scrollbar{width:6px;height:6px}
-    ::-webkit-scrollbar-track{background:transparent}
-    ::-webkit-scrollbar-thumb{background:rgba(148,163,184,.6);border-radius:999px}
 
-    .appShell{
-      width:100%;
-      max-width:1100px;
-      max-height:760px;
+    .app{
+      width:min(980px, 98vw);
+      background:rgba(2,6,23,.45);
+      border:1px solid rgba(148,163,184,.18);
       border-radius:22px;
       overflow:hidden;
-      box-shadow:0 20px 60px rgba(15,23,42,.9);
-      border:1px solid rgba(148,163,184,.35);
-      background:radial-gradient(circle at 0 0,rgba(56,189,248,.12) 0,transparent 55%),
-                 radial-gradient(circle at 100% 0,rgba(96,165,250,.12) 0,transparent 55%),
-                 rgba(15,23,42,.96);
-      display:flex;
-      flex-direction:column;
+      box-shadow:0 20px 60px rgba(0,0,0,.45);
+      backdrop-filter:blur(10px);
     }
 
-    .topBar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:10px 16px 8px 16px;
-      border-bottom:1px solid rgba(148,163,184,.35);
-      backdrop-filter:blur(28px);
-      background:linear-gradient(90deg,rgba(15,23,42,.95),rgba(15,23,42,.75));
+    .top{
+      padding:20px 18px 10px 18px;
+      border-bottom:1px solid rgba(148,163,184,.14);
+      text-align:center;
     }
-    .brandBlock{
-      display:flex;
-      align-items:center;
-      gap:10px;
+    .brand{
+      font-weight:800;
+      letter-spacing:.5px;
+      font-size:26px;
+      color:#7dd3fc;
+      text-shadow:0 0 22px rgba(14,165,233,.28);
     }
-    .orb{
-      width:32px;
-      height:32px;
+    .sub{
+      opacity:.8;
+      margin-top:2px;
+      font-size:13px;
+    }
+
+    .ethic{
+      margin:14px auto 12px auto;
+      max-width:720px;
+      border:1px solid rgba(251,191,36,.35);
+      border-radius:14px;
+      padding:12px 14px;
+      color:#fbbf24;
+      background:rgba(2,6,23,.35);
+      box-shadow:inset 0 0 0 1px rgba(251,191,36,.08);
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    .pill{
+      margin:10px auto 0 auto;
+      max-width:760px;
+      background:linear-gradient(90deg, rgba(14,165,233,.65), rgba(34,211,238,.45));
+      border:1px solid rgba(125,211,252,.30);
+      color:#0b1220;
+      font-weight:800;
+      letter-spacing:.6px;
       border-radius:999px;
-      background:
-        radial-gradient(circle at 30% 0,#e0f2fe 0,#0ea5e9 30%,transparent 60%),
-        radial-gradient(circle at 70% 80%,#4f46e5 0,transparent 55%),
-        rgba(15,23,42,1);
-      box-shadow:0 0 24px rgba(56,189,248,.9);
-      position:relative;
-      overflow:hidden;
-    }
-    .orb:before{
-      content:"";
-      position:absolute;
-      inset:18%;
-      border-radius:999px;
-      border:1px solid rgba(248,250,252,.18);
-      box-shadow:0 0 18px rgba(248,250,252,.5) inset;
-      opacity:.85;
-    }
-    .brandText{
-      display:flex;
-      flex-direction:column;
-      line-height:1.1;
-    }
-    .brandTitle{
-      font-size:15px;
-      letter-spacing:.16em;
+      padding:14px 16px;
       text-transform:uppercase;
-      color:#e5e7eb;
-    }
-    .brandSubtitle{
-      font-size:11px;
-      color:#94a3b8;
+      box-shadow:0 12px 40px rgba(14,165,233,.22);
     }
 
-    .topActions{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      font-size:11px;
-      color:#9ca3af;
-    }
-    .pillStatus{
-      padding:3px 9px;
-      border-radius:999px;
-      border:1px solid rgba(52,211,153,.35);
-      background:rgba(5,46,22,.7);
-      color:#bbf7d0;
-      font-size:11px;
-      display:flex;
-      align-items:center;
-      gap:5px;
-    }
-    .pillStatusDot{
-      width:7px;
-      height:7px;
-      border-radius:999px;
-      background:radial-gradient(circle at 30% 0,#bbf7d0 0,#22c55e 40%,transparent 70%);
-      box-shadow:0 0 12px rgba(16,185,129,.9);
-    }
-    .btnTiny{
-      padding:4px 9px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.45);
-      background:rgba(15,23,42,.7);
-      color:#e5e7eb;
-      cursor:pointer;
-      font-size:11px;
-      display:flex;
-      align-items:center;
-      gap:5px;
-    }
-    .btnTiny:hover{
-      background:rgba(30,64,175,.65);
-      border-color:rgba(129,140,248,.9);
-    }
+    .main{ padding:16px 16px 18px 16px; }
 
-    .mainGrid{
-      flex:1;
-      display:grid;
-      grid-template-columns:260px minmax(0,1fr);
-      gap:0;
-      min-height:0;
-    }
-    @media(max-width:900px){
-      .mainGrid{
-        grid-template-columns:1fr;
-      }
-      .leftPane{
-        display:none;
-      }
-    }
-
-    .leftPane{
-      border-right:1px solid rgba(30,64,175,.6);
-      padding:12px 12px 12px 14px;
+    .row{
       display:flex;
-      flex-direction:column;
-      gap:10px;
-      background:radial-gradient(circle at 0 0,rgba(37,99,235,.28) 0,transparent 60%),
-                 rgba(15,23,42,.98);
-    }
-    .leftTitle{
-      font-size:11px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:#9ca3af;
-      margin-bottom:2px;
-    }
-
-    .optionRow{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:4px;
-    }
-
-    .btnOption{
-      padding:5px 10px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.6);
-      background:rgba(15,23,42,.9);
-      color:#e5e7eb;
-      cursor:pointer;
-      font-size:11px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-    .btnOption span.icon{
-      width:14px;height:14px;border-radius:999px;
-      background:radial-gradient(circle at 30% 0,#e0f2fe 0,#3b82f6 45%,transparent 70%);
-      box-shadow:0 0 10px rgba(37,99,235,.9);
-    }
-    .btnOption:hover{
-      background:rgba(30,64,175,.75);
-      border-color:rgba(129,140,248,.95);
-    }
-
-    .quickPanel{
-      margin-top:6px;
-      padding:8px;
-      border-radius:16px;
-      border:1px solid rgba(148,163,184,.35);
-      background:radial-gradient(circle at 0 0,rgba(56,189,248,.18) 0,transparent 55%),
-                 rgba(15,23,42,.96);
-      display:none;
+      gap:14px;
       flex-wrap:wrap;
-      gap:6px;
+      align-items:stretch;
     }
-    .chip{
-      padding:5px 9px;
+
+    .leftCol{
+      flex:1 1 340px;
+      min-width:300px;
+    }
+
+    .rightCol{
+      flex:1 1 360px;
+      min-width:320px;
+    }
+
+    .card{
+      background:rgba(2,6,23,.50);
+      border:1px solid rgba(148,163,184,.16);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      backdrop-filter:blur(10px);
+    }
+
+    .optionsBtn{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
       border-radius:999px;
-      font-size:11px;
-      border:1px solid rgba(148,163,184,.6);
-      background:rgba(15,23,42,.9);
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(15,23,42,.55);
       color:#e5e7eb;
       cursor:pointer;
-      display:flex;
-      align-items:center;
-      gap:6px;
+      user-select:none;
+      margin-top:12px;
+      margin-bottom:12px;
+      -webkit-tap-highlight-color: transparent;
     }
-    .chip.on{
-      background:rgba(22,163,74,.18);
-      border-color:rgba(34,197,94,.8);
-      color:#bbf7d0;
-    }
+    .optionsBtn:active{transform:scale(.99)}
+    .gear{ width:18px;height:18px;display:inline-block; filter:drop-shadow(0 0 10px rgba(125,211,252,.25)); }
 
-    .chipDot{
-      width:7px;height:7px;border-radius:999px;
-      background:rgba(148,163,184,.8);
-    }
-    .chip.on .chipDot{
-      background:radial-gradient(circle at 30% 0,#bbf7d0 0,#22c55e 50%,transparent 70%);
-      box-shadow:0 0 8px rgba(34,197,94,.9);
-    }
-
-    /* metrics cards area — now hidden */
     .metricsGrid{
-      display:none; /* hidden metrics cards */
-      grid-template-columns:repeat(2, 1fr);
-      gap:8px;
-      margin-top:8px;
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:12px;
+      margin-top:10px;
     }
     .metric{
-      border-radius:16px;
-      padding:10px 10px 8px 10px;
-      border:1px solid rgba(148,163,184,.35);
-      background:radial-gradient(circle at 0 0,rgba(59,130,246,.2) 0,transparent 55%),
-                 rgba(15,23,42,.98);
-      display:flex;
-      flex-direction:column;
-      gap:2px;
+      background:rgba(2,6,23,.55);
+      border:1px solid rgba(148,163,184,.14);
+      border-radius:14px;
+      padding:12px 10px;
+      text-align:center;
     }
-    .metric .v{
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-      font-size:17px;
-      letter-spacing:.08em;
-    }
-    .metric .k{
-      opacity:.75;
-      font-size:11px;
-    }
+    .metric .v{ font-size:28px; font-weight:800; letter-spacing:.2px; }
+    .metric .k{ opacity:.75; margin-top:2px; font-size:12px; }
 
-    /* console area — now hidden */
     .console{
-      display:none; /* hidden console area */
       margin-top:12px;
       height:230px;
       border-radius:16px;
@@ -278,500 +163,1198 @@
       white-space:pre-wrap;
     }
 
-    .rightPane{
-      display:flex;
-      flex-direction:column;
-      padding:12px 12px 12px 10px;
-      gap:8px;
-      min-height:0;
-    }
-
-    .chatHeaderLine{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-    }
-    .chatTitle{
-      font-size:13px;
-      font-weight:500;
-      color:#e5e7eb;
-    }
-    .chatSub{
-      font-size:11px;
-      color:#9ca3af;
-    }
-
-    .pill{
-      margin-left:auto;
-      padding:6px 11px;
-      border-radius:999px;
-      font-size:11px;
-      border:1px solid rgba(148,163,184,.5);
-      background:rgba(15,23,42,.9);
-      color:#e5e7eb;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      white-space:nowrap;
-    }
-    .pill span.label{
-      opacity:.7;
-    }
-    .pill span.value{
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-      font-size:12px;
-    }
-
-    .pillRow{
-      display:flex;
-      flex-wrap:wrap;
-      align-items:center;
-      gap:6px;
-      margin-top:4px;
-    }
-    .pillMini{
-      padding:4px 9px;
-      border-radius:999px;
-      font-size:10px;
-      border:1px solid rgba(148,163,184,.5);
-      background:rgba(15,23,42,.9);
-      display:flex;
-      align-items:center;
-      gap:5px;
-    }
-
-    .chatBox{
-      flex:1;
+    .chatWrap{
+      margin-top:14px;
+      padding:12px;
       border-radius:18px;
-      border:1px solid rgba(148,163,184,.4);
-      background:
-        radial-gradient(circle at 0 0,rgba(56,189,248,.12) 0,transparent 55%),
-        radial-gradient(circle at 100% 100%,rgba(59,130,246,.12) 0,transparent 55%),
-        rgba(15,23,42,.98);
-      padding:10px 10px 6px 10px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      min-height:0;
+      border:1px solid rgba(148,163,184,.14);
+      background:rgba(2,6,23,.45);
     }
 
     .messages{
-      flex:1;
+      max-height:220px;
       overflow:auto;
-      padding-right:2px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      font-size:13px;
+      padding-right:6px;
     }
+
     .msg{
-      max-width:92%;
-      padding:8px 10px;
+      display:inline-block;
+      margin:8px 0;
+      padding:10px 12px;
       border-radius:14px;
-      border:1px solid rgba(148,163,184,.35);
-      background:rgba(15,23,42,.9);
+      max-width:86%;
+      line-height:1.4;
+    }
+    .user{
+      background:linear-gradient(90deg, rgba(14,165,233,.80), rgba(34,211,238,.55));
+      color:#0b1220;
+      font-weight:700;
+      float:right;
+      clear:both;
+      border:1px solid rgba(125,211,252,.30);
+      box-shadow:0 10px 25px rgba(14,165,233,.15);
+    }
+    .bot{
+      background:rgba(15,23,42,.65);
+      border:1px solid rgba(148,163,184,.20);
+      color:#e5e7eb;
+      float:left;
+      clear:both;
+    }
+
+    /* NEW: live capsule line above input */
+    .liveCapsule{
+      margin-top:10px;
+      margin-bottom:10px;
+      width:100%;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(2,6,23,.55);
+      padding:10px 12px;
       display:flex;
-      flex-direction:column;
-      gap:3px;
-      line-height:1.5;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:12px;
+      color:#dbeafe;
+      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
     }
-    .msg.me{
-      margin-left:auto;
-      background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(34,197,94,.02));
-      border-color:rgba(74,222,128,.7);
-    }
-    .msgTag{
-      font-size:10px;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      color:#9ca3af;
-    }
-    .msgTime{
-      font-size:10px;
-      color:#6b7280;
+    .liveCapsule b{
+      color:#7dd3fc;
+      font-weight:900;
     }
 
     .inputRow{
-      margin-top:4px;
-      border-radius:14px;
-      border:1px solid rgba(148,163,184,.6);
-      background:rgba(15,23,42,.96);
       display:flex;
+      gap:10px;
+      margin-top:0px;
       align-items:flex-end;
-      gap:6px;
-      padding:6px 6px 6px 10px;
     }
-    .textInput{
+
+    .input{
       flex:1;
-      border:none;
-      outline:none;
-      resize:none;
-      background:transparent;
-      color:#e5e7eb;
-      font-size:13px;
-      max-height:80px;
-      min-height:32px;
-    }
-    .textInput::placeholder{
-      color:#64748b;
-    }
-    .btnSend{
       border-radius:999px;
-      padding:8px 14px;
-      border:none;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(2,6,23,.55);
+      color:#e5e7eb;
+      padding:12px 14px;
       outline:none;
+      font-size:14px;
+    }
+    .send{
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(14,165,233,.85), rgba(34,211,238,.55));
+      color:#0b1220;
+      font-weight:900;
+      padding:12px 18px;
       cursor:pointer;
-      font-size:13px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-      background:linear-gradient(135deg,#22c55e,#16a34a);
-      color:#f9fafb;
-      box-shadow:0 0 18px rgba(34,197,94,.6);
+      min-width:88px;
+      box-shadow:0 12px 30px rgba(14,165,233,.18);
+      -webkit-tap-highlight-color: transparent;
     }
-    .btnSend:disabled{
-      opacity:.4;
-      cursor:not-allowed;
-      box-shadow:none;
+    .send:active{transform:scale(.99)}
+
+    .formula{
+      margin-top:10px;
+      opacity:.8;
+      font-size:12px;
+      text-align:center;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color:#dbeafe;
     }
 
-    .footNote{
-      margin-top:4px;
-      font-size:10px;
-      color:#6b7280;
-      display:flex;
-      justify-content:space-between;
-      gap:6px;
-    }
-
-    /* Modal */
-    .modalBackdrop{
+    /* ======= Modals (Code2 windows) ======= */
+    .modalOverlay{
       position:fixed;
       inset:0;
-      background:rgba(15,23,42,.88);
+      background:rgba(0,0,0,.55);
       display:none;
-      align-items:center;
+      align-items:flex-end;
       justify-content:center;
-      z-index:40;
+      padding:18px 12px;
+      z-index:9999;
     }
+    .modalOverlay.show{display:flex}
+
     .modal{
-      width:100%;
-      max-width:520px;
-      max-height:80vh;
-      background:radial-gradient(circle at 0 0,rgba(56,189,248,.15) 0,transparent 55%),
-                 rgba(15,23,42,1);
+      width:min(820px, 96vw);
       border-radius:18px;
-      border:1px solid rgba(148,163,184,.65);
-      box-shadow:0 24px 80px rgba(15,23,42,.95);
-      padding:14px 14px 10px 14px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
+      overflow:hidden;
+      background:rgba(245,245,245,.92);
+      color:#0b1220;
+      border:1px solid rgba(15,23,42,.18);
+      box-shadow:0 30px 80px rgba(0,0,0,.35);
+      backdrop-filter:blur(12px);
     }
     .modalHeader{
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      gap:8px;
+      justify-content:space-between;
+      padding:12px 14px;
+      background:rgba(255,255,255,.7);
+      border-bottom:1px solid rgba(15,23,42,.10);
+      font-weight:800;
     }
-    .modalTitle{
-      font-size:13px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:#e5e7eb;
+    .modalHeader small{font-weight:600; opacity:.7}
+    .closeX{
+      border:none;
+      background:transparent;
+      font-size:22px;
+      cursor:pointer;
+      line-height:1;
+      padding:0 4px;
+      opacity:.75;
+      -webkit-tap-highlight-color: transparent;
     }
     .modalBody{
-      margin-top:4px;
-      flex:1;
+      padding:14px;
+      max-height:70vh;
       overflow:auto;
-      font-size:12px;
-      line-height:1.5;
-      padding-right:4px;
-    }
-    .modalClose{
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.6);
-      background:rgba(15,23,42,.9);
-      color:#e5e7eb;
-      padding:4px 8px;
-      font-size:11px;
-      cursor:pointer;
-    }
-    .listItem{
-      border-radius:10px;
-      border:1px solid rgba(148,163,184,.5);
-      background:rgba(15,23,42,.96);
-      padding:7px 9px;
-      margin-bottom:6px;
-    }
-    .listMeta{
-      font-size:10px;
-      color:#9ca3af;
-      margin-bottom:2px;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      border-radius:999px;
-      padding:2px 7px;
-      font-size:10px;
-      border:1px solid rgba(148,163,184,.6);
-      margin-left:4px;
     }
 
+    /* Options modal */
+    .faithChips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:10px;
+      margin-bottom:16px;
+    }
+    .chip{
+      border:1px solid rgba(15,23,42,.18);
+      background:rgba(255,255,255,.78);
+      padding:8px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:700;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .chip.active{
+      background:rgba(2,6,23,.88);
+      color:#fff;
+      border-color:rgba(2,6,23,.88);
+    }
+
+    .optRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 0;
+      border-top:1px solid rgba(15,23,42,.08);
+    }
+    .optRow:first-of-type{border-top:none}
+    .optRow .desc{ font-size:13px; opacity:.75; margin-top:2px; }
+
+    .toggle{
+      width:50px;height:28px;
+      border-radius:999px;
+      background:#d1d5db;
+      position:relative;
+      cursor:pointer;
+      flex:0 0 auto;
+      border:1px solid rgba(15,23,42,.14);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle::after{
+      content:"";
+      width:22px;height:22px;
+      border-radius:50%;
+      position:absolute;
+      top:2px; left:2px;
+      background:#fff;
+      box-shadow:0 6px 18px rgba(0,0,0,.18);
+      transition:all .18s ease;
+    }
+    .toggle.on{background:#22c55e}
+    .toggle.on::after{left:25px}
+
+    .dangerBtns{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      margin-top:10px;
+    }
+    .btn{
+      border:none;
+      cursor:pointer;
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:900;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btnDark{ background:rgba(2,6,23,.90); color:#fff; }
+    .btnBlue{
+      background:rgba(14,165,233,.18);
+      color:#0b1220;
+      border:1px solid rgba(14,165,233,.25);
+    }
+
+    /* Intelligence modal */
+    .search{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(15,23,42,.18);
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    .intelItem{
+      margin-top:12px;
+      border:1px solid rgba(15,23,42,.12);
+      border-radius:14px;
+      padding:12px;
+      background:rgba(255,255,255,.75);
+    }
+    .intelTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size:13px;
+      opacity:.75;
+      margin-bottom:8px;
+    }
+    .intelQA{ font-size:14px; line-height:1.45; }
+    .miniBtns{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .miniBtn{
+      border-radius:999px;
+      padding:8px 10px;
+      border:1px solid rgba(15,23,42,.14);
+      background:rgba(255,255,255,.82);
+      cursor:pointer;
+      font-weight:800;
+      font-size:13px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .miniBtn.danger{
+      background:rgba(239,68,68,.15);
+      border-color:rgba(239,68,68,.22);
+      color:#991b1b;
+    }
+
+    /* Seed modal */
+    .seedBox{
+      width:100%;
+      min-height:140px;
+      resize:vertical;
+      border-radius:14px;
+      border:2px solid rgba(59,130,246,.25);
+      padding:12px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+    }
+    .seedFooter{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .hint{font-size:12px; opacity:.7}
+
+    /* LLM modal */
+    .greenCard{
+      background:rgba(34,197,94,.12);
+      border:1px solid rgba(34,197,94,.25);
+      border-radius:14px;
+      padding:12px;
+      margin-bottom:12px;
+    }
+    .greenCard h4{margin-bottom:6px}
+    .llmBtn{
+      background:#22c55e;
+      color:#06210f;
+      font-weight:900;
+      border:none;
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(34,197,94,.25);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .llmStatus{ margin-top:8px; font-size:12px; opacity:.75; }
+    .progress{
+      margin-top:8px;
+      height:10px;
+      border-radius:999px;
+      background:rgba(2,6,23,.12);
+      overflow:hidden;
+      border:1px solid rgba(2,6,23,.08);
+    }
+    .bar{
+      height:100%;
+      width:0%;
+      background:#22c55e;
+      transition:width .2s ease;
+    }
+    .field{ margin-top:10px; }
+    .field label{
+      font-size:12px;
+      opacity:.75;
+      display:block;
+      margin-bottom:4px;
+    }
+    .field input{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(15,23,42,.18);
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+      background:rgba(255,255,255,.88);
+    }
+    .saveRow{
+      margin-top:10px;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    /* ===========================
+       REMOVED: Quick controls bar
+       ADDED: Options menu overlay
+       =========================== */
+
+    .optionsMenu{
+      position:fixed;
+      left:12px;
+      right:12px;
+      top:130px;
+      max-width:520px;
+      margin:0 auto;
+      background:rgba(2,6,23,.92);
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:16px;
+      padding:10px;
+      display:none;
+      z-index:99999;
+      box-shadow:0 18px 45px rgba(0,0,0,.45);
+      backdrop-filter:blur(10px);
+    }
+    .optionsMenu.show{display:block}
+
+    .menuItem{
+      padding:10px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      color:#e5e7eb;
+      border:1px solid rgba(148,163,184,.08);
+      background:rgba(15,23,42,.55);
+      margin-top:8px;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .menuItem:first-child{margin-top:0}
+    .menuItem:active{transform:scale(.995)}
+    .pillOn{
+      font-size:12px;
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(34,197,94,.18);
+      border:1px solid rgba(34,197,94,.24);
+      color:#bbf7d0;
+      font-weight:900;
+    }
+    .pillOff{
+      font-size:12px;
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(239,68,68,.12);
+      border:1px solid rgba(239,68,68,.22);
+      color:#fecaca;
+      font-weight:900;
+    }
+
+    /* BM Recall / History lists */
+    .listCard{
+      margin-top:12px;
+      border:1px solid rgba(15,23,42,.12);
+      border-radius:14px;
+      padding:12px;
+      background:rgba(255,255,255,.75);
+    }
+    .listTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size:13px;
+      opacity:.75;
+      margin-bottom:8px;
+      flex-wrap:wrap;
+    }
+    .mono{
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    @media (max-width: 760px){
+      .metricsGrid{grid-template-columns:repeat(2, 1fr)}
+      .metric .v{font-size:24px}
+      .console{height:240px}
+      .send{min-width:82px}
+      .messages{max-height:240px}
+    }
+    @media (max-width: 420px){
+      .brand{font-size:22px}
+      .pill{font-size:14px}
+      .ethic{font-size:13px}
+      .console{height:260px}
+      .messages{max-height:240px}
+      .liveCapsule{font-size:11px}
+    }
   </style>
 </head>
+
 <body>
-  <div class="appShell">
-    <div class="topBar">
-      <div class="brandBlock">
-        <div class="orb"></div>
-        <div class="brandText">
-          <div class="brandTitle">AURA-X Ω</div>
-          <div class="brandSubtitle">Offline Emotional Continuity Console</div>
-        </div>
+  <div class="app">
+    <div class="top">
+      <div class="brand">AURA-X Ω</div>
+      <div class="sub">Offline emotional continuity engine (prototype)<br>TM = user inputs only · Internal layers keep continuity and emotional trajectory.</div>
+
+      <div class="ethic">
+        Universal ethic: avoid actions that grow negative emotions in you or others. Move gently toward choices that increase shared positive feeling for everyone.
       </div>
-      <div class="topActions">
-        <div class="pillStatus">
-          <div class="pillStatusDot"></div>
-          <span id="statusText">Reactive mode</span>
-        </div>
-        <button class="btnTiny" id="btnClear">
-          Clear memory
-        </button>
-      </div>
+
+      <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
     </div>
 
-    <div class="mainGrid">
-      <!-- LEFT PANE -->
-      <div class="leftPane">
-        <div class="optionRow">
-          <div class="leftTitle">Control lattice</div>
-          <button class="btnOption" id="btnOption">
-            <span class="icon"></span>
-            Options
-          </button>
+    <div class="main">
+      <div class="row">
+        <div class="leftCol">
+          <div class="card">
+
+            <div class="optionsBtn" id="btnOptions">
+              <svg class="gear" viewBox="0 0 24 24" fill="none">
+                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="#7dd3fc" stroke-width="2"/>
+                <path d="M19.4 15a8.2 8.2 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a8.5 8.5 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a8.2 8.2 0 0 0 .1 2L2.7 16.5l2 3.5 2.4-1a8.5 8.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.5L19.4 15Z" stroke="#7dd3fc" stroke-width="1.6" opacity=".9"/>
+              </svg>
+              <span>Options</span>
+            </div>
+
+            <!-- Options Menu Overlay (replaces Quick Controls dropdown) -->
+            <div class="optionsMenu" id="optionsMenu">
+              <div class="menuItem" id="miVoice">
+                <span>🔊 Voice</span>
+                <span class="pillOn" id="voicePill">ON</span>
+              </div>
+
+              <div class="menuItem" id="miIntel">
+                <span>🧠 Intelligence</span>
+                <span style="opacity:.7">open</span>
+              </div>
+
+              <div class="menuItem" id="miSeed">
+                <span>🌱 Feed the seed</span>
+                <span style="opacity:.7">open</span>
+              </div>
+
+              <div class="menuItem" id="miLearn">
+                <span>📚 Learning</span>
+                <span class="pillOn" id="learnPill">ON</span>
+              </div>
+
+              <div class="menuItem" id="miFaith">
+                <span>🕊 Faith</span>
+                <span style="opacity:.7" id="faithLabel">None</span>
+              </div>
+
+              <div class="menuItem" id="miLLM">
+                <span>🤖 LLM link</span>
+                <span style="opacity:.7">open</span>
+              </div>
+
+              <!-- NEW -->
+              <div class="menuItem" id="miBMRecall">
+                <span>🧾 BM recall</span>
+                <span style="opacity:.7">open</span>
+              </div>
+
+              <!-- NEW -->
+              <div class="menuItem" id="miHistory">
+                <span>🕰 Conversation history</span>
+                <span style="opacity:.7">open</span>
+              </div>
+            </div>
+
+            <div class="metricsGrid">
+              <div class="metric">
+                <div class="v" id="mE0">0.000</div>
+                <div class="k">E<sub>0</sub></div>
+              </div>
+              <div class="metric">
+                <div class="v" id="mTM">0.00</div>
+                <div class="k">TM</div>
+              </div>
+              <div class="metric">
+                <div class="v" id="mBM">0.00</div>
+                <div class="k">BM</div>
+              </div>
+              <div class="metric">
+                <div class="v" id="mCont">0.850</div>
+                <div class="k">Continuity</div>
+              </div>
+            </div>
+
+            <div class="console" id="console">AURA-X Ω console ready.</div>
+
+          </div>
         </div>
 
-        <div class="quickPanel" id="quickPanel">
-          <button class="chip" data-toggle="faith">
-            <span class="chipDot"></span> Faith lens
-          </button>
-          <button class="chip" data-toggle="smalltalk">
-            <span class="chipDot"></span> No small-talk
-          </button>
-          <button class="chip" data-toggle="voice">
-            <span class="chipDot"></span> Voice reaction
-          </button>
-          <button class="chip" id="btnBmRecall">
-            <span class="chipDot"></span> BM recall
-          </button>
-          <button class="chip" id="btnHistory">
-            <span class="chipDot"></span> Conversation history
-          </button>
-        </div>
+        <div class="rightCol">
+          <div class="chatWrap">
+            <div class="messages" id="messages"></div>
 
-        <!-- metricsGrid & console are in DOM but hidden by CSS -->
-        <div class="metricsGrid">
-          <div class="metric">
-            <div class="v" id="mE0">0.000</div>
-            <div class="k">E₀</div>
-          </div>
-          <div class="metric">
-            <div class="v" id="mTM">0.00</div>
-            <div class="k">TM</div>
-          </div>
-          <div class="metric">
-            <div class="v" id="mBM">0.00</div>
-            <div class="k">BM</div>
-          </div>
-          <div class="metric">
-            <div class="v" id="mCont">0.000</div>
-            <div class="k">Continuity</div>
+            <!-- NEW: live metrics capsule one line above input -->
+            <div class="liveCapsule" id="liveCapsule">
+              <span><b>E0</b>: <span id="cE0">0.000</span></span>
+              <span>·</span>
+              <span><b>TM</b>: <span id="cTM">0.00</span></span>
+              <span>·</span>
+              <span><b>BM</b>: <span id="cBM">0.00</span></span>
+              <span>·</span>
+              <span><b>C</b>: <span id="cCont">0.850</span></span>
+            </div>
+
+            <div class="inputRow">
+              <input class="input" id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
+              <button class="send" id="sendBtn">Send</button>
+            </div>
+
+            <div class="formula" id="formulaText">
+              E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
+            </div>
+
           </div>
         </div>
 
-        <div class="console" id="console"></div>
       </div>
+    </div>
+  </div>
 
-      <!-- RIGHT PANE -->
-      <div class="rightPane">
-        <div class="chatHeaderLine">
+  <!-- =====================
+       MODALS (Code2 windows)
+       ===================== -->
+
+  <!-- Options (Faith lens window) -->
+  <div class="modalOverlay" id="modalOptions">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>
+          ⚙️ AURA-X Ω options<br><small>Optional faith lens for encouragement lines.</small>
+        </div>
+        <button class="closeX" data-close="modalOptions">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="font-weight:900; letter-spacing:.2px;">FAITH LENS (OPTIONAL)</div>
+        <div style="opacity:.75; font-size:13px; margin-top:4px;">
+          Universal ethics are always active. You can optionally pick one or more faith lenses. Nothing is sent to any server.
+        </div>
+
+        <div class="faithChips" id="faithChips">
+          <div class="chip active" data-faith="None">None</div>
+          <div class="chip" data-faith="Islam">Islam</div>
+          <div class="chip" data-faith="Christianity">Christianity</div>
+          <div class="chip" data-faith="Hinduism">Hinduism</div>
+          <div class="chip" data-faith="Buddhism">Buddhism</div>
+          <div class="chip" data-faith="Sikhism">Sikhism</div>
+          <div class="chip" data-faith="Judaism">Judaism</div>
+          <div class="chip" data-faith="Atheism / Humanism">Atheism / Humanism</div>
+          <div class="chip" data-faith="Other / Mixed">Other / Mixed</div>
+          <div class="chip" data-faith="Indigenous / Traditional">Indigenous / Traditional</div>
+          <div class="chip" data-faith="Eastern / Chinese">Eastern / Chinese</div>
+        </div>
+
+        <div style="font-weight:900; letter-spacing:.2px; margin-top:6px;">PROTOTYPE CONTROLS</div>
+
+        <div class="optRow">
           <div>
-            <div class="chatTitle">Emotional Reactor</div>
-            <div class="chatSub">Seed → TM → BM → Continuity</div>
+            <div style="font-weight:900;">Auto-summarize long conversations to ~200 sentences</div>
+            <div class="desc">Keeps console readable on mobile.</div>
           </div>
+          <div class="toggle on" id="tgSumm"></div>
+        </div>
 
-          <div class="pill">
-            <span class="label">E₀</span>
-            <span class="value" id="pillE0">0.000</span>
-            ·
-            <span class="label">TM</span>
-            <span class="value" id="pillTM">0.00</span>
-            ·
-            <span class="label">BM</span>
-            <span class="value" id="pillBM">0.00</span>
-            ·
-            <span class="label">Cont.</span>
-            <span class="value" id="pillCont">0.000</span>
+        <div class="optRow">
+          <div>
+            <div style="font-weight:900;">Ignore tiny small-talk as BM (hello / hi / how are you)</div>
+            <div class="desc">Small talk stays in TM, not BM.</div>
+          </div>
+          <div class="toggle on" id="tgSmallTalk"></div>
+        </div>
+
+        <div class="optRow">
+          <div>
+            <div style="font-weight:900;">Clear today's BM + continuity buffer</div>
+            <div class="desc">Removes recent bold events but keeps safe buffer.</div>
+          </div>
+          <div class="dangerBtns" style="margin-top:0">
+            <button class="btn btnDark" id="btnClear24h">♻ Clear 24h</button>
           </div>
         </div>
 
-        <div class="pillRow">
-          <div class="pillMini" id="pillMode">Mode: Neutral</div>
-          <div class="pillMini" id="pillPolarity">Polarity: 0.00</div>
-          <div class="pillMini" id="pillIntensity">Intensity: 0.00</div>
+        <div class="optRow">
+          <div>
+            <div style="font-weight:900;">Delete full local BM life (all days + continuity buffer)</div>
+            <div class="desc">Danger: removes all bold memory on this device.</div>
+          </div>
+          <div class="dangerBtns" style="margin-top:0">
+            <button class="btn btnDark" id="btnDeleteAll">Delete All</button>
+          </div>
         </div>
 
-        <div class="chatBox">
-          <div class="messages" id="messages"></div>
+        <div style="margin-top:10px; opacity:.8; font-size:13px; line-height:1.4;">
+          About AURA-X Ω: Designed around the idea that emotions are continuity functions between memories (TM and BM), not isolated sparks.
+          This page is a small offline demo of Alim ul Haq’s emotional continuity theory.
+        </div>
+      </div>
+    </div>
+  </div>
 
-          <div class="inputRow">
-            <textarea id="input" class="textInput" placeholder="Talk to AURA-X Ω about anything that matters right now…" rows="1"></textarea>
-            <button class="btnSend" id="btnSend" disabled>
-              Send
-            </button>
-          </div>
+  <!-- Intelligence -->
+  <div class="modalOverlay" id="modalIntel">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🧠 Intelligence nodes<br><small>Self-learned Q → A pairs (offline engine).</small></div>
+        <button class="closeX" data-close="modalIntel">×</button>
+      </div>
+      <div class="modalBody">
+        <input class="search" id="intelSearch" placeholder="Search intelligence by keyword or question" />
+        <div id="intelList"></div>
+      </div>
+    </div>
+  </div>
 
-          <div class="footNote">
-            <span>Local seed → TM analysis → BM update → Continuity score.</span>
-            <span>Nothing leaves this page (demo logic only).</span>
+  <!-- Seed -->
+  <div class="modalOverlay" id="modalSeed">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🌱 Feed the seed (protected)<br><small>Add LaTeX Q → A blocks directly into intelligence memory.</small></div>
+        <button class="closeX" data-close="modalSeed">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="font-size:13px; opacity:.8; line-height:1.35">
+          Paste a LaTeX block with <code>\item</code> questions and <code>\textbf{A:}</code> answers.
+          You can optionally start each answer with metadata like <code>[polarity=positive; code=E031; intensity=0.8]</code>.
+        </div>
+
+        <div style="margin-top:10px;">
+          <textarea class="seedBox" id="seedBox" placeholder="Paste LaTeX conversation / logic block here..."></textarea>
+        </div>
+
+        <div class="seedFooter">
+          <div class="hint" id="seedHint">Waiting for block…</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btnBlue" id="btnParseSeed">Parse block</button>
+            <button class="btn btnBlue" id="btnSaveSeed">Save to seed</button>
+            <button class="btn btnBlue" id="btnDiscardSeed">Discard</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- BM RECALL MODAL -->
-  <div class="modalBackdrop" id="bmModal">
+  <!-- LLM -->
+  <div class="modalOverlay" id="modalLLM">
     <div class="modal">
       <div class="modalHeader">
-        <div class="modalTitle">Bold memory episodes</div>
-        <button class="modalClose" data-close="bmModal">Close</button>
+        <div>🤖 LLM link<br><small>Offline LLM first; optional online key only if you want.</small></div>
+        <button class="closeX" data-close="modalLLM">×</button>
       </div>
-      <div class="modalBody" id="bmList"></div>
+      <div class="modalBody">
+        <div class="greenCard">
+          <h4>Offline LLM (WebLLM)</h4>
+          <div style="font-size:13px; opacity:.8; line-height:1.35">
+            Loads a small local model in your browser. Used for sentiment (polarity & intensity) and backup answers.
+          </div>
+          <div style="margin-top:10px;">
+            <button class="llmBtn" id="btnLoadOffline">Load offline model</button>
+          </div>
+          <div class="llmStatus">Status: <span id="offlineStatus">idle</span></div>
+          <div class="progress"><div class="bar" id="offlineBar"></div></div>
+        </div>
+
+        <div style="font-weight:900; margin-top:8px;">Optional online helper (OpenAI-style endpoint – used only when you provide a key):</div>
+
+        <div class="field">
+          <label>API endpoint</label>
+          <input id="apiEndpoint" value="https://api.openai.com/v1/chat/completions" />
+        </div>
+
+        <div class="field">
+          <label>Model</label>
+          <input id="apiModel" value="gpt-4o-mini" />
+        </div>
+
+        <div class="field">
+          <label>API key (stored only in this browser session)</label>
+          <input id="apiKey" placeholder="sk-..." />
+        </div>
+
+        <div class="saveRow">
+          <button class="btn btnBlue" id="btnSaveLLM">Save online LLM settings</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- HISTORY MODAL -->
-  <div class="modalBackdrop" id="historyModal">
+  <!-- NEW: BM Recall -->
+  <div class="modalOverlay" id="modalBM">
     <div class="modal">
       <div class="modalHeader">
-        <div class="modalTitle">Conversation history snapshot</div>
-        <button class="modalClose" data-close="historyModal">Close</button>
+        <div>🧾 Recall from BM<br><small>Only long stories / scenes (photo/video-ready).</small></div>
+        <button class="closeX" data-close="modalBM">×</button>
       </div>
-      <div class="modalBody" id="historyList"></div>
+      <div class="modalBody">
+        <div style="opacity:.8; font-size:13px; line-height:1.35">
+          Shows longer BM entries (by length). You can copy or delete items.
+        </div>
+
+        <div class="field">
+          <label>Filter (keyword)</label>
+          <input id="bmSearch" placeholder="type to filter BM..." />
+        </div>
+
+        <div class="saveRow" style="justify-content:space-between;">
+          <button class="btn btnBlue" id="btnCopyBestBM">Copy best BM as prompt</button>
+          <button class="btn btnDark" id="btnClearBMUnlocked">Clear BM (unlocked)</button>
+        </div>
+
+        <div id="bmList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW: Conversation History -->
+  <div class="modalOverlay" id="modalHistory">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🕰 Conversation history<br><small>Full local conversation log (console source).</small></div>
+        <button class="closeX" data-close="modalHistory">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="opacity:.8; font-size:13px; line-height:1.35">
+          You can copy the full history or clear it (does not delete BM/intelligence).
+        </div>
+
+        <div class="saveRow" style="justify-content:space-between;">
+          <button class="btn btnBlue" id="btnCopyHistory">Copy history</button>
+          <button class="btn btnDark" id="btnClearHistory">Clear history</button>
+        </div>
+
+        <div class="listCard mono" id="historyBox" style="white-space:pre-wrap;"></div>
+      </div>
     </div>
   </div>
 
   <script>
-    const elInput = document.getElementById("input");
-    const elSend = document.getElementById("btnSend");
-    const elMessages = document.getElementById("messages");
-    const elStatus = document.getElementById("statusText");
+    /* ==============================
+       Logic (CodeX) + Code2 Answers
+       ============================== */
 
-    const pillE0 = document.getElementById("pillE0");
-    const pillTM = document.getElementById("pillTM");
-    const pillBM = document.getElementById("pillBM");
-    const pillCont = document.getElementById("pillCont");
-    const pillMode = document.getElementById("pillMode");
-    const pillPolarity = document.getElementById("pillPolarity");
-    const pillIntensity = document.getElementById("pillIntensity");
+    const KEY_INTEL = "aurax_intelligence_nodes_v4";
+    const KEY_BM    = "aurax_bold_memory_v4";
+    const KEY_CFG   = "aurax_config_v4";
+    const KEY_LLM   = "aurax_llm_settings_v4";
+    const KEY_CONV  = "aurax_conversation_log_v4";
 
-    const btnClear = document.getElementById("btnClear");
-    const btnOption = document.getElementById("btnOption");
-    const quickPanel = document.getElementById("quickPanel");
-    const chips = Array.from(document.querySelectorAll(".chip[data-toggle]"));
-    const btnBmRecall = document.getElementById("btnBmRecall");
-    const btnHistory = document.getElementById("btnHistory");
+    const DEFAULT_INTEL = [
+      { q: "hello", a: "Hello! I’m here with calm continuity. How can I help you today?", code: "E001", polarity: "positive", intensity: 0.6 },
+      { q: "hi", a: "Hi! How are you feeling right now?", code: "E002", polarity: "positive", intensity: 0.55 },
+      { q: "how are you", a: "I am very fine, thank you. And how about you?", code: "E003", polarity: "positive", intensity: 0.7 },
+      { q: "how are you?", a: "I am very fine, thank you. And how about you?", code: "E003", polarity: "positive", intensity: 0.7 },
+      { q: "who are you", a: "I am AURA-X Ω — an offline emotional continuity engine prototype.", code: "E010", polarity: "neutral", intensity: 0.45 }
+    ];
 
-    const bmModal = document.getElementById("bmModal");
-    const bmList = document.getElementById("bmList");
-    const historyModal = document.getElementById("historyModal");
-    const historyList = document.getElementById("historyList");
-
-    /* STATE */
     const cfg = {
-      faithLens:false,
-      smallTalkBlock:false,
-      voice:false
+      voiceOn: true,
+      learningOn: true,
+      autoSummarize: true,
+      ignoreSmallTalkBM: true,
+      faithLens: "None",
+      bmRetentionDays: 30,
+      bmRepeatLockN: 3,
+      bmRepeatWindowMin: 60,
     };
 
-    let TM = 0.0;
-    let BM = 0.0;
-    let continuity = 0.0;
-    let E0 = 0.0;
+    let intelligence = [];
+    let bm = [];
+    let conversation = [];
+    let offlineEngine = { ready:false, engine:null, modelId:"Llama-3.2-1B-Instruct-q4f16_1" };
+    let onlineLLM = { endpoint:"", model:"", key:"" };
 
-    let bmEpisodes = [];
-    let convHistory = [];
+    let metrics = {
+      E0: 0.0,
+      TM: 0.0,
+      BM: 0.0,
+      continuity: 0.85,
+      lastPolarity: "neutral",
+      lastIntensity: 0.5
+    };
 
-    function clamp(v,min,max){ return v<min?min:(v>max?max:v); }
-    function nowTime(){
-      const d = new Date();
-      return d.toTimeString().slice(0,8);
-    }
+    const elMsgs = document.getElementById("messages");
+    const elInput = document.getElementById("userInput");
+    const elSend = document.getElementById("sendBtn");
+    const elConsole = document.getElementById("console");
+    const elE0 = document.getElementById("mE0");
+    const elTM = document.getElementById("mTM");
+    const elBM = document.getElementById("mBM");
+    const elCont = document.getElementById("mCont");
 
-    function saveAll(){
-      const payload = {
-        TM,BM,continuity,E0,
-        bmEpisodes,
-        convHistory,
-        cfg
-      };
+    // capsule values
+    const cE0 = document.getElementById("cE0");
+    const cTM = document.getElementById("cTM");
+    const cBM = document.getElementById("cBM");
+    const cCont = document.getElementById("cCont");
+
+    // options button + menu
+    const btnOptions = document.getElementById("btnOptions");
+    const optionsMenu = document.getElementById("optionsMenu");
+
+    // menu items
+    const miVoice = document.getElementById("miVoice");
+    const miIntel = document.getElementById("miIntel");
+    const miSeed  = document.getElementById("miSeed");
+    const miLearn = document.getElementById("miLearn");
+    const miFaith = document.getElementById("miFaith");
+    const miLLM   = document.getElementById("miLLM");
+    const miBMRecall = document.getElementById("miBMRecall");
+    const miHistory  = document.getElementById("miHistory");
+
+    const voicePill = document.getElementById("voicePill");
+    const learnPill = document.getElementById("learnPill");
+    const faithLabel = document.getElementById("faithLabel");
+
+    const modalOptions = document.getElementById("modalOptions");
+    const modalIntel   = document.getElementById("modalIntel");
+    const modalSeed    = document.getElementById("modalSeed");
+    const modalLLM     = document.getElementById("modalLLM");
+    const modalBM      = document.getElementById("modalBM");
+    const modalHistory = document.getElementById("modalHistory");
+
+    const tgSumm = document.getElementById("tgSumm");
+    const tgSmallTalk = document.getElementById("tgSmallTalk");
+    const btnClear24h = document.getElementById("btnClear24h");
+    const btnDeleteAll = document.getElementById("btnDeleteAll");
+
+    const faithChips = document.getElementById("faithChips");
+    const intelSearch = document.getElementById("intelSearch");
+    const intelList = document.getElementById("intelList");
+
+    const seedBox = document.getElementById("seedBox");
+    const seedHint = document.getElementById("seedHint");
+    const btnParseSeed = document.getElementById("btnParseSeed");
+    const btnSaveSeed = document.getElementById("btnSaveSeed");
+    const btnDiscardSeed = document.getElementById("btnDiscardSeed");
+
+    const btnLoadOffline = document.getElementById("btnLoadOffline");
+    const offlineStatus = document.getElementById("offlineStatus");
+    const offlineBar = document.getElementById("offlineBar");
+
+    const apiEndpoint = document.getElementById("apiEndpoint");
+    const apiModel = document.getElementById("apiModel");
+    const apiKey = document.getElementById("apiKey");
+    const btnSaveLLM = document.getElementById("btnSaveLLM");
+
+    // BM recall elements
+    const bmSearch = document.getElementById("bmSearch");
+    const bmList = document.getElementById("bmList");
+    const btnCopyBestBM = document.getElementById("btnCopyBestBM");
+    const btnClearBMUnlocked = document.getElementById("btnClearBMUnlocked");
+
+    // History elements
+    const historyBox = document.getElementById("historyBox");
+    const btnCopyHistory = document.getElementById("btnCopyHistory");
+    const btnClearHistory = document.getElementById("btnClearHistory");
+
+    const now = () => Date.now();
+    const fmt3 = (x) => (Math.round(x*1000)/1000).toFixed(3);
+    const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+
+    function loadJSON(key, fallback){
       try{
-        localStorage.setItem("aura_state_v3",JSON.stringify(payload));
-      }catch(e){}
+        const raw = localStorage.getItem(key);
+        if(!raw) return fallback;
+        return JSON.parse(raw);
+      }catch(e){ return fallback; }
     }
-    function loadAll(){
-      try{
-        const raw = localStorage.getItem("aura_state_v3");
-        if(!raw) return;
-        const obj = JSON.parse(raw);
-        TM = obj.TM ?? 0;
-        BM = obj.BM ?? 0;
-        continuity = obj.continuity ?? 0;
-        E0 = obj.E0 ?? 0;
-        bmEpisodes = obj.bmEpisodes ?? [];
-        convHistory = obj.convHistory ?? [];
-        Object.assign(cfg,obj.cfg||{});
-        updateCapsule();
-      }catch(e){}
+    function saveJSON(key, val){
+      try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
     }
 
-    function logHistory(role,text){
-      convHistory.push({
-        t:Date.now(),
-        timeLabel:nowTime(),
-        role,
-        text
+    function setModal(mod, show){
+      mod.classList.toggle("show", !!show);
+    }
+
+    function hashKey(s){
+      return (s||"").trim().toLowerCase().replace(/\s+/g," ");
+    }
+
+    function isSmallTalk(s){
+      const t = (s||"").trim().toLowerCase();
+      if(t.length <= 2) return true;
+      const small = ["hi","hello","hey","assalam","assalamualaikum","how are you","how r u","good morning","good evening","good night"];
+      return small.some(k => t === k || t.startsWith(k+" "));
+    }
+
+    function toastConsole(line){
+      const stamp = new Date().toLocaleTimeString();
+      conversation.push({role:"system", text:`[${stamp}] ${line}`, t: now()});
+      saveJSON(KEY_CONV, conversation);
+      renderConsole();
+    }
+
+    function renderConsole(){
+      let lines = conversation.map(m=>{
+        if(m.role==="user") return `YOU: ${m.text}`;
+        if(m.role==="assistant") return `AURA: ${m.text}`;
+        return m.text;
       });
-      if(convHistory.length>200) convHistory.shift();
+
+      if(cfg.autoSummarize && lines.length > 200){
+        const head = lines.slice(0, 80);
+        const tail = lines.slice(-90);
+        lines = head.concat([`… (${lines.length-170} lines hidden) …`], tail);
+      }
+
+      elConsole.textContent = lines.join("\n");
+      elConsole.scrollTop = elConsole.scrollHeight;
     }
 
-    /* EMOTION MATH (lightweight demo) */
-    function analyzeText(userText){
-      const txt = userText.trim();
-      if(!txt) return {polarity:0,intensity:0,mode:"Neutral"};
+    function addMsg(role, text){
+      const div = document.createElement("div");
+      div.className = `msg ${role==="user" ? "user" : "bot"}`;
+      div.textContent = text;
+      elMsgs.appendChild(div);
+      elMsgs.scrollTop = elMsgs.scrollHeight;
 
-      const lower = txt.toLowerCase();
-      const posWords = ["thanks","thank you","love","great","happy","alhamdulillah","good","wonderful","amazing"];
-      const negWords = ["sad","angry","upset","problem","hurt","hate","tired","worried","stress","stressed"];
+      conversation.push({role, text, t: now()});
+      saveJSON(KEY_CONV, conversation);
+      renderConsole();
+      renderHistoryBox();
+    }
 
-      let score = 0;
-      posWords.forEach(w=>{ if(lower.includes(w)) score+=1; });
-      negWords.forEach(w=>{ if(lower.includes(w)) score-=1; });
+    function speak(text){
+      if(!cfg.voiceOn) return;
+      try{
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 1.0;
+        u.pitch = 1.0;
+        u.lang = "en-US";
+        speechSynthesis.speak(u);
+      }catch(e){}
+    }
 
-      let polarity = clamp(score/5, -1, 1);
+    function pruneBMByRetention(){
+      const maxAge = cfg.bmRetentionDays * 24*60*60*1000;
+      const cut = now() - maxAge;
+      bm = bm.filter(e => (e.t||0) >= cut || e.locked);
+      saveJSON(KEY_BM, bm);
+    }
 
-      let intensity = clamp(txt.length/220,0,1);
-      if(/[!?]/.test(txt)) intensity = clamp(intensity+0.18,0,1);
+    function recordBMIfNeeded(userText, polarity, intensity){
+      if(cfg.ignoreSmallTalkBM && isSmallTalk(userText)) return;
 
-      let mode = "Neutral";
-      if(polarity>0.25) mode = "Positive";
-      else if(polarity<-0.25) mode = "Negative";
+      const k = hashKey(userText);
+      const t = now();
+      const win = cfg.bmRepeatWindowMin * 60*1000;
+      const recentSame = bm.filter(e => e.k === k && (t - e.t) <= win);
+      const willLock = (recentSame.length + 1) >= cfg.bmRepeatLockN;
 
-      return {polarity,intensity,mode};
+      bm.push({
+        t,
+        k,
+        text:userText.trim(),
+        polarity,
+        intensity,
+        locked: willLock ? true : false,
+        lockReason: willLock ? `Repeated ${cfg.bmRepeatLockN}x in ${cfg.bmRepeatWindowMin}min` : ""
+      });
+
+      pruneBMByRetention();
+      saveJSON(KEY_BM, bm);
+      renderBMList(bmSearch.value);
+    }
+
+    function findIntelAnswer(q){
+      const key = hashKey(q);
+      return intelligence.find(x => x.qKey === key) || null;
+    }
+
+    function upsertIntel(q, a, meta={}){
+      const qKey = hashKey(q);
+      const idx = intelligence.findIndex(x => x.qKey === qKey);
+      const item = {
+        id: idx>=0 ? intelligence[idx].id : ("E"+Math.floor(1000+Math.random()*9000)),
+        date: new Date().toISOString().slice(0,10),
+        q: q.trim(),
+        a: a.trim(),
+        qKey,
+        code: meta.code || (idx>=0 ? intelligence[idx].code : "E001"),
+        polarity: meta.polarity || "neutral",
+        intensity: (meta.intensity!=null ? meta.intensity : 0.5),
+      };
+      if(idx>=0) intelligence[idx] = item;
+      else intelligence.unshift(item);
+
+      saveJSON(KEY_INTEL, intelligence);
+      renderIntelList(intelSearch.value);
+    }
+
+    function parseLatexBlock(text){
+      const lines = text.split(/\r?\n/);
+      const items = [];
+      let currentQ = null;
+      let currentA = null;
+
+      function flush(){
+        if(currentQ && currentA){
+          items.push({q:currentQ.trim(), a:currentA.trim()});
+        }
+        currentQ = null; currentA = null;
+      }
+
+      for(const line of lines){
+        const l = line.trim();
+        if(l.startsWith("\\item")){
+          flush();
+          currentQ = l.replace(/^\\item\s*/,"").trim();
+          currentA = "";
+          continue;
+        }
+        if(l.includes("\\textbf{A:}")){
+          const parts = l.split("\\textbf{A:}");
+          currentA += (currentA? "\n":"") + (parts[1]||"").trim();
+          continue;
+        }
+        if(currentQ!=null){
+          if(currentA!=null && currentA!=="") currentA += "\n" + l;
+          else currentQ += " " + l;
+        }
+      }
+      flush();
+      return items;
+    }
+
+    function parseMetaPrefix(a){
+      const m = a.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
+      if(!m) return {meta:null, answer:a};
+      const metaRaw = m[1];
+      const answer = m[2] || "";
+      const meta = {};
+      metaRaw.split(";").map(s=>s.trim()).filter(Boolean).forEach(pair=>{
+        const [k,v] = pair.split("=").map(x=>x.trim());
+        if(!k) return;
+        if(k==="intensity") meta.intensity = parseFloat(v);
+        else meta[k] = v;
+      });
+      return {meta, answer};
+    }
+
+    async function loadOfflineModel(){
+      if(!window.webllm){
+        offlineStatus.textContent = "WebLLM not available (blocked?)";
+        return;
+      }
+      try{
+        offlineStatus.textContent = "loading...";
+        offlineBar.style.width = "10%";
+        const appConfig = window.webllm.prebuiltAppConfig ? window.webllm.prebuiltAppConfig() : undefined;
+
+        offlineEngine.engine = await window.webllm.CreateMLCEngine(
+          offlineEngine.modelId,
+          {
+            initProgressCallback: (p) => {
+              const pct = Math.round((p.progress || 0) * 100);
+              offlineBar.style.width = pct + "%";
+              offlineStatus.textContent = (p.text || "loading") + ` (${pct}%)`;
+            },
+            appConfig
+          }
+        );
+
+        offlineEngine.ready = true;
+        offlineStatus.textContent = "ready";
+        offlineBar.style.width = "100%";
+      }catch(e){
+        offlineEngine.ready = false;
+        offlineStatus.textContent = "error loading model";
+        offlineBar.style.width = "0%";
+        console.warn(e);
+      }
+    }
+
+    async function offlineAnalyze(text){
+      if(!offlineEngine.ready || !offlineEngine.engine){
+        const t = (text||"").toLowerCase();
+        let polarity = "neutral";
+        if(/love|great|good|amazing|happy|thanks|thank you/.test(t)) polarity="positive";
+        if(/bad|sad|hate|angry|worried|stress|pain/.test(t)) polarity="negative";
+        const intensity = clamp(0.35 + Math.min(0.65, (text.length/120)), 0.2, 1.0);
+        return {polarity, intensity};
+      }
+
+      const prompt = `Analyze the user text for emotional polarity and intensity.
+Return ONLY valid JSON with keys "polarity" (positive/neutral/negative) and "intensity" (0 to 1).
+Text: """${text}"""`;
+
+      try{
+        const reply = await offlineEngine.engine.chat.completions.create({
+          messages: [{role:"user", content: prompt}],
+          temperature: 0.0,
+          max_tokens: 80,
+        });
+        const content = reply.choices?.[0]?.message?.content || "";
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if(jsonMatch){
+          const obj = JSON.parse(jsonMatch[0]);
+          const polarity = (obj.polarity || "neutral").toLowerCase();
+          const intensity = clamp(parseFloat(obj.intensity ?? 0.5), 0, 1);
+          return {polarity, intensity};
+        }
+      }catch(e){ console.warn(e); }
+
+      return {polarity:"neutral", intensity:0.5};
+    }
+
+    async function onlineAnswer(prompt){
+      if(!onlineLLM.endpoint || !onlineLLM.key) return null;
+      try{
+        const res = await fetch(onlineLLM.endpoint, {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Authorization":"Bearer " + onlineLLM.key
+          },
+          body: JSON.stringify({
+            model: onlineLLM.model || "gpt-4o-mini",
+            messages: [{role:"user", content: prompt}],
+            temperature: 0.6,
+            max_tokens: 220
+          })
+        });
+        if(!res.ok) return null;
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || null;
+      }catch(e){
+        return null;
+      }
     }
 
     function R(TM, BM){
@@ -784,230 +1367,581 @@
     }
     function I_intel(hit){ return hit ? 0.55 : 0.0; }
     function I_llm(used){ return used ? 0.45 : 0.0; }
+    function D_decay(){
+      const size = bm.length;
+      return clamp(0.10 + size*0.0008, 0.10, 0.35);
+    }
+    function lambda_faith(){ return (!cfg.faithLens || cfg.faithLens==="None") ? 0.0 : 0.08; }
+    function lambda_sys(){ return 0.06; }
+    function lambda_trc(){ return 0.04; }
 
-    function updateStateFromUserText(userText,offlineHit=false,usedLLM=false){
-      const emo = analyzeText(userText);
-      const localTM = I_TM(userText);
-      const intel = I_intel(offlineHit);
-      const llmBoost = I_llm(usedLLM);
-
-      TM = clamp(0.6*TM + 0.4*localTM,0,1);
-
-      const strong = emo.intensity>0.55 || Math.abs(emo.polarity)>0.45;
-      const deltaBM = strong ? 0.07 : 0.01;
-      BM = clamp(BM + deltaBM,0,1);
-
-      const faithBoost = cfg.faithLens ? 0.12 : 0.0;
-      const sysBoost = 0.05;
-      const trc = 0.08;
-
-      const raw = (TM * BM) + intel + llmBoost + faithBoost + sysBoost + trc;
-      const tanhVal = Math.tanh(raw*1.1);
-      E0 = clamp(tanhVal,0,1);
-
-      continuity = R(TM,BM);
-
-      if(continuity>0.72 || strong){
-        bmEpisodes.push({
-          timeLabel:nowTime(),
-          text:userText.trim(),
-          cont:continuity,
-          pol:emo.polarity,
-          inten:emo.intensity
-        });
-        if(bmEpisodes.length>80) bmEpisodes.shift();
-      }
-
-      pillMode.textContent = "Mode: " + emo.mode;
-      pillPolarity.textContent = "Polarity: " + emo.polarity.toFixed(2);
-      pillIntensity.textContent = "Intensity: " + emo.intensity.toFixed(2);
-
-      updateCapsule();
-      saveAll();
+    function computeE0(tmText, intelHit, llmUsed){
+      const TMv = clamp(I_TM(tmText), 0, 1);
+      const BMv = clamp(bm.length ? Math.min(1, bm.length/240) : 0, 0, 1);
+      const r = R(TMv, BMv);
+      const val = Math.tanh(
+        r + TMv + I_intel(intelHit) + I_llm(llmUsed)
+        - D_decay() + lambda_faith() + lambda_sys() + lambda_trc()
+      );
+      return {E0: val, TMv, BMv};
     }
 
-    function updateCapsule(){
-      pillE0.textContent = E0.toFixed(3);
-      pillTM.textContent = TM.toFixed(2);
-      pillBM.textContent = BM.toFixed(2);
-      pillCont.textContent = continuity.toFixed(3);
+    function updateMetrics(){
+      elE0.textContent = fmt3(metrics.E0);
+      elTM.textContent = (Math.round(metrics.TM*100)/100).toFixed(2);
+      elBM.textContent = (Math.round(metrics.BM*100)/100).toFixed(2);
+      elCont.textContent = fmt3(metrics.continuity);
 
-      const mE0 = document.getElementById("mE0");
-      const mTM = document.getElementById("mTM");
-      const mBM = document.getElementById("mBM");
-      const mCont = document.getElementById("mCont");
-      if(mE0){ mE0.textContent = pillE0.textContent; }
-      if(mTM){ mTM.textContent = pillTM.textContent; }
-      if(mBM){ mBM.textContent = pillBM.textContent; }
-      if(mCont){ mCont.textContent = pillCont.textContent; }
+      // capsule
+      cE0.textContent = fmt3(metrics.E0);
+      cTM.textContent = (Math.round(metrics.TM*100)/100).toFixed(2);
+      cBM.textContent = (Math.round(metrics.BM*100)/100).toFixed(2);
+      cCont.textContent = fmt3(metrics.continuity);
     }
 
-    /* UI HELPERS */
-    function addMessage(role,text){
-      const wrap = document.createElement("div");
-      wrap.className = "msg" + (role==="user" ? " me" : "");
-      const tag = document.createElement("div");
-      tag.className = "msgTag";
-      tag.textContent = role==="user" ? "Seed → TM" : "AURA-X Ω";
-      const body = document.createElement("div");
-      body.textContent = text;
-      const time = document.createElement("div");
-      time.className = "msgTime";
-      time.textContent = nowTime();
-
-      wrap.appendChild(tag);
-      wrap.appendChild(body);
-      wrap.appendChild(time);
-      elMessages.appendChild(wrap);
-      elMessages.scrollTop = elMessages.scrollHeight;
+    function animateMetricsTo(target){
+      const start = {...metrics};
+      const dur = 260;
+      const t0 = performance.now();
+      function step(t){
+        const p = clamp((t - t0)/dur, 0, 1);
+        const ease = 1 - Math.pow(1-p, 3);
+        metrics.E0 = start.E0 + (target.E0 - start.E0) * ease;
+        metrics.TM = start.TM + (target.TM - start.TM) * ease;
+        metrics.BM = start.BM + (target.BM - start.BM) * ease;
+        metrics.continuity = start.continuity + (target.continuity - start.continuity) * ease;
+        updateMetrics();
+        if(p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
     }
 
-    function respondLocally(userText){
-      const emo = analyzeText(userText);
-      let reply = "I am listening carefully. Tell me more about how this feels inside you.";
+    async function respond(userText){
+      const ana = await offlineAnalyze(userText);
 
-      if(emo.mode==="Positive"){
-        reply = "I can sense a positive tone here. Let’s anchor this feeling in your Bold Memory so it stays available for future you.";
-      }else if(emo.mode==="Negative"){
-        reply = "I can feel some heaviness in your words. Let’s unpack it slowly—what part of this matters the most to you right now?";
+      // 1) intelligence first
+      const intelHit = findIntelAnswer(userText);
+      let answer = null;
+      let usedLLM = false;
+
+      if(intelHit){
+        answer = intelHit.a;
+      } else {
+        // 2) offline LLM answer if available
+        if(offlineEngine.ready && offlineEngine.engine){
+          usedLLM = true;
+          try{
+            const prompt = `You are AURA-X Ω, an offline emotional continuity engine assistant.
+Answer concisely and kindly. User: ${userText}`;
+            const reply = await offlineEngine.engine.chat.completions.create({
+              messages: [{role:"user", content: prompt}],
+              temperature: 0.7,
+              max_tokens: 180,
+            });
+            answer = reply.choices?.[0]?.message?.content || null;
+          }catch(e){ answer = null; }
+        }
+
+        // 3) optional online
+        if(!answer){
+          const online = await onlineAnswer(userText);
+          if(online){ usedLLM = true; answer = online; }
+        }
+
+        // 4) fallback
+        if(!answer){
+          answer = "I understood. Tell me a little more so I can respond clearly.";
+        }
+
+        // learning
+        if(cfg.learningOn){
+          upsertIntel(userText, answer, {polarity: ana.polarity, intensity: ana.intensity});
+        }
       }
 
-      if(cfg.smallTalkBlock && userText.trim().length<30){
-        reply = "I am avoiding small-talk for now. Share something that really matters to you internally.";
-      }
+      // BM record
+      recordBMIfNeeded(userText, ana.polarity, ana.intensity);
 
-      if(cfg.faithLens){
-        reply += " If faith is relevant for you, we can also look at this through a gentle faith-aligned lens.";
-      }
+      // formula + metrics
+      const calc = computeE0(userText, !!intelHit, usedLLM);
+      const contTarget = clamp(
+        0.78 + (bm.length ? Math.min(0.18, bm.length/2000) : 0) - (ana.polarity==="negative" ? 0.04 : 0),
+        0.55, 0.97
+      );
 
-      addMessage("aura",reply);
-      logHistory("aura",reply);
-      saveAll();
+      animateMetricsTo({ E0: calc.E0, TM: calc.TMv, BM: calc.BMv, continuity: contTarget });
+      addMsg("assistant", answer);
+      speak(answer);
     }
 
-    /* OPTION PANEL */
-    btnOption.addEventListener("click",()=>{
-      const isOpen = quickPanel.style.display==="flex";
-      quickPanel.style.display = isOpen ? "none" : "flex";
-    });
+    function renderIntelList(filter=""){
+      const q = (filter||"").trim().toLowerCase();
+      const items = q ? intelligence.filter(it => (it.q+" "+it.a).toLowerCase().includes(q)) : intelligence;
 
-    chips.forEach(chip=>{
-      const key = chip.dataset.toggle;
-      chip.addEventListener("click",()=>{
-        cfg[key] = !cfg[key];
-        chip.classList.toggle("on",cfg[key]);
-        saveAll();
-        let label = "Reactive mode";
-        if(cfg.smallTalkBlock) label = "Focused mode";
-        if(cfg.faithLens) label = "Faith-aware mode";
-        elStatus.textContent = label;
+      intelList.innerHTML = "";
+      if(items.length===0){
+        const div = document.createElement("div");
+        div.style.marginTop = "12px";
+        div.style.opacity = ".7";
+        div.textContent = "No saved intelligence yet.";
+        intelList.appendChild(div);
+        return;
+      }
+
+      items.slice(0, 80).forEach(it=>{
+        const card = document.createElement("div");
+        card.className = "intelItem";
+
+        const top = document.createElement("div");
+        top.className = "intelTop";
+        top.innerHTML = `<div>${it.date || ""}</div><div style="font-weight:800;">Stored answer</div>`;
+        card.appendChild(top);
+
+        const qa = document.createElement("div");
+        qa.className = "intelQA";
+        qa.innerHTML = `<div><b>Q:</b> ${escapeHtml(it.q)}</div>
+                        <div style="margin-top:6px;"><b>A:</b> ${escapeHtml(it.a)}</div>
+                        <div style="margin-top:6px; font-size:12px; opacity:.7;">emotion code: ${escapeHtml(it.code || it.id || "")}</div>`;
+        card.appendChild(qa);
+
+        const btns = document.createElement("div");
+        btns.className = "miniBtns";
+
+        const bUse = document.createElement("button");
+        bUse.className = "miniBtn";
+        bUse.textContent = "Use question";
+        bUse.onclick = ()=>{ elInput.value = it.q; setModal(modalIntel,false); elInput.focus(); };
+
+        const bCopy = document.createElement("button");
+        bCopy.className = "miniBtn";
+        bCopy.textContent = "Copy answer";
+        bCopy.onclick = async ()=>{ try{ await navigator.clipboard.writeText(it.a); }catch(e){} };
+
+        const bDel = document.createElement("button");
+        bDel.className = "miniBtn danger";
+        bDel.textContent = "Delete (2× confirm)";
+        let armed = false;
+        bDel.onclick = ()=>{
+          if(!armed){
+            armed = true;
+            bDel.textContent = "Confirm delete";
+            setTimeout(()=>{ armed=false; bDel.textContent="Delete (2× confirm)"; }, 1800);
+            return;
+          }
+          intelligence = intelligence.filter(x => x.qKey !== it.qKey);
+          saveJSON(KEY_INTEL, intelligence);
+          renderIntelList(intelSearch.value);
+        };
+
+        btns.appendChild(bUse);
+        btns.appendChild(bCopy);
+        btns.appendChild(bDel);
+        card.appendChild(btns);
+
+        intelList.appendChild(card);
       });
-      chip.classList.toggle("on",!!cfg[key]);
-    });
-
-    /* MODALS */
-    function openModal(id){
-      const el = document.getElementById(id);
-      if(!el) return;
-      el.style.display = "flex";
-    }
-    function closeModal(id){
-      const el = document.getElementById(id);
-      if(!el) return;
-      el.style.display = "none";
     }
 
-    document.querySelectorAll(".modalClose").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        const id = btn.dataset.close;
-        closeModal(id);
-      });
-    });
+    function escapeHtml(s){
+      return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
 
-    btnBmRecall.addEventListener("click",()=>{
+    function saveCfg(){
+      saveJSON(KEY_CFG, cfg);
+      voicePill.textContent = cfg.voiceOn ? "ON" : "OFF";
+      voicePill.className = cfg.voiceOn ? "pillOn" : "pillOff";
+      learnPill.textContent = cfg.learningOn ? "ON" : "OFF";
+      learnPill.className = cfg.learningOn ? "pillOn" : "pillOff";
+      faithLabel.textContent = cfg.faithLens || "None";
+    }
+
+    function toggleOptionsMenu(force){
+      const willShow = (typeof force==="boolean") ? force : !optionsMenu.classList.contains("show");
+      optionsMenu.classList.toggle("show", willShow);
+    }
+
+    /* ===== BM Recall ===== */
+    function isLongBMItem(text){
+      // "Only long stories and scenes" heuristic
+      return (text || "").trim().length >= 220;
+    }
+
+    function renderBMList(filter=""){
+      const q = (filter||"").trim().toLowerCase();
+      const longItems = bm
+        .filter(x => isLongBMItem(x.text))
+        .sort((a,b)=>(b.t||0)-(a.t||0));
+
+      const items = q ? longItems.filter(x => (x.text||"").toLowerCase().includes(q)) : longItems;
+
       bmList.innerHTML = "";
-      if(bmEpisodes.length===0){
-        bmList.textContent = "No BM episodes stored yet. Talk about something emotionally meaningful and continuity will push it into Bold Memory.";
-      }else{
-        bmEpisodes.slice().reverse().forEach((ep,idx)=>{
-          const item = document.createElement("div");
-          item.className = "listItem";
-          const meta = document.createElement("div");
-          meta.className = "listMeta";
-          meta.textContent = `${ep.timeLabel} · Continuity ${ep.cont.toFixed(3)}`;
-          const extra = document.createElement("span");
-          extra.className = "badge";
-          extra.textContent = `Pol ${ep.pol.toFixed(2)} · Int ${ep.inten.toFixed(2)}`;
-          meta.appendChild(extra);
-          const body = document.createElement("div");
-          body.textContent = ep.text;
-          item.appendChild(meta);
-          item.appendChild(body);
-          bmList.appendChild(item);
-        });
+      if(items.length===0){
+        const div = document.createElement("div");
+        div.style.marginTop = "12px";
+        div.style.opacity = ".7";
+        div.textContent = "No long BM scenes yet.";
+        bmList.appendChild(div);
+        return;
       }
-      openModal("bmModal");
-    });
 
-    btnHistory.addEventListener("click",()=>{
-      historyList.innerHTML = "";
-      if(convHistory.length===0){
-        historyList.textContent = "History is empty. Start a conversation and I will keep a local shadow of it.";
-      }else{
-        convHistory.slice(-80).forEach(entry=>{
-          const item = document.createElement("div");
-          item.className = "listItem";
-          const meta = document.createElement("div");
-          meta.className = "listMeta";
-          meta.textContent = `${entry.timeLabel} · ${entry.role==="user" ? "You" : "AURA-X Ω"}`;
-          const body = document.createElement("div");
-          body.textContent = entry.text;
-          item.appendChild(meta);
-          item.appendChild(body);
-          historyList.appendChild(item);
-        });
+      items.slice(0, 80).forEach(it=>{
+        const card = document.createElement("div");
+        card.className = "listCard";
+
+        const dt = new Date(it.t||Date.now());
+        const top = document.createElement("div");
+        top.className = "listTop";
+        top.innerHTML = `<div>${dt.toLocaleString()}</div>
+                         <div><b>${escapeHtml(it.polarity||"neutral")}</b> · intensity ${Number(it.intensity||0.5).toFixed(2)} ${it.locked ? "· 🔒 locked" : ""}</div>`;
+        card.appendChild(top);
+
+        const body = document.createElement("div");
+        body.className = "mono";
+        body.style.fontSize = "13px";
+        body.style.whiteSpace = "pre-wrap";
+        body.textContent = it.text || "";
+        card.appendChild(body);
+
+        const btns = document.createElement("div");
+        btns.className = "miniBtns";
+
+        const bCopy = document.createElement("button");
+        bCopy.className = "miniBtn";
+        bCopy.textContent = "Copy prompt";
+        bCopy.onclick = async ()=>{
+          const prompt = `BM Recall (scene/story):\n\n${it.text}\n\nTask: Convert this into a video-ready prompt with shot-by-shot scenes, characters, setting, mood, and dialogue (if any).`;
+          try{ await navigator.clipboard.writeText(prompt); }catch(e){}
+        };
+
+        const bDel = document.createElement("button");
+        bDel.className = "miniBtn danger";
+        bDel.textContent = it.locked ? "Locked" : "Delete (2× confirm)";
+        let armed = false;
+        bDel.disabled = !!it.locked;
+        bDel.onclick = ()=>{
+          if(it.locked) return;
+          if(!armed){
+            armed = true;
+            bDel.textContent = "Confirm delete";
+            setTimeout(()=>{ armed=false; bDel.textContent="Delete (2× confirm)"; }, 1800);
+            return;
+          }
+          bm = bm.filter(x => x !== it);
+          saveJSON(KEY_BM, bm);
+          renderBMList(bmSearch.value);
+        };
+
+        btns.appendChild(bCopy);
+        btns.appendChild(bDel);
+        card.appendChild(btns);
+
+        bmList.appendChild(card);
+      });
+    }
+
+    function bestBMScene(){
+      // pick longest recent scene
+      const longItems = bm.filter(x => isLongBMItem(x.text)).sort((a,b)=>{
+        const la = (a.text||"").length, lb=(b.text||"").length;
+        if(lb !== la) return lb-la;
+        return (b.t||0)-(a.t||0);
+      });
+      return longItems[0] || null;
+    }
+
+    /* ===== History ===== */
+    function renderHistoryBox(){
+      const lines = (conversation||[]).map(m=>{
+        if(m.role==="user") return `YOU: ${m.text}`;
+        if(m.role==="assistant") return `AURA: ${m.text}`;
+        return m.text;
+      });
+      historyBox.textContent = lines.join("\n");
+    }
+
+    function loadAll(){
+      const c = loadJSON(KEY_CFG, null);
+      if(c) Object.assign(cfg, c);
+
+      intelligence = loadJSON(KEY_INTEL, []);
+      if(!intelligence || intelligence.length === 0){
+        intelligence = DEFAULT_INTEL.map((it, i)=>({
+          id: it.code || ("E"+(100+i)),
+          date: new Date().toISOString().slice(0,10),
+          q: it.q,
+          a: it.a,
+          qKey: hashKey(it.q),
+          code: it.code || ("E"+(100+i)),
+          polarity: it.polarity || "neutral",
+          intensity: (it.intensity!=null ? it.intensity : 0.5)
+        }));
+        saveJSON(KEY_INTEL, intelligence);
       }
-      openModal("historyModal");
-    });
 
-    /* CLEAR */
-    btnClear.addEventListener("click",()=>{
-      if(!confirm("Clear TM, BM, continuity and local history?")) return;
-      TM = 0; BM = 0; continuity = 0; E0 = 0;
-      bmEpisodes = [];
-      convHistory = [];
-      updateCapsule();
-      pillMode.textContent = "Mode: Neutral";
-      pillPolarity.textContent = "Polarity: 0.00";
-      pillIntensity.textContent = "Intensity: 0.00";
-      saveAll();
-    });
-
-    /* INPUT */
-    elInput.addEventListener("input",()=>{
-      elSend.disabled = !elInput.value.trim();
-    });
-
-    elSend.addEventListener("click",doSend);
-    elInput.addEventListener("keydown",(e)=>{
-      if(e.key==="Enter" && !e.shiftKey){
-        e.preventDefault();
-        if(!elSend.disabled) doSend();
+      bm = loadJSON(KEY_BM, []);
+      const ls = loadJSON(KEY_LLM, null);
+      if(ls){
+        onlineLLM.endpoint = ls.endpoint || "";
+        onlineLLM.model = ls.model || "";
+        onlineLLM.key = ls.key || "";
       }
+
+      conversation = loadJSON(KEY_CONV, []);
+      if(!Array.isArray(conversation)) conversation = [];
+
+      voicePill.textContent = cfg.voiceOn ? "ON" : "OFF";
+      voicePill.className = cfg.voiceOn ? "pillOn" : "pillOff";
+      learnPill.textContent = cfg.learningOn ? "ON" : "OFF";
+      learnPill.className = cfg.learningOn ? "pillOn" : "pillOff";
+      faithLabel.textContent = cfg.faithLens || "None";
+
+      tgSumm.classList.toggle("on", !!cfg.autoSummarize);
+      tgSmallTalk.classList.toggle("on", !!cfg.ignoreSmallTalkBM);
+
+      [...faithChips.querySelectorAll(".chip")].forEach(ch=>{
+        ch.classList.toggle("active", ch.dataset.faith === cfg.faithLens);
+      });
+
+      apiEndpoint.value = onlineLLM.endpoint || apiEndpoint.value;
+      apiModel.value = onlineLLM.model || apiModel.value;
+      apiKey.value = onlineLLM.key || "";
+
+      pruneBMByRetention();
+
+      if(conversation.length === 0){
+        toastConsole("AURA-X Ω console ready.");
+      } else {
+        renderConsole();
+      }
+
+      renderIntelList();
+      renderBMList();
+      renderHistoryBox();
+      updateMetrics();
+    }
+
+    /* ========= Events ========= */
+
+    // Options button toggles Options menu overlay
+    btnOptions.addEventListener("click", (e)=>{
+      e.preventDefault();
+      toggleOptionsMenu();
     });
 
-    function doSend(){
+    // Outside tap closes options menu
+    document.addEventListener("pointerdown", (e)=>{
+      if(optionsMenu.classList.contains("show")){
+        const inside = optionsMenu.contains(e.target) || btnOptions.contains(e.target);
+        if(!inside) toggleOptionsMenu(false);
+      }
+    }, {passive:true});
+
+    document.querySelectorAll("[data-close]").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        const id = e.currentTarget.getAttribute("data-close");
+        const mod = document.getElementById(id);
+        setModal(mod, false);
+      });
+    });
+
+    [modalOptions, modalIntel, modalSeed, modalLLM, modalBM, modalHistory].forEach(mod=>{
+      mod.addEventListener("click", (e)=>{
+        if(e.target === mod) setModal(mod, false);
+      });
+    });
+
+    tgSumm.addEventListener("click", ()=>{
+      cfg.autoSummarize = !cfg.autoSummarize;
+      tgSumm.classList.toggle("on", cfg.autoSummarize);
+      saveCfg();
+      renderConsole();
+      renderHistoryBox();
+    });
+
+    tgSmallTalk.addEventListener("click", ()=>{
+      cfg.ignoreSmallTalkBM = !cfg.ignoreSmallTalkBM;
+      tgSmallTalk.classList.toggle("on", cfg.ignoreSmallTalkBM);
+      saveCfg();
+    });
+
+    btnClear24h.addEventListener("click", ()=>{
+      const cut = now() - 24*60*60*1000;
+      bm = bm.filter(e => (e.t||0) < cut || e.locked);
+      saveJSON(KEY_BM, bm);
+      toastConsole("Cleared last 24h BM (locked items kept).");
+      renderBMList(bmSearch.value);
+      updateMetrics();
+    });
+
+    btnDeleteAll.addEventListener("click", ()=>{
+      if(!confirm("Delete ALL BM from this device?")) return;
+      if(!confirm("Confirm again. This cannot be undone.")) return;
+      bm = [];
+      saveJSON(KEY_BM, bm);
+      toastConsole("Deleted all local BM.");
+      renderBMList(bmSearch.value);
+      updateMetrics();
+    });
+
+    faithChips.addEventListener("click", (e)=>{
+      const chip = e.target.closest(".chip");
+      if(!chip) return;
+      const faith = chip.dataset.faith;
+      cfg.faithLens = faith;
+      [...faithChips.querySelectorAll(".chip")].forEach(ch=>{
+        ch.classList.toggle("active", ch.dataset.faith === faith);
+      });
+      saveCfg();
+      faithLabel.textContent = cfg.faithLens || "None";
+    });
+
+    miVoice.addEventListener("click", ()=>{
+      cfg.voiceOn = !cfg.voiceOn;
+      saveCfg();
+      toggleOptionsMenu(false);
+    });
+
+    miLearn.addEventListener("click", ()=>{
+      cfg.learningOn = !cfg.learningOn;
+      saveCfg();
+      toggleOptionsMenu(false);
+    });
+
+    miIntel.addEventListener("click", ()=>{
+      setModal(modalIntel, true);
+      toggleOptionsMenu(false);
+      renderIntelList(intelSearch.value);
+    });
+
+    miSeed.addEventListener("click", ()=>{
+      setModal(modalSeed, true);
+      toggleOptionsMenu(false);
+      seedHint.textContent = "Waiting for block…";
+    });
+
+    miLLM.addEventListener("click", ()=>{
+      setModal(modalLLM, true);
+      toggleOptionsMenu(false);
+    });
+
+    miFaith.addEventListener("click", ()=>{
+      setModal(modalOptions, true);
+      toggleOptionsMenu(false);
+    });
+
+    // NEW
+    miBMRecall.addEventListener("click", ()=>{
+      setModal(modalBM, true);
+      toggleOptionsMenu(false);
+      renderBMList(bmSearch.value);
+    });
+
+    // NEW
+    miHistory.addEventListener("click", ()=>{
+      setModal(modalHistory, true);
+      toggleOptionsMenu(false);
+      renderHistoryBox();
+    });
+
+    intelSearch.addEventListener("input", ()=>{
+      renderIntelList(intelSearch.value);
+    });
+
+    btnParseSeed.addEventListener("click", ()=>{
+      const parsedSeed = parseLatexBlock(seedBox.value);
+      seedHint.textContent = parsedSeed.length ? `Parsed ${parsedSeed.length} Q→A items.` : "No items found. Check LaTeX format.";
+    });
+
+    btnSaveSeed.addEventListener("click", ()=>{
+      let parsedSeed = parseLatexBlock(seedBox.value);
+      if(!parsedSeed.length){
+        seedHint.textContent = "Nothing to save.";
+        return;
+      }
+      let saved = 0;
+      for(const it of parsedSeed){
+        const metaParsed = parseMetaPrefix(it.a);
+        upsertIntel(it.q, metaParsed.answer, metaParsed.meta || {});
+        saved++;
+      }
+      seedHint.textContent = `Saved ${saved} items to intelligence.`;
+      seedBox.value = "";
+      renderIntelList(intelSearch.value);
+    });
+
+    btnDiscardSeed.addEventListener("click", ()=>{
+      seedBox.value = "";
+      seedHint.textContent = "Discarded.";
+    });
+
+    btnLoadOffline.addEventListener("click", loadOfflineModel);
+
+    btnSaveLLM.addEventListener("click", ()=>{
+      onlineLLM.endpoint = apiEndpoint.value.trim();
+      onlineLLM.model = apiModel.value.trim();
+      onlineLLM.key = apiKey.value.trim();
+      saveJSON(KEY_LLM, onlineLLM);
+      toastConsole("Saved online LLM settings.");
+    });
+
+    // BM recall events
+    bmSearch.addEventListener("input", ()=>{
+      renderBMList(bmSearch.value);
+    });
+
+    btnCopyBestBM.addEventListener("click", async ()=>{
+      const best = bestBMScene();
+      if(!best){
+        alert("No long BM scenes yet.");
+        return;
+      }
+      const prompt = `BM Recall (best long scene/story):\n\n${best.text}\n\nTask: Convert this into a cinematic, video-ready prompt with shots, characters, setting, mood, and dialogue (if any).`;
+      try{ await navigator.clipboard.writeText(prompt); }catch(e){}
+    });
+
+    btnClearBMUnlocked.addEventListener("click", ()=>{
+      if(!confirm("Clear BM unlocked items (locked will stay)?")) return;
+      bm = bm.filter(x => x.locked);
+      saveJSON(KEY_BM, bm);
+      toastConsole("Cleared BM (unlocked items removed; locked kept).");
+      renderBMList(bmSearch.value);
+      updateMetrics();
+    });
+
+    // history events
+    btnCopyHistory.addEventListener("click", async ()=>{
+      const lines = (conversation||[]).map(m=>{
+        if(m.role==="user") return `YOU: ${m.text}`;
+        if(m.role==="assistant") return `AURA: ${m.text}`;
+        return m.text;
+      }).join("\n");
+      try{ await navigator.clipboard.writeText(lines); }catch(e){}
+    });
+
+    btnClearHistory.addEventListener("click", ()=>{
+      if(!confirm("Clear conversation history (console log)?")) return;
+      conversation = [];
+      saveJSON(KEY_CONV, conversation);
+      toastConsole("Conversation history cleared.");
+      renderConsole();
+      renderHistoryBox();
+    });
+
+    async function doSend(){
       const text = elInput.value.trim();
       if(!text) return;
       elInput.value = "";
-      elSend.disabled = true;
-
-      addMessage("user",text);
-      logHistory("user",text);
-
-      updateStateFromUserText(text,false,false);
-      respondLocally(text);
+      addMsg("user", text);
+      await respond(text);
     }
+
+    elSend.addEventListener("click", doSend);
+    elInput.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){
+        e.preventDefault();
+        doSend();
+      }
+    });
 
     /* init */
     loadAll();
