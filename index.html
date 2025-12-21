@@ -173,10 +173,11 @@
       background:rgba(2,6,23,.45);
     }
 
+    /* Conversation bubbles are disabled now */
     .messages{
-      max-height:220px;
-      overflow:auto;
-      padding-right:6px;
+      max-height:0;
+      overflow:hidden;
+      display:none;
     }
 
     .msg{
@@ -187,22 +188,8 @@
       max-width:86%;
       line-height:1.4;
     }
-    .user{
-      background:linear-gradient(90deg, rgba(14,165,233,.80), rgba(34,211,238,.55));
-      color:#0b1220;
-      font-weight:700;
-      float:right;
-      clear:both;
-      border:1px solid rgba(125,211,252,.30);
-      box-shadow:0 10px 25px rgba(14,165,233,.15);
-    }
-    .bot{
-      background:rgba(15,23,42,.65);
-      border:1px solid rgba(148,163,184,.20);
-      color:#e5e7eb;
-      float:left;
-      clear:both;
-    }
+    .user{background:transparent;}
+    .bot {background:transparent;}
 
     /* NEW: live capsule line above input */
     .liveCapsule{
@@ -608,14 +595,12 @@
       .metric .v{font-size:24px}
       .console{height:240px}
       .send{min-width:82px}
-      .messages{max-height:240px}
     }
     @media (max-width: 420px){
       .brand{font-size:22px}
       .pill{font-size:14px}
       .ethic{font-size:13px}
       .console{height:260px}
-      .messages{max-height:240px}
       .liveCapsule{font-size:11px}
     }
   </style>
@@ -695,7 +680,7 @@
               </div>
             </div>
 
-            <!-- Hidden metrics row (kept for logic, not visible) -->
+            <!-- Hidden metrics row (logic only) -->
             <div class="metricsGrid">
               <div class="metric">
                 <div class="v" id="mE0">0.000</div>
@@ -724,7 +709,6 @@
           <div class="chatWrap">
             <div class="messages" id="messages"></div>
 
-            <!-- live metrics capsule -->
             <div class="liveCapsule" id="liveCapsule">
               <span><b>E0</b>: <span id="cE0">0.000</span></span>
               <span>·</span>
@@ -751,7 +735,8 @@
     </div>
   </div>
 
-  <!-- Options (Faith lens window) -->
+  <!-- (all modals same as previous answer – Options, Intel, Seed, LLM, BM, History, Identity) -->
+  <!-- ==== Options Modal ==== -->
   <div class="modalOverlay" id="modalOptions">
     <div class="modal">
       <div class="modalHeader">
@@ -1002,7 +987,7 @@
 
   <script>
     /* ==============================
-       Logic (CodeX) + Code2 Answers
+       Logic + self-learning with YES/NO
        ============================== */
 
     const KEY_INTEL = "aurax_intelligence_nodes_v4";
@@ -1054,8 +1039,10 @@
       userName: ""
     };
 
-    // pending self-learning question: next user message will be its answer
-    let teachPendingQuestion = null;
+    // self-learning state
+    // modes: null, "teachNew_answer", "teachNew_confirm", "correct_answer", "correct_confirm"
+    let learnState = null;
+    let lastQA = null;
 
     const elMsgs = document.getElementById("messages");
     const elInput = document.getElementById("userInput");
@@ -1066,17 +1053,14 @@
     const elBM = document.getElementById("mBM");
     const elCont = document.getElementById("mCont");
 
-    // capsule values
     const cE0 = document.getElementById("cE0");
     const cTM = document.getElementById("cTM");
     const cBM = document.getElementById("cBM");
     const cCont = document.getElementById("cCont");
 
-    // options button + menu
     const btnOptions = document.getElementById("btnOptions");
     const optionsMenu = document.getElementById("optionsMenu");
 
-    // menu items
     const miVoice = document.getElementById("miVoice");
     const miIntel = document.getElementById("miIntel");
     const miSeed  = document.getElementById("miSeed");
@@ -1123,18 +1107,15 @@
     const apiKey = document.getElementById("apiKey");
     const btnSaveLLM = document.getElementById("btnSaveLLM");
 
-    // BM recall elements
     const bmSearch = document.getElementById("bmSearch");
     const bmList = document.getElementById("bmList");
     const btnCopyBestBM = document.getElementById("btnCopyBestBM");
     const btnClearBMUnlocked = document.getElementById("btnClearBMUnlocked");
 
-    // History elements
     const historyBox = document.getElementById("historyBox");
     const btnCopyHistory = document.getElementById("btnCopyHistory");
     const btnClearHistory = document.getElementById("btnClearHistory");
 
-    // Identity inputs
     const idAiName = document.getElementById("idAiName");
     const idAiCreator = document.getElementById("idAiCreator");
     const idAiPlace = document.getElementById("idAiPlace");
@@ -1143,7 +1124,7 @@
     const btnSaveIdentity = document.getElementById("btnSaveIdentity");
 
     const now = () => Date.now();
-    let sessionStart = now(); // UI should show only messages of this session in console
+    let sessionStart = now();
 
     const fmt3 = (x) => (Math.round(x*1000)/1000).toFixed(3);
     const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
@@ -1182,7 +1163,6 @@
     }
 
     function renderConsole(){
-      // show only this-session messages in console UI
       const sessionMsgs = (conversation||[]).filter(m => (m.t || 0) >= sessionStart);
       if(!sessionMsgs.length){
         elConsole.textContent = "";
@@ -1205,16 +1185,9 @@
     }
 
     function addMsg(role, text){
-      const div = document.createElement("div");
-      div.className = `msg ${role==="user" ? "user" : "bot"}`;
-      div.textContent = text;
-      elMsgs.appendChild(div);
-      elMsgs.scrollTop = elMsgs.scrollHeight;
-
       conversation.push({role, text, t: now()});
       saveJSON(KEY_CONV, conversation);
       renderConsole();
-      renderHistoryBox();
     }
 
     function speak(text){
@@ -1486,7 +1459,6 @@ Text: """${text}"""`;
     async function respond(userText){
       const ana = await offlineAnalyze(userText);
 
-      // 1) intelligence first
       const intelHit = findIntelAnswer(userText);
       let answer = null;
       let usedLLM = false;
@@ -1494,7 +1466,6 @@ Text: """${text}"""`;
       if(intelHit){
         answer = intelHit.a;
       } else {
-        // 2) offline LLM answer if available
         if(offlineEngine.ready && offlineEngine.engine){
           try{
             const prompt = `You are AURA-X Ω, an offline emotional continuity engine assistant.
@@ -1509,15 +1480,14 @@ Answer concisely and kindly. User: ${userText}`;
           }catch(e){ answer = null; }
         }
 
-        // 3) optional online
         if(!answer){
           const online = await onlineAnswer(userText);
           if(online){ usedLLM = true; answer = online; }
         }
 
-        // 4) اگر پھر بھی جواب نہیں تو self-learning موڈ
         if(!answer){
-          teachPendingQuestion = userText;
+          // unknown answer => self-learning: ask user for ideal answer, then confirm yes/no
+          learnState = {mode:"teachNew_answer", question:userText};
 
           recordBMIfNeeded(userText, ana.polarity, ana.intensity);
 
@@ -1528,22 +1498,22 @@ Answer concisely and kindly. User: ${userText}`;
           );
           animateMetricsTo({ E0: calcTeach.E0, TM: calcTeach.TMv, BM: calcTeach.BMv, continuity: contTeach });
 
-          const teachMsg = "I don't know this clearly yet. Please type the ideal answer you want me to remember for this question.";
+          const teachMsg = "I don't know this clearly yet. Please type the ideal answer you want me to use next time for this question.";
           addMsg("assistant", teachMsg);
           speak(teachMsg);
           return;
         }
 
-        // 5) self-learning from LLM answer (اگر allowed)
         if(cfg.learningOn){
           upsertIntel(userText, answer, {polarity: ana.polarity, intensity: ana.intensity});
         }
       }
 
-      // BM record
+      // we have an answer
+      lastQA = {q:userText, a:answer};
+
       recordBMIfNeeded(userText, ana.polarity, ana.intensity);
 
-      // formula + metrics
       const calc = computeE0(userText, !!intelHit, usedLLM);
       const contTarget = clamp(
         0.78 + (bm.length ? Math.min(0.18, bm.length/2000) : 0) - (ana.polarity==="negative" ? 0.04 : 0),
@@ -1641,7 +1611,6 @@ Answer concisely and kindly. User: ${userText}`;
       optionsMenu.classList.toggle("show", willShow);
     }
 
-    /* ===== Identity helpers ===== */
     function loadIdentity(){
       const saved = loadJSON(KEY_ID, null);
       if(saved) Object.assign(identity, saved);
@@ -1678,7 +1647,6 @@ Answer concisely and kindly. User: ${userText}`;
       });
     }
 
-    /* ===== BM Recall ===== */
     function isLongBMItem(text){
       return (text || "").trim().length >= 220;
     }
@@ -1773,7 +1741,6 @@ Answer concisely and kindly. User: ${userText}`;
       return longItems[0] || null;
     }
 
-    /* ===== History ===== */
     function renderHistoryBox(){
       const lines = (conversation||[]).map(m=>{
         if(m.role==="user") return `YOU: ${m.text}`;
@@ -1815,7 +1782,6 @@ Answer concisely and kindly. User: ${userText}`;
       conversation = loadJSON(KEY_CONV, []);
       if(!Array.isArray(conversation)) conversation = [];
 
-      // sync UI
       voicePill.textContent = cfg.voiceOn ? "ON" : "OFF";
       voicePill.className = cfg.voiceOn ? "pillOn" : "pillOff";
       learnPill.textContent = cfg.learningOn ? "ON" : "OFF";
@@ -1835,17 +1801,14 @@ Answer concisely and kindly. User: ${userText}`;
 
       pruneBMByRetention();
 
-      // identity profile fields
       idAiName.value = identity.aiName || "";
       idAiCreator.value = identity.aiCreator || "";
       idAiPlace.value = identity.aiPlace || "";
       idAiBirth.value = identity.aiBirth || "";
       idUserName.value = identity.userName || "";
 
-      // make sure identity-related answers exist
       ensureIdentityIntel();
 
-      // history box shows full old TM log; console stays empty until new session msgs
       renderIntelList();
       renderBMList();
       renderHistoryBox();
@@ -1853,14 +1816,11 @@ Answer concisely and kindly. User: ${userText}`;
       renderConsole();
     }
 
-    /* ========= Events ========= */
-
     btnOptions.addEventListener("click", (e)=>{
       e.preventDefault();
       toggleOptionsMenu();
     });
 
-    // Outside tap closes options menu
     document.addEventListener("pointerdown", (e)=>{
       if(optionsMenu.classList.contains("show")){
         const inside = optionsMenu.contains(e.target) || btnOptions.contains(e.target);
@@ -2024,7 +1984,6 @@ Answer concisely and kindly. User: ${userText}`;
       toastConsole("Saved online LLM settings.");
     });
 
-    // BM recall events
     bmSearch.addEventListener("input", ()=>{
       renderBMList(bmSearch.value);
     });
@@ -2048,7 +2007,6 @@ Answer concisely and kindly. User: ${userText}`;
       updateMetrics();
     });
 
-    // history events
     btnCopyHistory.addEventListener("click", async ()=>{
       const lines = (conversation||[]).map(m=>{
         if(m.role==="user") return `YOU: ${m.text}`;
@@ -2067,7 +2025,6 @@ Answer concisely and kindly. User: ${userText}`;
       renderHistoryBox();
     });
 
-    // Identity save
     btnSaveIdentity.addEventListener("click", ()=>{
       identity.aiName = idAiName.value.trim() || "AURA-X Ω";
       identity.aiCreator = idAiCreator.value.trim() || "Alim ul Haq";
@@ -2084,28 +2041,86 @@ Answer concisely and kindly. User: ${userText}`;
       const text = elInput.value.trim();
       if(!text) return;
       elInput.value = "";
+
       addMsg("user", text);
+      const lower = text.toLowerCase();
 
-      // اگر پہلے سوال کیلئے self-learning on ہے تو یہ message اس کا جواب بنے گا
-      if(teachPendingQuestion){
-        const q = teachPendingQuestion;
-        teachPendingQuestion = null;
+      // اگر self-learning state چل رہا ہے
+      if(learnState){
+        if(learnState.mode === "teachNew_answer"){
+          learnState.candidate = text;
+          const msg = "Should I save this as the correct answer for that question? Please reply with 'yes' or 'no'.";
+          addMsg("assistant", msg);
+          speak(msg);
+          learnState.mode = "teachNew_confirm";
+          return;
+        }
+        if(learnState.mode === "teachNew_confirm"){
+          if(lower.startsWith("y")){
+            const ana = await offlineAnalyze(learnState.candidate || "");
+            upsertIntel(learnState.question, learnState.candidate || "", {polarity: ana.polarity, intensity: ana.intensity});
+            recordBMIfNeeded(learnState.candidate || "", ana.polarity, ana.intensity);
+            const calc = computeE0(learnState.candidate || "", true, false);
+            const cont = clamp(
+              0.78 + (bm.length ? Math.min(0.18,bm.length/2000) : 0) - (ana.polarity==="negative" ? 0.04 : 0),
+              0.55, 0.97
+            );
+            animateMetricsTo({E0:calc.E0, TM:calc.TMv, BM:calc.BMv, continuity:cont});
+            const msg = "Thank you. I have stored this answer and will remember it next time.";
+            addMsg("assistant", msg);
+            speak(msg);
+          } else {
+            const msg = "Okay, I will not save that answer.";
+            addMsg("assistant", msg);
+            speak(msg);
+          }
+          learnState = null;
+          return;
+        }
+        if(learnState.mode === "correct_answer"){
+          learnState.candidate = text;
+          const msg = "Should I save this as the corrected answer for that question? Please reply with 'yes' or 'no'.";
+          addMsg("assistant", msg);
+          speak(msg);
+          learnState.mode = "correct_confirm";
+          return;
+        }
+        if(learnState.mode === "correct_confirm"){
+          if(lower.startsWith("y")){
+            const ana = await offlineAnalyze(learnState.candidate || "");
+            upsertIntel(learnState.question, learnState.candidate || "", {polarity: ana.polarity, intensity: ana.intensity});
+            recordBMIfNeeded(learnState.candidate || "", ana.polarity, ana.intensity);
+            const calc = computeE0(learnState.candidate || "", true, false);
+            const cont = clamp(
+              0.78 + (bm.length ? Math.min(0.18,bm.length/2000) : 0) - (ana.polarity==="negative" ? 0.04 : 0),
+              0.55, 0.97
+            );
+            animateMetricsTo({E0:calc.E0, TM:calc.TMv, BM:calc.BMv, continuity:cont});
+            const msg = "Thank you. I have updated my memory with your corrected answer.";
+            addMsg("assistant", msg);
+            speak(msg);
+          } else {
+            const msg = "Okay, I will keep my previous answer and discard this correction.";
+            addMsg("assistant", msg);
+            speak(msg);
+          }
+          learnState = null;
+          return;
+        }
+      }
 
-        const anaAns = await offlineAnalyze(text);
-        upsertIntel(q, text, {polarity: anaAns.polarity, intensity: anaAns.intensity});
-
-        recordBMIfNeeded(text, anaAns.polarity, anaAns.intensity);
-
-        const calc = computeE0(text, false, false);
-        const contTarget = clamp(
-          0.78 + (bm.length ? Math.min(0.18, bm.length/2000) : 0) - (anaAns.polarity==="negative" ? 0.04 : 0),
-          0.55, 0.97
-        );
-        animateMetricsTo({ E0: calc.E0, TM: calc.TMv, BM: calc.BMv, continuity: contTarget });
-
-        const confirm = "Thank you. I have stored this answer and will remember it next time you ask this question.";
-        addMsg("assistant", confirm);
-        speak(confirm);
+      // special command: *incorrect
+      if(lower === "*incorrect"){
+        if(lastQA && lastQA.q){
+          const msg = "Understood. Please type the correct answer you want me to use next time when you ask that question.";
+          addMsg("assistant", msg);
+          speak(msg);
+          learnState = {mode:"correct_answer", question:lastQA.q};
+        } else {
+          const msg = "I don't have any recent answer to correct. Please ask a question first, then send *incorrect if my answer is wrong.";
+          addMsg("assistant", msg);
+          speak(msg);
+        }
         return;
       }
 
@@ -2120,7 +2135,6 @@ Answer concisely and kindly. User: ${userText}`;
       }
     });
 
-    /* init */
     loadAll();
   </script>
 </body>
