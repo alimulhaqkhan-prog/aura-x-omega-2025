@@ -661,11 +661,11 @@
     </div>
   </div>
 
-  <!-- Seed -->
+  <!-- Seed + Logic Pack -->
   <div class="modalOverlay" id="modalSeed">
     <div class="modal">
       <div class="modalHeader">
-        <div>🌱 Feed the seed (protected)<br><small>Add LaTeX Q → A blocks directly into intelligence memory.</small></div>
+        <div>🌱 Feed the seed<br><small>Add LaTeX Q → A blocks and optional Logic Pack.</small></div>
         <button class="closeX" data-close="modalSeed">×</button>
       </div>
       <div class="modalBody">
@@ -683,6 +683,31 @@
             <button class="btn btnBlue" id="btnSaveSeed">Save to seed</button>
             <button class="btn btnRed" id="btnDiscardSeed">Discard</button>
           </div>
+        </div>
+
+        <!-- Logic Pack Section -->
+        <hr style="margin:14px 0;border:none;border-top:1px dashed rgba(15,23,42,.18);" />
+        <div style="font-weight:800;font-size:13px;margin-bottom:6px;">🧩 Logic Pack (JSON rules – advanced)</div>
+        <div style="font-size:12px;opacity:.75;line-height:1.4;margin-bottom:6px;">
+          Here you can store behaviour rules as JSON. A saved logic pack never auto-deletes.
+          It is only removed manually with double confirmation. You can also copy it with its serial
+          number for future prototypes or Android APK builds.
+        </div>
+        <textarea id="logicBox"
+          style="width:100%;min-height:130px;resize:vertical;border-radius:14px;border:2px solid rgba(15,23,42,.18);padding:10px;font-size:13px;outline:none;background:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;"
+          placeholder='{"cooldown":{"hits":3,"seconds":10},"abuseWords":["stfu","idiot"],"faithSoftener":true}'>
+        </textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
+          <div style="font-size:12px;opacity:.7" id="logicHint">No logic pack loaded.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btnBlue" id="btnValidateLogic">Validate</button>
+            <button class="btn btnBlue" id="btnSaveLogic">Save</button>
+            <button class="btn btnBlue" id="btnCopyLogic">Copy</button>
+            <button class="btn btnRed" id="btnDeleteLogic">Delete</button>
+          </div>
+        </div>
+        <div style="margin-top:6px;font-size:11px;opacity:.6;">
+          Current serial: <span id="logicSerial">none</span>
         </div>
       </div>
     </div>
@@ -877,6 +902,7 @@
       const KEY_BM    = "aurax_bm_v11";
       const KEY_HIST  = "aurax_hist_v11";
       const KEY_USER  = "aurax_user_v11";
+      const KEY_LOGIC = "aurax_logic_v11";
       const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
 
       const els = {
@@ -928,6 +954,15 @@
         btnParseSeed: document.getElementById("btnParseSeed"),
         btnSaveSeed: document.getElementById("btnSaveSeed"),
         btnDiscardSeed: document.getElementById("btnDiscardSeed"),
+        // Logic pack
+        logicBox: document.getElementById("logicBox"),
+        logicHint: document.getElementById("logicHint"),
+        logicSerial: document.getElementById("logicSerial"),
+        btnValidateLogic: document.getElementById("btnValidateLogic"),
+        btnSaveLogic: document.getElementById("btnSaveLogic"),
+        btnCopyLogic: document.getElementById("btnCopyLogic"),
+        btnDeleteLogic: document.getElementById("btnDeleteLogic"),
+
         modalLLM: document.getElementById("modalLLM"),
         btnLoadOffline: document.getElementById("btnLoadOffline"),
         offlineStatus: document.getElementById("offlineStatus"),
@@ -1049,7 +1084,11 @@
         lastStoryInput: null,
         lastStoryBMId: null,
         faithBubbleTimer: null,
-        currentFaithArticle: null
+        currentFaithArticle: null,
+        logicPack: null,
+        abuseCount: 0,
+        cooldownUntil: 0,
+        mode: "adult"
       };
 
       function safeLoadJSON(key, fallback) {
@@ -1086,6 +1125,14 @@
 
       function saveUserIdentity() {
         localStorage.setItem(KEY_USER, JSON.stringify(state.userIdentity));
+      }
+
+      function persistLogicPack() {
+        if (!state.logicPack) {
+          localStorage.removeItem(KEY_LOGIC);
+        } else {
+          localStorage.setItem(KEY_LOGIC, JSON.stringify(state.logicPack));
+        }
       }
 
       function logLine(text) {
@@ -1591,6 +1638,34 @@
         }
       }
 
+      function reactionText(base){
+        if (state.mode === "teen") {
+          return base
+            .replace("I won’t accept insults.", "Let’s be kind, okay?")
+            .replace("I won’t engage with abuse.", "Let’s keep it respectful, okay?")
+            .replace("I can’t support hate toward any group.", "Let’s not target people. Tell me what happened.");
+        }
+        return base;
+      }
+
+      function faithSoftener(){
+        if (!state.faithSelection || !state.faithSelection.length) return "";
+        return " (Let’s keep words gentle and respectful.)";
+      }
+
+      function detectAbuse(text){
+        const t = (text||"").toLowerCase();
+        const patterns = [
+          "stfu", "f u", "fu", "fk you", "f***", "idiot", "dumb",
+          "go to hell", "trash", "garbage", "kill them all"
+        ];
+        const hateTargets = ["muslims","hindus","jews","christians","sikhs","buddhists"];
+        const hitBasic = patterns.some(p => t.includes(p));
+        const hitHate  = t.includes("i hate") && hateTargets.some(g => t.includes(g));
+        const hitViolence = t.includes("kill") && (t.includes("them") || t.includes("all"));
+        return { hit: hitBasic || hitHate || hitViolence, hate: hitHate, violence: hitViolence };
+      }
+
       async function generateAnswer(text) {
         let intelBoost = 0;
         let llmBoost = 0;
@@ -1601,25 +1676,36 @@
           if (state.learningOn) {
             addLearningFromMatch(best.item, text);
           }
-          return { answer: best.item.a, source: "INTEL", intelBoost, llmBoost };
+          let ans = best.item.a;
+          ans = reactionText(ans);
+          ans = ans + faithSoftener();
+          return { answer: ans, source: "INTEL", intelBoost, llmBoost };
         }
 
         if (state.offlineReady && state.offlineEngine) {
           const offline = await callOfflineLLM(text);
           if (offline) {
             llmBoost = 0.3;
-            return { answer: offline, source: "OFFLINE", intelBoost, llmBoost };
+            let ans = offline;
+            ans = reactionText(ans);
+            ans = ans + faithSoftener();
+            return { answer: ans, source: "OFFLINE", intelBoost, llmBoost };
           }
         }
 
         const online = await callOnlineLLM(text);
         if (online) {
           llmBoost = 0.35;
-          return { answer: online, source: "ONLINE", intelBoost, llmBoost };
+          let ans = online;
+          ans = reactionText(ans);
+          ans = ans + faithSoftener();
+          return { answer: ans, source: "ONLINE", intelBoost, llmBoost };
         }
 
-        const fallback =
+        let fallback =
           "I heard you, but my LLM engines are offline. Configure LLM or teach me via Intelligence for better answers.";
+        fallback = reactionText(fallback);
+        fallback = fallback + faithSoftener();
         return { answer: fallback, source: "BASIC", intelBoost, llmBoost };
       }
 
@@ -1721,6 +1807,15 @@
       async function handleUserMessage() {
         const text = (els.userInput.value || "").trim();
         if (!text) return;
+
+        const now = Date.now();
+        if (state.cooldownUntil && now < state.cooldownUntil) {
+          const sec = Math.ceil((state.cooldownUntil - now)/1000);
+          logLine("AURA-X Ω: Please wait " + sec + "s. Let’s restart calmly.");
+          speakText("Please wait. Let's restart calmly.");
+          return;
+        }
+
         els.userInput.value = "";
         addHistory("user", text);
         renderHistoryBox();
@@ -1728,6 +1823,20 @@
         state.metrics.TM = scoreTM(text);
         recomputeBMMetric();
         updateCapsule();
+
+        const abuse = detectAbuse(text);
+        if (abuse.hit) {
+          state.abuseCount = (state.abuseCount || 0) + 1;
+          if (state.abuseCount >= 3) {
+            state.cooldownUntil = Date.now() + 10_000;
+            state.abuseCount = 0;
+            logLine("AURA-X Ω: Cooldown activated for 10 seconds. I’ll help when we stay respectful.");
+            speakText("Cooldown activated. I will help when we stay respectful.");
+            return;
+          }
+        } else {
+          state.abuseCount = Math.max(0, (state.abuseCount || 0) - 1);
+        }
 
         const { answer, source, intelBoost, llmBoost } = await generateAnswer(text);
         state.lastAnswerSource = source;
@@ -1737,7 +1846,6 @@
         renderHistoryBox();
         logLine("AURA-X Ω (" + source + "): " + answer);
 
-        // voice for main answer
         speakText(answer);
 
         maybeTriggerFaithBubble(text, answer);
@@ -1795,17 +1903,38 @@
         if (state.apiConfig.key) els.apiKey.value = state.apiConfig.key;
       }
 
+      function refreshLogicUI() {
+        if (!els.logicBox || !els.logicHint || !els.logicSerial) return;
+        if (!state.logicPack) {
+          els.logicBox.value = "";
+          els.logicHint.textContent = "No logic pack loaded.";
+          els.logicSerial.textContent = "none";
+        } else {
+          els.logicBox.value = JSON.stringify(state.logicPack.rules, null, 2);
+          els.logicHint.textContent = "Loaded serial " + state.logicPack.serial + ". You can edit and re-validate.";
+          els.logicSerial.textContent = state.logicPack.serial;
+        }
+      }
+
       function initFromStorage() {
         const cfg = safeLoadJSON(KEY_CFG, null);
         const intel = safeLoadJSON(KEY_INT, []);
         const bm = safeLoadJSON(KEY_BM, []);
         const hist = safeLoadJSON(KEY_HIST, []);
         const user = safeLoadJSON(KEY_USER, null);
+        const logic = safeLoadJSON(KEY_LOGIC, null);
+
         if (cfg) applyConfigToUI(cfg);
         state.intelligence = Array.isArray(intel) ? intel : [];
         state.bmPrompts = Array.isArray(bm) ? bm : [];
         state.history = Array.isArray(hist) ? hist : [];
         state.userIdentity = user;
+        if (logic && logic.serial && logic.rules) {
+          state.logicPack = logic;
+        } else {
+          state.logicPack = null;
+        }
+
         renderFaithChips();
         renderIntelList();
         renderBMList();
@@ -1814,6 +1943,7 @@
         setIdentityEditable(false);
         recomputeBMMetric();
         updateCapsule();
+        refreshLogicUI();
       }
 
       // EVENT WIRING
@@ -1885,6 +2015,82 @@
       els.btnParseSeed.addEventListener("click", parseSeedBlock);
       els.btnSaveSeed.addEventListener("click", saveParsedSeed);
       els.btnDiscardSeed.addEventListener("click", discardSeed);
+
+      // Logic pack events
+      if (els.btnValidateLogic) {
+        els.btnValidateLogic.addEventListener("click", () => {
+          const raw = els.logicBox.value || "";
+          if (!raw.trim()) {
+            els.logicHint.textContent = "Nothing to validate.";
+            return;
+          }
+          try {
+            const obj = JSON.parse(raw);
+            const keys = Object.keys(obj || {});
+            els.logicHint.textContent = "Valid JSON with " + keys.length + " root key(s).";
+          } catch (e) {
+            els.logicHint.textContent = "Invalid JSON: " + e.message;
+          }
+        });
+      }
+
+      if (els.btnSaveLogic) {
+        els.btnSaveLogic.addEventListener("click", () => {
+          const raw = els.logicBox.value || "";
+          if (!raw.trim()) {
+            els.logicHint.textContent = "Nothing to save.";
+            return;
+          }
+          let obj;
+          try {
+            obj = JSON.parse(raw);
+          } catch (e) {
+            els.logicHint.textContent = "Invalid JSON: " + e.message;
+            return;
+          }
+          if (!confirm("Save this logic pack? It will control behaviour until you delete it.")) return;
+          const serial = "LP-" + new Date().toISOString().replace(/[-:.TZ]/g,"").slice(0,14);
+          state.logicPack = { serial, rules: obj, ts: Date.now() };
+          persistLogicPack();
+          els.logicHint.textContent = "Logic pack saved with serial " + serial + ".";
+          els.logicSerial.textContent = serial;
+        });
+      }
+
+      if (els.btnCopyLogic) {
+        els.btnCopyLogic.addEventListener("click", () => {
+          if (state.logicPack) {
+            const exportText = "// Serial: " + state.logicPack.serial + "\n" +
+              JSON.stringify(state.logicPack.rules, null, 2);
+            copyTextToClipboard(exportText);
+            els.logicHint.textContent = "Logic pack copied with serial.";
+          } else {
+            const raw = els.logicBox.value || "";
+            if (!raw.trim()) {
+              els.logicHint.textContent = "Nothing to copy.";
+              return;
+            }
+            copyTextToClipboard(raw);
+            els.logicHint.textContent = "Current text copied (no stored serial).";
+          }
+        });
+      }
+
+      if (els.btnDeleteLogic) {
+        els.btnDeleteLogic.addEventListener("click", () => {
+          if (!state.logicPack && !(els.logicBox.value||"").trim()) {
+            els.logicHint.textContent = "No logic pack to delete.";
+            return;
+          }
+          if (!confirm("Delete stored logic pack?")) return;
+          if (!confirm("Are you sure? This cannot be undone.")) return;
+          state.logicPack = null;
+          localStorage.removeItem(KEY_LOGIC);
+          els.logicBox.value = "";
+          els.logicHint.textContent = "Logic pack deleted.";
+          els.logicSerial.textContent = "none";
+        });
+      }
 
       els.btnLoadOffline.addEventListener("click", initOfflineEngine);
       els.btnSaveLLM.addEventListener("click", () => {
@@ -2008,7 +2214,7 @@
       });
 
       initFromStorage();
-      // کوئی auto-message نہیں، screen clean رہے گی
+      // Refresh پر کوئی "ready" message نہیں — screen clean رہے گی۔
     });
   </script>
 </body>
