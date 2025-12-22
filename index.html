@@ -160,7 +160,7 @@
     }
     .liveCapsule b{ color:#7dd3fc; font-weight:900 }
 
-    /* Faith Bubble */
+    /* Small inline faith bubble in chat area */
     .faithBubble{
       margin:4px 0 10px;
       padding:8px 10px;
@@ -441,7 +441,6 @@
       justify-content:flex-start;
     }
 
-    /* Intelligence edit fields */
     .intelEditInput, .intelEditArea{
       width:100%;
       border-radius:12px;
@@ -768,6 +767,7 @@
               <div class="bmSub" id="bmMeta"></div>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+              <button class="btn btnBlue" id="btnLiveBM">Live 12h: off</button>
               <button class="btn btnBlue" id="btnUnlockBM" style="display:none;">Unlock</button>
             </div>
           </div>
@@ -801,7 +801,7 @@
     </div>
   </div>
 
-  <!-- Identity (deep profiling – simplified but structured) -->
+  <!-- Identity -->
   <div class="modalOverlay" id="modalIdentity">
     <div class="modal">
       <div class="modalHeader">
@@ -820,7 +820,6 @@
           <button class="btn btnRed" id="btnDeleteUserIdentity">Delete</button>
         </div>
 
-        <!-- Part 1 -->
         <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 1 – Biological & social baseline</div>
         <div style="margin-top:8px;">
           <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Full legal name</label>
@@ -859,13 +858,11 @@
           </div>
         </div>
 
-        <!-- Part 2 -->
         <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 2 – Emotional style & thinking</div>
         <textarea id="uEmotionalStyle"
           style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:90px;"
           placeholder="How do you usually react under stress, joy, fear, success? What is your thinking style (logical, intuitive, spiritual, etc.)?"></textarea>
 
-        <!-- Part 3 -->
         <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 3 – Relationships & legacy</div>
         <textarea id="uKeyPeople"
           style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
@@ -885,7 +882,7 @@
       const KEY_BM    = "aurax_bm_v10";
       const KEY_HIST  = "aurax_hist_v10";
       const KEY_USER  = "aurax_user_v10";
-      const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC"; // change to your small model if needed
+      const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
 
       const els = {
         console: document.getElementById("console"),
@@ -909,12 +906,10 @@
         cCont: document.getElementById("cCont"),
         userInput: document.getElementById("userInput"),
         sendBtn: document.getElementById("sendBtn"),
-        // faith bubble
         faithBubble: document.getElementById("faithBubble"),
         faithBubbleTitle: document.getElementById("faithBubbleTitle"),
         faithBubbleMeta: document.getElementById("faithBubbleMeta"),
         faithBubbleClose: document.getElementById("faithBubbleClose"),
-        // faith modals
         modalFaith: document.getElementById("modalFaith"),
         faithChips: document.getElementById("faithChips"),
         modalFaithArticle: document.getElementById("modalFaithArticle"),
@@ -924,7 +919,6 @@
         btnCopyFaithArticle: document.getElementById("btnCopyFaithArticle"),
         btnAddFaithToBM: document.getElementById("btnAddFaithToBM"),
         btnSkipFaithBM: document.getElementById("btnSkipFaithBM"),
-        // intelligence
         modalIntel: document.getElementById("modalIntel"),
         intelSearch: document.getElementById("intelSearch"),
         intelList: document.getElementById("intelList"),
@@ -933,14 +927,12 @@
         intelEditA: document.getElementById("intelEditA"),
         btnIntelSave: document.getElementById("btnIntelSave"),
         btnIntelCancel: document.getElementById("btnIntelCancel"),
-        // seed
         modalSeed: document.getElementById("modalSeed"),
         seedBox: document.getElementById("seedBox"),
         seedHint: document.getElementById("seedHint"),
         btnParseSeed: document.getElementById("btnParseSeed"),
         btnSaveSeed: document.getElementById("btnSaveSeed"),
         btnDiscardSeed: document.getElementById("btnDiscardSeed"),
-        // LLM
         modalLLM: document.getElementById("modalLLM"),
         btnLoadOffline: document.getElementById("btnLoadOffline"),
         offlineStatus: document.getElementById("offlineStatus"),
@@ -949,7 +941,6 @@
         apiModel: document.getElementById("apiModel"),
         apiKey: document.getElementById("apiKey"),
         btnSaveLLM: document.getElementById("btnSaveLLM"),
-        // BM
         modalBM: document.getElementById("modalBM"),
         bmSelectList: document.getElementById("bmSelectList"),
         bmViewer: document.getElementById("bmViewer"),
@@ -957,17 +948,16 @@
         bmTitle: document.getElementById("bmTitle"),
         bmMeta: document.getElementById("bmMeta"),
         bmTextArea: document.getElementById("bmTextArea"),
+        btnLiveBM: document.getElementById("btnLiveBM"),
         btnUnlockBM: document.getElementById("btnUnlockBM"),
         btnCopyPrompt: document.getElementById("btnCopyPrompt"),
         btnAutoGen: document.getElementById("btnAutoGen"),
         btnDeletePrompt: document.getElementById("btnDeletePrompt"),
-        // history
         modalHistory: document.getElementById("modalHistory"),
         btnDeleteRecent: document.getElementById("btnDeleteRecent"),
         btnDeleteAllHist: document.getElementById("btnDeleteAllHist"),
         btnCopyHistory: document.getElementById("btnCopyHistory"),
         historyBox: document.getElementById("historyBox"),
-        // identity
         modalIdentity: document.getElementById("modalIdentity"),
         btnEditIdentity: document.getElementById("btnEditIdentity"),
         btnSaveUserIdentity: document.getElementById("btnSaveUserIdentity"),
@@ -991,7 +981,6 @@
         { id: "ethics_only",  label: "Ethics only ☯️" }
       ];
 
-      // Placeholder faith library – you will later replace content with real references
       const FAITH_LIBRARY = {
         islam: [{
           id: "islam_generic",
@@ -1227,6 +1216,7 @@
           els.bmViewer.style.display = "none";
           return;
         }
+        const now = Date.now();
         state.bmPrompts
           .slice()
           .sort((a, b) => b.ts - a.ts)
@@ -1241,7 +1231,12 @@
             meta.style.fontSize = "11px";
             meta.style.opacity = ".7";
             meta.style.marginTop = "2px";
-            meta.textContent = new Date(bm.ts).toLocaleString() + (bm.locked ? " · locked" : " · editable");
+            let metaText = new Date(bm.ts).toLocaleString() +
+              (bm.locked ? " · locked" : " · editable");
+            if (bm.live && bm.liveUntil && bm.liveUntil > now) {
+              metaText += " · live";
+            }
+            meta.textContent = metaText;
             card.appendChild(title);
             card.appendChild(meta);
             card.addEventListener("click", () => openBM(bm.id));
@@ -1257,11 +1252,26 @@
         currentBMId = id;
         els.bmViewer.style.display = "block";
         els.bmTitle.textContent = bm.title || "(untitled story)";
-        els.bmMeta.textContent = new Date(bm.ts).toLocaleString() + (bm.locked ? " · locked" : " · editable");
+        const now = Date.now();
+        let meta = new Date(bm.ts).toLocaleString() +
+          (bm.locked ? " · locked" : " · editable");
+        if (bm.live && bm.liveUntil) {
+          if (bm.liveUntil > now) {
+            meta += " · live until " + new Date(bm.liveUntil).toLocaleTimeString();
+          } else {
+            meta += " · live expired";
+          }
+        }
+        els.bmMeta.textContent = meta;
         els.bmLockIcon.textContent = bm.locked ? "🔒" : "🔓";
         els.bmTextArea.value = bm.text || "";
         els.bmTextArea.readOnly = bm.locked;
         els.btnUnlockBM.style.display = bm.locked ? "inline-flex" : "none";
+        if (bm.live && bm.liveUntil && bm.liveUntil > now) {
+          els.btnLiveBM.textContent = "Live 12h: on";
+        } else {
+          els.btnLiveBM.textContent = "Live 12h: off";
+        }
       }
 
       function ensureBMForLastStory() {
@@ -1275,13 +1285,46 @@
           summary,
           text: state.lastStoryInput,
           locked: true,
-          ts: Date.now()
+          ts: Date.now(),
+          live: false,
+          liveUntil: null
         };
         state.bmPrompts.push(obj);
         state.lastStoryBMId = id;
         saveBM();
         renderBMList();
+        recomputeBMMetric();
+        updateCapsule();
         return id;
+      }
+
+      function getActiveLiveBM() {
+        const now = Date.now();
+        const active = state.bmPrompts.filter(bm => bm.live && bm.liveUntil && bm.liveUntil > now);
+        if (!active.length) return null;
+        active.sort((a, b) => b.ts - a.ts);
+        return active[0];
+      }
+
+      function maybeUpdateLiveBM(userText, answer) {
+        const bm = getActiveLiveBM();
+        if (!bm) return;
+        const trimmed = (userText || "").trim();
+        if (!trimmed) return;
+        if (trimmed.length < 40) return; // skip very short lines
+        const stamp = new Date().toLocaleString();
+        const addition =
+          "\n\n[Update @ " + stamp + "]\n" +
+          "You: " + userText + "\n" +
+          "AURA-X Ω: " + answer;
+        bm.text = (bm.text || "") + addition;
+        bm.summary = (bm.text || "").slice(0, 180);
+        bm.ts = Date.now();
+        saveBM();
+        renderBMList();
+        if (currentBMId === bm.id) {
+          openBM(bm.id);
+        }
       }
 
       function renderIntelList() {
@@ -1509,7 +1552,6 @@
       }
 
       function addLearningFromMatch(item, userQuestion) {
-        // Simple hook: could add variants here later
         void item;
         void userQuestion;
       }
@@ -1646,6 +1688,8 @@
         logLine("[faith] Reflection added under BM story.");
         hideModal("modalFaithArticle");
         els.faithBubble.classList.remove("show");
+        recomputeBMMetric();
+        updateCapsule();
       }
 
       function copyTextToClipboard(text) {
@@ -1654,7 +1698,6 @@
           return;
         }
         navigator.clipboard.writeText(text).then(() => {
-          // silent
         }).catch(() => {});
       }
 
@@ -1678,6 +1721,7 @@
         logLine("AURA-X Ω (" + source + "): " + answer);
 
         maybeTriggerFaithBubble(text, answer);
+        maybeUpdateLiveBM(text, answer);
       }
 
       function setIdentityEditable(editable) {
@@ -1748,6 +1792,7 @@
         renderHistoryBox();
         loadIdentityIntoForm();
         setIdentityEditable(false);
+        recomputeBMMetric();
         updateCapsule();
       }
 
@@ -1843,6 +1888,25 @@
           openBM(currentBMId);
         });
       }
+
+      if (els.btnLiveBM) {
+        els.btnLiveBM.addEventListener("click", () => {
+          if (!currentBMId) return;
+          const bm = state.bmPrompts.find(x => x.id === currentBMId);
+          if (!bm) return;
+          const now = Date.now();
+          if (!bm.live || !bm.liveUntil || bm.liveUntil <= now) {
+            bm.live = true;
+            bm.liveUntil = now + 12 * 60 * 60 * 1000;
+          } else {
+            bm.live = false;
+            bm.liveUntil = null;
+          }
+          saveBM();
+          openBM(currentBMId);
+        });
+      }
+
       els.btnCopyPrompt.addEventListener("click", () => {
         const txt = els.bmTextArea.value || "";
         if (!txt) return;
@@ -1860,6 +1924,8 @@
         renderBMList();
         els.bmViewer.style.display = "none";
         currentBMId = null;
+        recomputeBMMetric();
+        updateCapsule();
       });
 
       els.btnDeleteRecent.addEventListener("click", () => {
@@ -1902,7 +1968,6 @@
         setIdentityEditable(false);
       });
 
-      // Faith bubble listeners
       els.faithBubble.addEventListener("click", (e) => {
         if (e.target === els.faithBubbleClose) {
           els.faithBubble.classList.remove("show");
@@ -1923,7 +1988,7 @@
       });
 
       initFromStorage();
-      logLine("AURA-X Ω ready. TM = your inputs only. Internal continuity & faith bubble layer active.");
+      logLine("AURA-X Ω ready. TM = your inputs only. BM live nodes + faith bubble layer active.");
     });
   </script>
 </body>
