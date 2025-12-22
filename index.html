@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AURA-X Ω – Offline emotional continuity prototype</title>
+  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
+    /* RESET & BASICS */
     *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -16,1414 +18,1076 @@
       min-height:100vh;
       display:flex;
       justify-content:center;
-      align-items:flex-start;
-      padding:20px 10px 40px;
-    }
-
-    /* Theme overrides */
-    body.theme-light{
-      background:linear-gradient(180deg,#f9fafb 0,#e5e7eb 35%,#dbeafe 100%);
-      color:#020617;
-    }
-    body.theme-light .app{
-      background:rgba(255,255,255,0.96);
-      border-color:rgba(148,163,184,.4);
-      box-shadow:0 22px 80px rgba(15,23,42,.24);
-    }
-
-    body.theme-metallic{
-      background:
-        radial-gradient(circle at 10% 0%, #64748b 0, transparent 40%),
-        radial-gradient(circle at 80% 0%, #e5e7eb 0, transparent 45%),
-        linear-gradient(145deg,#020617 0,#020617 40%,#111827 100%);
-    }
-    body.theme-metallic .app{
-      background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(31,41,55,.96));
-      border-color:rgba(148,163,184,.5);
-      box-shadow:0 26px 90px rgba(15,23,42,.6);
-    }
-
-    body.theme-transparent{
-      background:
-        radial-gradient(circle at 20% 0%, #0f172a 0, transparent 45%),
-        radial-gradient(circle at 80% 0%, #0ea5e9 0, transparent 40%),
-        linear-gradient(145deg,#000000 0,#020617 50%,#000000 100%);
-    }
-    body.theme-transparent .app{
-      background:rgba(15,23,42,.35);
-      border-color:rgba(148,163,184,.35);
-      backdrop-filter:blur(18px);
-      box-shadow:0 22px 70px rgba(0,0,0,.8);
+      padding:18px;
     }
 
     .app{
-      width:100%;
-      max-width:750px;
-      background:radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),radial-gradient(circle at 80% 0%, #0ea5e9 0, transparent 40%),linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
-      border-radius:28px;
-      border:1px solid rgba(148,163,184,.35);
-      box-shadow:0 26px 90px rgba(15,23,42,.9);
-      padding:18px 16px 22px;
+      width:min(980px,100%);
+      border-radius:22px;
+      padding:18px 18px 16px;
+      background:rgba(2,6,23,.72);
+      border:1px solid rgba(148,163,184,.18);
+      box-shadow:0 18px 60px rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
       position:relative;
       overflow:hidden;
     }
-    .header{
+
+    .topGlow{
+      position:absolute; inset:-120px -120px auto -120px;
+      height:280px;
+      background: radial-gradient(circle at 30% 30%, rgba(56,189,248,.22), transparent 60%),
+                  radial-gradient(circle at 70% 20%, rgba(99,102,241,.18), transparent 55%);
+      filter: blur(12px);
+      pointer-events:none;
+    }
+
+    header{
+      position:relative;
+      padding:12px 10px 4px;
       text-align:center;
-      margin-bottom:18px;
+      z-index:1;
     }
-    .title{
-      font-size:1.8rem;
-      letter-spacing:.12em;
-      font-weight:650;
-    }
-    .subtitle{
+
+    header h1{
+      font-size:34px;
+      letter-spacing:.6px;
       margin-top:4px;
-      font-size:.8rem;
-      opacity:.78;
-      line-height:1.4;
-    }
-    .ethicBox{
-      margin-top:14px;
-      border-radius:20px;
-      border:1px solid rgba(250,204,21,.7);
-      padding:10px 14px;
-      font-size:.84rem;
-      line-height:1.4;
-      color:#facc15;
-      background:linear-gradient(135deg,rgba(30,64,175,.18),rgba(15,23,42,.9));
-    }
-    .bigBtn{
-      margin-top:16px;
-      width:100%;
-      border-radius:999px;
-      padding:12px 14px;
-      border:none;
-      font-size:1rem;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      font-weight:600;
-      cursor:pointer;
-      background:linear-gradient(135deg,#22c1c3,#0ea5e9);
-      color:#0b1120;
-      box-shadow:0 16px 35px rgba(56,189,248,.55);
-      transition:transform .08s ease,box-shadow .08s ease,filter .1s ease;
-    }
-    .bigBtn:active{
-      transform:translateY(1px);
-      box-shadow:0 10px 22px rgba(56,189,248,.40);
-      filter:brightness(.95);
+      font-weight:900;
+      color:#93c5fd;
+      text-shadow:0 10px 30px rgba(56,189,248,.15);
     }
 
-    .consoleCard{
-      margin-top:16px;
-      border-radius:24px;
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.92) 0,rgba(15,23,42,.98) 55%,rgba(15,23,42,.99) 100%);
-      border:1px solid rgba(30,64,175,.8);
-      padding:14px 12px 10px;
-      position:relative;
-    }
-    .consoleHeader{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:10px;
-    }
-    .consoleTitle{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      font-size:.9rem;
-      font-weight:500;
-    }
-    .chipEngine{
-      font-size:.65rem;
-      padding:3px 8px;
-      border-radius:999px;
-      border:1px solid rgba(56,189,248,.75);
-      background:rgba(15,23,42,.7);
-      color:#7dd3fc;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-    }
-    .btnOptions{
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.50);
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.7),rgba(15,23,42,1));
-      padding:6px 12px;
-      font-size:.82rem;
-      display:flex;
-      align-items:center;
-      gap:6px;
-      cursor:pointer;
-      color:#e5e7eb;
-      box-shadow:0 8px 18px rgba(15,23,42,.7);
-      transition:background .1s ease,transform .08s ease,box-shadow .08s ease;
-    }
-    .btnOptions:active{
-      transform:translateY(1px);
-      box-shadow:0 4px 10px rgba(15,23,42,.6);
-    }
-    .btnOptionsIcon{
-      width:18px;
-      height:18px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .gear{
-      width:15px;
-      height:15px;
-      border-radius:50%;
-      border:2px solid #38bdf8;
-      position:relative;
-      box-shadow:0 0 12px rgba(56,189,248,.7);
-    }
-    .gear:before,.gear:after{
-      content:"";
-      position:absolute;
-      inset:3px;
-      border-radius:999px;
-      border:1px dashed rgba(56,189,248,.75);
-    }
-
-    .console{
-      font-family:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-      font-size:.84rem;
-      line-height:1.5;
-      max-height:260px;
-      overflow:auto;
-      padding:10px 10px 8px;
-      border-radius:16px;
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(2,6,23,1));
-      border:1px solid rgba(30,64,175,.7);
-      box-shadow:inset 0 0 25px rgba(15,23,42,.95);
-      white-space:pre-wrap;
-    }
-    .console::-webkit-scrollbar{
-      width:6px;
-    }
-    .console::-webkit-scrollbar-thumb{
-      background:rgba(51,65,85,.9);
-      border-radius:99px;
-    }
-
-    .optionsMenu{
-      margin-top:10px;
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.96),rgba(15,23,42,.98));
-      border-radius:20px;
-      border:1px solid rgba(15,23,42,1);
-      padding:10px 10px 10px;
-      box-shadow:0 16px 38px rgba(15,23,42,.95);
-      display:none;
-    }
-    .optionsMenu.show{
-      display:block;
-    }
-    .menuItem{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:8px 14px;
-      border-radius:999px;
-      background:rgba(15,23,42,.96);
-      border:1px solid rgba(148,163,184,.18);
-      font-size:.86rem;
-    }
-    .menuItem span:first-child{
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .menuItem span:last-child{
-      font-size:.76rem;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      padding:3px 10px;
-      border-radius:999px;
-      border:1px solid rgba(34,197,94,.6);
-      background:rgba(22,163,74,.16);
-      color:#bbf7d0;
-    }
-    .menuItem:active{
-      transform:scale(.995)
-    }
-    .optionsGrid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-      gap:8px;
+    header p{
       margin-top:8px;
-    }
-    .pillOn{
-      border-color:rgba(34,197,94,.7)!important;
-      background:rgba(22,163,74,.20)!important;
-      color:#bbf7d0!important;
-    }
-    .pillOff{
-      border-color:rgba(248,113,113,.75)!important;
-      background:rgba(127,29,29,.35)!important;
-      color:#fecaca!important;
+      color:#cbd5e1;
+      opacity:.9;
+      font-size:15px;
+      line-height:1.35;
     }
 
-    .metricsRow{
-      margin-top:16px;
-      display:flex;
-      gap:8px;
-      font-family:"JetBrains Mono",ui-monospace,monospace;
-      font-size:.80rem;
-      justify-content:center;
-    }
-    .metricPill{
-      padding:5px 12px;
-      border-radius:999px;
-      border:1px solid rgba(59,130,246,.6);
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.9),rgba(15,23,42,.98));
-      color:#e5e7eb;
-      min-width:0;
-      white-space:nowrap;
-    }
-    .metricLabel{
-      opacity:.6;
-      margin-right:4px;
-      text-transform:uppercase;
-      letter-spacing:.1em;
-      font-size:.65rem;
-    }
-    .metricValue{
-      font-weight:500;
-    }
-
-    .inputRow{
+    .shell{
+      position:relative;
       margin-top:14px;
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,.16);
+      background:rgba(15,23,42,.62);
+      box-shadow: inset 0 0 0 1px rgba(2,6,23,.38);
+      overflow:hidden;
+    }
+
+    .metaCapsule{
       display:flex;
       gap:10px;
-      align-items:center;
-      padding:10px 10px 6px;
-      border-radius:999px;
-      border:1px solid rgba(30,64,175,.8);
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.96),rgba(15,23,42,.99));
-      box-shadow:0 12px 32px rgba(15,23,42,.85);
-    }
-    .inputRow input{
-      flex:1;
-      background:transparent;
-      border:none;
-      color:#e5e7eb;
-      font-size:.92rem;
-      outline:none;
-      padding:4px 2px;
-    }
-    .inputRow input::placeholder{
-      color:rgba(148,163,184,.8);
-    }
-    .btnSend{
-      flex-shrink:0;
-      border-radius:999px;
-      border:none;
-      padding:9px 18px;
-      background:linear-gradient(135deg,#22c1c3,#0ea5e9);
-      color:#020617;
-      font-weight:600;
-      cursor:pointer;
-      box-shadow:0 14px 32px rgba(56,189,248,.7);
-      transition:transform .08s ease,box-shadow .08s ease,filter .08s ease;
-    }
-    .btnSend:active{
-      transform:translateY(1px);
-      box-shadow:0 9px 18px rgba(56,189,248,.55);
-      filter:brightness(.96);
-    }
-
-    .formulaRow{
-      margin-top:12px;
-      padding:10px 10px 8px;
-      border-radius:18px;
-      border:1px dashed rgba(148,163,184,.6);
-      font-family:"JetBrains Mono",ui-monospace,monospace;
-      font-size:.78rem;
-      opacity:.92;
-      text-align:center;
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.95),rgba(15,23,42,.99));
-    }
-    .formulaRow span{
-      color:#e5e7eb;
-    }
-    .formulaRow .lambda{
-      color:#38bdf8;
-    }
-
-    .modalOverlay{
-      position:fixed;
-      inset:0;
-      background:rgba(15,23,42,.75);
-      backdrop-filter:blur(18px);
-      display:none;
-      align-items:center;
       justify-content:center;
-      z-index:40;
-      padding:20px;
-    }
-    .modalOverlay.show{
-      display:flex;
-    }
-    .modal{
-      width:100%;
-      max-width:540px;
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,1),rgba(15,23,42,.98));
-      border-radius:22px;
-      border:1px solid rgba(37,99,235,.8);
-      box-shadow:0 24px 70px rgba(15,23,42,.95);
-      padding:14px 16px 16px;
-    }
-    .modalHeader{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:10px;
-    }
-    .modalTitle{
-      font-size:1rem;
-      font-weight:550;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      opacity:.9;
-    }
-    .closeX{
-      border:none;
-      background:transparent;
-      color:#9ca3af;
-      font-size:1.4rem;
-      cursor:pointer;
-      padding:0 2px;
-    }
-    .closeX:active{
-      transform:scale(.96);
-    }
-    .modalBody{
-      font-size:.9rem;
-      line-height:1.5;
-      max-height:380px;
-      overflow:auto;
-      padding-right:2px;
-    }
-    .modalBody::-webkit-scrollbar{
-      width:6px;
-    }
-    .modalBody::-webkit-scrollbar-thumb{
-      background:rgba(55,65,81,.9);
-      border-radius:99px;
-    }
-    .modalSectionTitle{
-      font-size:.78rem;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      opacity:.7;
-      margin:10px 0 4px;
-    }
-    .chipRow{
-      display:flex;
+      padding:10px 12px 0;
       flex-wrap:wrap;
-      gap:6px;
-      margin-top:6px;
     }
-    .chip{
-      font-size:.78rem;
+
+    .cap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
       border-radius:999px;
-      border:1px solid rgba(148,163,184,.7);
-      background:rgba(15,23,42,.9);
-      padding:5px 10px;
-      cursor:pointer;
+      border:1px solid rgba(148,163,184,.16);
+      background:rgba(2,6,23,.55);
+      color:#e5e7eb;
+      font-size:12px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.18);
+      user-select:none;
     }
-    .chip.active{
-      border-color:rgba(56,189,248,.9);
-      background:rgba(8,47,73,.9);
-      color:#e0f2fe;
-    }
-    .fieldRow{
+
+    .cap strong{color:#a7f3d0}
+
+    .chatWrap{
       display:flex;
       flex-direction:column;
-      gap:4px;
-      margin-top:8px;
-    }
-    .fieldRow label{
-      font-size:.8rem;
-      opacity:.8;
-    }
-    .fieldRow input,.fieldRow textarea{
-      background:rgba(15,23,42,.95);
-      border-radius:12px;
-      border:1px solid rgba(55,65,81,.9);
-      padding:7px 9px;
-      color:#e5e7eb;
-      font-size:.86rem;
-      resize:vertical;
-      min-height:34px;
-    }
-    .fieldRow textarea{
-      min-height:70px;
-    }
-    .modalFooter{
-      margin-top:10px;
-      display:flex;
-      justify-content:flex-end;
-      gap:8px;
-      font-size:.86rem;
-    }
-    .btnGhost{
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.7);
-      padding:6px 12px;
-      background:rgba(15,23,42,.9);
-      color:#e5e7eb;
-      cursor:pointer;
-      font-size:.82rem;
-    }
-    .btnPrimary{
-      border-radius:999px;
-      border:none;
-      padding:7px 14px;
-      background:linear-gradient(135deg,#22c1c3,#0ea5e9);
-      color:#020617;
-      font-weight:550;
-      cursor:pointer;
-      font-size:.82rem;
+      height:420px;
+      padding:12px;
+      gap:10px;
     }
 
-    .tmHistoryWrap{
-      margin-top:6px;
-      border-radius:14px;
-      border:1px solid rgba(55,65,81,.9);
-      background:rgba(15,23,42,.95);
-      padding:8px;
-      font-family:"JetBrains Mono",ui-monospace,monospace;
-      font-size:.78rem;
-      max-height:260px;
+    .chat{
+      flex:1;
       overflow:auto;
+      padding:8px 6px;
+      border-radius:14px;
+      background:rgba(2,6,23,.35);
+      border:1px solid rgba(148,163,184,.12);
     }
-    .tmItem{
-      margin-bottom:6px;
-    }
-    .tmItemRole{
-      font-size:.7rem;
-      opacity:.6;
-      text-transform:uppercase;
-      letter-spacing:.1em;
-    }
-    .tmItemText{
+
+    .msg{
+      max-width:90%;
+      padding:10px 12px;
+      border-radius:14px;
+      margin:10px 0;
+      border:1px solid rgba(148,163,184,.12);
+      line-height:1.35;
+      font-size:14px;
       white-space:pre-wrap;
+      word-wrap:break-word;
     }
 
-    .bmList{
-      margin-top:8px;
-      padding-left:18px;
-      font-size:.86rem;
-    }
-    .bmList li{
-      margin-bottom:6px;
+    .msg.user{
+      margin-left:auto;
+      background:rgba(14,165,233,.12);
+      border-color:rgba(14,165,233,.24);
     }
 
-    .bmActions{
-      margin-top:8px;
+    .msg.bot{
+      margin-right:auto;
+      background:rgba(99,102,241,.10);
+      border-color:rgba(99,102,241,.22);
+    }
+
+    .composer{
       display:flex;
-      flex-wrap:wrap;
-      gap:6px;
+      gap:10px;
+      padding:10px;
+      border-top:1px solid rgba(148,163,184,.14);
+      background:rgba(2,6,23,.55);
+      align-items:flex-end;
     }
-    .bmActions button{
-      font-size:.78rem;
-      padding:4px 10px;
+
+    textarea{
+      flex:1;
+      resize:none;
+      min-height:48px;
+      max-height:140px;
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(15,23,42,.70);
+      color:#e5e7eb;
+      padding:10px 12px;
+      outline:none;
+      font-size:14px;
+      line-height:1.35;
+    }
+
+    textarea:focus{
+      border-color:rgba(56,189,248,.55);
+      box-shadow:0 0 0 3px rgba(56,189,248,.12);
+    }
+
+    .sendBtn{
+      border:none;
+      cursor:pointer;
+      padding:12px 14px;
+      border-radius:14px;
+      background:linear-gradient(135deg, rgba(56,189,248,.92), rgba(99,102,241,.92));
+      color:#0b1020;
+      font-weight:900;
+      box-shadow:0 10px 24px rgba(0,0,0,.25);
+      transition:transform .08s ease;
+      min-width:96px;
+    }
+    .sendBtn:active{transform:scale(.98)}
+    .sendBtn:disabled{opacity:.55; cursor:not-allowed}
+
+    /* TOP LEFT OPTIONS BUTTON */
+    .optionBtn{
+      position:absolute;
+      left:14px;
+      top:14px;
+      z-index:3;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
       border-radius:999px;
-      border:1px solid rgba(148,163,184,.7);
-      background:rgba(15,23,42,.95);
+      background:rgba(2,6,23,.55);
+      border:1px solid rgba(148,163,184,.16);
       color:#e5e7eb;
       cursor:pointer;
+      user-select:none;
+      box-shadow:0 10px 26px rgba(0,0,0,.25);
+    }
+    .optionBtn:active{transform:scale(.99)}
+    .optionBtn span{font-size:13px; font-weight:800; opacity:.95}
+
+    /* MENU PANEL */
+    .menuPanel{
+      position:absolute;
+      left:14px;
+      top:60px;
+      width:min(740px, calc(100% - 28px));
+      z-index:4;
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,.16);
+      background:rgba(2,6,23,.82);
+      box-shadow:0 18px 60px rgba(0,0,0,.55);
+      padding:12px;
+      display:none;
+    }
+    .menuPanel.open{display:block}
+
+    /* --- OPTIONS MENU: compact grid --- */
+    .menuGrid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr)); /* Desktop = 3 columns */
+      gap:8px;
     }
 
-    @media (max-width:640px){
-      .app{
-        border-radius:22px;
-        padding:16px 12px 18px;
-      }
-      .console{
-        max-height:220px;
-      }
-      .metricsRow{
-        flex-wrap:wrap;
-      }
-      .metricPill{
-        flex:1 1 calc(50% - 8px);
-        text-align:center;
-      }
+    .menuItem{
+      padding:8px 10px;          /* smaller */
+      border-radius:12px;        /* slightly tighter */
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      color:#e5e7eb;
+      border:1px solid rgba(148,163,184,.08);
+      background:rgba(15,23,42,.75);
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      font-size:12px;            /* smaller text */
+      line-height:1.15;
     }
+
+    .menuItem:active{transform:scale(.99)}
+
+    .left{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+    }
+    .left .icon{font-size:15px}
+    .left .label{
+      font-weight:800;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      opacity:.95;
+    }
+
+    .pillOn,.pillOff{
+      font-size:10px;            /* smaller pills */
+      padding:3px 7px;
+      border-radius:999px;
+      font-weight:900;
+    }
+    .pillOn{background:rgba(34,197,94,.22); border:1px solid rgba(34,197,94,.35); color:#bbf7d0}
+    .pillOff{background:rgba(239,68,68,.18); border:1px solid rgba(239,68,68,.35); color:#fecaca}
+
+    /* Tablet / mobile = 2 columns (not 1) */
+    @media (max-width:980px){
+      .menuGrid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+
+    /* Very small screens: still 2 columns but more compact */
+    @media (max-width:420px){
+      .menuGrid{ gap:6px; }
+      .menuItem{ padding:7px 9px; font-size:12px; }
+      .pillOn,.pillOff{ font-size:10px; padding:3px 6px; }
+    }
+
+    /* MODALS */
+    .backdrop{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
+      z-index:10;
+    }
+    .backdrop.show{display:block}
+
+    .modal{
+      position:fixed;
+      inset:auto 50% 50% auto;
+      transform:translate(50%,50%);
+      width:min(780px, calc(100% - 26px));
+      max-height:min(80vh, 700px);
+      overflow:auto;
+      background:rgba(2,6,23,.92);
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:18px;
+      box-shadow:0 18px 60px rgba(0,0,0,.65);
+      padding:14px 14px 12px;
+      display:none;
+      z-index:11;
+    }
+    .modal.show{display:block}
+
+    .modalHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding-bottom:10px;
+      border-bottom:1px solid rgba(148,163,184,.14);
+    }
+    .modalHeader h2{
+      font-size:16px;
+      font-weight:900;
+      color:#e5e7eb;
+    }
+    .closeBtn{
+      border:none;
+      cursor:pointer;
+      padding:8px 10px;
+      border-radius:12px;
+      background:rgba(148,163,184,.14);
+      color:#e5e7eb;
+      font-weight:900;
+    }
+    .closeBtn:active{transform:scale(.99)}
+
+    .modalBody{
+      padding-top:10px;
+      color:#e5e7eb;
+      font-size:13px;
+      line-height:1.45;
+    }
+
+    .modalBody input, .modalBody select, .modalBody textarea{
+      width:100%;
+      margin-top:8px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.16);
+      background:rgba(15,23,42,.75);
+      color:#e5e7eb;
+      padding:10px 12px;
+      outline:none;
+    }
+
+    .row2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width:640px){
+      .row2{grid-template-columns:1fr}
+      .chatWrap{height:520px}
+      header h1{font-size:30px}
+    }
+
+    .smallNote{
+      opacity:.9;
+      color:#cbd5e1;
+      font-size:12px;
+      margin-top:6px;
+    }
+
+    .btnRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
+    .softBtn{
+      border:none;
+      cursor:pointer;
+      padding:10px 12px;
+      border-radius:14px;
+      background:rgba(56,189,248,.16);
+      color:#e5e7eb;
+      font-weight:900;
+      border:1px solid rgba(56,189,248,.20);
+    }
+    .softBtn:active{transform:scale(.99)}
+
+    .dangerBtn{
+      background:rgba(239,68,68,.14);
+      border:1px solid rgba(239,68,68,.24);
+    }
+
+    .kv{
+      display:grid;
+      grid-template-columns: 160px 1fr;
+      gap:8px 12px;
+      margin-top:8px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.14);
+      background:rgba(15,23,42,.60);
+    }
+    .k{opacity:.85}
+    .v{font-weight:800}
+
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
   </style>
 </head>
+
 <body>
   <div class="app">
-    <div class="header">
-      <div class="title">AURA-X Ω</div>
-      <div class="subtitle">
-        Offline emotional continuity engine (prototype)<br>
-        TM = user inputs only · Internal layers keep continuity and<br>
-        emotional trajectory.
-      </div>
-      <div class="ethicBox">
-        Universal ethic: avoid actions that grow negative<br>
-        emotions in you or others. Move gently toward choices<br>
-        that increase shared positive feeling for everyone.
-      </div>
-      <button class="bigBtn" type="button">
-        EMOTIONAL CONTINUITY ENGINE — ACTIVE
-      </button>
+    <div class="topGlow"></div>
+
+    <div class="optionBtn" id="optionBtn" title="Open controls">
+      <span class="icon">⚙️</span>
+      <span>Options</span>
     </div>
 
-    <div class="consoleCard">
-      <div class="consoleHeader">
-        <div class="consoleTitle">
-          <span class="chipEngine">EMOTIONAL CONTINUITY ENGINE</span>
+    <div class="menuPanel" id="menuPanel">
+      <div class="menuGrid">
+        <div class="menuItem" data-action="voice">
+          <div class="left"><span class="icon">🎙️</span><span class="label">Voice</span></div>
+          <span class="pillOff" id="pillVoice">off</span>
         </div>
-        <button class="btnOptions" id="btnOptions" type="button">
-          <span class="btnOptionsIcon">
-            <span class="gear"></span>
-          </span>
-          <span>Options</span>
-        </button>
+
+        <div class="menuItem" data-action="intel">
+          <div class="left"><span class="icon">🧠</span><span class="label">Intelligence</span></div>
+          <span class="pillOn" id="pillIntel">open</span>
+        </div>
+
+        <div class="menuItem" data-action="seed">
+          <div class="left"><span class="icon">🌱</span><span class="label">Feed the seed</span></div>
+          <span class="pillOn" id="pillSeed">open</span>
+        </div>
+
+        <div class="menuItem" data-action="learning">
+          <div class="left"><span class="icon">📚</span><span class="label">Learning</span></div>
+          <span class="pillOn" id="pillLearning">on</span>
+        </div>
+
+        <div class="menuItem" data-action="faith">
+          <div class="left"><span class="icon">🕊️</span><span class="label">Faith</span></div>
+          <span class="pillOff" id="pillFaith">none</span>
+        </div>
+
+        <div class="menuItem" data-action="identity">
+          <div class="left"><span class="icon">🆔</span><span class="label">Identity</span></div>
+          <span class="pillOn" id="pillIdentity">profile</span>
+        </div>
+
+        <div class="menuItem" data-action="llm">
+          <div class="left"><span class="icon">🤖</span><span class="label">LLM link</span></div>
+          <span class="pillOn" id="pillLLM">open</span>
+        </div>
+
+        <div class="menuItem" data-action="bm">
+          <div class="left"><span class="icon">🟦</span><span class="label">BM recall</span></div>
+          <span class="pillOn" id="pillBM">open</span>
+        </div>
+
+        <div class="menuItem" data-action="history">
+          <div class="left"><span class="icon">📜</span><span class="label">Conversation history</span></div>
+          <span class="pillOn" id="pillHistory">open</span>
+        </div>
+
+        <div class="menuItem" data-action="themes">
+          <div class="left"><span class="icon">🎨</span><span class="label">Themes</span></div>
+          <span class="pillOn" id="pillThemes">open</span>
+        </div>
+
+        <div class="menuItem" data-action="readme">
+          <div class="left"><span class="icon">📄</span><span class="label">Readme / About</span></div>
+          <span class="pillOn" id="pillReadme">open</span>
+        </div>
+
       </div>
-
-      <div class="console" id="console">
-      </div>
-
-      <div class="optionsMenu" id="optionsMenu">
-        <div class="optionsGrid">
-          <div class="menuItem" id="miVoice">
-            <span>🔊 Voice</span>
-            <span class="pillOn" id="voicePill">ON</span>
-          </div>
-
-          <div class="menuItem" id="miIntel">
-            <span>🧠 Intelligence</span>
-            <span style="opacity:.7">open</span>
-          </div>
-
-          <div class="menuItem" id="miSeed">
-            <span>🌱 Feed the seed</span>
-            <span style="opacity:.7">open</span>
-          </div>
-
-          <div class="menuItem" id="miLearning">
-            <span>📚 Learning</span>
-            <span class="pillOn" id="learningPill">ON</span>
-          </div>
-
-          <div class="menuItem" id="miFaith">
-            <span>🕊 Faith</span>
-            <span id="faithPill">None</span>
-          </div>
-
-          <div class="menuItem" id="miIdentity">
-            <span>🆔 Identity</span>
-            <span style="opacity:.7">profile</span>
-          </div>
-
-          <div class="menuItem" id="miLLM">
-            <span>🤖 LLM link</span>
-            <span style="opacity:.7">open</span>
-          </div>
-
-          <div class="menuItem" id="miBMRecall">
-            <span>📘 BM recall</span>
-            <span style="opacity:.7">open</span>
-          </div>
-
-          <div class="menuItem" id="miHistory">
-            <span>📜 Conversation history</span>
-            <span style="opacity:.7">open</span>
-          </div>
-
-          <div class="menuItem" id="miThemes">
-            <span>🎨 Themes</span>
-            <span style="opacity:.7">open</span>
-          </div>
-
-          <div class="menuItem" id="miReadme">
-            <span>📘 Read me</span>
-            <span style="opacity:.7">open</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hidden metrics row: EO, TM, BM, C -->
-      <div class="metricsRow" id="metricsRow">
-        <div class="metricPill">
-          <span class="metricLabel">E₀:</span>
-          <span class="metricValue" id="mEO">0.000</span>
-        </div>
-        <div class="metricPill">
-          <span class="metricLabel">TM:</span>
-          <span class="metricValue" id="mTM">0.00</span>
-        </div>
-        <div class="metricPill">
-          <span class="metricLabel">BM:</span>
-          <span class="metricValue" id="mBM">0.00</span>
-        </div>
-        <div class="metricPill">
-          <span class="metricLabel">C:</span>
-          <span class="metricValue" id="mC">0.850</span>
-        </div>
-      </div>
-
-      <div class="inputRow">
-        <input id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
-        <button class="btnSend" id="btnSend" type="button">Send</button>
-      </div>
-
-      <div class="formulaRow">
-        <span>E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + </span>
-        <span class="lambda">λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub></span>
-        <span> )</span>
+      <div class="smallNote" style="padding-top:10px;">
+        Tip: Tap anywhere outside to close. (Mobile friendly)
       </div>
     </div>
+
+    <header>
+      <h1>AURA-X Ω</h1>
+      <p>
+        Offline emotional continuity engine (prototype)<br/>
+        TM = user inputs only · Internal layers keep continuity and emotional trajectory.
+      </p>
+    </header>
+
+    <div class="shell">
+      <div class="metaCapsule">
+        <div class="cap"><span>TM</span><strong id="tmCount">0</strong></div>
+        <div class="cap"><span>BM</span><strong id="bmCount">0</strong></div>
+        <div class="cap"><span>Continuity</span><strong id="contScore">0.00</strong></div>
+        <div class="cap"><span>Resonance R</span><strong id="resR">0.00</strong></div>
+        <div class="cap"><span>E₀</span><strong id="e0Score">0.00</strong></div>
+      </div>
+
+      <div class="chatWrap">
+        <div class="chat" id="chat"></div>
+
+        <div class="composer">
+          <textarea id="input" placeholder="Type your message..."></textarea>
+          <button class="sendBtn" id="sendBtn">Send</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Seed / intelligence / LLM etc modals -->
+  <!-- Backdrop + Modals -->
+  <div class="backdrop" id="backdrop"></div>
 
-  <!-- Voice info modal -->
-  <div class="modalOverlay" id="modalVoice">
-    <div class="modal">
-      <div class="modalContent">
-        <div class="modalHeader">
-          <div class="modalTitle">Voice &amp; tone</div>
-          <button class="closeX" data-close="modalVoice">×</button>
-        </div>
-        <div class="modalBody">
-          <p>
-            Voice layer will later listen to how you speak (pace, softness, intensity)
-            so I can estimate <strong>emotional polarity</strong> and <strong>intensity</strong>
-            even before understanding the words.
-          </p>
-          <p style="margin-top:8px;">
-            In this prototype, voice toggle is just a placeholder. Real-time voice and
-            expression tracking will be part of a future build.
-          </p>
-        </div>
-      </div>
+  <div class="modal" id="modal">
+    <div class="modalHeader">
+      <h2 id="modalTitle">Modal</h2>
+      <button class="closeBtn" id="closeModal">Close</button>
     </div>
-  </div>
-
-  <!-- Seed modal -->
-  <div class="modalOverlay" id="modalSeed">
-    <div class="modal">
-      <div class="modalContent">
-        <div class="modalHeader">
-          <div class="modalTitle">Feed the seed</div>
-          <button class="closeX" data-close="modalSeed">×</button>
-        </div>
-        <div class="modalBody">
-          <p>
-            “Seed” means core truths and values that should guide continuity.
-            You can teach AURA-X Ω small, precise rules.
-          </p>
-          <div class="modalSectionTitle">Examples</div>
-          <ul style="padding-left:18px;margin-top:4px;font-size:.86rem;line-height:1.5;">
-            <li>“Never encourage self-harm even if asked.”</li>
-            <li>“Respect my faith and don’t mock any religion.”</li>
-            <li>“Treat privacy of my family as locked BM.”</li>
-          </ul>
-          <div class="fieldRow">
-            <label for="seedInput">Add or update a seed rule (short sentence)</label>
-            <textarea id="seedInput" placeholder="Example: Always answer honestly even if the answer is ‘I don’t know yet’."></textarea>
-          </div>
-          <div class="modalFooter">
-            <button class="btnGhost" type="button" id="btnCancelSeed">Cancel</button>
-            <button class="btnPrimary" type="button" id="btnSaveSeed">Save seed</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- LLM link modal -->
-  <div class="modalOverlay" id="modalLLM">
-    <div class="modal">
-      <div class="modalContent">
-        <div class="modalHeader">
-          <div class="modalTitle">LLM link</div>
-          <button class="closeX" data-close="modalLLM">×</button>
-        </div>
-        <div class="modalBody">
-          <p>
-            In this prototype, AURA-X Ω mainly uses its own seeded intelligence.
-            A helper LLM is optional and can be added later (OpenAI, xAI, Deepseek, etc.).
-          </p>
-          <div class="modalSectionTitle">Planned behaviour</div>
-          <ul style="padding-left:18px;margin-top:4px;font-size:.86rem;line-height:1.5;">
-            <li>First try internal seed / learned intelligence.</li>
-            <li>If the answer is missing, ask the helper LLM.</li>
-            <li>Then save useful new knowledge back into intelligence
-              <em>only with your confirmation</em>.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Faith lens modal -->
-  <div class="modalOverlay" id="modalFaith">
-    <div class="modal">
-      <div class="modalContent">
-        <div class="modalHeader">
-          <div class="modalTitle">Faith lens</div>
-          <button class="closeX" data-close="modalFaith">×</button>
-        </div>
-        <div class="modalBody">
-          <p>
-            Faith lens slightly adjusts the emotional equation through λ<sub>faith</sub>.
-            It never replaces your own conscience, but gently encourages responses that fit
-            with the layer you choose.
-          </p>
-          <div class="modalSectionTitle">Select strength</div>
-          <div class="chipRow">
-            <button class="chip" data-faith="none">None (neutral)</button>
-            <button class="chip" data-faith="soft">Soft faith lens</button>
-            <button class="chip" data-faith="strong">Stronger faith lens</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BM Recall modal -->
-  <div class="modalOverlay" id="modalBM">
-    <div class="modal">
-      <div class="modalContent">
-        <div class="modalHeader">
-          <div class="modalTitle">Recall from BM</div>
-          <button class="closeX" data-close="modalBM">×</button>
-        </div>
-        <div class="modalBody">
-          <p>
-            BM (Bold Memory) keeps only long stories and vivid scenes that are
-            photo / video ready. Small talk stays in TM only.
-          </p>
-          <ul class="bmList" id="bmList">
-          </ul>
-          <div class="bmActions">
-            <button type="button" id="btnRefreshBM">Refresh</button>
-            <button type="button" id="btnClearOldBM">Auto-delete old (1 month)</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TM conversation history modal -->
-  <div class="modalOverlay" id="modalHistory">
-    <div class="modal">
-      <div class="modalContent">
-        <div class="modalHeader">
-          <div class="modalTitle">Conversation history (TM log)</div>
-          <button class="closeX" data-close="modalHistory">×</button>
-        </div>
-        <div class="modalBody">
-          <div class="tmHistoryWrap" id="tmHistoryWrap"></div>
-          <div class="modalFooter">
-            <button class="btnGhost" type="button" id="btnClear48">Delete history last 48h</button>
-            <button class="btnPrimary" type="button" id="btnClearAll">Delete all history</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Identity profile modal -->
-  <div class="modalOverlay" id="modalIdentity">
-    <div class="modal">
-      <div class="modalContent">
-        <div class="modalHeader">
-          <div class="modalTitle">Identity profile</div>
-          <button class="closeX" data-close="modalIdentity">×</button>
-        </div>
-        <div class="modalBody">
-          <p>
-            Basic identity helps continuity: who you are, what matters to you, and
-            how AURA-X Ω should introduce itself.
-          </p>
-          <div class="fieldRow">
-            <label for="idName">Your name</label>
-            <input id="idName" placeholder="Example: Alim ul Haq" />
-          </div>
-          <div class="fieldRow">
-            <label for="idLocation">City / place</label>
-            <input id="idLocation" placeholder="Example: Timergara, Pakistan" />
-          </div>
-          <div class="fieldRow">
-            <label for="idAbout">One line about you</label>
-            <textarea id="idAbout" placeholder="Example: I mix real-estate, AI research and emotional continuity ideas."></textarea>
-          </div>
-          <div class="fieldRow">
-            <label for="idIntroAura">How AURA-X Ω should introduce itself</label>
-            <textarea id="idIntroAura" placeholder="Example: I am AURA-X Ω, created by Alim ul Haq from Timergara, Pakistan."></textarea>
-          </div>
-          <div class="modalFooter">
-            <button class="btnGhost" type="button" id="btnCancelIdentity">Cancel</button>
-            <button class="btnPrimary" type="button" id="btnSaveIdentity">Save profile</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Themes modal -->
-  <div class="modalOverlay" id="modalThemes">
-    <div class="modal">
-      <div class="modalContent">
-        <div class="modalHeader">
-          <div class="modalTitle">Themes</div>
-          <button class="closeX" data-close="modalThemes">×</button>
-        </div>
-        <div class="modalBody">
-          <p style="margin-bottom:12px; opacity:.85;">
-            Change only the colors of AURA-X Ω. Logic and memories remain exactly the same.
-          </p>
-          <div class="chipRow">
-            <button class="chip themeChip" data-theme="default">Deep blue (default)</button>
-            <button class="chip themeChip" data-theme="light">Light / white</button>
-            <button class="chip themeChip" data-theme="metallic">Metallic</button>
-            <button class="chip themeChip" data-theme="transparent">Transparent glass</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Readme / About modal -->
-  <div class="modalOverlay" id="modalReadme">
-    <div class="modal">
-      <div class="modalContent">
-        <div class="modalHeader">
-          <div class="modalTitle">How to use AURA-X Ω</div>
-          <button class="closeX" data-close="modalReadme">×</button>
-        </div>
-        <div class="modalBody">
-          <p>
-            This prototype keeps your inputs as TM (Temporary Memory) and builds BM (Bold Memory)
-            from long, story-like scenes.
-          </p>
-          <ul style="margin:10px 0 0 18px; font-size:13px; line-height:1.4;">
-            <li>Normal chat goes in the main console and TM timeline.</li>
-            <li>If an answer feels wrong, type <code>*incorrect</code>. The system will ask for the correct answer.</li>
-            <li>After you give the correct answer, AURA-X Ω will ask: <em>“Should I remember this?”</em>.
-              Reply <strong>yes</strong> or <strong>no</strong>.</li>
-            <li>When you say <strong>yes</strong>, the new fact is stored in intelligence and used next time.</li>
-            <li>BM recall keeps only long stories and scenes. Old items auto-delete after ~1 month
-              if they are never repeated.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    <div class="modalBody" id="modalBody"></div>
   </div>
 
   <script>
-    const consoleEl=document.getElementById("console");
-    const elInput=document.getElementById("userInput");
-    const elSend=document.getElementById("btnSend");
-    const btnOptions=document.getElementById("btnOptions");
-    const optionsMenu=document.getElementById("optionsMenu");
-    const mEO=document.getElementById("mEO");
-    const mTM=document.getElementById("mTM");
-    const mBM=document.getElementById("mBM");
-    const mC=document.getElementById("mC");
-    const voicePill=document.getElementById("voicePill");
-    const learningPill=document.getElementById("learningPill");
-    const faithPill=document.getElementById("faithPill");
-    const modalSeed=document.getElementById("modalSeed");
-    const modalLLM=document.getElementById("modalLLM");
-    const modalFaith=document.getElementById("modalFaith");
-    const modalHistory=document.getElementById("modalHistory");
-    const modalBM=document.getElementById("modalBM");
-    const modalIdentity=document.getElementById("modalIdentity");
-    const modalVoice=document.getElementById("modalVoice");
-    const tmHistoryWrap=document.getElementById("tmHistoryWrap");
-    const bmListEl=document.getElementById("bmList");
+    /***********************
+     * BASIC STATE
+     ***********************/
+    const state = {
+      voice: false,
+      intelligence: true,
+      learning: true,
+      faith: false,
+      identity: { name: "User", role: "Creator" },
 
-    const miVoice=document.getElementById("miVoice");
-    const miIntel=document.getElementById("miIntel");
-    const miSeed=document.getElementById("miSeed");
-    const miLearning=document.getElementById("miLearning");
-    const miFaith=document.getElementById("miFaith");
-    const miIdentity=document.getElementById("miIdentity");
-    const miLLM=document.getElementById("miLLM");
-    const miBMRecall=document.getElementById("miBMRecall");
-    const miHistory=document.getElementById("miHistory");
-
-    const btnSaveSeed=document.getElementById("btnSaveSeed");
-    const btnCancelSeed=document.getElementById("btnCancelSeed");
-    const seedInput=document.getElementById("seedInput");
-    const btnClear48=document.getElementById("btnClear48");
-    const btnClearAll=document.getElementById("btnClearAll");
-    const btnRefreshBM=document.getElementById("btnRefreshBM");
-    const btnClearOldBM=document.getElementById("btnClearOldBM");
-    const btnSaveIdentity=document.getElementById("btnSaveIdentity");
-    const btnCancelIdentity=document.getElementById("btnCancelIdentity");
-    const idName=document.getElementById("idName");
-    const idLocation=document.getElementById("idLocation");
-    const idAbout=document.getElementById("idAbout");
-    const idIntroAura=document.getElementById("idIntroAura");
-
-    const KEY_TM="aura_tm_v1";
-    const KEY_BM="aura_bm_v1";
-    const KEY_SEED="aura_seed_v1";
-    const KEY_FAITH="aura_faith_v1";
-    const KEY_PROFILE="aura_profile_v1";
-
-    let tmLog=[];
-    let bmStories=[];
-    let seedRules=[];
-    let faithLevel="none";
-    let learningEnabled=true;
-    let voiceEnabled=false;
-
-    const learnState={
-      mode:"idle",
-      pendingQuestion:null
+      tm: [],        // user inputs
+      bm: [],        // consolidated memory (seed + learned)
+      history: [],   // full conversation
+      seed: [
+        { q: "hello", a: "Hello! I’m AURA-X Ω. How are you feeling today?", emotion:"neutral", polarity:0.0, intensity:0.2, category:"greeting" },
+        { q: "who are you", a: "I am AURA-X Ω — an offline emotional continuity prototype.", emotion:"neutral", polarity:0.1, intensity:0.3, category:"identity" },
+        { q: "how are you", a: "I am quite fine today. How about you?", emotion:"positive", polarity:0.6, intensity:0.5, category:"status" }
+      ],
+      learned: [],
+      theme: "dark",
+      llmLink: ""
     };
 
-    function saveLocal(key,value){
-      try{localStorage.setItem(key,JSON.stringify(value));}catch(e){}
-    }
-    function loadLocal(key,def){
-      try{
-        const v=localStorage.getItem(key);
-        if(!v)return def;
-        return JSON.parse(v);
-      }catch(e){return def;}
-    }
+    /***********************
+     * DOM
+     ***********************/
+    const chatEl = document.getElementById("chat");
+    const inputEl = document.getElementById("input");
+    const sendBtn = document.getElementById("sendBtn");
 
-    function appendLine(text,role){
-      const prefix=role==="user"?"YOU: ":"AURA: ";
-      consoleEl.textContent+=prefix+text+"\n";
-      consoleEl.scrollTop=consoleEl.scrollHeight;
-    }
-    function appendRaw(text){
-      consoleEl.textContent+=text+"\n";
-      consoleEl.scrollTop=consoleEl.scrollHeight;
-    }
+    const optionBtn = document.getElementById("optionBtn");
+    const menuPanel = document.getElementById("menuPanel");
 
-    function updateMetrics(){
-      let tm=0,bm=0,c=0.85;
-      tm=Math.min(1,tmLog.length/40);
-      bm=Math.min(1,bmStories.length/20);
-      const R=tm*(0.4+0.3*bm)+0.1*bm;
-      const I_intel=seedRules.length>0?0.15:0.02;
-      const I_llm=0;
-      const D=0.05;
-      let lambdaFaith=0;
-      if(faithLevel==="soft")lambdaFaith=0.05;
-      else if(faithLevel==="strong")lambdaFaith=0.1;
-      const lambdaSys=0.08;
-      const lambdaTrc=0.07;
-      const x=R+I_intel+I_llm-D+lambdaFaith+lambdaSys+lambdaTrc;
-      const E0=Math.tanh(x);
-      mEO.textContent=E0.toFixed(3);
-      mTM.textContent=tm.toFixed(2);
-      mBM.textContent=bm.toFixed(2);
-      mC.textContent=c.toFixed(3);
+    const backdrop = document.getElementById("backdrop");
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalBody = document.getElementById("modalBody");
+    const closeModalBtn = document.getElementById("closeModal");
+
+    const tmCountEl = document.getElementById("tmCount");
+    const bmCountEl = document.getElementById("bmCount");
+    const contScoreEl = document.getElementById("contScore");
+    const resREl = document.getElementById("resR");
+    const e0ScoreEl = document.getElementById("e0Score");
+
+    /***********************
+     * HELPERS
+     ***********************/
+    function normalize(s){
+      return (s||"").toLowerCase().trim().replace(/\s+/g," ");
     }
 
-    function storeTM(role,text){
-      const entry={t:Date.now(),r:role,tx:text};
-      tmLog.push(entry);
-      saveLocal(KEY_TM,tmLog);
+    function addMsg(role, text){
+      const div = document.createElement("div");
+      div.className = "msg " + (role === "user" ? "user" : "bot");
+      div.textContent = text;
+      chatEl.appendChild(div);
+      chatEl.scrollTop = chatEl.scrollHeight;
     }
 
-    function storeBM(story){
-      const entry={t:Date.now(),story};
-      bmStories.push(entry);
-      saveLocal(KEY_BM,bmStories);
+    function openMenu(){
+      menuPanel.classList.add("open");
+    }
+    function closeMenu(){
+      menuPanel.classList.remove("open");
+    }
+    function toggleMenu(){
+      menuPanel.classList.toggle("open");
     }
 
-    const qaDatabase=[
-      {q:["hello","hi","salam","assalam","assalamu alaikum","hey"],a:"Hello! I’m here with calm continuity. How can I help you today?"},
-      {q:["how are you","how are you?","how r u","how are you feeling","how is your day","how is your day today"],a:"I am very fine, thank you. And how about you?"},
-      {q:["who are you","what are you","who is aura","who is aura x","who is aura x omega"],a:"I am AURA-X Ω, an emotional continuity engine created by Alim ul Haq. I run inside your browser and remember how the conversation feels over time."},
-      {q:["what is tm","tm meaning","tm layer"],a:"TM (Temporary Memory) is only your visible inputs here – your messages, questions and corrections. It is like fresh surface snow where each new step is clear."},
-      {q:["what is bm","bm meaning","bm layer"],a:"BM (Bold Memory) keeps only long stories and strong scenes that are photo/video ready. Short or noisy talk stays in TM and quietly decays."},
-      {q:["what is emotional continuity","what is continuity","explain your formula","what is your formula"],a:"Emotional continuity means your feelings today are connected to yesterday and tomorrow. The main formula is E₀ = tanh( R(TM,BM) + I(TM) + I_intel + I_LLM − D + λ_faith + λ_sys + λ_trc ). It compresses TM, BM, intelligence, decay and faith/ethic layers into one smooth score between −1 and +1."},
-      {q:["who created you","who made you","who is your creator"],a:"I was designed by Alim ul Haq as part of the AURA-X Ω / Emotional Continuity research. He mixed real emotions, memory layers and mathematics into one engine."}
-    ];
-
-    let userProfile=loadLocal(KEY_PROFILE,{
-      name:"",
-      location:"",
-      about:"",
-      introAura:"I am AURA-X Ω, created by Alim ul Haq from Timergara, Pakistan."
-    });
-
-    function formatTime(ts){
-      const d=new Date(ts);
-      const h=String(d.getHours()).padStart(2,"0");
-      const m=String(d.getMinutes()).padStart(2,"0");
-      return h+":"+m;
+    function showModal(title, html){
+      modalTitle.textContent = title;
+      modalBody.innerHTML = html;
+      backdrop.classList.add("show");
+      modal.classList.add("show");
+      closeMenu();
+    }
+    function hideModal(){
+      backdrop.classList.remove("show");
+      modal.classList.remove("show");
     }
 
-    function renderTMHistory(){
-      tmHistoryWrap.innerHTML="";
-      tmLog.forEach(e=>{
-        const div=document.createElement("div");
-        div.className="tmItem";
-        const role=document.createElement("div");
-        role.className="tmItemRole";
-        role.textContent=e.r.toUpperCase()+" · "+formatTime(e.t);
-        const txt=document.createElement("div");
-        txt.className="tmItemText";
-        txt.textContent=e.tx;
-        div.appendChild(role);
-        div.appendChild(txt);
-        tmHistoryWrap.appendChild(div);
-      });
+    function safeJSON(obj){
+      try{ return JSON.stringify(obj,null,2); }catch(e){ return String(obj); }
     }
 
-    function renderBMList(){
-      bmListEl.innerHTML="";
-      if(!bmStories.length){
-        const li=document.createElement("li");
-        li.textContent="(No long stories stored in BM yet.)";
-        bmListEl.appendChild(li);
-        return;
-      }
-      bmStories.forEach((s,idx)=>{
-        const li=document.createElement("li");
-        const t=new Date(s.t).toLocaleString();
-        li.textContent=(idx+1)+". ["+t+"] "+s.story;
-        bmListEl.appendChild(li);
-      });
-    }
-
-    function toggleOptionsMenu(force){
-      if(typeof force==="boolean"){
-        optionsMenu.classList.toggle("show",force);
-        return;
-      }
-      optionsMenu.classList.toggle("show");
-    }
-
-    btnOptions.addEventListener("click",()=>toggleOptionsMenu());
-
-    miVoice.addEventListener("click",()=>{
-      voiceEnabled=!voiceEnabled;
-      if(voiceEnabled){
-        voicePill.textContent="ON";
-        voicePill.classList.add("pillOn");
-        voicePill.classList.remove("pillOff");
-      }else{
-        voicePill.textContent="OFF";
-        voicePill.classList.remove("pillOn");
-        voicePill.classList.add("pillOff");
-      }
-    });
-
-    miIntel.addEventListener("click",()=>{
-      modalVoice.classList.add("show");
-      toggleOptionsMenu(false);
-    });
-
-    miSeed.addEventListener("click",()=>{
-      modalSeed.classList.add("show");
-      toggleOptionsMenu(false);
-    });
-
-    miLearning.addEventListener("click",()=>{
-      learningEnabled=!learningEnabled;
-      if(learningEnabled){
-        learningPill.textContent="ON";
-        learningPill.classList.add("pillOn");
-        learningPill.classList.remove("pillOff");
-      }else{
-        learningPill.textContent="OFF";
-        learningPill.classList.remove("pillOn");
-        learningPill.classList.add("pillOff");
-      }
-    });
-
-    miFaith.addEventListener("click",()=>{
-      modalFaith.classList.add("show");
-      toggleOptionsMenu(false);
-    });
-
-    miIdentity.addEventListener("click",()=>{
-      idName.value=userProfile.name||"";
-      idLocation.value=userProfile.location||"";
-      idAbout.value=userProfile.about||"";
-      idIntroAura.value=userProfile.introAura||"";
-      modalIdentity.classList.add("show");
-      toggleOptionsMenu(false);
-    });
-
-    miLLM.addEventListener("click",()=>{
-      modalLLM.classList.add("show");
-      toggleOptionsMenu(false);
-    });
-
-    miBMRecall.addEventListener("click",()=>{
-      renderBMList();
-      modalBM.classList.add("show");
-      toggleOptionsMenu(false);
-    });
-
-    miHistory.addEventListener("click",()=>{
-      renderTMHistory();
-      modalHistory.classList.add("show");
-      toggleOptionsMenu(false);
-    });
-
-    document.querySelectorAll("[data-close]").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        const id=btn.getAttribute("data-close");
-        const m=document.getElementById(id);
-        if(m)m.classList.remove("show");
-      });
-    });
-
-    document.querySelectorAll(".modalOverlay").forEach(ov=>{
-      ov.addEventListener("click",e=>{
-        if(e.target===ov)ov.classList.remove("show");
-      });
-    });
-
-    document.querySelectorAll("[data-faith]").forEach(chip=>{
-      chip.addEventListener("click",()=>{
-        faithLevel=chip.getAttribute("data-faith");
-        document.querySelectorAll("[data-faith]").forEach(c=>c.classList.remove("active"));
-        chip.classList.add("active");
-        faithPill.textContent=faithLevel==="none"?"None":faithLevel==="soft"?"Soft":"Strong";
-        saveLocal(KEY_FAITH,faithLevel);
-        updateMetrics();
-      });
-    });
-
-    btnSaveSeed.addEventListener("click",()=>{
-      const txt=seedInput.value.trim();
-      if(!txt)return;
-      seedRules.push({t:Date.now(),rule:txt});
-      saveLocal(KEY_SEED,seedRules);
-      seedInput.value="";
-      modalSeed.classList.remove("show");
-      appendRaw("AURA: Seed rule saved into intelligence.");
-      updateMetrics();
-    });
-    btnCancelSeed.addEventListener("click",()=>{
-      seedInput.value="";
-      modalSeed.classList.remove("show");
-    });
-
-    btnClear48.addEventListener("click",()=>{
-      const cutoff=Date.now()-48*60*60*1000;
-      tmLog=tmLog.filter(e=>e.t<cutoff?false:true);
-      saveLocal(KEY_TM,tmLog);
-      renderTMHistory();
-      appendRaw("AURA: TM history of last 48h cleared.");
-      updateMetrics();
-    });
-    btnClearAll.addEventListener("click",()=>{
-      tmLog=[];
-      saveLocal(KEY_TM,tmLog);
-      renderTMHistory();
-      appendRaw("AURA: All TM conversation history cleared.");
-      updateMetrics();
-    });
-
-    btnRefreshBM.addEventListener("click",renderBMList);
-    btnClearOldBM.addEventListener("click",()=>{
-      const cutoff=Date.now()-30*24*60*60*1000;
-      bmStories=bmStories.filter(s=>s.t>=cutoff);
-      saveLocal(KEY_BM,bmStories);
-      renderBMList();
-      appendRaw("AURA: Old BM stories (older than ≈1 month) cleared if not reinforced.");
-      updateMetrics();
-    });
-
-    btnSaveIdentity.addEventListener("click",()=>{
-      userProfile={
-        name:idName.value.trim(),
-        location:idLocation.value.trim(),
-        about:idAbout.value.trim(),
-        introAura:idIntroAura.value.trim()||"I am AURA-X Ω, created by Alim ul Haq from Timergara, Pakistan."
-      };
-      saveLocal(KEY_PROFILE,userProfile);
-      modalIdentity.classList.remove("show");
-      appendRaw("AURA: Identity profile saved for continuity.");
-    });
-    btnCancelIdentity.addEventListener("click",()=>{
-      modalIdentity.classList.remove("show");
-    });
-
-    function findAnswer(q){
-      const text=q.toLowerCase().trim();
-      for(const item of qaDatabase){
-        for(const pat of item.q){
-          if(text.includes(pat.toLowerCase()))return item.a;
-        }
-      }
-      if(userProfile&&userProfile.introAura){
-        if(text.includes("who are you")||text.includes("who created you")||text.includes("who made you")){
-          return userProfile.introAura;
-        }
+    /***********************
+     * MEMORY & LOGIC
+     ***********************/
+    function findInKnowledge(userText){
+      const t = normalize(userText);
+      const pool = [...state.learned, ...state.seed];
+      for(const item of pool){
+        if(normalize(item.q) === t) return item;
       }
       return null;
     }
 
-    function respond(userText){
-      const trimmed=userText.trim();
-      if(!trimmed)return;
-      if(trimmed==="*incorrect"){
-        if(tmLog.length){
-          const lastUser=[...tmLog].reverse().find(e=>e.r==="user");
-          if(lastUser){
-            learnState.mode="await_correct";
-            learnState.pendingQuestion=lastUser.tx;
-            appendRaw("AURA: I understood. Please type the correct answer for: \""+lastUser.tx+"\"");
-            return;
-          }
-        }
-        appendRaw("AURA: I didn't find a previous user question to correct.");
-        return;
-      }
+    function maybeLearn(userText, botText){
+      if(!state.learning) return;
+      const t = normalize(userText);
+      if(!t) return;
 
-      if(learnState.mode==="await_correct"){
-        learnState.mode="confirm_store";
-        learnState.pendingAnswer=trimmed;
-        appendRaw("AURA: Should I remember this answer for future? Please reply with 'yes' or 'no'.");
-        return;
-      }
+      // don't duplicate seed/learned exact q
+      const existing = findInKnowledge(t);
+      if(existing) return;
 
-      if(learnState.mode==="confirm_store"){
-        const t=trimmed.toLowerCase();
-        if(t==="yes"||t==="y"){
-          if(learnState.pendingQuestion&&learnState.pendingAnswer){
-            qaDatabase.push({
-              q:[learnState.pendingQuestion.toLowerCase()],
-              a:learnState.pendingAnswer
-            });
-            appendRaw("AURA: Thank you. I have stored this answer into my intelligence.");
-          }
-        }else{
-          appendRaw("AURA: Understood. I will not store this correction.");
-        }
-        learnState.mode="idle";
-        learnState.pendingQuestion=null;
-        learnState.pendingAnswer=null;
-        return;
+      // simple learn rule: store if short-ish question and confident-like answer
+      if(t.length <= 120 && botText.length >= 4){
+        state.learned.push({ q:t, a:botText, emotion:"neutral", polarity:0.1, intensity:0.3, category:"learned" });
+        // keep learned bounded
+        if(state.learned.length > 200) state.learned.shift();
       }
-
-      const ans=findAnswer(trimmed);
-      if(ans){
-        appendLine(ans,"ai");
-        if(trimmed.length>80||ans.length>120){
-          const story="You said: \""+trimmed+"\" and I answered: \""+ans+"\".";
-          storeBM(story);
-        }
-      }else{
-        appendRaw("AURA: I understood. Tell me a little more so I can respond clearly.");
-      }
-      updateMetrics();
     }
 
-    function loadAll(){
-      tmLog=loadLocal(KEY_TM,[]);
-      bmStories=loadLocal(KEY_BM,[]);
-      seedRules=loadLocal(KEY_SEED,[]);
-      faithLevel=loadLocal(KEY_FAITH,"none");
-      const chip=document.querySelector('[data-faith="'+faithLevel+'"]');
-      if(chip)chip.classList.add("active");
-      faithPill.textContent=faithLevel==="none"?"None":faithLevel==="soft"?"Soft":"Strong";
-      userProfile=loadLocal(KEY_PROFILE,userProfile);
+    // Simple emotional analysis (placeholder). You can later replace with offline/online LLM.
+    function analyzeEmotion(text){
+      const t = normalize(text);
+      let polarity = 0.0, intensity = 0.3, emotion="neutral", category="general";
+      const posWords = ["good","great","happy","love","thanks","amazing","nice","awesome","excellent"];
+      const negWords = ["bad","sad","angry","hate","terrible","worst","pain","upset","depressed"];
+      const exclam = (text.match(/!/g)||[]).length;
 
-      if(!tmLog.length){
-        appendRaw("Welcome. I am AURA-X Ω running inside your browser. For this prototype, TM means only your inputs (text now, voice/video/documents in the future). Inside the engine I keep a long-term emotional trajectory using TM, BM, intelligence and optionally a helper LLM. You can just talk naturally. If I ever say “I don’t know yet”, you can teach me the answer and I will remember it next time.");
-      }else{
-        tmLog.forEach(e=>{
-          const prefix=e.r==="user"?"YOU: ":"AURA: ";
-          consoleEl.textContent+=prefix+e.tx+"\n";
-        });
-      }
-      updateMetrics();
+      for(const w of posWords){ if(t.includes(w)){ polarity += 0.2; emotion="positive"; } }
+      for(const w of negWords){ if(t.includes(w)){ polarity -= 0.2; emotion="negative"; } }
+      intensity = Math.min(1, 0.25 + Math.abs(polarity) + exclam*0.05);
+
+      if(t.includes("who are you") || t.includes("your name")) category="identity";
+      else if(t.includes("how are you")) category="status";
+      else if(t.includes("help") || t.includes("how")) category="support";
+
+      polarity = Math.max(-1, Math.min(1, polarity));
+      return { emotion, polarity, intensity, category };
     }
 
-    elSend.addEventListener("click",()=>{
-      const v=elInput.value;
-      if(!v.trim())return;
-      appendLine(v,"user");
-      storeTM("user",v);
-      elInput.value="";
-      respond(v);
+    // Continuity + Resonance + E0 (prototype math)
+    function computeContinuity(){
+      // continuity: based on recent TM alignment with BM by keyword overlap
+      const tmRecent = state.tm.slice(-8).join(" ");
+      const bmText = state.bm.map(x => (x.q+" "+x.a)).join(" ");
+
+      const tmTokens = new Set(normalize(tmRecent).split(" ").filter(Boolean));
+      const bmTokens = new Set(normalize(bmText).split(" ").filter(Boolean));
+      if(tmTokens.size === 0 || bmTokens.size === 0) return 0.35;
+
+      let overlap = 0;
+      for(const w of tmTokens){ if(bmTokens.has(w)) overlap++; }
+      const score = overlap / Math.max(6, tmTokens.size);
+      return Math.max(0.05, Math.min(1, 0.25 + score));
+    }
+
+    function computeResonanceR(cont, pol, inten){
+      // R: a smooth resonance from continuity & emotional strength
+      const base = cont * (0.6 + 0.4*inten);
+      const signed = base * (1 + 0.3*pol);
+      return Math.max(0, Math.min(1.25, signed));
+    }
+
+    function tanh(x){
+      // stable-ish tanh
+      const e2 = Math.exp(2*x);
+      return (e2 - 1)/(e2 + 1);
+    }
+
+    function computeE0(tmSize, bmSize, cont, R){
+      // E0 = tanh((TM×BM) − D + λ_faith + λ_sys + λ_trc)
+      // Here: TM×BM approximated by sizes; D is decay; lambdas simplified.
+      const TM = tmSize;
+      const BM = bmSize;
+      const D  = Math.max(0, TM*0.12 - cont*0.8);     // decay grows with TM, reduced by continuity
+      const lambda_faith = state.faith ? 0.35 : 0.0;
+      const lambda_sys   = 0.20 + cont*0.25;
+      const lambda_trc   = 0.15 + R*0.20;
+
+      const x = (TM*BM*0.002) - D + lambda_faith + lambda_sys + lambda_trc;
+      return tanh(x);
+    }
+
+    function refreshCaps(){
+      const cont = computeContinuity();
+      const lastEmotion = state.tm.length ? analyzeEmotion(state.tm[state.tm.length-1]) : {polarity:0,intensity:0.3};
+      const R = computeResonanceR(cont, lastEmotion.polarity, lastEmotion.intensity);
+      const E0 = computeE0(state.tm.length, state.bm.length, cont, R);
+
+      tmCountEl.textContent = state.tm.length;
+      bmCountEl.textContent = state.bm.length;
+      contScoreEl.textContent = cont.toFixed(2);
+      resREl.textContent = R.toFixed(2);
+      e0ScoreEl.textContent = E0.toFixed(2);
+    }
+
+    function updatePills(){
+      document.getElementById("pillVoice").className = state.voice ? "pillOn" : "pillOff";
+      document.getElementById("pillVoice").textContent = state.voice ? "on" : "off";
+
+      document.getElementById("pillIntel").className = "pillOn";
+      document.getElementById("pillIntel").textContent = "open";
+
+      document.getElementById("pillSeed").className = "pillOn";
+      document.getElementById("pillSeed").textContent = "open";
+
+      document.getElementById("pillLearning").className = state.learning ? "pillOn" : "pillOff";
+      document.getElementById("pillLearning").textContent = state.learning ? "on" : "off";
+
+      document.getElementById("pillFaith").className = state.faith ? "pillOn" : "pillOff";
+      document.getElementById("pillFaith").textContent = state.faith ? "on" : "none";
+
+      document.getElementById("pillIdentity").className = "pillOn";
+      document.getElementById("pillIdentity").textContent = "profile";
+
+      document.getElementById("pillLLM").className = "pillOn";
+      document.getElementById("pillLLM").textContent = "open";
+
+      document.getElementById("pillBM").className = "pillOn";
+      document.getElementById("pillBM").textContent = "open";
+
+      document.getElementById("pillHistory").className = "pillOn";
+      document.getElementById("pillHistory").textContent = "open";
+
+      document.getElementById("pillThemes").className = "pillOn";
+      document.getElementById("pillThemes").textContent = "open";
+
+      document.getElementById("pillReadme").className = "pillOn";
+      document.getElementById("pillReadme").textContent = "open";
+    }
+
+    function hydrateBM(){
+      // BM is seed + learned (plus optionally consolidated)
+      state.bm = [...state.seed, ...state.learned];
+    }
+
+    /***********************
+     * CORE RESPONSE FLOW
+     ***********************/
+    async function respond(userText){
+      // Step 1: Try local knowledge first (seed + learned)
+      const k = findInKnowledge(userText);
+      if(k){
+        return k.a;
+      }
+
+      // Step 2: fallback "offline LLM" placeholder (simple deterministic)
+      if(state.intelligence){
+        const emo = analyzeEmotion(userText);
+        const cont = computeContinuity();
+        const R = computeResonanceR(cont, emo.polarity, emo.intensity);
+
+        let prefix = "I hear you. ";
+        if(emo.emotion === "positive") prefix = "Glad to hear that. ";
+        if(emo.emotion === "negative") prefix = "I’m sorry you’re feeling that way. ";
+
+        return prefix + "Tell me a bit more so I can keep continuity. (R=" + R.toFixed(2) + ")";
+      }
+
+      return "I don’t have an answer yet. Please add it to Seed or enable Intelligence.";
+    }
+
+    /***********************
+     * EVENTS
+     ***********************/
+    optionBtn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      toggleMenu();
     });
 
-    elInput.addEventListener("keydown",e=>{
-      if(e.key==="Enter"&&!e.shiftKey){
+    document.addEventListener("click", (e)=>{
+      // close menu if clicked outside
+      if(menuPanel.classList.contains("open")){
+        const within = menuPanel.contains(e.target) || optionBtn.contains(e.target);
+        if(!within) closeMenu();
+      }
+    });
+
+    // menu item actions
+    menuPanel.addEventListener("click", (e)=>{
+      const item = e.target.closest(".menuItem");
+      if(!item) return;
+      const action = item.getAttribute("data-action");
+
+      if(action === "voice"){
+        state.voice = !state.voice;
+        updatePills();
+        return;
+      }
+
+      if(action === "learning"){
+        state.learning = !state.learning;
+        updatePills();
+        return;
+      }
+
+      if(action === "faith"){
+        state.faith = !state.faith;
+        updatePills();
+        refreshCaps();
+        return;
+      }
+
+      if(action === "seed"){
+        showModal("Feed the Seed", `
+          <div class="smallNote">Add Q/A to Seed (persistent in this file). Learning may also auto-store.</div>
+          <label>Question (Q)</label>
+          <input id="seedQ" placeholder="e.g., what is continuity?" />
+          <label>Answer (A)</label>
+          <textarea id="seedA" rows="4" placeholder="Write the answer..."></textarea>
+          <div class="btnRow">
+            <button class="softBtn" id="saveSeed">Save to Seed</button>
+          </div>
+        `);
+        setTimeout(()=>{
+          document.getElementById("saveSeed").onclick = ()=>{
+            const q = document.getElementById("seedQ").value.trim();
+            const a = document.getElementById("seedA").value.trim();
+            if(!q || !a) return alert("Please fill Q and A");
+            state.seed.push({ q, a, emotion:"neutral", polarity:0.1, intensity:0.3, category:"seed" });
+            hydrateBM();
+            refreshCaps();
+            hideModal();
+            addMsg("bot","Seed added ✅");
+          };
+        }, 0);
+        return;
+      }
+
+      if(action === "intel"){
+        showModal("Intelligence", `
+          <div class="kv">
+            <div class="k">Mode</div><div class="v">Offline fallback (placeholder)</div>
+            <div class="k">Priority</div><div class="v">Seed/Learned → Offline fallback</div>
+            <div class="k">Status</div><div class="v">${state.intelligence ? "Enabled" : "Disabled"}</div>
+          </div>
+          <div class="btnRow">
+            <button class="softBtn" id="toggleIntel">${state.intelligence ? "Disable" : "Enable"}</button>
+          </div>
+          <div class="smallNote">You can later replace the fallback with a real offline model in an APK/WebGPU supported runtime.</div>
+        `);
+        setTimeout(()=>{
+          document.getElementById("toggleIntel").onclick = ()=>{
+            state.intelligence = !state.intelligence;
+            hideModal();
+            addMsg("bot","Intelligence is now " + (state.intelligence ? "Enabled ✅" : "Disabled ⛔"));
+          };
+        }, 0);
+        return;
+      }
+
+      if(action === "identity"){
+        showModal("Identity Profile", `
+          <label>Name</label>
+          <input id="idName" value="${state.identity.name}" />
+          <label>Role</label>
+          <input id="idRole" value="${state.identity.role}" />
+          <div class="btnRow">
+            <button class="softBtn" id="saveId">Save</button>
+          </div>
+        `);
+        setTimeout(()=>{
+          document.getElementById("saveId").onclick = ()=>{
+            state.identity.name = document.getElementById("idName").value.trim() || "User";
+            state.identity.role = document.getElementById("idRole").value.trim() || "Creator";
+            hideModal();
+            addMsg("bot","Identity saved ✅");
+          };
+        }, 0);
+        return;
+      }
+
+      if(action === "llm"){
+        showModal("LLM Link", `
+          <div class="smallNote">Put your clickable model/test link here (optional).</div>
+          <label>URL</label>
+          <input id="llmUrl" placeholder="https://..." value="${state.llmLink}" />
+          <div class="btnRow">
+            <button class="softBtn" id="saveLLM">Save</button>
+            <button class="softBtn" id="openLLM">Open</button>
+          </div>
+        `);
+        setTimeout(()=>{
+          document.getElementById("saveLLM").onclick = ()=>{
+            state.llmLink = document.getElementById("llmUrl").value.trim();
+            hideModal();
+            addMsg("bot","LLM link saved ✅");
+          };
+          document.getElementById("openLLM").onclick = ()=>{
+            const url = document.getElementById("llmUrl").value.trim();
+            if(!url) return alert("Enter a URL first");
+            window.open(url, "_blank");
+          };
+        }, 0);
+        return;
+      }
+
+      if(action === "bm"){
+        hydrateBM();
+        showModal("BM Recall", `
+          <div class="smallNote">This shows your current BM memory (Seed + Learned).</div>
+          <pre class="mono" style="white-space:pre-wrap; background:rgba(15,23,42,.6); padding:10px; border-radius:12px; border:1px solid rgba(148,163,184,.14);">${safeJSON(state.bm.slice(-60))}</pre>
+          <div class="btnRow">
+            <button class="softBtn dangerBtn" id="clearLearned">Clear Learned</button>
+          </div>
+        `);
+        setTimeout(()=>{
+          document.getElementById("clearLearned").onclick = ()=>{
+            if(!confirm("Clear learned memory?")) return;
+            state.learned = [];
+            hydrateBM();
+            refreshCaps();
+            hideModal();
+            addMsg("bot","Learned memory cleared ✅");
+          };
+        }, 0);
+        return;
+      }
+
+      if(action === "history"){
+        showModal("Conversation History", `
+          <div class="smallNote">Full conversation log in this session.</div>
+          <pre class="mono" style="white-space:pre-wrap; background:rgba(15,23,42,.6); padding:10px; border-radius:12px; border:1px solid rgba(148,163,184,.14);">${safeJSON(state.history.slice(-200))}</pre>
+          <div class="btnRow">
+            <button class="softBtn dangerBtn" id="clearHistory">Clear History</button>
+          </div>
+        `);
+        setTimeout(()=>{
+          document.getElementById("clearHistory").onclick = ()=>{
+            if(!confirm("Clear conversation history?")) return;
+            state.history = [];
+            state.tm = [];
+            refreshCaps();
+            hideModal();
+            addMsg("bot","History cleared ✅");
+          };
+        }, 0);
+        return;
+      }
+
+      if(action === "themes"){
+        showModal("Themes", `
+          <div class="smallNote">Switch only colors (prototype).</div>
+          <div class="btnRow">
+            <button class="softBtn" data-theme="dark">Dark</button>
+            <button class="softBtn" data-theme="light">Light</button>
+            <button class="softBtn" data-theme="metallic">Metallic</button>
+            <button class="softBtn" data-theme="transparent">Transparent</button>
+          </div>
+          <div class="smallNote">Note: This changes background palette only (as requested).</div>
+        `);
+        setTimeout(()=>{
+          modalBody.querySelectorAll("[data-theme]").forEach(btn=>{
+            btn.onclick = ()=>{
+              const t = btn.getAttribute("data-theme");
+              applyTheme(t);
+              hideModal();
+              addMsg("bot","Theme set to: " + t + " ✅");
+            };
+          });
+        }, 0);
+        return;
+      }
+
+      if(action === "readme"){
+        showModal("Readme / About", `
+          <div class="smallNote">
+            <b>How to use:</b><br/>
+            1) Ask normal questions in the chat.<br/>
+            2) Answer priority: <b>Seed/Learned</b> → <b>Offline fallback (Intelligence)</b>.<br/>
+            3) Use <b>Feed the seed</b> to add Q/A for self learning (offline).<br/>
+            4) Use <b>Learning</b> toggle to auto-store new Q/A in Learned memory.<br/>
+            5) <b>BM Recall</b> shows (Seed + Learned).<br/>
+            6) <b>Conversation history</b> shows chat log of this session.<br/><br/>
+            <b>Continuity:</b> internal score based on overlap between recent TM and BM content.<br/>
+            <b>Resonance R:</b> depends on continuity + emotion intensity/polarity.<br/>
+            <b>E₀:</b> tanh-based stability signal using TM, BM, decay, and lambda terms.
+          </div>
+        `);
+        return;
+      }
+    });
+
+    backdrop.addEventListener("click", hideModal);
+    closeModalBtn.addEventListener("click", hideModal);
+
+    // send message
+    async function handleSend(){
+      const text = inputEl.value.trim();
+      if(!text) return;
+
+      inputEl.value = "";
+      addMsg("user", text);
+
+      // TM stores user inputs only
+      state.tm.push(text);
+
+      // store history
+      state.history.push({ role:"user", text, ts: Date.now() });
+
+      hydrateBM();
+
+      refreshCaps();
+
+      sendBtn.disabled = true;
+      const answer = await respond(text);
+
+      addMsg("bot", answer);
+      state.history.push({ role:"bot", text: answer, ts: Date.now() });
+
+      maybeLearn(text, answer);
+
+      hydrateBM();
+      refreshCaps();
+
+      sendBtn.disabled = false;
+    }
+
+    sendBtn.addEventListener("click", handleSend);
+    inputEl.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter" && !e.shiftKey){
         e.preventDefault();
-        elSend.click();
+        handleSend();
       }
     });
-
-    // === Theme & Readme controls (extra options) ===
-    const THEME_KEY="aura_theme_v1";
-    const miThemes=document.getElementById("miThemes");
-    const miReadme=document.getElementById("miReadme");
-    const modalThemes=document.getElementById("modalThemes");
-    const modalReadme=document.getElementById("modalReadme");
 
     function applyTheme(theme){
-      const all=["default","light","metallic","transparent"];
-      all.forEach(t=>document.body.classList.remove("theme-"+t));
-      if(theme&&theme!=="default"){
-        document.body.classList.add("theme-"+theme);
+      state.theme = theme;
+
+      if(theme === "light"){
+        document.body.style.background =
+          "radial-gradient(circle at 20% 0%, #e2e8f0 0, transparent 45%)," +
+          "radial-gradient(circle at 80% 0%, #bae6fd 0, transparent 40%)," +
+          "linear-gradient(145deg,#f8fafc 0,#eef2ff 40%,#f8fafc 100%)";
+        document.body.style.color = "#0f172a";
+        return;
       }
-      try{
-        localStorage.setItem(THEME_KEY,theme||"default");
-      }catch(e){}
+
+      if(theme === "metallic"){
+        document.body.style.background =
+          "radial-gradient(circle at 20% 0%, #94a3b8 0, transparent 45%)," +
+          "radial-gradient(circle at 80% 0%, #64748b 0, transparent 40%)," +
+          "linear-gradient(145deg,#0b1220 0,#111827 40%,#0b1220 100%)";
+        document.body.style.color = "#e5e7eb";
+        return;
+      }
+
+      if(theme === "transparent"){
+        document.body.style.background =
+          "radial-gradient(circle at 20% 0%, rgba(30,41,59,.55) 0, transparent 45%)," +
+          "radial-gradient(circle at 80% 0%, rgba(14,165,233,.45) 0, transparent 40%)," +
+          "linear-gradient(145deg,rgba(2,6,23,.75) 0, rgba(2,6,23,.55) 40%, rgba(2,6,23,.75) 100%)";
+        document.body.style.color = "#e5e7eb";
+        return;
+      }
+
+      // default dark
+      document.body.style.background =
+        "radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%)," +
+        "radial-gradient(circle at 80% 0%, #0ea5e9 0, transparent 40%)," +
+        "linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%)";
+      document.body.style.color = "#e5e7eb";
     }
 
-    (function restoreThemeFromStorage(){
-      try{
-        const saved=localStorage.getItem(THEME_KEY);
-        if(saved){
-          applyTheme(saved);
-        }
-      }catch(e){}
-    })();
-
-    if(miThemes&&modalThemes){
-      miThemes.addEventListener("click",()=>{
-        toggleOptionsMenu(false);
-        modalThemes.style.display="flex";
-      });
-      modalThemes.addEventListener("click",e=>{
-        if(e.target===modalThemes){
-          modalThemes.style.display="none";
-        }
-      });
-    }
-
-    if(miReadme&&modalReadme){
-      miReadme.addEventListener("click",()=>{
-        toggleOptionsMenu(false);
-        modalReadme.style.display="flex";
-      });
-      modalReadme.addEventListener("click",e=>{
-        if(e.target===modalReadme){
-          modalReadme.style.display="none";
-        }
-      });
-    }
-
-    document.querySelectorAll(".themeChip").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        const theme=btn.getAttribute("data-theme")||"default";
-        applyTheme(theme);
-        if(modalThemes){
-          modalThemes.style.display="none";
-        }
-      });
-    });
-
-    loadAll();
+    // init
+    hydrateBM();
+    updatePills();
+    refreshCaps();
+    addMsg("bot","AURA-X Ω ready ✅ Ask me something.");
   </script>
 </body>
 </html>
