@@ -160,7 +160,6 @@
     }
     .liveCapsule b{ color:#7dd3fc; font-weight:900 }
 
-    /* Small inline faith bubble in chat area */
     .faithBubble{
       margin:4px 0 10px;
       padding:8px 10px;
@@ -230,7 +229,6 @@
       color:#dbeafe;
     }
 
-    /* ===== Options Grid ===== */
     .optionsMenu{
       position:fixed;
       left:12px;
@@ -319,7 +317,6 @@
       opacity:.95;
     }
 
-    /* ===== Modals ===== */
     .modalOverlay{
       position:fixed;
       inset:0;
@@ -577,7 +574,6 @@
               <span><b>C</b>: <span id="cCont">0.850</span></span>
             </div>
 
-            <!-- Faith Bubble -->
             <div class="faithBubble" id="faithBubble">
               <div class="fbIcon">💭</div>
               <div class="fbText">
@@ -605,7 +601,7 @@
   <div class="modalOverlay" id="modalFaith">
     <div class="modal">
       <div class="modalHeader">
-        <div>⚙️ AURA-X Ω options<br><small>Optional faith lenses for encouragement lines.</small></div>
+        <div>⚙️ AURA-X Ω options<br><small>Optional faith lens for encouragement lines.</small></div>
         <button class="closeX" data-close="modalFaith">×</button>
       </div>
       <div class="modalBody" style="background:#fdf7e5;">
@@ -651,7 +647,6 @@
           style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none"
           placeholder="Search intelligence..." />
 
-        <!-- Editor for edit Q/A -->
         <div id="intelEditor" style="margin-top:10px;display:none;">
           <input id="intelEditQ" class="intelEditInput" placeholder="Question" />
           <textarea id="intelEditA" class="intelEditArea" placeholder="Answer"></textarea>
@@ -877,11 +872,11 @@
 
   <script>
     window.addEventListener("DOMContentLoaded", () => {
-      const KEY_CFG   = "aurax_cfg_v10";
-      const KEY_INT   = "aurax_intel_v10";
-      const KEY_BM    = "aurax_bm_v10";
-      const KEY_HIST  = "aurax_hist_v10";
-      const KEY_USER  = "aurax_user_v10";
+      const KEY_CFG   = "aurax_cfg_v11";
+      const KEY_INT   = "aurax_intel_v11";
+      const KEY_BM    = "aurax_bm_v11";
+      const KEY_HIST  = "aurax_hist_v11";
+      const KEY_USER  = "aurax_user_v11";
       const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
 
       const els = {
@@ -973,12 +968,17 @@
       };
 
       const FAITH_OPTIONS = [
-        { id: "islam",        label: "Islam ☪️" },
-        { id: "christianity", label: "Christianity ✝️" },
-        { id: "hinduism",     label: "Hinduism ॐ" },
-        { id: "buddhism",     label: "Buddhism ☸️" },
-        { id: "sikhism",      label: "Sikhism 🪯" },
-        { id: "ethics_only",  label: "Ethics only ☯️" }
+        { id: "none",        label: "None" },
+        { id: "islam",       label: "Islam ☪️" },
+        { id: "christianity",label: "Christianity ✝️" },
+        { id: "hinduism",    label: "Hinduism ॐ" },
+        { id: "buddhism",    label: "Buddhism ☸️" },
+        { id: "sikhism",     label: "Sikhism 🪯" },
+        { id: "judaism",     label: "Judaism ✡️" },
+        { id: "atheism",     label: "Atheism / Humanism" },
+        { id: "mixed",       label: "Other / Mixed" },
+        { id: "indigenous",  label: "Indigenous / Traditional" },
+        { id: "eastern",     label: "Eastern / Chinese" }
       ];
 
       const FAITH_LIBRARY = {
@@ -1130,7 +1130,11 @@
         els.faithChips.innerHTML = "";
         FAITH_OPTIONS.forEach(opt => {
           const chip = document.createElement("button");
-          chip.className = "chip" + (state.faithSelection.includes(opt.id) ? " active" : "");
+          const active =
+            opt.id === "none"
+              ? state.faithSelection.length === 0
+              : state.faithSelection.includes(opt.id);
+          chip.className = "chip" + (active ? " active" : "");
           chip.textContent = opt.label;
           chip.addEventListener("click", () => toggleFaith(opt.id));
           els.faithChips.appendChild(chip);
@@ -1153,7 +1157,7 @@
       }
 
       function toggleFaith(id) {
-        if (id === "ethics_only") {
+        if (id === "none") {
           state.faithSelection = [];
         } else {
           const idx = state.faithSelection.indexOf(id);
@@ -1193,7 +1197,6 @@
       }
 
       function renderHistoryBox() {
-        if (!els.historyBox) return;
         els.historyBox.innerHTML = "";
         state.history.forEach(h => {
           const row = document.createElement("div");
@@ -1208,7 +1211,6 @@
       }
 
       function renderBMList() {
-        if (!els.bmSelectList) return;
         els.bmSelectList.innerHTML = "";
         if (!state.bmPrompts.length) {
           els.bmSelectList.innerHTML =
@@ -1311,7 +1313,7 @@
         if (!bm) return;
         const trimmed = (userText || "").trim();
         if (!trimmed) return;
-        if (trimmed.length < 40) return; // skip very short lines
+        if (trimmed.length < 40) return;
         const stamp = new Date().toLocaleString();
         const addition =
           "\n\n[Update @ " + stamp + "]\n" +
@@ -1556,6 +1558,39 @@
         void userQuestion;
       }
 
+      // ------- VOICE (TTS) -------
+      let cachedVoices = [];
+      if ("speechSynthesis" in window) {
+        cachedVoices = window.speechSynthesis.getVoices() || [];
+        window.speechSynthesis.onvoiceschanged = () => {
+          cachedVoices = window.speechSynthesis.getVoices() || [];
+        };
+      }
+
+      function speakText(text) {
+        if (!state.voiceOn) return;
+        if (!("speechSynthesis" in window)) return;
+        if (!text) return;
+        try {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.rate = 0.95;
+          u.pitch = 0.7;
+
+          let voices = cachedVoices;
+          if (!voices || !voices.length) {
+            voices = window.speechSynthesis.getVoices() || [];
+          }
+          const pick = voices.find(v =>
+            /male|old|grand|baritone/i.test((v.name||"") + " " + (v.voiceURI||""))
+          ) || voices[0];
+          if (pick) u.voice = pick;
+          window.speechSynthesis.speak(u);
+        } catch {
+          // ignore
+        }
+      }
+
       async function generateAnswer(text) {
         let intelBoost = 0;
         let llmBoost = 0;
@@ -1588,22 +1623,6 @@
         return { answer: fallback, source: "BASIC", intelBoost, llmBoost };
       }
 
-      function playFaithVoice(text) {
-        if (!state.voiceOn || !("speechSynthesis" in window)) return;
-        try {
-          window.speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(text);
-          u.rate = 0.9;
-          u.pitch = 0.7;
-          const voices = window.speechSynthesis.getVoices() || [];
-          const pref = voices.find(v => /male/i.test(v.name)) || voices[0];
-          if (pref) u.voice = pref;
-          window.speechSynthesis.speak(u);
-        } catch {
-          // ignore
-        }
-      }
-
       function maybeTriggerFaithBubble(userText, answer) {
         if (!state.faithSelection.length) return;
         const combined = (userText + " " + answer).toLowerCase();
@@ -1632,7 +1651,7 @@
         state.lastStoryInput = userText || answer || "";
         state.lastStoryBMId = null;
 
-        playFaithVoice("Faith suggestion available. Tap the golden bubble if you want a short reflection.");
+        speakText("Faith suggestion available. Tap the golden bubble if you want a short reflection.");
 
         state.faithBubbleTimer = setTimeout(() => {
           els.faithBubble.classList.remove("show");
@@ -1685,7 +1704,6 @@
         bm.ts = Date.now();
         saveBM();
         renderBMList();
-        logLine("[faith] Reflection added under BM story.");
         hideModal("modalFaithArticle");
         els.faithBubble.classList.remove("show");
         recomputeBMMetric();
@@ -1697,8 +1715,7 @@
           alert("Clipboard not available here.");
           return;
         }
-        navigator.clipboard.writeText(text).then(() => {
-        }).catch(() => {});
+        navigator.clipboard.writeText(text).then(() => {}).catch(() => {});
       }
 
       async function handleUserMessage() {
@@ -1720,6 +1737,9 @@
         renderHistoryBox();
         logLine("AURA-X Ω (" + source + "): " + answer);
 
+        // voice for main answer
+        speakText(answer);
+
         maybeTriggerFaithBubble(text, answer);
         maybeUpdateLiveBM(text, answer);
       }
@@ -1734,14 +1754,14 @@
 
       function loadIdentityIntoForm() {
         const u = state.userIdentity || {};
-        if (els.uName) els.uName.value = u.name || "";
-        if (els.uNick) els.uNick.value = u.nick || "";
-        if (els.uOrigin) els.uOrigin.value = u.origin || "";
-        if (els.uPlace) els.uPlace.value = u.place || "";
-        if (els.uProfession) els.uProfession.value = u.profession || "";
-        if (els.uEmotionalStyle) els.uEmotionalStyle.value = u.emotionalStyle || "";
-        if (els.uKeyPeople) els.uKeyPeople.value = u.keyPeople || "";
-        if (els.uLegacyRules) els.uLegacyRules.value = u.legacyRules || "";
+        els.uName.value = u.name || "";
+        els.uNick.value = u.nick || "";
+        els.uOrigin.value = u.origin || "";
+        els.uPlace.value = u.place || "";
+        els.uProfession.value = u.profession || "";
+        els.uEmotionalStyle.value = u.emotionalStyle || "";
+        els.uKeyPeople.value = u.keyPeople || "";
+        els.uLegacyRules.value = u.legacyRules || "";
       }
 
       function readIdentityFromForm() {
@@ -1988,7 +2008,7 @@
       });
 
       initFromStorage();
-      logLine("AURA-X Ω ready. TM = your inputs only. BM live nodes + faith bubble layer active.");
+      // کوئی auto-message نہیں، screen clean رہے گی
     });
   </script>
 </body>
