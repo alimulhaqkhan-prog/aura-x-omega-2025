@@ -1,534 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script type="module">
-    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
-    window.webllm = webllm;
-  </script>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:
-        radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
-        radial-gradient(circle at 80% 0, #0ea5e9 0, transparent 40%),
-        linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
-      color:#e5e7eb; min-height:100vh; display:flex; justify-content:center; padding:18px 10px;
-    }
-    .app{ width:min(980px,98vw); background:rgba(2,6,23,.45); border:1px solid rgba(148,163,184,.18);
-      border-radius:22px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.45); backdrop-filter:blur(10px);}
-    .top{ padding:20px 18px 10px; border-bottom:1px solid rgba(148,163,184,.14); text-align:center;}
-    .brand{ font-weight:800; letter-spacing:.5px; font-size:26px; color:#7dd3fc; text-shadow:0 0 22px rgba(14,165,233,.28);}
-    .sub{ opacity:.8; margin-top:2px; font-size:13px}
-    .ethic{ margin:14px auto 12px; max-width:720px; border:1px solid rgba(251,191,36,.35);
-      border-radius:14px; padding:12px 14px; color:#fbbf24; background:rgba(2,6,23,.35);
-      box-shadow:inset 0 0 0 1px rgba(251,191,36,.08); font-size:14px; line-height:1.45;}
-    .pill{ margin:10px auto 0; max-width:760px;
-      background:linear-gradient(90deg, rgba(14,165,233,.65), rgba(34,211,238,.45));
-      border:1px solid rgba(125,211,252,.30); color:#0b1220; font-weight:800; letter-spacing:.6px;
-      border-radius:999px; padding:14px 16px; text-transform:uppercase; box-shadow:0 12px 40px rgba(14,165,233,.22);}
-    .main{ padding:16px 16px 18px }
-    .row{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
-    .leftCol{ flex:1 1 340px; min-width:300px }
-    .rightCol{ flex:1 1 360px; min-width:320px }
-    .card{ background:rgba(2,6,23,.50); border:1px solid rgba(148,163,184,.16); border-radius:18px; padding:14px;
-      box-shadow:0 10px 30px rgba(0,0,0,.25); backdrop-filter:blur(10px); }
-    .optionsBtn{ display:inline-flex;align-items:center;gap:10px; padding:10px 14px;border-radius:999px;
-      border:1px solid rgba(148,163,184,.22); background:rgba(15,23,42,.55); color:#e5e7eb; cursor:pointer;
-      user-select:none; margin:12px 0; -webkit-tap-highlight-color:transparent }
-    .optionsBtn:active{transform:scale(.99)} .gear{width:18px;height:18px;filter:drop-shadow(0 0 10px rgba(125,211,252,.25))}
-    .console{ margin-top:12px;height:230px;border-radius:16px;border:1px solid rgba(148,163,184,.14);
-      background:rgba(0,0,0,.25); padding:14px; overflow:auto; font-family:ui-monospace,Menlo,Consolas,monospace;
-      font-size:14px; box-shadow:inset 0 0 0 1px rgba(125,211,252,.06); line-height:1.55; white-space:pre-wrap; }
-    .line{display:block;margin:2px 0}
-    .chatWrap{ margin-top:14px;padding:12px; border-radius:18px;border:1px solid rgba(148,163,184,.14); background:rgba(2,6,23,.45) }
-    .liveCapsule{ margin:10px 0;width:100%; border-radius:999px;border:1px solid rgba(148,163,184,.18);
-      background:rgba(2,6,23,.55); padding:10px 12px; display:flex;gap:10px;flex-wrap:wrap; align-items:center;justify-content:center;
-      font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px;color:#dbeafe; box-shadow:inset 0 0 0 1px rgba(125,211,252,.06) }
-    .liveCapsule b{ color:#7dd3fc; font-weight:900 }
-    .inputRow{display:flex;gap:10px;align-items:flex-end}
-    .input{ flex:1;border-radius:999px;border:1px solid rgba(148,163,184,.18); background:rgba(2,6,23,.55);
-      color:#e5e7eb;padding:12px 14px;outline:none;font-size:14px }
-    .send{ border:none;border-radius:999px; background:linear-gradient(90deg, rgba(14,165,233,.85), rgba(34,211,238,.55));
-      color:#0b1220;font-weight:900; padding:12px 18px;cursor:pointer;min-width:88px; box-shadow:0 12px 30px rgba(14,165,233,.18);
-      -webkit-tap-highlight-color:transparent }
-    .send:active{transform:scale(.99)}
-    .formula{ margin-top:10px;opacity:.8;font-size:12px;text-align:center; font-family:ui-monospace,Menlo,Consolas,monospace; color:#dbeafe }
+<meta charset="UTF-8" />
+<title>AURA‑X Ω – Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  /* RESET */
+  *{box-sizing:border-box;margin:0;padding:0;}
 
-    /* ===== Options Grid: 3 columns, no overflow ===== */
-    .optionsMenu{
-      position:fixed; left:12px; right:12px; top:120px; margin:0 auto; max-width:940px;
-      background:rgba(2,6,23,.92); border:1px solid rgba(148,163,184,.18); border-radius:16px; padding:8px;
-      display:none; z-index:99999; box-shadow:0 18px 45px rgba(0,0,0,.45); backdrop-filter:blur(10px);
-      display:none; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px; align-items:stretch;
-    }
-    .optionsMenu.show{display:grid}
-    .menuItem{ padding:8px 10px; border-radius:13px; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
-      gap:8px; color:#e5e7eb; border:1px solid rgba(148,163,184,.10); background:rgba(15,23,42,.55); user-select:none; min-height:44px}
-    .menuItem:active{transform:scale(.995)} .menuLeft{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px}
-    .menuIcon{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center}
-    .menuRight{display:inline-flex;align-items:center;justify-content:center;min-width:52px}
-    .pillOn,.pillOff,.pillMid{ font-size:10.5px;padding:5px 8px;border-radius:999px;font-weight:900;text-transform:lowercase;border:1px solid transparent}
-    .pillOn{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.24);color:#bbf7d0}
-    .pillOff{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.22);color:#fecaca}
-    .pillMid{background:rgba(14,165,233,.14);border-color:rgba(14,165,233,.20);color:#bae6fd;opacity:.95}
+  body{
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:#0f111b;
+    color:#e0e6ff;
+    padding:12px;
+  }
 
-    /* ===== Modals (faith / BM etc.) ===== */
-    .modalOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:flex-end; justify-content:center;
-      padding:18px 12px; z-index:9999 }
-    .modalOverlay.show{display:flex}
-    .modal{ width:min(860px,96vw); border-radius:18px; overflow:hidden; background:rgba(250,250,250,.93); color:#0b1220;
-      border:1px solid rgba(15,23,42,.18); box-shadow:0 30px 80px rgba(0,0,0,.35); backdrop-filter:blur(12px)}
-    .modalHeader{ display:flex;align-items:center;justify-content:space-between; padding:12px 14px; background:rgba(255,255,255,.75);
-      border-bottom:1px solid rgba(15,23,42,.10); font-weight:800}
-    .modalHeader small{font-weight:600;opacity:.7} .closeX{border:none;background:transparent;font-size:22px;cursor:pointer;line-height:1;padding:0 4px;opacity:.75}
-    .modalBody{padding:14px;max-height:70vh;overflow:auto}
-    .chipsWrap{margin-top:10px;display:flex;flex-wrap:wrap;gap:10px}
-    .chip{ padding:10px 14px;border-radius:999px; border:1px solid rgba(15,23,42,.16); background:rgba(255,255,255,.9);
-      font-weight:800;cursor:pointer; -webkit-tap-highlight-color:transparent }
-    .chip.active{ background:#0f172a;color:#fff;border-color:rgba(15,23,42,.2); box-shadow:0 12px 30px rgba(2,6,23,.12)}
-    .btn{ border:none;cursor:pointer;padding:10px 14px;border-radius:12px;font-weight:900;-webkit-tap-highlight-color:transparent }
-    .btnBlue{background:rgba(59,130,246,.16);border:1px solid rgba(59,130,246,.22)}
-    .btnDark{background:rgba(2,6,23,.92);color:#fff}
-    .btnRed{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.22);color:#7f1d1d}
-    .btnGreen{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.25);color:#064e2a}
-    .bmCard{ border-radius:16px; border:1px solid rgba(15,23,42,.12); background:rgba(255,255,255,.85); padding:12px; margin-top:12px}
-    .bmTop{ display:flex;align-items:center;justify-content:space-between;gap:10px; margin-bottom:10px}
-    .bmTop .title{ font-weight:900; display:flex;align-items:center;gap:8px }
-    .bmSub{font-size:12px;opacity:.7;margin-top:2px}
-    .bmText{ width:100%; min-height:240px; border-radius:14px; border:1px solid rgba(15,23,42,.18); padding:12px; outline:none; resize:vertical; background:#fff; font-size:14px; line-height:1.45}
-    .bmActions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; justify-content:flex-start }
+  h1{
+    text-align:center;
+    margin-bottom:8px;
+    font-size:1.4rem;
+  }
+  p.subtitle{
+    text-align:center;
+    font-size:0.82rem;
+    opacity:0.8;
+    margin-bottom:12px;
+  }
 
-    @media (max-width:760px){ .console{height:240px} .optionsMenu{top:112px} }
-    @media (max-width:420px){
-      .brand{font-size:22px} .pill{font-size:14px} .ethic{font-size:13px}
-      .console{height:260px} .menuItem{min-height:42px} .menuLeft{font-size:12.5px} .menuRight{min-width:48px}
-      .pillOn,.pillOff,.pillMid{font-size:10px;padding:5px 7px} .optionsMenu{gap:7px;padding:7px}
-    }
-  </style>
+  /* 3‑column button grid */
+  .btn-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr); /* تین کالم */
+    gap:8px; /* کالم/رو gap */
+    margin-bottom:14px;
+  }
+  .btn{
+    background:#1f2937;
+    border:1px solid #3b4452;
+    border-radius:8px;
+    padding:8px 6px;
+    font-size:0.78rem; /* چھوٹا سائز */
+    text-align:center;
+    cursor:pointer;
+    transition:background 0.15s;
+    user-select:none;
+  }
+  .btn:hover{
+    background:#2d384b;
+  }
+  .btn.on{
+    background:#065eff;
+    color:#fff;
+  }
+
+  /* Panels */
+  .panel{
+    background:#1c1f2c;
+    border-radius:12px;
+    padding:10px;
+    margin-bottom:12px;
+  }
+  .panel-header{
+    font-weight:600;
+    font-size:0.9rem;
+    margin-bottom:6px;
+  }
+  .panel-body{
+    font-size:0.78rem;
+    line-height:1.3;
+  }
+
+  /* Conversation history */
+  #history{
+    max-height:180px;
+    overflow-y:auto;
+    font-size:0.76rem;
+    border:1px solid #333;
+    border-radius:8px;
+    padding:6px;
+    background:#11131d;
+  }
+  .history-entry{
+    margin-bottom:4px;
+  }
+  .history-entry span.tag{
+    font-weight:600;
+    opacity:0.8;
+  }
+
+  /* Input row */
+  .input-row{
+    display:flex;
+    gap:6px;
+  }
+  .input-row input{
+    flex:1;
+    padding:8px;
+    border-radius:8px;
+    border:1px solid #333;
+    background:#11131d;
+    color:#eef;
+    font-size:0.78rem;
+  }
+  .input-row button{
+    padding:8px 10px;
+    border-radius:8px;
+    border:none;
+    background:#065eff;
+    color:#fff;
+    font-size:0.78rem;
+    cursor:pointer;
+  }
+
+</style>
 </head>
 <body>
-  <div class="app">
-    <div class="top">
-      <div class="brand">AURA-X Ω</div>
-      <div class="sub">Offline emotional continuity engine (prototype)<br>TM = user inputs only · Internal layers keep continuity and emotional trajectory.</div>
-      <div class="ethic">Universal ethic: avoid actions that grow negative emotions in you or others. Move gently toward choices that increase shared positive feeling for everyone.</div>
-      <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
-    </div>
 
-    <div class="main">
-      <div class="row">
-        <div class="leftCol">
-          <div class="card">
-            <div class="optionsBtn" id="btnOptions">
-              <svg class="gear" viewBox="0 0 24 24" fill="none">
-                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="#7dd3fc" stroke-width="2"/>
-                <path d="M19.4 15a8.2 8.2 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a8.5 8.5 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a8.2 8.2 0 0 0 .1 2L2.7 16.5l2 3.5 2.4-1a8.5 8.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.5L19.4 15Z" stroke="#7dd3fc" stroke-width="1.6" opacity=".9"/>
-              </svg>
-              <span>Options</span>
-            </div>
+<h1>AURA‑X Ω</h1>
+<p class="subtitle">Offline emotional continuity engine (prototype)</p>
 
-            <!-- Options Grid -->
-            <div class="optionsMenu" id="optionsMenu">
-              <div class="menuItem" id="miVoice"><div class="menuLeft"><span class="menuIcon">🎤</span><span>Voice</span></div><div class="menuRight"><span class="pillOff" id="voicePill">off</span></div></div>
-              <div class="menuItem" id="miIntel"><div class="menuLeft"><span class="menuIcon">🧠</span><span>Intelligence</span></div><div class="menuRight"><span class="pillMid">open</span></div></div>
-              <div class="menuItem" id="miLearn"><div class="menuLeft"><span class="menuIcon">📚</span><span>Learning</span></div><div class="menuRight"><span class="pillOn" id="learnPill">on</span></div></div>
-              <div class="menuItem" id="miSeed"><div class="menuLeft"><span class="menuIcon">🌱</span><span>Feed</span></div><div class="menuRight"><span class="pillMid">open</span></div></div>
-              <div class="menuItem" id="miFaith"><div class="menuLeft"><span class="menuIcon">🕊</span><span>Faith</span></div><div class="menuRight"><span class="pillOff" id="faithLabel">none</span></div></div>
-              <div class="menuItem" id="miIdentity"><div class="menuLeft"><span class="menuIcon">🪪</span><span>Identity</span></div><div class="menuRight"><span class="pillMid">open</span></div></div>
-              <div class="menuItem" id="miLLM"><div class="menuLeft"><span class="menuIcon">🤖</span><span>LLM</span></div><div class="menuRight"><span class="pillMid">open</span></div></div>
-              <div class="menuItem" id="miBMRecall"><div class="menuLeft"><span class="menuIcon">📘</span><span>BM</span></div><div class="menuRight"><span class="pillMid">open</span></div></div>
-              <div class="menuItem" id="miHistory"><div class="menuLeft"><span class="menuIcon">📜</span><span>History</span></div><div class="menuRight"><span class="pillMid">open</span></div></div>
-            </div>
+<div class="panel">
+  <div class="panel-header">Seed ethic / guidance</div>
+  <div class="panel-body" id="seedEthic">
+    Universal ethic: avoid actions that grow negative emotions in you or others. Move gently toward choices that increase shared positive feeling for everyone.
+  </div>
+</div>
 
-            <div class="console" id="console"></div>
-          </div>
-        </div>
+<!-- Options in three columns -->
+<div class="btn-grid" id="optionsGrid">
+  <!-- Example buttons -->
+  <div class="btn" data-action="voice">Voice</div>
+  <div class="btn" data-action="intelligence">Intelligence</div>
+  <div class="btn" data-action="learning">Learning</div>
 
-        <div class="rightCol">
-          <div class="chatWrap">
-            <div class="liveCapsule">
-              <span><b>E0</b>: <span id="cE0">0.000</span></span><span>·</span>
-              <span><b>TM</b>: <span id="cTM">0.00</span></span><span>·</span>
-              <span><b>BM</b>: <span id="cBM">0.00</span></span><span>·</span>
-              <span><b>C</b>: <span id="cCont">0.850</span></span>
-            </div>
-            <div class="inputRow">
-              <input class="input" id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
-              <button class="send" id="sendBtn">Send</button>
-            </div>
-            <div class="formula">
-              E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="btn" data-action="feed">Feed</div>
+  <div class="btn" data-action="faith">Faith</div>
+  <div class="btn" data-action="identity">Identity</div>
+
+  <div class="btn" data-action="llm">LLM</div>
+  <div class="btn" data-action="bmRecall">BM Recall</div>
+  <div class="btn" data-action="history">History</div>
+</div>
+
+<!-- Identity / self‑learning panel -->
+<div class="panel">
+  <div class="panel-header">User identity & self‑learning</div>
+  <div class="panel-body">
+    <div id="identityInfo">Identity: Unknown user</div>
+    <div style="margin-top:6px;">
+      <button class="btn" id="btnUpdateIdentity" style="padding:6px 8px; font-size:0.72rem;">Update from chat</button>
     </div>
   </div>
+</div>
 
-  <!-- Faith -->
-  <div class="modalOverlay" id="modalFaith">
-    <div class="modal"><div class="modalHeader"><div>⚙️ AURA-X Ω options<br><small>Optional faith lens for encouragement lines.</small></div><button class="closeX" data-close="modalFaith">×</button></div>
-      <div class="modalBody"><div style="opacity:.8;font-size:13px;line-height:1.35">Universal ethics are always active. You can optionally pick one or more faith lenses. Nothing is sent to any server.</div><div class="chipsWrap" id="faithChips"></div></div>
-    </div>
-  </div>
+<!-- Conversation / BM recall / history view -->
+<div class="panel">
+  <div class="panel-header">Conversation history</div>
+  <div id="history"></div>
+</div>
 
-  <!-- Intelligence -->
-  <div class="modalOverlay" id="modalIntel">
-    <div class="modal"><div class="modalHeader"><div>🧠 Intelligence<br><small>Stored Q → A pairs.</small></div><button class="closeX" data-close="modalIntel">×</button></div>
-      <div class="modalBody"><input id="intelSearch" style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none" placeholder="Search intelligence..." /><div id="intelList"></div></div>
-    </div>
-  </div>
+<!-- Input -->
+<div class="input-row" style="margin-bottom:14px;">
+  <input type="text" id="userInput" placeholder="Type your message..." autocomplete="off" />
+  <button id="sendBtn">Send</button>
+</div>
 
-  <!-- Seed -->
-  <div class="modalOverlay" id="modalSeed">
-    <div class="modal"><div class="modalHeader"><div>🌱 Feed the seed (protected)<br><small>Add LaTeX Q → A blocks directly into intelligence memory.</small></div><button class="closeX" data-close="modalSeed">×</button></div>
-      <div class="modalBody">
-        <div style="opacity:.75;font-size:13px;line-height:1.35;margin-bottom:10px">Paste a LaTeX block with \item questions and \textbf{A:} answers. You can optionally start each answer with metadata like <span style="font-family:ui-monospace">[polarity=positive; code=E031; intensity=0.8]</span>.</div>
-        <textarea id="seedBox" style="width:100%;min-height:150px;resize:vertical;border-radius:14px;border:2px solid rgba(59,130,246,.25);padding:12px;font-size:14px;outline:none;background:#fff" placeholder="Paste LaTeX conversation / logic block here..."></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px">
-          <div style="font-size:12px;opacity:.7" id="seedHint">Waiting for block…</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btnBlue" id="btnParseSeed">Parse block</button>
-            <button class="btn btnBlue" id="btnSaveSeed">Save to seed</button>
-            <button class="btn btnRed" id="btnDiscardSeed">Discard</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- Basic seed Q&A logic -->
+<script>
+  // ----------- Seed Q&A ------------
+  const seedQA = [
+    {q:["hi","hello","hey"], a:"Hello! How can I help you today?"},
+    {q:["how are you","how are you doing"], a:"I am quite fine, how about you?"},
+    {q:["who created you","who made you"], a:"I am created by Alim ul Haq."},
+    {q:["give me full code","full code"], a:"You can copy the full code shown in this page; it is a working prototype."}
+  ];
 
-  <!-- LLM -->
-  <div class="modalOverlay" id="modalLLM">
-    <div class="modal"><div class="modalHeader"><div>🤖 LLM link<br><small>Offline LLM + optional online.</small></div><button class="closeX" data-close="modalLLM">×</button></div>
-      <div class="modalBody">
-        <div style="border-radius:14px;border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.12);padding:12px;">
-          <div style="font-weight:900;">Offline LLM (WebLLM)</div>
-          <div style="font-size:13px;opacity:.8;margin-top:6px;line-height:1.35">Loads a small local model in your browser.</div>
-          <div style="margin-top:10px;"><button class="btn btnGreen" id="btnLoadOffline">Load offline model</button></div>
-          <div style="margin-top:8px;font-size:12px;opacity:.75">Status: <span id="offlineStatus">idle</span></div>
-          <div style="margin-top:8px;height:10px;border-radius:999px;background:rgba(2,6,23,.12);overflow:hidden;border:1px solid rgba(2,6,23,.08)">
-            <div id="offlineBar" style="height:100%;width:0%;background:#22c55e;transition:width .2s ease;"></div>
-          </div>
-        </div>
-        <div style="font-weight:900;margin-top:14px;">Optional online helper:</div>
-        <div style="margin-top:10px;"><label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API endpoint</label>
-          <input id="apiEndpoint" style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)" value="https://api.openai.com/v1/chat/completions" /></div>
-        <div style="margin-top:10px;"><label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Model</label>
-          <input id="apiModel" style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)" value="gpt-4o-mini" /></div>
-        <div style="margin-top:10px;"><label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API key (session only)</label>
-          <input id="apiKey" style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)" placeholder="sk-..." /></div>
-        <div style="margin-top:10px;display:flex;justify-content:flex-end;"><button class="btn btnBlue" id="btnSaveLLM">Save</button></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BM -->
-  <div class="modalOverlay" id="modalBM">
-    <div class="modal"><div class="modalHeader"><div>📘 Recall from BM<br><small>Only long stories and scenes (photo/video-ready).</small></div><button class="closeX" data-close="modalBM">×</button></div>
-      <div class="modalBody">
-        <div style="font-size:13px;opacity:.75">Select a BM prompt. Locked prompts must be unlocked first. Delete needs double confirmation.</div>
-        <div id="bmSelectList"></div>
-        <div class="bmCard" id="bmViewer" style="display:none;">
-          <div class="bmTop">
-            <div><div class="title"><span id="bmLockIcon">🔓</span> <span id="bmTitle">Prompt</span></div><div class="bmSub" id="bmMeta"></div></div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;"><button class="btn btnBlue" id="btnUnlockBM" style="display:none;">Unlock</button></div>
-          </div>
-          <textarea class="bmText" id="bmTextArea" readonly></textarea>
-          <div class="bmActions">
-            <button class="btn btnBlue" id="btnCopyPrompt">Copy prompt</button>
-            <button class="btn btnBlue" id="btnAutoGen">Auto generate</button>
-            <button class="btn btnRed" id="btnDeletePrompt">Delete</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- History -->
-  <div class="modalOverlay" id="modalHistory">
-    <div class="modal"><div class="modalHeader"><div>📜 Conversation history<br><small>Local log (no timestamps).</small></div><button class="closeX" data-close="modalHistory">×</button></div>
-      <div class="modalBody"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-        <button class="btn btnBlue" id="btnCopyHistory">Copy</button><button class="btn btnRed" id="btnClearHistory">Clear</button></div>
-        <div id="historyBox" style="margin-top:12px;border:1px solid rgba(15,23,42,.12);border-radius:14px;padding:12px;background:rgba(255,255,255,.78);white-space:pre-wrap;font-family:ui-monospace;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Identity -->
-  <div class="modalOverlay" id="modalIdentity">
-    <div class="modal"><div class="modalHeader"><div>🪪 User identity<br><small>Locked profile + full blocks.</small></div><button class="closeX" data-close="modalIdentity">×</button></div>
-      <div class="modalBody">
-        <div style="opacity:.8;font-size:13px;line-height:1.35">Stored only on this device. Saved data auto-locks. Delete requires double confirmation.</div>
-        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-          <button class="btn btnBlue" id="btnEditIdentity">Edit</button>
-          <button class="btn btnBlue" id="btnSaveUserIdentity">Save</button>
-          <button class="btn btnRed" id="btnDeleteUserIdentity">Delete</button>
-        </div>
-        <div style="margin-top:10px;"><label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Your name</label>
-          <input id="uName" style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)" placeholder="e.g., Alim ul Haq" /></div>
-        <div style="margin-top:10px;"><label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Phone (optional)</label>
-          <input id="uPhone" style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)" placeholder="+92..." /></div>
-        <div style="margin-top:10px;"><label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Email (optional)</label>
-          <input id="uEmail" style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)" placeholder="you@email.com" /></div>
-        <div style="margin-top:10px;"><label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">City / Country</label>
-          <input id="uPlace" style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)" placeholder="Timergara, Pakistan" /></div>
-        <div style="margin-top:10px;"><label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Full identity blocks (auto-locked)</label>
-          <textarea id="uBlocks" style="width:100%;min-height:120px;resize:vertical;border-radius:14px;border:2px solid rgba(59,130,246,.25);padding:12px;font-size:14px;outline:none;background:#fff" placeholder="Paste full blocks here (bio, work, projects, preferences, etc)..."></textarea></div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    /* ========== Storage Keys / State ========== */
-    const KEY_CFG="aurax_cfg_v8", KEY_INTEL="aurax_intel_v8", KEY_BM="aurax_bm_v8", KEY_HIST="aurax_hist_v8", KEY_UID="aurax_user_identity_v8";
-    const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)); const fmt3=x=>(Math.round(x*1000)/1000).toFixed(3);
-    const loadJSON=(k,f)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}};
-    const saveJSON=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-    let cfg=loadJSON(KEY_CFG,{voiceOn:false,learningOn:true,faithLenses:["None"],showSystemLogs:false,bmRetentionDays:30,bmMinChars:220,bmRepeatWindowMin:15,bmRepeatLockN:2,smallTalkFilter:true});
-    let intelligence=loadJSON(KEY_INTEL,[]), bm=loadJSON(KEY_BM,[]), historyLog=loadJSON(KEY_HIST,"");
-    let userId=loadJSON(KEY_UID,{locked:true,name:"",phone:"",email:"",place:"",blocks:""});
-    let onlineLLM={endpoint:"",model:"",key:""};
-
-    /* ========== UI refs ========== */
-    const cE0=document.getElementById("cE0"), cTM=document.getElementById("cTM"), cBM=document.getElementById("cBM"), cCont=document.getElementById("cCont");
-    const btnOptions=document.getElementById("btnOptions"), optionsMenu=document.getElementById("optionsMenu");
-    const miVoice=mi("miVoice"), miIntel=mi("miIntel"), miSeed=mi("miSeed"), miLearn=mi("miLearn"), miFaith=mi("miFaith"), miIdentity=mi("miIdentity"), miLLM=mi("miLLM"), miBMRecall=mi("miBMRecall"), miHistory=mi("miHistory");
-    const voicePill=el("voicePill"), learnPill=el("learnPill"), faithLabel=el("faithLabel");
-    const modalFaith=el("modalFaith"), modalIntel=el("modalIntel"), modalSeed=el("modalSeed"), modalLLM=el("modalLLM"), modalBM=el("modalBM"), modalHistory=el("modalHistory"), modalIdentity=el("modalIdentity");
-    const consoleBox=el("console"), userInput=el("userInput"), sendBtn=el("sendBtn");
-    const intelSearch=el("intelSearch"), intelList=el("intelList");
-    const seedBox=el("seedBox"), seedHint=el("seedHint"), btnParseSeed=el("btnParseSeed"), btnSaveSeed=el("btnSaveSeed"), btnDiscardSeed=el("btnDiscardSeed");
-    const btnLoadOffline=el("btnLoadOffline"), offlineStatus=el("offlineStatus"), offlineBar=el("offlineBar"), apiEndpoint=el("apiEndpoint"), apiModel=el("apiModel"), apiKey=el("apiKey"), btnSaveLLM=el("btnSaveLLM");
-    const historyBox=el("historyBox"), btnCopyHistory=el("btnCopyHistory"), btnClearHistory=el("btnClearHistory");
-    const faithChips=el("faithChips"), bmSelectList=el("bmSelectList"), bmViewer=el("bmViewer"), bmTextArea=el("bmTextArea"), bmTitle=el("bmTitle"), bmMeta=el("bmMeta"), bmLockIcon=el("bmLockIcon"), btnUnlockBM=el("btnUnlockBM"), btnCopyPrompt=el("btnCopyPrompt"), btnAutoGen=el("btnAutoGen"), btnDeletePrompt=el("btnDeletePrompt");
-    const uName=el("uName"), uPhone=el("uPhone"), uEmail=el("uEmail"), uPlace=el("uPlace"), uBlocks=el("uBlocks"), btnEditIdentity=el("btnEditIdentity"), btnSaveUserIdentity=el("btnSaveUserIdentity"), btnDeleteUserIdentity=el("btnDeleteUserIdentity");
-    function el(id){return document.getElementById(id)} function mi(id){return document.getElementById(id)}
-
-    /* ========== Modals / Options ========== */
-    const openModal=(m)=>m.classList.add("show"), closeModal=(m)=>m.classList.remove("show");
-    document.addEventListener("click",(e)=>{const t=e.target;if(t?.dataset?.close){closeModal(el(t.dataset.close))}});
-    function setPills(){ voicePill.className=cfg.voiceOn?"pillOn":"pillOff"; voicePill.textContent=cfg.voiceOn?"on":"off";
-      learnPill.className=cfg.learningOn?"pillOn":"pillOff"; learnPill.textContent=cfg.learningOn?"on":"off";
-      const hasNone=(cfg.faithLenses||[]).includes("None"); const active=!hasNone&&(cfg.faithLenses||[]).length>0;
-      faithLabel.className=active?"pillOn":"pillOff"; faithLabel.textContent=active?"set":"none";
-    }
-    btnOptions.addEventListener("click",(e)=>{e.stopPropagation(); optionsMenu.classList.toggle("show")});
-    document.addEventListener("click",(e)=>{ if(optionsMenu.classList.contains("show")){ const within=optionsMenu.contains(e.target)||btnOptions.contains(e.target); if(!within) optionsMenu.classList.remove("show"); }});
-    miVoice.addEventListener("click",()=>{cfg.voiceOn=!cfg.voiceOn; saveJSON(KEY_CFG,cfg); setPills()});
-    miIntel.addEventListener("click",()=>{optionsMenu.classList.remove("show"); openModal(modalIntel); renderIntelList(intelSearch.value)});
-    miSeed.addEventListener("click",()=>{optionsMenu.classList.remove("show"); openModal(modalSeed)});
-    miLearn.addEventListener("click",()=>{cfg.learningOn=!cfg.learningOn; saveJSON(KEY_CFG,cfg); setPills()});
-    miFaith.addEventListener("click",()=>{optionsMenu.classList.remove("show"); openModal(modalFaith); renderFaithChips()});
-    miIdentity.addEventListener("click",()=>{optionsMenu.classList.remove("show"); openModal(modalIdentity); syncUserIdentityUI()});
-    miLLM.addEventListener("click",()=>{optionsMenu.classList.remove("show"); openModal(modalLLM)});
-    miBMRecall.addEventListener("click",()=>{optionsMenu.classList.remove("show"); openModal(modalBM); renderBMSelect()});
-    miHistory.addEventListener("click",()=>{optionsMenu.classList.remove("show"); openModal(modalHistory); renderHistory()});
-
-    /* ========== Console with emotion colors (no timestamps) ========== */
-    const escapeHTML=s=>(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-    function emotionStyle({polarity,intensity}){
-      const i=clamp(intensity||0,0,1);
-      if(polarity==="positive") return `color: rgba(16,185,129,${0.75+0.25*i}); text-shadow: 0 0 ${6+8*i}px rgba(16,185,129,${0.25+0.3*i})`;
-      if(polarity==="negative") return `color: rgba(239,68,68,${0.75+0.25*i}); text-shadow: 0 0 ${6+8*i}px rgba(239,68,68,${0.25+0.3*i})`;
-      return `color: rgba(125,211,252,${0.80}); text-shadow: 0 0 ${5+6*i}px rgba(125,211,252,${0.18+0.12*i})`;
-    }
-    function addLine(kind,text,feel){
-      const span=document.createElement("span"); span.className=`line ${kind}`; span.innerHTML=escapeHTML(text);
-      if(feel) span.setAttribute("style",emotionStyle(feel));
-      consoleBox.appendChild(span); consoleBox.scrollTop=consoleBox.scrollHeight;
-      historyLog += text + "\n"; const parts=historyLog.split("\n"); if(parts.length>320) historyLog=parts.slice(parts.length-260).join("\n"); saveJSON(KEY_HIST,historyLog);
-    }
-    function logUser(text,feel){ addLine("uLine","User: "+text,feel) }
-    function logAura(text,feel){ addLine("aLine","AURA: "+text,feel) }
-    function renderHistory(){ historyBox.textContent=historyLog||"(empty)" }
-    el("btnCopyHistory").addEventListener("click",()=>navigator.clipboard?.writeText(historyLog||""));
-    el("btnClearHistory").addEventListener("click",()=>{ if(!confirm("Clear history?"))return; if(!confirm("Final confirmation: clear now?"))return; historyLog=""; saveJSON(KEY_HIST,historyLog); renderHistory(); consoleBox.innerHTML="" });
-
-    /* ========== Faith chips ========== */
-    const faithList=["None","Islam","Christianity","Hinduism","Buddhism","Sikhism","Judaism","Atheism / Humanism","Other / Mixed","Indigenous / Traditional","Eastern / Chinese"];
-    function renderFaithChips(){
-      faithChips.innerHTML=""; const selected=new Set(cfg.faithLenses||["None"]);
-      for(const f of faithList){
-        const btn=document.createElement("button"); btn.className="chip"+(selected.has(f)?" active":""); btn.textContent=f;
-        btn.addEventListener("click",()=>{ const cur=new Set(cfg.faithLenses||["None"]); if(f==="None"){cfg.faithLenses=["None"]}else{cur.delete("None"); if(cur.has(f))cur.delete(f); else cur.add(f); cfg.faithLenses = cur.size?[...cur]:["None"]} saveJSON(KEY_CFG,cfg); setPills(); renderFaithChips() });
-        faithChips.appendChild(btn);
+  // Simple check: if input matches any seed q as substring
+  function checkSeedResponse(input){
+    const lower = input.toLowerCase();
+    for(const pair of seedQA){
+      for(const pattern of pair.q){
+        if(lower.includes(pattern)){
+          return pair.a;
+        }
       }
     }
+    return null;
+  }
 
-    /* ========== Intelligence (same) ========== */
-    const hashKey=s=>(s||"").trim().toLowerCase().replace(/\s+/g," ").slice(0,220);
-    function renderIntelList(filter){ const f=(filter||"").trim().toLowerCase(); const items=intelligence.filter(x=>!f||x.q.toLowerCase().includes(f)||x.a.toLowerCase().includes(f));
-      intelList.innerHTML= items.length? "" : `<div style="opacity:.7;margin-top:12px;">(no intelligence yet)</div>`;
-      for(const it of items.slice(0,140)){ const d=document.createElement("div"); d.style.cssText="margin-top:12px;border:1px solid rgba(15,23,42,.12);border-radius:14px;padding:12px;background:rgba(255,255,255,.75)";
-        d.innerHTML=`<div style="font-size:13px;opacity:.75;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><div><b>${it.id||""}</b> · ${it.date||""} · ${(it.polarity||"neutral")}</div><div style="font-weight:900;">${it.code||""}</div></div>
-          <div style="margin-top:8px;line-height:1.45;"><b>Q:</b> ${escapeHTML(it.q||"")}<br><b>A:</b> ${escapeHTML(it.a||"")}</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><button class="btn btnBlue" data-act="copyA" data-id="${it.id}">Copy A</button><button class="btn btnRed" data-act="del" data-id="${it.id}">Delete</button></div>`;
-        intelList.appendChild(d);
-      }
+  // ----------- History recording ------------
+  const historyDiv = document.getElementById("history");
+  function addHistory(tag, text){
+    const div = document.createElement("div");
+    div.className="history-entry";
+    div.innerHTML = `<span class="tag">${tag}:</span> ${text}`;
+    historyDiv.appendChild(div);
+    historyDiv.scrollTop = historyDiv.scrollHeight;
+  }
+
+  // ----------- Identity / self‑learning logic ------------
+  let identity = {name:"Unknown user", notes:[]};
+  function updateIdentityFromInput(input){
+    // Very basic example: user says "I am X" or "my name is X"
+    const lower = input.toLowerCase();
+    let name = null;
+    if(lower.startsWith("i am ")){
+      name = input.substring(5).trim();
+    } else if(lower.startsWith("my name is ")){
+      name = input.substring(11).trim();
     }
-    intelSearch?.addEventListener("input",()=>renderIntelList(intelSearch.value));
-    intelList.addEventListener("click",(e)=>{ const b=e.target.closest("button"); if(!b)return; const it=intelligence.find(x=>x.id===b.dataset.id); if(!it)return;
-      if(b.dataset.act==="copyA") navigator.clipboard?.writeText(it.a||"");
-      if(b.dataset.act==="del"){ if(!confirm("Delete this intelligence item?"))return; if(!confirm("Final confirmation: delete now?"))return; intelligence=intelligence.filter(x=>x.id!==it.id); saveJSON(KEY_INTEL,intelligence); renderIntelList(intelSearch.value) }
+    if(name){
+      identity.name = name;
+      identity.notes.push(`Name set to '${name}' from user message.`);
+      document.getElementById("identityInfo").textContent = "Identity: " + identity.name;
+      addHistory("System", "Identity updated to: " + identity.name);
+    }
+  }
+
+  document.getElementById("btnUpdateIdentity").addEventListener("click", ()=>{
+    const text = document.getElementById("userInput").value.trim();
+    if(text){
+      updateIdentityFromInput(text);
+    }
+  });
+
+  // ----------- Button toggles / actions ------------
+  const optionButtons = document.querySelectorAll("#optionsGrid .btn");
+  optionButtons.forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const action = btn.dataset.action;
+      if(action === "history"){
+        // Optionally show/hide history panel
+        const panel = document.querySelector("#history").parentElement;
+        panel.style.display = panel.style.display === "none" ? "block" : "none";
+      } else if(action === "bmRecall"){
+        // Placeholder: BM recall logic
+        addHistory("BM Recall", "BM recall invoked; feature placeholder.");
+      } else if(action === "identity"){
+        // Perhaps toggle identity panel
+        const panel = document.querySelector("#identityInfo").parentElement.parentElement;
+        panel.style.display = panel.style.display === "none" ? "block" : "none";
+      } else {
+        // Simple toggle visual state
+        btn.classList.toggle("on");
+        addHistory("Option", `${action} toggled to ${btn.classList.contains("on")?"on":"off"}`);
+      }
     });
-    function findIntelAnswer(q){ const k=hashKey(q); return intelligence.find(x=>x.qKey===k)||null }
-    function upsertIntel(q,a,meta={}){ const qKey=hashKey(q); const idx=intelligence.findIndex(x=>x.qKey===qKey);
-      const item={ id: idx>=0?intelligence[idx].id:("E"+Math.floor(1000+Math.random()*9000)), date:new Date().toISOString().slice(0,10),
-        q:q.trim(), a:a.trim(), qKey, code: meta.code || (idx>=0?intelligence[idx].code:"E001"), polarity:(meta.polarity||"neutral"), intensity:(meta.intensity!=null?meta.intensity:0.5) };
-      if(idx>=0) intelligence[idx]=item; else intelligence.unshift(item); saveJSON(KEY_INTEL,intelligence); renderIntelList(intelSearch.value);
+  });
+
+  // ----------- Sending user messages ------------
+  document.getElementById("sendBtn").addEventListener("click", handleInput);
+  document.getElementById("userInput").addEventListener("keydown", function(e){
+    if(e.key === "Enter") handleInput();
+  });
+
+  function handleInput(){
+    const text = document.getElementById("userInput").value.trim();
+    if(!text) return;
+    addHistory("User", text);
+
+    // Identity update attempt
+    updateIdentityFromInput(text);
+
+    // Check seed Q&A
+    const seedAnswer = checkSeedResponse(text);
+    if(seedAnswer){
+      addHistory("AURA‑X Ω", seedAnswer);
+    } else {
+      // Placeholder for further logic: e.g., BM/TM analysis, offline LLM, etc.
+      addHistory("AURA‑X Ω", "Processing... (no seed answer matched)");
     }
 
-    /* ========== Seed parsing (same) ========== */
-    let parsedSeedItems=[]; function parseLatexBlock(text){ const lines=text.split(/\r?\n/); const items=[]; let Q=null,A=null; const flush=()=>{if(Q&&A)items.push({q:Q.trim(),a:A.trim()}); Q=null;A=null}
-      for(const line of lines){ const l=line.trim(); if(l.startsWith("\\item")){flush(); Q=l.replace(/^\\item\s*/,"").trim(); A=""; continue}
-        if(l.includes("\\textbf{A:}")){ const parts=l.split("\\textbf{A:}"); A+=(A? "\n":"")+(parts[1]||"").trim(); continue}
-        if(Q!=null){ if(A!=null&&A!=="") A+="\n"+l; else Q+=" "+l }
-      } flush(); return items }
-    function parseMetaPrefix(a){ const m=a.match(/^\s*\[([^\]]+)\]\s*(.*)$/); if(!m) return {meta:null,answer:a}; const meta={}; (m[1]||"").split(";").map(s=>s.trim()).filter(Boolean).forEach(p=>{const [k,v]=p.split("=").map(x=>x.trim()); if(!k)return; if(k==="intensity") meta.intensity=parseFloat(v); else meta[k]=v}); return {meta,answer:m[2]||""} }
-    el("btnParseSeed").addEventListener("click",()=>{ parsedSeedItems=parseLatexBlock(seedBox.value||""); seedHint.textContent=parsedSeedItems.length?`Parsed: ${parsedSeedItems.length} items`:"No items found" });
-    el("btnSaveSeed").addEventListener("click",()=>{ if(!parsedSeedItems.length){seedHint.textContent="Parse first.";return} let n=0; for(const it of parsedSeedItems){ const pm=parseMetaPrefix(it.a||""); upsertIntel(it.q, pm.answer||it.a||"", pm.meta||{}); n++ } parsedSeedItems=[]; seedBox.value=""; seedHint.textContent=`Saved ${n} items` });
-    el("btnDiscardSeed").addEventListener("click",()=>{ parsedSeedItems=[]; seedBox.value=""; seedHint.textContent="Discarded." });
+    document.getElementById("userInput").value = "";
+  }
 
-    /* ========== Identity (self-learning) ========== */
-    function setReadOnlyIdentity(ro){ [uName,uPhone,uEmail,uPlace,uBlocks].forEach(el=>{el.readOnly=ro; el.style.opacity=ro?"0.85":"1"}) }
-    function syncUserIdentityUI(){ uName.value=userId.name||""; uPhone.value=userId.phone||""; uEmail.value=userId.email||""; uPlace.value=userId.place||""; uBlocks.value=userId.blocks||""; setReadOnlyIdentity(true) }
-    btnEditIdentity.addEventListener("click",()=>setReadOnlyIdentity(false));
-    btnSaveUserIdentity.addEventListener("click",()=>{ userId.name=(uName.value||"").trim(); userId.phone=(uPhone.value||"").trim(); userId.email=(uEmail.value||"").trim(); userId.place=(uPlace.value||"").trim(); userId.blocks=(uBlocks.value||"").trim(); userId.locked=true; saveJSON(KEY_UID,userId); syncUserIdentityUI(); alert("Saved & locked.")});
-    btnDeleteUserIdentity.addEventListener("click",()=>{ if(!confirm("Delete user identity from this device?"))return; if(!confirm("Final confirmation: delete now?"))return;
-      userId={locked:true,name:"",phone:"",email:"",place:"",blocks:""}; saveJSON(KEY_UID,userId); syncUserIdentityUI(); alert("Deleted.") });
+  // ----------- Initialization ------------
+  function init(){
+    document.getElementById("identityInfo").textContent = "Identity: " + identity.name;
+    // optionally hide some panels initially
+    // example: hide identity panel
+    // document.querySelector("#identityInfo").parentElement.parentElement.style.display="none";
+  }
+  init();
+</script>
 
-    function autoLearnIdentityFrom(text){
-      const t=" "+text+" ";
-      const name=t.match(/\b(my name is|i am|i'm)\s+([A-Z][\w'.-]+(?:\s+[A-Z][\w'.-]+){0,3})/i);
-      const email=t.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
-      const phone=t.match(/(\+?\d[\d\s-]{8,})/);
-      const place=t.match(/\b(from|I live in|I am in)\s+([A-Za-z][A-Za-z\s,'-]{2,})/i);
-      let changed=false;
-      if(name && !userId.name){ userId.name=name[2].trim(); changed=true }
-      if(email && !userId.email){ userId.email=email[0].trim(); changed=true }
-      if(phone && !userId.phone){ userId.phone=phone[0].replace(/\s+/g," ").trim(); changed=true }
-      if(place && !userId.place){ userId.place=place[2].trim(); changed=true }
-      if(changed){ userId.locked=true; saveJSON(KEY_UID,userId) }
-    }
-
-    /* ========== BM memory ========== */
-    const now=()=>Date.now(); function pruneBM(){ const cut=now()-(cfg.bmRetentionDays*24*60*60*1000); bm=bm.filter(x=>x.t>=cut||x.locked) }
-    function addToBMIfBold(userText,polarity,intensity){
-      const t=now(); if(!userText||userText.trim().length<cfg.bmMinChars) return;
-      if(cfg.smallTalkFilter){ const st=userText.trim().toLowerCase(); const small=["hi","hello","how are you","how r u","assalam","salam","hey","good morning","good night"]; if(small.some(k=>st===k||st.startsWith(k+" "))) return }
-      const k=userText.trim().slice(0,90).toLowerCase(); const win=cfg.bmRepeatWindowMin*60*1000; const recentSame=bm.filter(x=>(t-x.t)<win&&x.k===k); const willLock=(recentSame.length+1)>=cfg.bmRepeatLockN;
-      bm.unshift({id:"BM"+Math.floor(100000+Math.random()*900000), t, k, text:userText.trim(), polarity, intensity, locked:!!willLock, lockReason: willLock?`Auto-locked (repeat rule)`:""}); pruneBM(); saveJSON(KEY_BM,bm);
-    }
-    let selectedBMId=null;
-    function renderBMSelect(){ bmSelectList.innerHTML=""; bmViewer.style.display="none"; selectedBMId=null;
-      if(!bm.length){ bmSelectList.innerHTML=`<div style="opacity:.7;margin-top:12px;">(no BM prompts yet)</div>`; return }
-      for(const it of [...bm].sort((a,b)=>(b.text?.length||0)-(a.text?.length||0)).slice(0,12)){
-        const btn=document.createElement("button"); btn.className="chip"; btn.style.borderRadius="14px"; btn.style.padding="10px 12px"; btn.style.textAlign="left"; btn.style.width="100%"; btn.style.display="block"; btn.style.marginTop="10px";
-        btn.innerHTML=`<b>${it.locked?"🔒":"🔓"} BM prompt</b><div style="font-size:12px;opacity:.7;margin-top:4px">${escapeHTML((it.text||"").slice(0,90))}...</div>`;
-        btn.addEventListener("click",()=>openBM(it.id)); bmSelectList.appendChild(btn);
-      }
-    }
-    function openBM(id){ const it=bm.find(x=>x.id===id); if(!it)return; selectedBMId=id; bmViewer.style.display="block"; bmTitle.textContent=it.locked?"Locked prompt":"Prompt"; bmMeta.textContent=`${(it.polarity||"neutral")} · ${(it.intensity??0.5).toFixed(2)} ${it.locked && it.lockReason? " · "+it.lockReason:""}`; bmLockIcon.textContent=it.locked?"🔒":"🔓"; bmTextArea.value=it.text||""; btnUnlockBM.style.display=it.locked?"inline-block":"none"; el("btnDeletePrompt").textContent=it.locked?"Delete (locked)":"Delete" }
-    btnUnlockBM.addEventListener("click",()=>{ const it=bm.find(x=>x.id===selectedBMId); if(!it||!it.locked)return; if(!confirm("Unlock this prompt first?"))return; it.locked=false; it.lockReason=""; saveJSON(KEY_BM,bm); openBM(it.id); renderBMSelect() });
-    btnCopyPrompt.addEventListener("click",()=>{ const it=bm.find(x=>x.id===selectedBMId); if(!it)return; navigator.clipboard?.writeText(it.text||"") });
-    btnAutoGen.addEventListener("click",()=>{ alert("Auto generate triggered (connect to your video engine).") });
-    btnDeletePrompt.addEventListener("click",()=>{ const it=bm.find(x=>x.id===selectedBMId); if(!it)return; if(it.locked){ alert("Locked prompt: unlock first."); return } if(!confirm("Delete this prompt?"))return; if(!confirm("Final confirmation: delete now?"))return; bm=bm.filter(x=>x.id!==it.id); saveJSON(KEY_BM,bm); renderBMSelect(); bmViewer.style.display="none"; selectedBMId=null });
-
-    /* ========== LLMs ========== */
-    let offlineEngine={loaded:false,engine:null};
-    async function loadOfflineLLM(){
-      if(offlineEngine.loaded) return true;
-      if(!window.webllm){ offlineStatus.textContent="webllm not available"; return false }
-      try{
-        offlineStatus.textContent="loading..."; offlineBar.style.width="15%";
-        const model="Llama-3.2-1B-Instruct-q4f16_1-MLC";
-        const engine=await window.webllm.CreateMLCEngine(model,{initProgressCallback:(p)=>{const pct=Math.round((p?.progress||0)*100); offlineBar.style.width=clamp(pct,0,100)+"%"; offlineStatus.textContent=(p?.text||"loading")+` (${pct}%)`}});
-        offlineEngine.engine=engine; offlineEngine.loaded=true; offlineBar.style.width="100%"; offlineStatus.textContent="ready"; return true;
-      }catch(e){ offlineStatus.textContent="failed"; return false }
-    }
-    el("btnLoadOffline").addEventListener("click",loadOfflineLLM);
-    el("btnSaveLLM").addEventListener("click",()=>{ onlineLLM.endpoint=(apiEndpoint.value||"").trim(); onlineLLM.model=(apiModel.value||"").trim(); onlineLLM.key=(apiKey.value||"").trim(); alert("Saved (session only).") });
-
-    async function onlineAnswer(prompt){
-      if(!onlineLLM.endpoint||!onlineLLM.key) return null;
-      try{
-        const res=await fetch(onlineLLM.endpoint,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+onlineLLM.key},
-          body:JSON.stringify({model:onlineLLM.model||"gpt-4o-mini",messages:[{role:"user",content:prompt}],temperature:0.6,max_tokens:220})});
-        if(!res.ok) return null; const data=await res.json(); return data.choices?.[0]?.message?.content||null;
-      }catch(e){ return null }
-    }
-
-    async function analyzeSentiment(text){
-      if(!offlineEngine.loaded){
-        const low=(text||"").toLowerCase(); const neg=["sad","angry","hate","bad","worried","fear","depressed","cry"]; const pos=["happy","love","good","great","thanks","grateful","excited","awesome"];
-        let score=0; if(neg.some(w=>low.includes(w))) score-=1; if(pos.some(w=>low.includes(w))) score+=1;
-        const polarity=score>0?"positive":(score<0?"negative":"neutral");
-        const intensity=clamp(Math.min(1,(text||"").length/240)+(polarity==="neutral"?0:0.15),0,1);
-        return {polarity,intensity};
-      }
-      const prompt=`Analyze the text for emotional polarity and intensity. Return pure JSON: {"polarity":"positive|neutral|negative","intensity":number 0..1}. Text: """${text}"""`;
-      try{
-        const reply=await offlineEngine.engine.chat.completions.create({messages:[{role:"user",content:prompt}],temperature:0.0,max_tokens:80});
-        const content=reply.choices?.[0]?.message?.content||""; const m=content.match(/\{[\s\S]*\}/); if(m){ const o=JSON.parse(m[0]); return {polarity:(o.polarity||"neutral").toLowerCase(),intensity:clamp(parseFloat(o.intensity??0.5),0,1)} }
-      }catch(e){}
-      return {polarity:"neutral",intensity:0.5};
-    }
-
-    /* ========== Formula / Metrics ========== */
-    function R(TM,BM){ const x=(TM*0.7+BM*0.9)-0.3; return 1/(1+Math.exp(-x)) }
-    function I_TM(t){ const n=clamp((t.length/120),0,1); return 0.35+0.65*n }
-    const I_intel=(hit)=> hit?0.55:0.0, I_llm=(u)=>u?0.45:0.0, D_decay=()=>clamp(0.10+bm.length*0.0008,0.10,0.35), lambda_faith=()=>{const hasNone=(cfg.faithLenses||[]).includes("None"); return (!hasNone&&(cfg.faithLenses||[]).length>0)?0.08:0}, lambda_sys=()=>0.06, lambda_trc=()=>0.04;
-    function computeE0(tmText,intelHit,llmUsed){ const TMv=clamp(I_TM(tmText),0,1); const BMv=clamp(bm.length?Math.min(1,bm.length/240):0,0,1); const r=R(TMv,BMv);
-      const val=Math.tanh(r+TMv+I_intel(intelHit)+I_llm(llmUsed)-D_decay()+lambda_faith()+lambda_sys()+lambda_trc());
-      return {E0:val, TMv, BMv, C:clamp(0.78+(BMv*0.12)+(TMv*0.08)-D_decay()*0.2,0.55,0.95)}
-    }
-    function refreshMetrics(tmText,intelHit,llmUsed){ const m=computeE0(tmText||"",!!intelHit,!!llmUsed); cE0.textContent=fmt3(m.E0); cTM.textContent=(m.TMv).toFixed(2); cBM.textContent=(m.BMv).toFixed(2); cCont.textContent=(m.C).toFixed(3) }
-
-    /* ========== Answer flow + identity self-learning ========== */
-    async function answerUser(q){
-      const hit=findIntelAnswer(q); if(hit) return {text:hit.a, usedIntel:true, usedLLM:false};
-      if(offlineEngine.loaded){
-        try{
-          const prompt=`You are AURA-X Ω. Answer briefly & helpfully.\nUser profile (if needed):\nName: ${userId.name||"Unknown"}\nPlace: ${userId.place||"Unknown"}\nBlocks: ${(userId.blocks||"").slice(0,500)||"None"}\n\nUser: ${q}`;
-          const reply=await offlineEngine.engine.chat.completions.create({messages:[{role:"user",content:prompt}],temperature:0.7,max_tokens:220});
-          const content=reply.choices?.[0]?.message?.content||""; if(content.trim()) return {text:content.trim(), usedIntel:false, usedLLM:true};
-        }catch(e){}
-      }
-      const online=await onlineAnswer(q); if(online) return {text:online, usedIntel:false, usedLLM:true};
-      return {text:"No stored answer yet. Use Feed the seed to teach me, or load the offline model.", usedIntel:false, usedLLM:false};
-    }
-
-    async function onSend(){
-      const q=(userInput.value||"").trim(); if(!q) return; userInput.value="";
-      // self-learning identity
-      autoLearnIdentityFrom(q);
-
-      const uFeel=await analyzeSentiment(q);
-      addToBMIfBold(q,uFeel.polarity,uFeel.intensity);
-      const res=await answerUser(q);
-      const aFeel=await analyzeSentiment(res.text||"");
-
-      logUser(q,uFeel);
-      logAura(res.text,aFeel);
-
-      refreshMetrics(q,!!res.usedIntel,!!res.usedLLM);
-    }
-    el("sendBtn").addEventListener("click",onSend);
-    el("userInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter") onSend() });
-
-    /* ========== Faith / History init ========== */
-    function renderHistory(){ historyBox.textContent=historyLog||"(empty)" }
-    function renderFaithChipsInit(){ renderFaithChips() }
-
-    /* ========== Init ========== */
-    function init(){ setPills(); renderFaithChipsInit(); renderIntelList(""); renderHistory(); refreshMetrics("",false,false); syncUserIdentityUI();
-      el("offlineStatus").textContent = "idle"; el("offlineBar").style.width="0%";
-    }
-    init();
-  </script>
 </body>
 </html>
