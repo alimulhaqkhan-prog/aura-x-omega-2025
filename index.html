@@ -686,16 +686,17 @@
   <div class="modalOverlay" id="modalHistory">
     <div class="modal">
       <div class="modalHeader">
-        <div>📜 Conversation history<br><small>Local log (no timestamps).</small></div>
+        <div>📜 Conversation history<br><small>Recent TM log (user + system messages).</small></div>
         <button class="closeX" data-close="modalHistory">×</button>
       </div>
       <div class="modalBody">
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="btn btnBlue" id="btnDeleteRecent">Delete history last 48h</button>
+          <button class="btn btnRed" id="btnDeleteAllHist">Delete all history</button>
           <button class="btn btnBlue" id="btnCopyHistory">Copy</button>
-          <button class="btn btnRed" id="btnClearHistory">Clear</button>
         </div>
         <div id="historyBox"
-             style="margin-top:12px;border:1px solid rgba(15,23,42,.12);border-radius:14px;padding:12px;background:rgba(255,255,255,.78);white-space:pre-wrap;font-family:ui-monospace;"></div>
+             style="margin-top:4px;border-radius:14px;padding:4px 0;max-height:60vh;overflow:auto;"></div>
       </div>
     </div>
   </div>
@@ -756,12 +757,12 @@
   </div>
 
   <script>
-    // ===== Helpers & storage =====
-    const KEY_CFG  = "aurax_cfg_v9";
-    const KEY_INT  = "aurax_intel_v9";
-    const KEY_BM   = "aurax_bm_v9";
-    const KEY_HIST = "aurax_hist_v9";
-    const KEY_UID  = "aurax_user_identity_v9";
+    // ===== Keys =====
+    const KEY_CFG  = "aurax_cfg_v10";
+    const KEY_INT  = "aurax_intel_v10";
+    const KEY_BM   = "aurax_bm_v10";
+    const KEY_HIST = "aurax_hist_v10";
+    const KEY_UID  = "aurax_user_identity_v10";
 
     const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
     const fmt3  = x=>(Math.round(x*1000)/1000).toFixed(3);
@@ -774,6 +775,7 @@
       try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
     };
 
+    // ===== Stored state =====
     let cfg = loadJSON(KEY_CFG,{
       voiceOn:false,
       learningOn:true,
@@ -782,19 +784,19 @@
       bmMinChars:220,
       bmRepeatWindowMin:15,
       bmRepeatLockN:2,
-      smallTalkFilter:true
+      smallTalkFilter:true,
+      llm:{endpoint:"",model:"",key:""}
     });
 
     let intelligence = loadJSON(KEY_INT,[]);
     let bm           = loadJSON(KEY_BM,[]);
-    let historyLog   = loadJSON(KEY_HIST,"");
+    let historyArr   = loadJSON(KEY_HIST,[]);
     let userId       = loadJSON(KEY_UID,{locked:true,name:"",phone:"",email:"",place:"",blocks:""});
 
-    // ===== basic seeds: hi/hello/how are you/who created you =====
+    // ===== Seed Q&A =====
     function hashKey(s){
       return s.toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
     }
-
     function upsertIntel(q,a,meta={}){
       const qKey = hashKey(q);
       const idx  = intelligence.findIndex(x=>x.qKey===qKey);
@@ -847,25 +849,25 @@
     const btnOptions  = el("btnOptions");
     const optionsMenu = el("optionsMenu");
 
-    const voicePill = el("voicePill");
-    const learnPill = el("learnPill");
+    const voicePill  = el("voicePill");
+    const learnPill  = el("learnPill");
     const faithLabel = el("faithLabel");
 
-    const modalFaith   = el("modalFaith");
-    const modalIntel   = el("modalIntel");
-    const modalSeed    = el("modalSeed");
-    const modalLLM     = el("modalLLM");
-    const modalBM      = el("modalBM");
-    const modalHistory = el("modalHistory");
-    const modalIdentity= el("modalIdentity");
+    const modalFaith    = el("modalFaith");
+    const modalIntel    = el("modalIntel");
+    const modalSeed     = el("modalSeed");
+    const modalLLM      = el("modalLLM");
+    const modalBM       = el("modalBM");
+    const modalHistory  = el("modalHistory");
+    const modalIdentity = el("modalIdentity");
 
     const intelSearch = el("intelSearch");
     const intelList   = el("intelList");
 
-    const seedBox      = el("seedBox");
-    const seedHint     = el("seedHint");
-    const btnParseSeed = el("btnParseSeed");
-    const btnSaveSeed  = el("btnSaveSeed");
+    const seedBox        = el("seedBox");
+    const seedHint       = el("seedHint");
+    const btnParseSeed   = el("btnParseSeed");
+    const btnSaveSeed    = el("btnSaveSeed");
     const btnDiscardSeed = el("btnDiscardSeed");
 
     const btnLoadOffline = el("btnLoadOffline");
@@ -876,9 +878,10 @@
     const apiKey         = el("apiKey");
     const btnSaveLLM     = el("btnSaveLLM");
 
-    const historyBox    = el("historyBox");
-    const btnCopyHistory= el("btnCopyHistory");
-    const btnClearHistory= el("btnClearHistory");
+    const historyBox       = el("historyBox");
+    const btnCopyHistory   = el("btnCopyHistory");
+    const btnDeleteRecent  = el("btnDeleteRecent");
+    const btnDeleteAllHist = el("btnDeleteAllHist");
 
     const faithChips = el("faithChips");
 
@@ -898,9 +901,9 @@
     const uEmail = el("uEmail");
     const uPlace = el("uPlace");
     const uBlocks= el("uBlocks");
-    const btnEditIdentity = el("btnEditIdentity");
-    const btnSaveUserIdentity = el("btnSaveUserIdentity");
-    const btnDeleteUserIdentity = el("btnDeleteUserIdentity");
+    const btnEditIdentity        = el("btnEditIdentity");
+    const btnSaveUserIdentity    = el("btnSaveUserIdentity");
+    const btnDeleteUserIdentity  = el("btnDeleteUserIdentity");
 
     const miVoice    = el("miVoice");
     const miIntel    = el("miIntel");
@@ -929,7 +932,6 @@
       optionsMenu.classList.toggle("show");
     });
 
-    // clicking outside menu closes it
     document.addEventListener("click",e=>{
       if(!optionsMenu.classList.contains("show")) return;
       const withinMenu   = optionsMenu.contains(e.target);
@@ -939,7 +941,6 @@
       }
     });
 
-    // menu item handlers
     miFaith.addEventListener("click",()=>openModal(modalFaith));
     miIntel.addEventListener("click",()=>openModal(modalIntel));
     miSeed.addEventListener("click",()=>openModal(modalSeed));
@@ -961,6 +962,11 @@
       learnPill.textContent = cfg.learningOn ? "on" : "off";
       learnPill.className   = cfg.learningOn ? "pillOn" : "pillOff";
     });
+
+    // ===== Utility =====
+    function escapeHTML(s){
+      return s.replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    }
 
     // ===== Faith chips =====
     const allFaiths = ["None","Islamic","Christian","Stoic","Humanist"];
@@ -1016,11 +1022,10 @@
       };
       saveJSON(KEY_UID,userId);
 
-      // self-learning: update intelligence about user and creator
       if(userId.name){
         const youAns = `You are ${userId.name}${userId.place? " from "+userId.place:""}.`;
-        upsertIntel("who am i",youAns,{polarity:"positive",intensity:0.7});
-        upsertIntel("what is my name",youAns,{polarity:"positive",intensity:0.7});
+        upsertIntel("who am i",youAns,{polarity:"positive",intensity:0.7,code:"EID"});
+        upsertIntel("what is my name",youAns,{polarity:"positive",intensity:0.7,code:"EID"});
       }
       alert("Identity saved locally and auto-locked.");
     });
@@ -1035,10 +1040,6 @@
     });
 
     // ===== Intelligence modal =====
-    function escapeHTML(s){
-      return s.replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
-    }
-
     function renderIntelList(query=""){
       intelList.innerHTML="";
       const q = query.toLowerCase();
@@ -1202,23 +1203,98 @@
     }
     renderBMList();
 
-    // ===== History =====
-    function refreshHistoryBox(){
-      historyBox.textContent = historyLog || "(empty)";
+    // ===== History handling =====
+    function saveHistory(){ saveJSON(KEY_HIST,historyArr); }
+
+    function pruneOldHistory(){
+      const cutoff = Date.now() - 48*60*60*1000; // 48h
+      historyArr = historyArr.filter(item => item.locked || item.ts >= cutoff);
+      saveHistory();
     }
-    refreshHistoryBox();
+
+    function addHistory(role,text,opt={}){
+      const item = {
+        role,
+        text,
+        ts: Date.now(),
+        locked: !!opt.locked
+      };
+      historyArr.push(item);
+      pruneOldHistory();
+      renderHistoryBox();
+    }
+
+    function renderHistoryBox(){
+      historyBox.innerHTML="";
+      if(!historyArr.length){
+        const d = document.createElement("div");
+        d.textContent = "(empty)";
+        d.style.fontSize="12px";
+        d.style.opacity="0.7";
+        d.style.padding="6px 10px";
+        historyBox.appendChild(d);
+        return;
+      }
+      historyArr.forEach((item,idx)=>{
+        const wrap = document.createElement("div");
+        wrap.style.marginTop="8px";
+        wrap.style.padding="10px 12px";
+        wrap.style.borderRadius="12px";
+        wrap.style.border="1px solid rgba(15,23,42,.15)";
+        wrap.style.background="rgba(255,255,255,.95)";
+        const dt = new Date(item.ts||Date.now());
+        const timeStr = dt.toTimeString().slice(0,5);
+
+        wrap.innerHTML =
+          `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11px;opacity:.75;">
+             <span>${escapeHTML(item.role||"")}</span>
+             <div style="display:flex;align-items:center;gap:6px;">
+               <span>${timeStr}</span>
+               <button class="btnLock" data-idx="${idx}"
+                       style="border:none;background:transparent;font-size:16px;padding:0;cursor:pointer;">
+                 ${item.locked ? "🔒" : "🔓"}
+               </button>
+             </div>
+           </div>
+           <div style="font-size:13px;white-space:pre-wrap;">${escapeHTML(item.text||"")}</div>`;
+        historyBox.appendChild(wrap);
+      });
+    }
+
+    historyBox.addEventListener("click",e=>{
+      const b = e.target.closest(".btnLock");
+      if(!b) return;
+      const idx = Number(b.dataset.idx);
+      if(Number.isNaN(idx)) return;
+      const item = historyArr[idx];
+      if(!item) return;
+      item.locked = !item.locked;
+      saveHistory();
+      renderHistoryBox();
+    });
 
     btnCopyHistory.addEventListener("click",()=>{
-      navigator.clipboard?.writeText(historyLog||"");
-    });
-    btnClearHistory.addEventListener("click",()=>{
-      if(!confirm("Clear local history?")) return;
-      historyLog="";
-      saveJSON(KEY_HIST,historyLog);
-      refreshHistoryBox();
+      const lines = historyArr.map(it=>`${it.role}: ${it.text}`);
+      navigator.clipboard?.writeText(lines.join("\n"));
     });
 
-    // ===== Offline LLM (basic WebLLM wiring) =====
+    btnDeleteRecent.addEventListener("click",()=>{
+      if(!confirm("Delete non-locked messages from last 48 hours?")) return;
+      const cutoff = Date.now() - 48*60*60*1000;
+      historyArr = historyArr.filter(item => item.locked || item.ts < cutoff);
+      saveHistory();
+      renderHistoryBox();
+    });
+
+    btnDeleteAllHist.addEventListener("click",()=>{
+      if(!confirm("Delete all non-locked history?")) return;
+      if(!confirm("Final confirmation: delete non-locked messages now?")) return;
+      historyArr = historyArr.filter(item => item.locked);
+      saveHistory();
+      renderHistoryBox();
+    });
+
+    // ===== Offline / Online LLM =====
     let offlineEngine = null;
 
     async function loadOffline(){
@@ -1237,7 +1313,6 @@
         };
 
         offlineEngine = await window.webllm.CreateMLCEngine(
-          // small model name – change if needed
           "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC",
           { initProgressCallback }
         );
@@ -1250,9 +1325,7 @@
       }
     }
 
-    btnLoadOffline.addEventListener("click",()=>{
-      loadOffline();
-    });
+    btnLoadOffline.addEventListener("click",()=>{ loadOffline(); });
 
     btnSaveLLM.addEventListener("click",()=>{
       cfg.llm = {
@@ -1279,6 +1352,45 @@
       }
     }
 
+    async function callOnlineLLM(prompt){
+      if(!cfg.llm || !cfg.llm.endpoint || !cfg.llm.model || !cfg.llm.key) return null;
+      try{
+        const res = await fetch(cfg.llm.endpoint,{
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Authorization":"Bearer "+cfg.llm.key
+          },
+          body:JSON.stringify({
+            model:cfg.llm.model,
+            messages:[{role:"user",content:prompt}],
+            temperature:0.7
+          })
+        });
+        const data = await res.json();
+        const text = data?.choices?.[0]?.message?.content || "";
+        return text.trim() || null;
+      }catch(e){
+        console.error(e);
+        return null;
+      }
+    }
+
+    // ===== Voice =====
+    function speakAnswer(text){
+      if(!cfg.voiceOn) return;
+      if(!("speechSynthesis" in window)){
+        logLine("Voice: not supported on this browser.");
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "en-US";
+      utter.rate = 1.0;
+      utter.pitch = 1.0;
+      window.speechSynthesis.speak(utter);
+    }
+
     // ===== E0 / scoring =====
     let tmScore = 0;
     let bmScore = 0.0;
@@ -1286,7 +1398,7 @@
 
     function estimatePolarityIntensity(text){
       const t = text.toLowerCase();
-      let polarity = 0; // -1..1
+      let polarity = 0;
       if(/thanks|thank you|shukria|great|awesome|love/i.test(text)) polarity+=0.4;
       if(/sorry|sad|upset|angry|hurt|tired/i.test(text)) polarity-=0.4;
       if(/good|fine|ok|okay|happy|alhamdulillah|great/i.test(text)) polarity+=0.3;
@@ -1298,8 +1410,8 @@
 
     function updateScores(userText,sourceInfo){
       const {polarity,intensity} = estimatePolarityIntensity(userText);
-      const iTM = polarity*intensity;        // I(TM)
-      const rTM = 0.2*intensity;             // rough R(TM,BM) term
+      const iTM = polarity*intensity;
+      const rTM = 0.2*intensity;
       const iIntel = sourceInfo.intelUsed ? 0.15 : 0;
       const iLLM   = sourceInfo.llmUsed   ? 0.20 : 0;
       const D      = sourceInfo.isNegative ? 0.25 : 0.05;
@@ -1331,30 +1443,89 @@
       consoleBox.scrollTop = consoleBox.scrollHeight;
     }
 
-    // ===== Conversation handling =====
+    // ===== Correction state (*incorrect) =====
+    let lastQA = null;
+    let correctionState = {mode:"idle",question:null,newAnswer:null};
+
+    // ===== Main handler =====
     async function handleSend(){
-      const text = userInput.value.trim();
+      const textRaw = userInput.value;
+      const text = textRaw.trim();
       if(!text) return;
       userInput.value = "";
 
-      historyLog += (historyLog?"\n":"") + "User: " + text;
-      saveJSON(KEY_HIST,historyLog);
-      refreshHistoryBox();
+      // Stage 1: correction flow
+      if(correctionState.mode === "awaitingAnswer"){
+        correctionState.newAnswer = text;
+        correctionState.mode = "awaitingConfirm";
+        addHistory("system","Received candidate corrected answer.",{locked:true});
+        logLine("System: received candidate corrected answer.");
+        const msg = `Should I save this as the new answer for: "${correctionState.question}" ? (yes/no)`;
+        addHistory("ai",msg);
+        logLine("AURA-X Ω: "+msg);
+        speakAnswer(msg);
+        return;
+      }
 
+      if(correctionState.mode === "awaitingConfirm"){
+        const lc = text.toLowerCase();
+        if(lc==="yes" || lc==="y"){
+          upsertIntel(correctionState.question, correctionState.newAnswer, {
+            polarity:"neutral",
+            intensity:0.6,
+            code:"ECORR"
+          });
+          const msg = "Okay, I have updated that answer for next time.";
+          addHistory("ai",msg);
+          addHistory("system","Corrected answer stored for: "+correctionState.question,{locked:true});
+          logLine("AURA-X Ω: "+msg);
+          speakAnswer(msg);
+        }else{
+          const msg = "Okay, I will keep the previous answer.";
+          addHistory("ai",msg);
+          logLine("AURA-X Ω: "+msg);
+          speakAnswer(msg);
+        }
+        correctionState = {mode:"idle",question:null,newAnswer:null};
+        return;
+      }
+
+      // User explicitly says *incorrect to correct last answer
+      if(/^(\*incorrect|incorrect\*)$/i.test(text)){
+        if(!lastQA){
+          const msg = "I don't have a previous question and answer to correct yet.";
+          addHistory("ai",msg);
+          logLine("AURA-X Ω: "+msg);
+          speakAnswer(msg);
+          return;
+        }
+        correctionState.mode = "awaitingAnswer";
+        correctionState.question = lastQA.q;
+        correctionState.newAnswer = null;
+        const msg = `Please type the correct answer for: "${lastQA.q}"`;
+        addHistory("ai",msg);
+        logLine("AURA-X Ω: "+msg);
+        speakAnswer(msg);
+        return;
+      }
+
+      // Normal conversation
+      addHistory("user",text);
       logLine("User: "+text);
 
       let answer = null;
       let intelUsed = false;
-      let llmUsed   = false;
+      let offlineUsed = false;
+      let onlineUsed  = false;
 
-      // 1) direct intelligence
+      // 1) intelligence / learned
       const intel = findIntelAnswer(text);
       if(intel){
         answer = intel.a;
         intelUsed = true;
       }
 
-      // 2) simple BM echo if mention "recall last story" etc
+      // 2) BM echo (very simple)
       if(!answer && bm.length){
         if(/remember|recall|last story|previous scene/i.test(text)){
           const last = bm[0];
@@ -1362,16 +1533,25 @@
         }
       }
 
-      // 3) offline LLM if available and nothing yet
+      // 3) offline LLM
       if(!answer && offlineEngine){
         const llmAns = await callOfflineLLM(text);
         if(llmAns){
           answer = llmAns;
-          llmUsed = true;
+          offlineUsed = true;
         }
       }
 
-      // 4) fallback generic
+      // 4) online LLM (only if still nothing)
+      if(!answer){
+        const onlineAns = await callOnlineLLM(text);
+        if(onlineAns){
+          answer = onlineAns;
+          onlineUsed = true;
+        }
+      }
+
+      // 5) generic fallback
       if(!answer){
         if(/how are you/i.test(text)){
           answer = "I am quite fine today, how about you?";
@@ -1384,15 +1564,14 @@
         }
       }
 
-      const neg = /sad|angry|depressed|anxious|upset|hurt|terrible|bad/i.test(text);
-      updateScores(text,{intelUsed,llmUsed,isNegative:neg});
+      const neg = /sad|angry|depressed|anxious|upset|hurt|terrible|bad|fuck/i.test(text);
+      updateScores(text,{intelUsed,llmUsed:(offlineUsed||onlineUsed),isNegative:neg});
 
+      addHistory("ai",answer);
       logLine("AURA-X Ω: "+answer);
-      historyLog += "\nAURA-X Ω: "+answer;
-      saveJSON(KEY_HIST,historyLog);
-      refreshHistoryBox();
+      speakAnswer(answer);
 
-      // store into BM if long emotional scene & learning on
+      // store BM if long emotional scene & learning on
       if(cfg.learningOn && text.length>=cfg.bmMinChars){
         const title = "BM " + new Date().toISOString().slice(0,10);
         bm.unshift({
@@ -1405,12 +1584,14 @@
         renderBMList();
       }
 
-      // store question→answer into intelligence (self-learning, but not small talk)
+      // store Q→A into intelligence (except very small talk)
       if(cfg.learningOn && text.length>=4 && text.length<=220){
         if(!/hi|hello|salam|who created you|how are you/i.test(text)){
-          upsertIntel(text,answer,{polarity:neg?"negative":"neutral",intensity:0.6});
+          upsertIntel(text,answer,{polarity:neg?"negative":"neutral",intensity:0.6,code:"ESELF"});
         }
       }
+
+      lastQA = {q:text,a:answer};
     }
 
     sendBtn.addEventListener("click",handleSend);
@@ -1421,11 +1602,31 @@
       }
     });
 
-    // initial pill state
+    // ===== Initialisation =====
+    function initHistoryWelcome(){
+      pruneOldHistory();
+      if(!historyArr.length){
+        const welcome =
+          "Welcome. I am AURA-X Ω running inside your browser. For this prototype, TM means only your inputs. " +
+          "Inside the engine I keep a long-term emotional trajectory using TM, BM, Intelligence and optionally a helper LLM. " +
+          "If I ever say \"I don't know yet\", you can teach me the answer and I will remember it next time. " +
+          "If a reply is wrong, send *incorrect and I will ask you for the correct answer.";
+        addHistory("ai",welcome,{locked:true});
+        logLine("AURA-X Ω: "+welcome);
+      }else{
+        renderHistoryBox();
+      }
+    }
+
     voicePill.textContent = cfg.voiceOn ? "on" : "off";
     voicePill.className   = cfg.voiceOn ? "pillOn" : "pillOff";
     learnPill.textContent = cfg.learningOn ? "on" : "off";
     learnPill.className   = cfg.learningOn ? "pillOn" : "pillOff";
+
+    apiEndpoint.value = cfg.llm.endpoint || apiEndpoint.value;
+    apiModel.value    = cfg.llm.model    || apiModel.value;
+
+    initHistoryWelcome();
   </script>
 </body>
 </html>
