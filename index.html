@@ -408,6 +408,23 @@
       justify-content:flex-start;
     }
 
+    /* ===== Intelligence Edit fields ===== */
+    .intelEditInput, .intelEditArea{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(15,23,42,.18);
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+    }
+    .intelEditArea{
+      min-height:90px;
+      resize:vertical;
+      line-height:1.4;
+      margin-top:6px;
+    }
+
     @media (max-width:760px){
       .console{height:240px}
       .optionsMenu{top:112px}
@@ -725,7 +742,7 @@
           <button class="btn btnRed" id="btnDeleteUserIdentity">Delete</button>
         </div>
 
-        <!-- Part 1: Biological & social baseline -->
+        <!-- Part 1 -->
         <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 1 – Biological & social baseline</div>
 
         <div style="margin-top:8px;">
@@ -810,7 +827,7 @@
           </div>
         </div>
 
-        <!-- Part 2: Psycho-emotional core -->
+        <!-- Part 2 -->
         <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 2 – Psycho-emotional identity (the core)</div>
 
         <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
@@ -857,7 +874,7 @@
                     placeholder="Talking to family, reading, walking, Quran/lectures, building things…"></textarea>
         </div>
 
-        <!-- Part 3: Relations -->
+        <!-- Part 3 -->
         <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 3 – Relational dynamics (network)</div>
         <div style="font-size:12px;opacity:.75;margin-top:4px;">
           For up to four key people (wife, child, parent, best friend). One block per person:
@@ -885,7 +902,7 @@
                     placeholder="Person 4 – …"></textarea>
         </div>
 
-        <!-- Part 4: Legacy & grounding -->
+        <!-- Part 4 -->
         <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 4 – Legacy & grounding protocol (UPS logic)</div>
 
         <div style="margin-top:8px;">
@@ -916,7 +933,6 @@
                     placeholder="After 6 months; or when family conversations become mostly normal; or on command from a specific heir…"></textarea>
         </div>
 
-        <!-- Extra raw blocks (old behaviour) -->
         <div style="margin-top:12px;">
           <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Extra notes / raw blocks (optional)</label>
           <textarea id="uBlocks"
@@ -1198,7 +1214,7 @@
 
     // ===== Utility =====
     function escapeHTML(s){
-      return s.replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+      return (s||"").replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
     }
 
     // ===== Faith chips =====
@@ -1240,7 +1256,7 @@
     }
     renderFaith();
 
-    // ===== Identity self-learning =====
+    // ===== Identity =====
     function applyUserIdToInputs(){
       uName.value  = userId.name || "";
       uNick.value  = userId.nickname || "";
@@ -1309,7 +1325,6 @@
       };
       saveJSON(KEY_UID,userId);
 
-      // Basic ID seeds
       if(userId.name){
         const youAns = `You are ${userId.name}${userId.place? " from "+userId.place:""}.`;
         upsertIntel("who am i",youAns,{polarity:"positive",intensity:0.7,code:"EID"});
@@ -1345,14 +1360,19 @@
       alert("Identity cleared from this device.");
     });
 
-    // ===== Intelligence modal =====
+    // ===== Intelligence modal (EDIT added) =====
+    let intelEditingId = null;
+
     function renderIntelList(query=""){
       intelList.innerHTML="";
-      const q = query.toLowerCase();
+      const q = (query||"").toLowerCase();
       const list = intelligence.filter(it=>{
         if(!q) return true;
-        return it.q.toLowerCase().includes(q) || it.a.toLowerCase().includes(q) || (it.code||"").toLowerCase().includes(q);
+        return (it.q||"").toLowerCase().includes(q)
+          || (it.a||"").toLowerCase().includes(q)
+          || (it.code||"").toLowerCase().includes(q);
       });
+
       for(const it of list){
         const d = document.createElement("div");
         d.style.marginTop="12px";
@@ -1360,13 +1380,33 @@
         d.style.borderRadius="12px";
         d.style.border="1px solid rgba(15,23,42,.15)";
         d.style.background="rgba(255,255,255,.9)";
-        d.innerHTML =
-          `<div style="font-size:11px;opacity:.7">${escapeHTML(it.date||"")} · code ${escapeHTML(it.code||"")}</div>`+
-          `<div style="margin-top:4px;font-weight:700;">Q:</div><div>${escapeHTML(it.q||"")}</div>`+
-          `<div style="margin-top:6px;font-weight:700;">A:</div><div>${escapeHTML(it.a||"")}</div>`+
-          `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">`+
-          `<button class="btn btnBlue" data-act="copyA" data-id="${it.id}">Copy A</button>`+
-          `<button class="btn btnRed" data-act="del" data-id="${it.id}">Delete</button></div>`;
+
+        const isEditing = (intelEditingId === it.id);
+
+        if(!isEditing){
+          d.innerHTML =
+            `<div style="font-size:11px;opacity:.7">${escapeHTML(it.date||"")} · code ${escapeHTML(it.code||"")}</div>`+
+            `<div style="margin-top:4px;font-weight:700;">Q:</div><div>${escapeHTML(it.q||"")}</div>`+
+            `<div style="margin-top:6px;font-weight:700;">A:</div><div>${escapeHTML(it.a||"")}</div>`+
+            `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">`+
+            `<button class="btn btnBlue" data-act="copyA" data-id="${it.id}">Copy A</button>`+
+            `<button class="btn btnBlue" data-act="edit"  data-id="${it.id}">Edit</button>`+
+            `<button class="btn btnRed"  data-act="del"   data-id="${it.id}">Delete</button>`+
+            `</div>`;
+        } else {
+          d.innerHTML =
+            `<div style="font-size:11px;opacity:.7">${escapeHTML(it.date||"")} · code ${escapeHTML(it.code||"")}</div>`+
+            `<div style="margin-top:6px;font-weight:800;">Edit Question</div>`+
+            `<input class="intelEditInput" id="editQ_${it.id}" value="${escapeHTML(it.q||"")}" />`+
+            `<div style="margin-top:10px;font-weight:800;">Edit Answer</div>`+
+            `<textarea class="intelEditArea" id="editA_${it.id}">${escapeHTML(it.a||"")}</textarea>`+
+            `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">`+
+            `<button class="btn btnBlue" data-act="saveEdit" data-id="${it.id}">Save</button>`+
+            `<button class="btn btnBlue" data-act="cancelEdit" data-id="${it.id}">Cancel</button>`+
+            `<button class="btn btnRed"  data-act="del" data-id="${it.id}">Delete</button>`+
+            `</div>`;
+        }
+
         intelList.appendChild(d);
       }
     }
@@ -1377,15 +1417,60 @@
     intelList.addEventListener("click",e=>{
       const b = e.target.closest("button");
       if(!b) return;
-      const it = intelligence.find(x=>x.id===b.dataset.id);
-      if(!it) return;
-      if(b.dataset.act==="copyA") navigator.clipboard?.writeText(it.a||"");
-      if(b.dataset.act==="del"){
+
+      const id = b.dataset.id;
+      const act = b.dataset.act;
+      const it = intelligence.find(x=>x.id===id);
+      if(!it && act!=="cancelEdit") return;
+
+      if(act==="copyA"){
+        navigator.clipboard?.writeText(it.a||"");
+        return;
+      }
+
+      if(act==="edit"){
+        intelEditingId = id;
+        renderIntelList(intelSearch.value);
+        return;
+      }
+
+      if(act==="cancelEdit"){
+        intelEditingId = null;
+        renderIntelList(intelSearch.value);
+        return;
+      }
+
+      if(act==="saveEdit"){
+        const qEl = document.getElementById("editQ_"+id);
+        const aEl = document.getElementById("editA_"+id);
+        const newQ = (qEl?.value||"").trim();
+        const newA = (aEl?.value||"").trim();
+
+        if(!newQ || !newA){
+          alert("Q and A both are required.");
+          return;
+        }
+
+        // If question changed, update qKey
+        it.q = newQ;
+        it.a = newA;
+        it.qKey = hashKey(newQ);
+        it.date = new Date().toISOString().slice(0,10);
+
+        saveJSON(KEY_INT,intelligence);
+        intelEditingId = null;
+        renderIntelList(intelSearch.value);
+        return;
+      }
+
+      if(act==="del"){
         if(!confirm("Delete this intelligence item?")) return;
         if(!confirm("Final confirmation: delete now?")) return;
-        intelligence = intelligence.filter(x=>x.id!==it.id);
+        intelligence = intelligence.filter(x=>x.id!==id);
         saveJSON(KEY_INT,intelligence);
+        if(intelEditingId===id) intelEditingId = null;
         renderIntelList(intelSearch.value);
+        return;
       }
     });
 
@@ -1766,7 +1851,6 @@
       if(!text) return;
       userInput.value = "";
 
-      // Stage 1: correction flow
       if(correctionState.mode === "awaitingAnswer"){
         correctionState.newAnswer = text;
         correctionState.mode = "awaitingConfirm";
@@ -1802,7 +1886,6 @@
         return;
       }
 
-      // User explicitly says *incorrect to correct last answer
       if(/^(\*incorrect|incorrect\*)$/i.test(text)){
         if(!lastQA){
           const msg = "I don't have a previous question and answer to correct yet.";
@@ -1821,7 +1904,6 @@
         return;
       }
 
-      // Normal conversation
       addHistory("user",text);
       logLine("User: "+text);
 
@@ -1830,14 +1912,12 @@
       let offlineUsed = false;
       let onlineUsed  = false;
 
-      // 1) intelligence / learned
       const intel = findIntelAnswer(text);
       if(intel){
         answer = intel.a;
         intelUsed = true;
       }
 
-      // 2) BM echo (very simple)
       if(!answer && bm.length){
         if(/remember|recall|last story|previous scene/i.test(text)){
           const last = bm[0];
@@ -1845,7 +1925,6 @@
         }
       }
 
-      // 3) offline LLM
       if(!answer && offlineEngine){
         const llmAns = await callOfflineLLM(text);
         if(llmAns){
@@ -1854,7 +1933,6 @@
         }
       }
 
-      // 4) online LLM (only if still nothing)
       if(!answer){
         const onlineAns = await callOnlineLLM(text);
         if(onlineAns){
@@ -1863,7 +1941,6 @@
         }
       }
 
-      // 5) generic fallback
       if(!answer){
         if(/how are you/i.test(text)){
           answer = "I am quite fine today, how about you?";
@@ -1883,7 +1960,6 @@
       logLine("AURA-X Ω: "+answer);
       speakAnswer(answer);
 
-      // store BM if long emotional scene & learning on
       if(cfg.learningOn && text.length>=cfg.bmMinChars){
         const title = "BM " + new Date().toISOString().slice(0,10);
         bm.unshift({
@@ -1896,7 +1972,6 @@
         renderBMList();
       }
 
-      // store Q→A into intelligence (except very small talk)
       if(cfg.learningOn && text.length>=4 && text.length<=220){
         if(!/hi|hello|salam|who created you|how are you/i.test(text)){
           upsertIntel(text,answer,{polarity:neg?"negative":"neutral",intensity:0.6,code:"ESELF"});
