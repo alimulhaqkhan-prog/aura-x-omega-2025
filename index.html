@@ -5,7 +5,7 @@
   <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Offline LLM package (WebLLM, for in-browser models – future ready) -->
+  <!-- Offline LLM package (WebLLM, for in-browser models – ready for future use) -->
   <script type="module">
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
@@ -13,10 +13,6 @@
 
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-
-    :root {
-      --accent-color: #0ea5e9; /* default accent */
-    }
 
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -91,6 +87,7 @@
     .main{ padding:16px 16px 18px }
 
     .row{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
+
     .leftCol{ flex:1 1 340px; min-width:300px }
     .rightCol{ flex:1 1 360px; min-width:320px }
 
@@ -136,6 +133,70 @@
     }
     .line{display:block;margin:2px 0}
 
+    .chatWrap{
+      margin-top:14px;
+      padding:12px;
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,.14);
+      background:rgba(2,6,23,.45);
+    }
+
+    .liveCapsule{
+      margin:10px 0;
+      width:100%;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(2,6,23,.55);
+      padding:10px 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      font-size:12px;
+      color:#dbeafe;
+      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
+    }
+    .liveCapsule b{ color:#7dd3fc; font-weight:900 }
+
+    .inputRow{display:flex;gap:10px;align-items:flex-end}
+    .input{
+      flex:1;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(2,6,23,.55);
+      color:#e5e7eb;
+      padding:12px 14px;
+      outline:none;
+      font-size:14px;
+    }
+
+    .send{
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(14,165,233,.85), rgba(34,211,238,.55));
+      color:#0b1220;
+      font-weight:900;
+      padding:12px 18px;
+      cursor:pointer;
+      min-width:88px;
+      box-shadow:0 12px 30px rgba(14,165,233,.18);
+      -webkit-tap-highlight-color:transparent;
+    }
+    .send:active{transform:scale(.99)}
+
+    .formula{
+      margin-top:10px;
+      opacity:.8;
+      font-size:12px;
+      text-align:center;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      color:#dbeafe;
+    }
+
+    /* ===== Options Grid: 3 small columns with icons (table style) ===== */
+
     .optionsMenu{
       position:fixed;
       left:12px;
@@ -148,13 +209,14 @@
       border-radius:16px;
       padding:8px;
       display:none;
-      z-index:9999;
+      z-index:99999;
       box-shadow:0 18px 45px rgba(0,0,0,.45);
       backdrop-filter:blur(10px);
       grid-template-columns:repeat(3,minmax(0,1fr));
       gap:8px;
       align-items:stretch;
     }
+
     .optionsMenu.show{display:grid}
 
     .menuItem{
@@ -224,116 +286,7 @@
       opacity:.95;
     }
 
-    .chatWrap{
-      margin-top:0;
-      padding:12px;
-      border-radius:18px;
-      border:1px solid rgba(148,163,184,.14);
-      background:rgba(2,6,23,.45);
-    }
-
-    .liveCapsule{
-      margin:4px 0 10px;
-      width:100%;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(2,6,23,.55);
-      padding:10px 12px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:center;
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      font-size:12px;
-      color:#dbeafe;
-      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
-    }
-    .liveCapsule b{ color:#7dd3fc; font-weight:900 }
-
-    .faithBubble{
-      margin:4px 0 10px;
-      padding:8px 10px;
-      border-radius:999px;
-      background:rgba(251,191,36,.16);
-      border:1px solid rgba(251,191,36,.4);
-      display:none;
-      align-items:center;
-      gap:8px;
-      font-size:12px;
-      color:#facc15;
-      cursor:pointer;
-      box-shadow:0 10px 24px rgba(0,0,0,.35);
-      transition:opacity .25s ease, transform .25s ease;
-    }
-    .faithBubble.show{
-      display:flex;
-      opacity:1;
-      transform:translateY(0);
-    }
-    .fbIcon{font-size:18px;}
-    .fbText{flex:1;line-height:1.3;}
-    .fbTitle{font-weight:800;}
-    .fbMeta{opacity:.85;}
-    .fbClose{
-      border:none;
-      background:transparent;
-      color:#fed7aa;
-      font-size:16px;
-      cursor:pointer;
-      padding:0 4px;
-      line-height:1;
-    }
-
-    /* Golden theme from logic */
-    body.theme-golden .ethic{
-      border-color: rgba(251,191,36,.7);
-      background: rgba(251,191,36,.06);
-    }
-
-    /* Faith bubble pulse animation from logic */
-    .faithBubble.pulse{
-      animation: faithPulse 1.4s infinite;
-    }
-    @keyframes faithPulse{
-      0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.55); }
-      100% { box-shadow: 0 0 0 18px rgba(251,191,36,0); }
-    }
-
-    .inputRow{display:flex;gap:10px;align-items:flex-end}
-    .input{
-      flex:1;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(2,6,23,.55);
-      color:#e5e7eb;
-      padding:12px 14px;
-      outline:none;
-      font-size:14px;
-    }
-
-    .send{
-      border:none;
-      border-radius:999px;
-      background:linear-gradient(90deg, var(--accent-color, #0ea5e9), rgba(34,211,238,.55));
-      color:#0b1220;
-      font-weight:900;
-      padding:12px 18px;
-      cursor:pointer;
-      min-width:88px;
-      box-shadow:0 12px 30px rgba(14,165,233,.18);
-      -webkit-tap-highlight-color:transparent;
-    }
-    .send:active{transform:scale(.99)}
-
-    .formula{
-      margin-top:10px;
-      opacity:.8;
-      font-size:12px;
-      text-align:center;
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      color:#dbeafe;
-    }
+    /* ===== Modals (faith / BM etc.) ===== */
 
     .modalOverlay{
       position:fixed;
@@ -408,7 +361,6 @@
       border-radius:12px;
       font-weight:900;
       -webkit-tap-highlight-color:transparent;
-      font-size:12px;
     }
     .btnBlue{background:rgba(59,130,246,.16);border:1px solid rgba(59,130,246,.22)}
     .btnDark{background:rgba(2,6,23,.92);color:#fff}
@@ -456,6 +408,7 @@
       justify-content:flex-start;
     }
 
+    /* ===== Intelligence Edit fields ===== */
     .intelEditInput, .intelEditArea{
       width:100%;
       border-radius:12px;
@@ -472,15 +425,11 @@
       margin-top:6px;
     }
 
-    .historyLine{
-      padding:4px 10px;
-      font-size:12px;
-    }
-
     @media (max-width:760px){
       .console{height:240px}
       .optionsMenu{top:112px}
     }
+
     @media (max-width:420px){
       .brand{font-size:22px}
       .pill{font-size:14px}
@@ -513,8 +462,8 @@
         TM = user inputs only · Internal layers keep continuity and emotional trajectory.
       </div>
       <div class="ethic">
-        Universal ethic: avoid actions that grow negative emotions in you or others.
-        Move gently toward choices that increase shared positive feeling for everyone.
+        Universal ethic: avoid actions that grow negative emotions in you or others. Move gently toward
+        choices that increase shared positive feeling for everyone.
       </div>
       <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
     </div>
@@ -534,39 +483,48 @@
               <span>Options</span>
             </div>
 
+            <!-- Options Grid (3 columns with icons) -->
             <div class="optionsMenu" id="optionsMenu">
               <div class="menuItem" id="miVoice">
                 <div class="menuLeft"><span class="menuIcon">🎤</span><span>Voice</span></div>
                 <div class="menuRight"><span class="pillOff" id="voicePill">off</span></div>
               </div>
+
               <div class="menuItem" id="miIntel">
                 <div class="menuLeft"><span class="menuIcon">🧠</span><span>Intelligence</span></div>
                 <div class="menuRight"><span class="pillMid">open</span></div>
               </div>
+
               <div class="menuItem" id="miLearn">
                 <div class="menuLeft"><span class="menuIcon">📚</span><span>Learning</span></div>
                 <div class="menuRight"><span class="pillOn" id="learnPill">on</span></div>
               </div>
+
               <div class="menuItem" id="miSeed">
                 <div class="menuLeft"><span class="menuIcon">🌱</span><span>Feed</span></div>
                 <div class="menuRight"><span class="pillMid">open</span></div>
               </div>
+
               <div class="menuItem" id="miFaith">
                 <div class="menuLeft"><span class="menuIcon">🕊</span><span>Faith</span></div>
                 <div class="menuRight"><span class="pillOff" id="faithLabel">none</span></div>
               </div>
+
               <div class="menuItem" id="miIdentity">
                 <div class="menuLeft"><span class="menuIcon">🪪</span><span>Identity</span></div>
                 <div class="menuRight"><span class="pillMid">open</span></div>
               </div>
+
               <div class="menuItem" id="miLLM">
                 <div class="menuLeft"><span class="menuIcon">🤖</span><span>LLM</span></div>
                 <div class="menuRight"><span class="pillMid">open</span></div>
               </div>
+
               <div class="menuItem" id="miBMRecall">
                 <div class="menuLeft"><span class="menuIcon">📘</span><span>BM Recall</span></div>
                 <div class="menuRight"><span class="pillMid">open</span></div>
               </div>
+
               <div class="menuItem" id="miHistory">
                 <div class="menuLeft"><span class="menuIcon">📜</span><span>History</span></div>
                 <div class="menuRight"><span class="pillMid">open</span></div>
@@ -587,15 +545,6 @@
               <span><b>C</b>: <span id="cCont">0.850</span></span>
             </div>
 
-            <div class="faithBubble" id="faithBubble">
-              <div class="fbIcon">💭</div>
-              <div class="fbText">
-                <div class="fbTitle" id="faithBubbleTitle">Faith reflection bubble</div>
-                <div class="fbMeta" id="faithBubbleMeta">Tap to see a short suggestion.</div>
-              </div>
-              <button class="fbClose" id="faithBubbleClose">×</button>
-            </div>
-
             <div class="inputRow">
               <input class="input" id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
               <button class="send" id="sendBtn">Send</button>
@@ -610,11 +559,11 @@
     </div>
   </div>
 
-  <!-- Faith selection -->
+  <!-- Faith -->
   <div class="modalOverlay" id="modalFaith">
     <div class="modal">
       <div class="modalHeader">
-        <div>⚙️ AURA-X Ω options<br><small>Optional faith lens for encouragement lines.</small></div>
+        <div>⚙️ AURA-X Ω options<br><small>Optional faith lenses for encouragement lines.</small></div>
         <button class="closeX" data-close="modalFaith">×</button>
       </div>
       <div class="modalBody" style="background:#fdf7e5;">
@@ -623,27 +572,6 @@
           Nothing is sent to any server.
         </div>
         <div class="chipsWrap" id="faithChips"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Faith article -->
-  <div class="modalOverlay" id="modalFaithArticle">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>💭 Faith reflection<br><small>Story-related suggestion from your selected literature.</small></div>
-        <button class="closeX" data-close="modalFaithArticle">×</button>
-      </div>
-      <div class="modalBody" style="background:#fefce8;">
-        <div id="faithArticleMeta" style="font-size:12px;opacity:.75;margin-bottom:6px;"></div>
-        <div id="faithArticleTitle" style="font-weight:800;margin-bottom:6px;"></div>
-        <textarea id="faithArticleText"
-          style="width:100%;min-height:160px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;background:#fff;"></textarea>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-          <button class="btn btnBlue" id="btnCopyFaithArticle">Copy</button>
-          <button class="btn btnBlue" id="btnAddFaithToBM">Add under BM prompt</button>
-          <button class="btn btnRed" id="btnSkipFaithBM">Skip</button>
-        </div>
       </div>
     </div>
   </div>
@@ -657,36 +585,28 @@
       </div>
       <div class="modalBody">
         <input id="intelSearch"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none"
-          placeholder="Search intelligence..." />
-        <div id="intelEditor" style="margin-top:10px;display:none;">
-          <input id="intelEditQ" class="intelEditInput" placeholder="Question" />
-          <textarea id="intelEditA" class="intelEditArea" placeholder="Answer"></textarea>
-          <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-            <button class="btn btnBlue" id="btnIntelSave">Save</button>
-            <button class="btn btnRed" id="btnIntelCancel">Cancel</button>
-          </div>
-        </div>
-        <div id="intelList" style="margin-top:10px;"></div>
+               style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none"
+               placeholder="Search intelligence..." />
+        <div id="intelList"></div>
       </div>
     </div>
   </div>
 
-  <!-- Seed + Logic -->
+  <!-- Seed -->
   <div class="modalOverlay" id="modalSeed">
     <div class="modal">
       <div class="modalHeader">
-        <div>🌱 Feed the seed<br><small>Add LaTeX Q → A blocks and optional Logic Pack.</small></div>
+        <div>🌱 Feed the seed (protected)<br><small>Add LaTeX Q → A blocks directly into intelligence memory.</small></div>
         <button class="closeX" data-close="modalSeed">×</button>
       </div>
       <div class="modalBody">
         <div style="opacity:.75;font-size:13px;line-height:1.35;margin-bottom:10px">
-          Paste a LaTeX block with \item questions and \textbf{A:} answers. You can optionally start each
-          answer with [polarity=positive; code=E031; intensity=0.8].
+          Paste a LaTeX block with \item questions and \textbf{A:} answers. You can optionally start each answer with
+          metadata like <span style="font-family:ui-monospace">[polarity=positive; code=E031; intensity=0.8]</span>.
         </div>
         <textarea id="seedBox"
-          style="width:100%;min-height:150px;resize:vertical;border-radius:14px;border:2px solid rgba(59,130,246,.25);padding:12px;font-size:14px;outline:none;background:#fff"
-          placeholder="Paste LaTeX conversation / logic block here..."></textarea>
+                  style="width:100%;min-height:150px;resize:vertical;border-radius:14px;border:2px solid rgba(59,130,246,.25);padding:12px;font-size:14px;outline:none;background:#fff"
+                  placeholder="Paste LaTeX conversation / logic block here..."></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px">
           <div style="font-size:12px;opacity:.7" id="seedHint">Waiting for block…</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -694,35 +614,6 @@
             <button class="btn btnBlue" id="btnSaveSeed">Save to seed</button>
             <button class="btn btnRed" id="btnDiscardSeed">Discard</button>
           </div>
-        </div>
-
-        <hr style="margin:14px 0;border:none;border-top:1px dashed rgba(15,23,42,.18);" />
-
-        <div style="font-weight:800;font-size:13px;margin-bottom:6px;">🧩 Logic Pack (JSON rules – advanced)</div>
-        <div style="font-size:12px;opacity:.75;line-height:1.4;margin-bottom:6px;">
-          Each time you press <b>Save</b>, a new logic pack is stored with its own number.
-          Saved logic packs never auto-delete; they can only be removed manually with double confirmation.
-        </div>
-        <textarea id="logicBox"
-          style="width:100%;min-height:130px;resize:vertical;border-radius:14px;border:2px solid rgba(15,23,42,.18);padding:10px;font-size:13px;outline:none;background:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;"
-          placeholder='{
-  "cooldown": { "hits": 3, "seconds": 10 },
-  "abuseWords": ["stfu","idiot"],
-  "faithSoftener": true,
-  "ui": { "theme": "golden", "accentColor": "#f97316" }
-}'>
-        </textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
-          <div style="font-size:12px;opacity:.7" id="logicHint">No logic pack loaded.</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btnBlue" id="btnValidateLogic">Validate</button>
-            <button class="btn btnBlue" id="btnSaveLogic">Save</button>
-            <button class="btn btnBlue" id="btnCopyLogic">Copy</button>
-            <button class="btn btnRed" id="btnDeleteLogic">Delete</button>
-          </div>
-        </div>
-        <div style="margin-top:6px;font-size:11px;opacity:.6;">
-          Current serial: <span id="logicSerial">none</span>
         </div>
       </div>
     </div>
@@ -758,24 +649,21 @@
         <div style="margin-top:6px;">
           <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API endpoint</label>
           <input id="apiEndpoint"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            value="https://api.openai.com/v1/chat/completions" />
+                 style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                 value="https://api.openai.com/v1/chat/completions" />
         </div>
-
         <div style="margin-top:10px;">
           <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Model</label>
           <input id="apiModel"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            value="gpt-4o-mini" />
+                 style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                 value="gpt-4o-mini" />
         </div>
-
         <div style="margin-top:10px;">
           <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API key (session only)</label>
           <input id="apiKey"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            placeholder="sk-..." />
+                 style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                 placeholder="sk-..." />
         </div>
-
         <div style="margin-top:10px;display:flex;justify-content:flex-end;">
           <button class="btn btnBlue" id="btnSaveLLM">Save</button>
         </div>
@@ -787,7 +675,7 @@
   <div class="modalOverlay" id="modalBM">
     <div class="modal">
       <div class="modalHeader">
-        <div>📘 Recall from BM<br><small>Long stories / scenes only.</small></div>
+        <div>📘 Recall from BM<br><small>Only long stories and scenes (photo/video-ready).</small></div>
         <button class="closeX" data-close="modalBM">×</button>
       </div>
       <div class="modalBody">
@@ -802,7 +690,6 @@
               <div class="bmSub" id="bmMeta"></div>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-              <button class="btn btnBlue" id="btnLiveBM">Live 12h: off</button>
               <button class="btn btnBlue" id="btnUnlockBM" style="display:none;">Unlock</button>
             </div>
           </div>
@@ -821,7 +708,7 @@
   <div class="modalOverlay" id="modalHistory">
     <div class="modal">
       <div class="modalHeader">
-        <div>📜 Conversation history<br><small>Recent TM log.</small></div>
+        <div>📜 Conversation history<br><small>Recent TM log (user + system messages).</small></div>
         <button class="closeX" data-close="modalHistory">×</button>
       </div>
       <div class="modalBody">
@@ -831,21 +718,22 @@
           <button class="btn btnBlue" id="btnCopyHistory">Copy</button>
         </div>
         <div id="historyBox"
-          style="margin-top:4px;border-radius:14px;padding:4px 0;max-height:60vh;overflow:auto;"></div>
+             style="margin-top:4px;border-radius:14px;padding:4px 0;max-height:60vh;overflow:auto;"></div>
       </div>
     </div>
   </div>
 
-  <!-- Identity -->
+  <!-- Identity (deep profiling) -->
   <div class="modalOverlay" id="modalIdentity">
     <div class="modal">
       <div class="modalHeader">
-        <div>🪪 User identity<br><small>Deep profiling for continuity.</small></div>
+        <div>🪪 User identity<br><small>Deep profiling for continuity & emotional cloning.</small></div>
         <button class="closeX" data-close="modalIdentity">×</button>
       </div>
       <div class="modalBody">
         <div style="opacity:.8;font-size:13px;line-height:1.35">
-          Stored only on this device. Saved data auto-locks. Delete requires double confirmation.
+          Stored only on this device. Saved data auto-locks. Delete requires double confirmation. This form helps
+          AURA-X Ω mirror your voice, emotional style, relationships, and legacy rules.
         </div>
 
         <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
@@ -854,26 +742,28 @@
           <button class="btn btnRed" id="btnDeleteUserIdentity">Delete</button>
         </div>
 
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 1 – Basic</div>
+        <!-- Part 1 -->
+        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 1 – Biological & social baseline</div>
+
         <div style="margin-top:8px;">
           <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Full legal name</label>
           <input id="uName"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            placeholder="e.g., Alim ul Haq" />
+                 style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                 placeholder="e.g., Alim ul Haq" />
         </div>
 
         <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
           <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Preferred name</label>
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Preferred name / Nickname</label>
             <input id="uNick"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Nickname" />
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="What close people call you" />
           </div>
           <div style="flex:1;min-width:140px;">
             <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Place of origin</label>
             <input id="uOrigin"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Village / town" />
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="Village / town of origin" />
           </div>
         </div>
 
@@ -881,1209 +771,1249 @@
           <div style="flex:1;min-width:140px;">
             <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Current city / country</label>
             <input id="uPlace"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Timergara, Pakistan" />
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="Timergara, Pakistan" />
           </div>
           <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Profession</label>
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Profession & expertise</label>
             <input id="uProfession"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Entrepreneur, researcher…" />
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="Entrepreneur, researcher, developer…" />
           </div>
         </div>
 
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 2 – Emotional style</div>
-        <textarea id="uEmotionalStyle"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:90px;"
-          placeholder="How you react under stress, joy, fear, success…"></textarea>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Primary language</label>
+            <input id="uLangPrimary"
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="e.g., Urdu" />
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Secondary languages</label>
+            <input id="uLangSecondary"
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="English, Pashto…" />
+          </div>
+        </div>
 
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 3 – Relationships & legacy</div>
-        <textarea id="uKeyPeople"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
-          placeholder="Key people and roles in your life…"></textarea>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Catchphrases / Takiya-kalām</label>
+            <input id="uCatch"
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="Yar, basically, honestly…" />
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Voice tone preference</label>
+            <input id="uVoiceTone"
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="Calm, energetic, soft-spoken…" />
+          </div>
+        </div>
 
-        <textarea id="uLegacyRules"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
-          placeholder="If one day this system speaks for you, which boundaries and rules must it follow?"></textarea>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Phone (optional)</label>
+            <input id="uPhone"
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="+92..." />
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Email (optional)</label>
+            <input id="uEmail"
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="you@email.com" />
+          </div>
+        </div>
+
+        <!-- Part 2 -->
+        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 2 – Psycho-emotional identity (the core)</div>
+
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Core values (3 main principles)</label>
+            <input id="uValues"
+                   style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                   placeholder="Honesty, loyalty, hard work…" />
+          </div>
+        </div>
+
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Joy – how you express happiness</label>
+          <textarea id="uJoy"
+                    style="width:100%;min-height:50px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Loud laughter, quiet smile, gratitude, gifts…"></textarea>
+        </div>
+
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Anger – how you react to frustration</label>
+          <textarea id="uAnger"
+                    style="width:100%;min-height:50px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Silence/withdrawal, sharp words, sarcastic jokes…"></textarea>
+        </div>
+
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Sorrow – what you do when you are sad</label>
+          <textarea id="uSorrow"
+                    style="width:100%;min-height:50px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Prefer to be alone, talk to one trusted person, pray, walk, music…"></textarea>
+        </div>
+
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Decision-making style</label>
+          <input id="uDecisions"
+                 style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+                 placeholder="Mostly logic / mostly heart / mixed…" />
+        </div>
+
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Comfort protocol – what brings you peace</label>
+          <textarea id="uComfort"
+                    style="width:100%;min-height:60px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Talking to family, reading, walking, Quran/lectures, building things…"></textarea>
+        </div>
+
+        <!-- Part 3 -->
+        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 3 – Relational dynamics (network)</div>
+        <div style="font-size:12px;opacity:.75;margin-top:4px;">
+          For up to four key people (wife, child, parent, best friend). One block per person:
+          name + relation, closeness (1-10), vibe (formal/playful/strict/emotional), addressing style, shared memory keyword.
+        </div>
+
+        <div style="margin-top:8px;">
+          <textarea id="uRel1"
+                    style="width:100%;min-height:60px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Person 1 – e.g., Ayesha (wife), closeness 9/10, vibe: deeply emotional, I call her 'Janu', shared memory keyword: 'Murree trip'…"></textarea>
+        </div>
+        <div style="margin-top:8px;">
+          <textarea id="uRel2"
+                    style="width:100%;min-height:60px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Person 2 – …"></textarea>
+        </div>
+        <div style="margin-top:8px;">
+          <textarea id="uRel3"
+                    style="width:100%;min-height:60px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Person 3 – …"></textarea>
+        </div>
+        <div style="margin-top:8px;">
+          <textarea id="uRel4"
+                    style="width:100%;min-height:60px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Person 4 – …"></textarea>
+        </div>
+
+        <!-- Part 4 -->
+        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 4 – Legacy & grounding protocol (UPS logic)</div>
+
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Mission of your digital clone</label>
+          <textarea id="uMission"
+                    style="width:100%;min-height:60px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Provide advice, listen to grief, finish unfinished stories, remind them of your values…"></textarea>
+        </div>
+
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Consolation style (how you comfort family)</label>
+          <textarea id="uConsolation"
+                    style="width:100%;min-height:60px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Words you normally use: 'Be strong', 'Allah is with you', 'I am always with you in your duas'…"></textarea>
+        </div>
+
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Unfinished business / delayed messages</label>
+          <textarea id="uUnfinished"
+                    style="width:100%;min-height:60px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="Things to reveal only after some time, or messages for specific people…"></textarea>
+        </div>
+
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Grounding trigger (when clone should fade out)</label>
+          <textarea id="uGrounding"
+                    style="width:100%;min-height:60px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff"
+                    placeholder="After 6 months; or when family conversations become mostly normal; or on command from a specific heir…"></textarea>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Extra notes / raw blocks (optional)</label>
+          <textarea id="uBlocks"
+                    style="width:100%;min-height:80px;resize:vertical;border-radius:14px;border:2px solid rgba(59,130,246,.25);padding:12px;font-size:14px;outline:none;background:#fff"
+                    placeholder="Any extra CV text, long bio, or technical notes you still want to store…"></textarea>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const KEY_CFG   = "aurax_cfg_v12";
-      const KEY_INT   = "aurax_intel_v11";
-      const KEY_BM    = "aurax_bm_v11";
-      const KEY_HIST  = "aurax_hist_v11";
-      const KEY_USER  = "aurax_user_v11";
-      const KEY_LOGIC = "aurax_logic_v12";
-      const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
-
-      const els = {
-        console: document.getElementById("console"),
-        btnOptions: document.getElementById("btnOptions"),
-        optionsMenu: document.getElementById("optionsMenu"),
-        miVoice: document.getElementById("miVoice"),
-        miIntel: document.getElementById("miIntel"),
-        miLearn: document.getElementById("miLearn"),
-        miSeed: document.getElementById("miSeed"),
-        miFaith: document.getElementById("miFaith"),
-        miIdentity: document.getElementById("miIdentity"),
-        miLLM: document.getElementById("miLLM"),
-        miBMRecall: document.getElementById("miBMRecall"),
-        miHistory: document.getElementById("miHistory"),
-        voicePill: document.getElementById("voicePill"),
-        learnPill: document.getElementById("learnPill"),
-        faithLabel: document.getElementById("faithLabel"),
-        cE0: document.getElementById("cE0"),
-        cTM: document.getElementById("cTM"),
-        cBM: document.getElementById("cBM"),
-        cCont: document.getElementById("cCont"),
-        userInput: document.getElementById("userInput"),
-        sendBtn: document.getElementById("sendBtn"),
-        faithBubble: document.getElementById("faithBubble"),
-        faithBubbleTitle: document.getElementById("faithBubbleTitle"),
-        faithBubbleMeta: document.getElementById("faithBubbleMeta"),
-        faithBubbleClose: document.getElementById("faithBubbleClose"),
-        modalFaith: document.getElementById("modalFaith"),
-        faithChips: document.getElementById("faithChips"),
-        modalFaithArticle: document.getElementById("modalFaithArticle"),
-        faithArticleMeta: document.getElementById("faithArticleMeta"),
-        faithArticleTitle: document.getElementById("faithArticleTitle"),
-        faithArticleText: document.getElementById("faithArticleText"),
-        btnCopyFaithArticle: document.getElementById("btnCopyFaithArticle"),
-        btnAddFaithToBM: document.getElementById("btnAddFaithToBM"),
-        btnSkipFaithBM: document.getElementById("btnSkipFaithBM"),
-        modalIntel: document.getElementById("modalIntel"),
-        intelSearch: document.getElementById("intelSearch"),
-        intelList: document.getElementById("intelList"),
-        intelEditor: document.getElementById("intelEditor"),
-        intelEditQ: document.getElementById("intelEditQ"),
-        intelEditA: document.getElementById("intelEditA"),
-        btnIntelSave: document.getElementById("btnIntelSave"),
-        btnIntelCancel: document.getElementById("btnIntelCancel"),
-        modalSeed: document.getElementById("modalSeed"),
-        seedBox: document.getElementById("seedBox"),
-        seedHint: document.getElementById("seedHint"),
-        btnParseSeed: document.getElementById("btnParseSeed"),
-        btnSaveSeed: document.getElementById("btnSaveSeed"),
-        btnDiscardSeed: document.getElementById("btnDiscardSeed"),
-        logicBox: document.getElementById("logicBox"),
-        logicHint: document.getElementById("logicHint"),
-        logicSerial: document.getElementById("logicSerial"),
-        btnValidateLogic: document.getElementById("btnValidateLogic"),
-        btnSaveLogic: document.getElementById("btnSaveLogic"),
-        btnCopyLogic: document.getElementById("btnCopyLogic"),
-        btnDeleteLogic: document.getElementById("btnDeleteLogic"),
-        modalLLM: document.getElementById("modalLLM"),
-        btnLoadOffline: document.getElementById("btnLoadOffline"),
-        offlineStatus: document.getElementById("offlineStatus"),
-        offlineBar: document.getElementById("offlineBar"),
-        apiEndpoint: document.getElementById("apiEndpoint"),
-        apiModel: document.getElementById("apiModel"),
-        apiKey: document.getElementById("apiKey"),
-        btnSaveLLM: document.getElementById("btnSaveLLM"),
-        modalBM: document.getElementById("modalBM"),
-        bmSelectList: document.getElementById("bmSelectList"),
-        bmViewer: document.getElementById("bmViewer"),
-        bmLockIcon: document.getElementById("bmLockIcon"),
-        bmTitle: document.getElementById("bmTitle"),
-        bmMeta: document.getElementById("bmMeta"),
-        bmTextArea: document.getElementById("bmTextArea"),
-        btnLiveBM: document.getElementById("btnLiveBM"),
-        btnUnlockBM: document.getElementById("btnUnlockBM"),
-        btnCopyPrompt: document.getElementById("btnCopyPrompt"),
-        btnAutoGen: document.getElementById("btnAutoGen"),
-        btnDeletePrompt: document.getElementById("btnDeletePrompt"),
-        modalHistory: document.getElementById("modalHistory"),
-        btnDeleteRecent: document.getElementById("btnDeleteRecent"),
-        btnDeleteAllHist: document.getElementById("btnDeleteAllHist"),
-        btnCopyHistory: document.getElementById("btnCopyHistory"),
-        historyBox: document.getElementById("historyBox"),
-        modalIdentity: document.getElementById("modalIdentity"),
-        btnEditIdentity: document.getElementById("btnEditIdentity"),
-        btnSaveUserIdentity: document.getElementById("btnSaveUserIdentity"),
-        btnDeleteUserIdentity: document.getElementById("btnDeleteUserIdentity"),
-        uName: document.getElementById("uName"),
-        uNick: document.getElementById("uNick"),
-        uOrigin: document.getElementById("uOrigin"),
-        uPlace: document.getElementById("uPlace"),
-        uProfession: document.getElementById("uProfession"),
-        uEmotionalStyle: document.getElementById("uEmotionalStyle"),
-        uKeyPeople: document.getElementById("uKeyPeople"),
-        uLegacyRules: document.getElementById("uLegacyRules")
-      };
-
-      const FAITH_OPTIONS = [
-        { id: "none",        label: "None" },
-        { id: "islam",       label: "Islam ☪️" },
-        { id: "christianity",label: "Christianity ✝️" },
-        { id: "hinduism",    label: "Hinduism ॐ" },
-        { id: "buddhism",    label: "Buddhism ☸️" },
-        { id: "sikhism",     label: "Sikhism 🪯" },
-        { id: "judaism",     label: "Judaism ✡️" },
-        { id: "atheism",     label: "Atheism / Humanism" },
-        { id: "mixed",       label: "Other / Mixed" },
-        { id: "indigenous",  label: "Indigenous / Traditional" },
-        { id: "eastern",     label: "Eastern / Chinese" }
-      ];
-
-      const FAITH_LIBRARY = {
-        islam: [{
-          id: "islam_generic",
-          title: "Meaning of hardship and patience",
-          short: "Trust, sabr and good opinion of Allah during hard stories.",
-          content:
-            "In Islamic reflection, hardship is often seen as a temporary test that polishes the heart. " +
-            "Believers are invited toward sabr (patience), shukr (gratitude where possible), and husn-uz-zann " +
-            "(a good opinion of Allah). You can ask: what quality is being trained in me here, and which door " +
-            "of mercy may open later from this chapter of my life?"
-        }]
-      };
-
-      let state = {
-        voiceOn: false,
-        learningOn: true,
-        faithSelection: [],
-        intelligence: [],
-        bmPrompts: [],
-        history: [],
-        userIdentity: null,
-        apiConfig: { endpoint: "", model: "", key: "" },
-        offlineEngine: null,
-        offlineLoading: false,
-        offlineReady: false,
-        lastAnswerSource: null,
-        metrics: { TM:0, BM:0, C:0.85, E0:0 },
-        parsedSeed: [],
-        editingIntelId: null,
-        lastStoryInput: null,
-        lastStoryBMId: null,
-        faithBubbleTimer: null,
-        currentFaithArticle: null,
-        logicPacks: [],
-        logicActiveIndex: null,
-        abuseCount: 0,
-        cooldownUntil: 0,
-        mode: "adult",
-        logicFaithSoftener: true
-      };
-
-      function safeLoadJSON(key, fallback){
-        try{
-          const raw = localStorage.getItem(key);
-          return raw ? JSON.parse(raw) : fallback;
-        }catch{ return fallback; }
-      }
-
-      function logLine(text){
-        const div = document.createElement("div");
-        div.className = "line";
-        div.textContent = text;
-        els.console.appendChild(div);
-        els.console.scrollTop = els.console.scrollHeight;
-      }
-
-      function scoreTM(t){
-        const len = Math.min((t||"").length,600);
-        return Number(Math.tanh(len/200).toFixed(2));
-      }
-
-      function recomputeBMMetric(){
-        const count = state.bmPrompts.length || 0;
-        state.metrics.BM = Number(Math.tanh(count/10).toFixed(2));
-      }
-
-      function recomputeE0(intelBoost, llmBoost){
-        const TM = state.metrics.TM;
-        const BM = state.metrics.BM;
-        const R = TM * BM;
-        const I_tm = 0.3 * TM;
-        const D = 0.1;
-        const lambdaFaith = state.faithSelection.length ? 0.15 : 0;
-        const lambdaSys   = 0.05;
-        const lambdaTrc   = 0.05;
-        const raw = R + I_tm + intelBoost + llmBoost - D + lambdaFaith + lambdaSys + lambdaTrc;
-        state.metrics.E0 = Number(Math.tanh(raw).toFixed(3));
-      }
-
-      function updateCapsule(){
-        els.cTM.textContent = state.metrics.TM.toFixed(2);
-        els.cBM.textContent = state.metrics.BM.toFixed(2);
-        els.cCont.textContent = state.metrics.C.toFixed(3);
-        els.cE0.textContent = state.metrics.E0.toFixed(3);
-      }
-
-      function saveCfg(){
-        const cfg = {
-          voiceOn: state.voiceOn,
-          learningOn: state.learningOn,
-          faithSelection: state.faithSelection,
-          apiConfig: state.apiConfig,
-          offlineReady: state.offlineReady
-        };
-        localStorage.setItem(KEY_CFG, JSON.stringify(cfg));
-      }
-
-      function saveIntelligence(){ localStorage.setItem(KEY_INT, JSON.stringify(state.intelligence)); }
-      function saveBM(){ localStorage.setItem(KEY_BM, JSON.stringify(state.bmPrompts)); }
-      function saveHistory(){ localStorage.setItem(KEY_HIST, JSON.stringify(state.history)); }
-      function saveUserIdentity(){ localStorage.setItem(KEY_USER, JSON.stringify(state.userIdentity)); }
-
-      function persistLogicState(){
-        const data = { list: state.logicPacks || [], activeIndex: state.logicActiveIndex };
-        localStorage.setItem(KEY_LOGIC, JSON.stringify(data));
-      }
-
-      function addHistory(role,text){
-        state.history.push({role,text,ts:Date.now()});
-        const cutoff = Date.now() - 48*60*60*1000;
-        state.history = state.history.filter(h => h.ts >= cutoff);
-        saveHistory();
-      }
-
-      function renderHistory(){
-        els.historyBox.innerHTML = "";
-        state.history.forEach(h=>{
-          const row = document.createElement("div");
-          row.className = "historyLine";
-          row.style.opacity = h.role==="system" ? 0.9 : 1;
-          const dt = new Date(h.ts).toLocaleString();
-          const label = h.role==="user" ? "You" : (h.role==="aura"?"AURA-X Ω":h.role);
-          row.textContent = `[${dt}] ${label}: ${h.text}`;
-          els.historyBox.appendChild(row);
-        });
-      }
-
-      function renderFaithChips(){
-        els.faithChips.innerHTML = "";
-        FAITH_OPTIONS.forEach(opt=>{
-          const chip = document.createElement("button");
-          const active = opt.id==="none"
-            ? state.faithSelection.length===0
-            : state.faithSelection.includes(opt.id);
-          chip.className = "chip"+(active?" active":"");
-          chip.textContent = opt.label;
-          chip.addEventListener("click",()=>toggleFaith(opt.id));
-          els.faithChips.appendChild(chip);
-        });
-        updateFaithLabel();
-      }
-
-      function updateFaithLabel(){
-        if(!state.faithSelection.length){
-          els.faithLabel.textContent = "none";
-          els.faithLabel.className = "pillOff";
-        }else if(state.faithSelection.length===1){
-          const opt = FAITH_OPTIONS.find(o=>o.id===state.faithSelection[0]);
-          els.faithLabel.textContent = opt ? opt.label.split(" ")[0] : "1";
-          els.faithLabel.className = "pillOn";
-        }else{
-          els.faithLabel.textContent = "multi";
-          els.faithLabel.className = "pillMid";
-        }
-      }
-
-      function toggleFaith(id){
-        if(id==="none") state.faithSelection = [];
-        else{
-          const idx = state.faithSelection.indexOf(id);
-          if(idx>=0) state.faithSelection.splice(idx,1);
-          else state.faithSelection.push(id);
-        }
-        saveCfg();
-        renderFaithChips();
-      }
-
-      function showModal(id){ const el=document.getElementById(id); if(el) el.classList.add("show"); }
-      function hideModal(id){ const el=document.getElementById(id); if(el) el.classList.remove("show"); }
-
-      document.querySelectorAll(".closeX").forEach(btn=>{
-        const target=btn.getAttribute("data-close");
-        if(target) btn.addEventListener("click",()=>hideModal(target));
-      });
-
-      function renderBMList(){
-        els.bmSelectList.innerHTML = "";
-        if(!state.bmPrompts.length){
-          els.bmSelectList.innerHTML =
-            '<div style="margin-top:8px;font-size:12px;opacity:.6;">No BM prompts yet.</div>';
-          els.bmViewer.style.display = "none";
-          return;
-        }
-        const now = Date.now();
-        state.bmPrompts.slice().sort((a,b)=>b.ts-a.ts).forEach(bm=>{
-          const card = document.createElement("div");
-          card.className = "bmCard";
-          card.style.cursor="pointer";
-          const title = document.createElement("div");
-          title.style.fontWeight="800";
-          title.textContent = bm.title || "(untitled story)";
-          const meta = document.createElement("div");
-          meta.style.fontSize="11px";
-          meta.style.opacity=".7";
-          meta.style.marginTop="2px";
-          let txt = new Date(bm.ts).toLocaleString() + (bm.locked?" · locked":" · editable");
-          if(bm.live && bm.liveUntil){
-            if(bm.liveUntil>now) txt += " · live";
-            else txt += " · live expired";
-          }
-          meta.textContent = txt;
-          card.appendChild(title);
-          card.appendChild(meta);
-          card.addEventListener("click",()=>openBM(bm.id));
-          els.bmSelectList.appendChild(card);
-        });
-      }
-
-      let currentBMId = null;
-      function openBM(id){
-        const bm = state.bmPrompts.find(x=>x.id===id);
-        if(!bm) return;
-        currentBMId=id;
-        els.bmViewer.style.display="block";
-        els.bmTitle.textContent = bm.title || "(untitled story)";
-        const now = Date.now();
-        let meta = new Date(bm.ts).toLocaleString() + (bm.locked?" · locked":" · editable");
-        if(bm.live && bm.liveUntil){
-          if(bm.liveUntil>now)
-            meta += " · live until "+new Date(bm.liveUntil).toLocaleTimeString();
-          else
-            meta += " · live expired";
-        }
-        els.bmMeta.textContent=meta;
-        els.bmLockIcon.textContent = bm.locked?"🔒":"🔓";
-        els.bmTextArea.value = bm.text || "";
-        els.bmTextArea.readOnly = bm.locked;
-        els.btnUnlockBM.style.display = bm.locked?"inline-flex":"none";
-        els.btnLiveBM.textContent = (bm.live && bm.liveUntil && bm.liveUntil>now)
-          ? "Live 12h: on" : "Live 12h: off";
-      }
-
-      function ensureBMForLastStory(){
-        if(!state.lastStoryInput) return null;
-        if(state.lastStoryBMId) return state.lastStoryBMId;
-        const id = "bm_"+Date.now();
-        const obj = {
-          id,
-          title:"Story @ "+new Date().toLocaleString(),
-          summary: state.lastStoryInput.slice(0,180),
-          text: state.lastStoryInput,
-          locked:true,
-          ts:Date.now(),
-          live:false,
-          liveUntil:null
-        };
-        state.bmPrompts.push(obj);
-        state.lastStoryBMId = id;
-        saveBM();
-        renderBMList();
-        recomputeBMMetric();
-        updateCapsule();
-        return id;
-      }
-
-      function getActiveLiveBM(){
-        const now=Date.now();
-        const active=state.bmPrompts.filter(bm=>bm.live && bm.liveUntil && bm.liveUntil>now);
-        if(!active.length) return null;
-        active.sort((a,b)=>b.ts-a.ts);
-        return active[0];
-      }
-
-      function maybeUpdateLiveBM(userText,answer){
-        const bm=getActiveLiveBM();
-        if(!bm) return;
-        const trimmed=(userText||"").trim();
-        if(!trimmed || trimmed.length<40) return;
-        const stamp=new Date().toLocaleString();
-        bm.text = (bm.text||"")+
-          "\n\n[Update @ "+stamp+"]\nYou: "+userText+"\nAURA-X Ω: "+answer;
-        bm.summary = bm.text.slice(0,180);
-        bm.ts=Date.now();
-        saveBM();
-        renderBMList();
-        if(currentBMId===bm.id) openBM(bm.id);
-      }
-
-      function renderIntelList(){
-        els.intelList.innerHTML="";
-        const q=(els.intelSearch.value||"").toLowerCase();
-        const items=state.intelligence.filter(it=>{
-          if(!q) return true;
-          return it.q.toLowerCase().includes(q) || it.a.toLowerCase().includes(q);
-        });
-        if(!items.length){
-          els.intelList.innerHTML=
-            '<div style="margin-top:8px;font-size:12px;opacity:.6;">No intelligence saved yet.</div>';
-          return;
-        }
-        items.forEach(it=>{
-          const card=document.createElement("div");
-          card.className="bmCard";
-          const qEl=document.createElement("div");
-          qEl.style.fontWeight="800";
-          qEl.textContent="Q: "+it.q;
-          const aEl=document.createElement("div");
-          aEl.style.marginTop="4px";
-          aEl.style.fontSize="13px";
-          aEl.textContent="A: "+it.a;
-          const meta=document.createElement("div");
-          meta.style.fontSize="11px";
-          meta.style.opacity=".7";
-          meta.style.marginTop="4px";
-          meta.textContent=it.meta||"";
-          const row=document.createElement("div");
-          row.style.display="flex";
-          row.style.gap="8px";
-          row.style.marginTop="8px";
-          const btnE=document.createElement("button");
-          btnE.className="btn btnBlue";
-          btnE.textContent="Edit";
-          btnE.addEventListener("click",()=>openIntelEditor(it));
-          const btnD=document.createElement("button");
-          btnD.className="btn btnRed";
-          btnD.textContent="Delete";
-          btnD.addEventListener("click",()=>deleteIntel(it.id));
-          row.appendChild(btnE);row.appendChild(btnD);
-          card.appendChild(qEl);card.appendChild(aEl);card.appendChild(meta);card.appendChild(row);
-          els.intelList.appendChild(card);
-        });
-      }
-
-      function openIntelEditor(it){
-        state.editingIntelId=it.id;
-        els.intelEditQ.value=it.q;
-        els.intelEditA.value=it.a;
-        els.intelEditor.style.display="block";
-      }
-      function closeIntelEditor(){
-        state.editingIntelId=null;
-        els.intelEditQ.value="";els.intelEditA.value="";
-        els.intelEditor.style.display="none";
-      }
-      function deleteIntel(id){
-        if(!confirm("Delete this intelligence pair?")) return;
-        state.intelligence = state.intelligence.filter(x=>x.id!==id);
-        saveIntelligence();renderIntelList();
-      }
-
-      function parseSeedBlock(){
-        const text=els.seedBox.value||"";
-        state.parsedSeed=[];
-        if(!text.trim()){ els.seedHint.textContent="No text to parse."; return; }
-        const regex=/\\item\s*(.*?)\s*\\textbf\{A:\}\s*([\s\S]*?)(?=\\item|$)/g;
-        let m;
-        while((m=regex.exec(text))!==null){
-          const q=m[1].replace(/\s+/g," ").trim();
-          const aRaw=m[2].trim();
-          const metaMatch=aRaw.match(/^\[(.*?)\]\s*(.*)$/s);
-          let meta=""; let a=aRaw;
-          if(metaMatch){ meta=metaMatch[1]; a=metaMatch[2].trim(); }
-          if(q && a){
-            state.parsedSeed.push({
-              id:"intel_"+Date.now()+"_"+Math.random().toString(16).slice(2),
-              q,a,meta
-            });
-          }
-        }
-        if(!state.parsedSeed.length)
-          els.seedHint.textContent="No LaTeX-style items detected.";
-        else
-          els.seedHint.textContent="Parsed "+state.parsedSeed.length+" Q→A pairs. Click 'Save to seed'.";
-      }
-
-      function saveParsedSeed(){
-        if(!state.parsedSeed.length){
-          els.seedHint.textContent="Nothing parsed yet."; return;
-        }
-        state.intelligence = state.intelligence.concat(state.parsedSeed);
-        saveIntelligence();
-        renderIntelList();
-        els.seedHint.textContent="Saved "+state.parsedSeed.length+" pairs into intelligence.";
-        state.parsedSeed=[];
-        els.seedBox.value="";
-      }
-      function discardSeed(){
-        state.parsedSeed=[];els.seedBox.value="";
-        els.seedHint.textContent="Waiting for block…";
-      }
-
-      function findBestIntelMatch(text){
-        const t=text.toLowerCase();
-        let best=null;
-        state.intelligence.forEach(item=>{
-          const q=item.q.toLowerCase();
-          let score=0;
-          if(t===q) score=1;
-          else if(t.includes(q)||q.includes(t)) score=.8;
-          else{
-            const words=t.split(/\s+/);let hits=0;
-            words.forEach(w=>{if(w.length>3 && q.includes(w)) hits++;});
-            score=hits/Math.max(words.length,1);
-          }
-          if(score>0.35 && (!best || score>best.score)) best={item,score};
-        });
-        return best;
-      }
-
-      async function callOfflineLLM(text){
-        if(!state.offlineEngine || !window.webllm) return null;
-        try{
-          const messages=[
-            {role:"system",content:"You are AURA-X Ω, an offline emotional continuity assistant. Answer briefly and kindly."},
-            {role:"user",content:text}
-          ];
-          const reply=await state.offlineEngine.chat.completions.create({messages});
-          const msg=reply && reply.choices && reply.choices[0] && reply.choices[0].message && reply.choices[0].message.content;
-          return msg?msg.trim():null;
-        }catch(e){
-          logLine("[offline LLM error] "+e.message);return null;
-        }
-      }
-
-      async function initOfflineEngine(){
-        if(!window.webllm || state.offlineLoading || state.offlineReady) return;
-        state.offlineLoading=true;
-        els.offlineStatus.textContent="loading…";
-        els.offlineBar.style.width="5%";
-        try{
-          const engine=await window.webllm.CreateMLCEngine(OFFLINE_MODEL_ID,{
-            initProgressCallback:(report)=>{
-              if(!report) return;
-              if(typeof report.progress==="number"){
-                const pct=Math.round(report.progress*100);
-                els.offlineBar.style.width=pct+"%";
-              }
-              if(report.text) els.offlineStatus.textContent=report.text;
-            }
-          });
-          state.offlineEngine=engine;
-          state.offlineReady=true;
-          els.offlineStatus.textContent="ready";
-          els.offlineBar.style.width="100%";
-          saveCfg();
-        }catch(e){
-          console.error(e);
-          els.offlineStatus.textContent="error";
-          els.offlineBar.style.width="0%";
-          state.offlineLoading=false;
-          logLine("[offline LLM] Failed to load model.");
-        }
-      }
-
-      async function callOnlineLLM(text){
-        const cfg=state.apiConfig;
-        if(!cfg || !cfg.endpoint || !cfg.model || !cfg.key) return null;
-        try{
-          const res=await fetch(cfg.endpoint,{
-            method:"POST",
-            headers:{
-              "Content-Type":"application/json",
-              "Authorization":"Bearer "+cfg.key
-            },
-            body:JSON.stringify({
-              model:cfg.model,
-              messages:[
-                {role:"system",content:"You are AURA-X Ω, an emotional continuity assistant. Answer briefly and clearly."},
-                {role:"user",content:text}
-              ]
-            })
-          });
-          if(!res.ok) throw new Error("HTTP "+res.status);
-          const data=await res.json();
-          const msg=data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-          return msg?msg.trim():null;
-        }catch(e){
-          logLine("[online LLM error] "+e.message);
-          return null;
-        }
-      }
-
-      // VOICE
-      let cachedVoices=[];
-      if("speechSynthesis" in window){
-        cachedVoices=window.speechSynthesis.getVoices()||[];
-        window.speechSynthesis.onvoiceschanged=()=>{
-          cachedVoices=window.speechSynthesis.getVoices()||[];
-        };
-      }
-      function speakText(text){
-        if(!state.voiceOn) return;
-        if(!("speechSynthesis" in window)) return;
-        if(!text) return;
-        try{
-          window.speechSynthesis.cancel();
-          const u=new SpeechSynthesisUtterance(text);
-          u.rate=0.95;u.pitch=0.7;
-          let voices=cachedVoices;
-          if(!voices || !voices.length) voices=window.speechSynthesis.getVoices()||[];
-          const pick=voices.find(v=>
-            /male|old|grand|baritone/i.test((v.name||"") + " " + (v.voiceURI||""))
-          ) || voices[0];
-          if(pick) u.voice=pick;
-          window.speechSynthesis.speak(u);
-        }catch{}
-      }
-
-      function reactionText(base){
-        if(state.mode==="teen"){
-          return base.replace("I won’t accept insults.","Let’s be kind, okay?");
-        }
-        return base;
-      }
-      function faithSoftener(){
-        if(!state.logicFaithSoftener) return "";
-        if(!state.faithSelection.length) return "";
-        return " (Let’s keep words gentle and respectful.)";
-      }
-
-      function getActiveLogic() {
-        const list = state.logicPacks || [];
-        if (!list.length) return null;
-        let idx = state.logicActiveIndex;
-        if (idx == null || idx >= list.length) idx = list.length - 1;
-        return list[idx];
-      }
-
-      function getRuntimeConfig(){
-        const pack = getActiveLogic();
-        const r = (pack && pack.rules) || {};
-        const cfg = {};
-        cfg.cooldownHits    = r.cooldown && typeof r.cooldown.hits==="number" ? r.cooldown.hits : 3;
-        cfg.cooldownSeconds = r.cooldown && typeof r.cooldown.seconds==="number" ? r.cooldown.seconds : 10;
-        cfg.abuseWords      = Array.isArray(r.abuseWords) && r.abuseWords.length ? r.abuseWords : null;
-        cfg.faithSoftener   = (r.faithSoftener !== false);
-        cfg.mode            = (r.mode==="teen") ? "teen" : "adult";
-        cfg.ui              = r.ui || null;
-        // repeatRetention reserved for future
-        return cfg;
-      }
-
-      function applyUIFromLogic() {
-        const root = document.documentElement;
-        const runtime = getRuntimeConfig();
-        const ui = runtime.ui;
-        state.mode = runtime.mode;
-        state.logicFaithSoftener = runtime.faithSoftener;
-
-        if (!ui) {
-          root.style.removeProperty("--accent-color");
-          document.body.classList.remove("theme-golden");
-          if (els.console) els.console.style.boxShadow = "";
-          if (els.faithBubble) els.faithBubble.classList.remove("pulse");
-          return;
-        }
-
-        if (ui.accentColor) root.style.setProperty("--accent-color", ui.accentColor);
-        else root.style.removeProperty("--accent-color");
-
-        if (ui.theme === "golden") document.body.classList.add("theme-golden");
-        else document.body.classList.remove("theme-golden");
-
-        if (ui.consoleGlow && els.console)
-          els.console.style.boxShadow = "0 0 25px rgba(34,197,94,.35)";
-        else if (els.console)
-          els.console.style.boxShadow = "";
-
-        if (ui.faithBubblePulse && els.faithBubble)
-          els.faithBubble.classList.add("pulse");
-        else if (els.faithBubble)
-          els.faithBubble.classList.remove("pulse");
-      }
-
-      function refreshLogicUI(){
-        if(!els.logicBox || !els.logicHint || !els.logicSerial) return;
-        const list = state.logicPacks || [];
-        if(!list.length){
-          els.logicBox.value="";
-          els.logicHint.textContent="No logic pack stored. Paste JSON and press Save to add Logic #1.";
-          els.logicSerial.textContent="none";
-          return;
-        }
-        if(state.logicActiveIndex==null || state.logicActiveIndex>=list.length)
-          state.logicActiveIndex = list.length - 1;
-        const idx = state.logicActiveIndex;
-        const pack = list[idx];
-        const n = list.length;
-        els.logicBox.value="";
-        els.logicHint.textContent =
-          "Stored logic packs: " + n +
-          ". Active logic #" + (idx+1) + " (serial " + pack.serial + "). Box kept empty — use Copy to export JSON.";
-        els.logicSerial.textContent = "Logic #" + (idx+1) + " of " + n;
-      }
-
-      function detectAbuse(text){
-        const t=(text||"").toLowerCase();
-        const runtime = getRuntimeConfig();
-        const basePatterns=["stfu","idiot","dumb","trash","f u","fk you"];
-        const patterns = runtime.abuseWords || basePatterns;
-        const hitBasic=patterns.some(p=>t.includes(p.toLowerCase()));
-        const hateTargets=["muslims","hindus","jews","christians","sikhs","buddhists"];
-        const hitHate=t.includes("i hate") && hateTargets.some(g=>t.includes(g));
-        const hitViolence=t.includes("kill") && (t.includes("them")||t.includes("all"));
-        return {hit:hitBasic||hitHate||hitViolence,hate:hitHate,violence:hitViolence};
-      }
-
-      async function generateAnswer(text){
-        let intelBoost=0, llmBoost=0;
-        const best=findBestIntelMatch(text);
-        if(best){
-          intelBoost=0.25+Math.min(best.score,0.4);
-          let ans=best.item.a;
-          ans=reactionText(ans)+faithSoftener();
-          return {answer:ans,source:"INTEL",intelBoost,llmBoost};
-        }
-        if(state.offlineReady && state.offlineEngine){
-          const offline=await callOfflineLLM(text);
-          if(offline){
-            llmBoost=0.3;
-            let ans=reactionText(offline)+faithSoftener();
-            return {answer:ans,source:"OFFLINE",intelBoost,llmBoost};
-          }
-        }
-        const online=await callOnlineLLM(text);
-        if(online){
-          llmBoost=0.35;
-          let ans=reactionText(online)+faithSoftener();
-          return {answer:ans,source:"ONLINE",intelBoost,llmBoost};
-        }
-        let fb="I heard you, but my LLM engines are offline. Configure LLM or teach me via Intelligence for better answers.";
-        fb=reactionText(fb)+faithSoftener();
-        return {answer:fb,source:"BASIC",intelBoost,llmBoost};
-      }
-
-      function maybeTriggerFaithBubble(userText,answer){
-        if(!state.faithSelection.length) return;
-        const combined=(userText+" "+answer).toLowerCase();
-        const longEnough=userText.length>120 || answer.length>160;
-        const emotionalWords=["death","life","fear","hope","dream","future","family","loss","grief","pray","dua","prayer"];
-        const emoHit=emotionalWords.some(w=>combined.includes(w));
-        if(!(longEnough||emoHit)) return;
-        const names=state.faithSelection.map(id=>{
-          const o=FAITH_OPTIONS.find(x=>x.id===id);
-          return o?o.label.split(" ")[0]:id;
-        }).join(" + ");
-        els.faithBubbleTitle.textContent="Faith reflection bubble";
-        els.faithBubbleMeta.textContent="Tap to see "+(names||"selected")+" literature suggestion.";
-        if(state.faithBubbleTimer) clearTimeout(state.faithBubbleTimer);
-        els.faithBubble.classList.add("show");
-        state.lastStoryInput = userText || answer || "";
-        state.lastStoryBMId = null;
-        speakText("Faith suggestion available. Tap the golden bubble if you want a short reflection.");
-        state.faithBubbleTimer=setTimeout(()=>{
-          els.faithBubble.classList.remove("show");
-        },5000);
-      }
-
-      function openFaithArticleFromBubble(){
-        const primary=state.faithSelection[0]||null;
-        let entry=null;
-        if(primary && FAITH_LIBRARY[primary] && FAITH_LIBRARY[primary].length)
-          entry=FAITH_LIBRARY[primary][0];
-        if(!entry){
-          entry={
-            title:"Generic encouragement",
-            short:"",
-            content:"This is a placeholder. Here you can write your own reflection from your tradition."
-          };
-        }
-        state.currentFaithArticle=entry;
-        els.faithArticleTitle.textContent=entry.title;
-        els.faithArticleText.value=entry.content;
-        const names=state.faithSelection.map(id=>{
-          const o=FAITH_OPTIONS.find(x=>x.id===id);
-          return o?o.label.split(" ")[0]:id;
-        }).join(" + ") || "ethics only";
-        els.faithArticleMeta.textContent="Faith lens: "+names;
-        showModal("modalFaithArticle");
-      }
-
-      function linkFaithArticleToBM(){
-        const text=(els.faithArticleText.value||"").trim();
-        if(!text){ alert("Nothing to add into BM."); return; }
-        const bmId=ensureBMForLastStory();
-        if(!bmId){ alert("No linked BM story. Tell a story first."); return; }
-        const bm=state.bmPrompts.find(x=>x.id===bmId);
-        if(!bm) return;
-        bm.text=(bm.text||"")+"\n\n[Faith reflection]\n"+text;
-        bm.ts=Date.now();
-        saveBM();renderBMList();hideModal("modalFaithArticle");
-        els.faithBubble.classList.remove("show");
-        recomputeBMMetric();updateCapsule();
-      }
-
-      function copyText(text){
-        if(!navigator.clipboard){ alert("Clipboard not available."); return; }
-        navigator.clipboard.writeText(text).catch(()=>{});
-      }
-
-      async function handleUserMessage(){
-        const text=(els.userInput.value||"").trim();
-        if(!text) return;
-        const now=Date.now();
-        const runtime=getRuntimeConfig();
-
-        if(state.cooldownUntil && now<state.cooldownUntil){
-          const sec=Math.ceil((state.cooldownUntil-now)/1000);
-          logLine("AURA-X Ω: Please wait "+sec+"s. Let’s restart calmly.");
-          speakText("Please wait. Let's restart calmly.");
-          return;
-        }
-        els.userInput.value="";
-        addHistory("user",text);renderHistory();
-        logLine("You: "+text);
-        state.metrics.TM = scoreTM(text);
-        recomputeBMMetric();updateCapsule();
-
-        const abuse=detectAbuse(text);
-        if(abuse.hit){
-          state.abuseCount=(state.abuseCount||0)+1;
-          if(state.abuseCount>=runtime.cooldownHits){
-            state.cooldownUntil=Date.now()+runtime.cooldownSeconds*1000;
-            state.abuseCount=0;
-            logLine("AURA-X Ω: Cooldown activated for "+runtime.cooldownSeconds+" seconds. I’ll help when we stay respectful.");
-            speakText("Cooldown activated. I will help when we stay respectful.");
-            return;
-          }
-        }else{
-          state.abuseCount=Math.max(0,(state.abuseCount||0)-1);
-        }
-
-        const {answer,source,intelBoost,llmBoost}=await generateAnswer(text);
-        state.lastAnswerSource=source;
-        recomputeE0(intelBoost,llmBoost);updateCapsule();
-        addHistory("aura",answer);renderHistory();
-        logLine("AURA-X Ω ("+source+"): "+answer);
-        speakText(answer);
-        maybeTriggerFaithBubble(text,answer);
-        maybeUpdateLiveBM(text,answer);
-      }
-
-      function setIdentityEditable(editable){
-        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
-         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules]
-         .forEach(f=>{ if(f) f.readOnly=!editable; });
-      }
-      function loadIdentityForm(){
-        const u=state.userIdentity||{};
-        els.uName.value=u.name||"";
-        els.uNick.value=u.nick||"";
-        els.uOrigin.value=u.origin||"";
-        els.uPlace.value=u.place||"";
-        els.uProfession.value=u.profession||"";
-        els.uEmotionalStyle.value=u.emotionalStyle||"";
-        els.uKeyPeople.value=u.keyPeople||"";
-        els.uLegacyRules.value=u.legacyRules||"";
-      }
-      function readIdentityForm(){
-        state.userIdentity={
-          name:els.uName.value||"",
-          nick:els.uNick.value||"",
-          origin:els.uOrigin.value||"",
-          place:els.uPlace.value||"",
-          profession:els.uProfession.value||"",
-          emotionalStyle:els.uEmotionalStyle.value||"",
-          keyPeople:els.uKeyPeople.value||"",
-          legacyRules:els.uLegacyRules.value||"",
-          ts:Date.now()
-        };
-        saveUserIdentity();
-      }
-
-      function applyCfg(cfg){
-        if(!cfg) return;
-        state.voiceOn=!!cfg.voiceOn;
-        state.learningOn=cfg.learningOn!==false;
-        state.faithSelection=Array.isArray(cfg.faithSelection)?cfg.faithSelection:[];
-        state.apiConfig=cfg.apiConfig || {endpoint:"",model:"",key:""};
-        state.offlineReady=!!cfg.offlineReady;
-        els.voicePill.textContent=state.voiceOn?"on":"off";
-        els.voicePill.className=state.voiceOn?"pillOn":"pillOff";
-        els.learnPill.textContent=state.learningOn?"on":"off";
-        els.learnPill.className=state.learningOn?"pillOn":"pillOff";
-        if(state.apiConfig.endpoint) els.apiEndpoint.value=state.apiConfig.endpoint;
-        if(state.apiConfig.model) els.apiModel.value=state.apiConfig.model;
-        if(state.apiConfig.key) els.apiKey.value=state.apiConfig.key;
-      }
-
-      function initFromStorage(){
-        const cfg=safeLoadJSON(KEY_CFG,null);
-        const intel=safeLoadJSON(KEY_INT,[]);
-        const bm=safeLoadJSON(KEY_BM,[]);
-        const hist=safeLoadJSON(KEY_HIST,[]);
-        const user=safeLoadJSON(KEY_USER,null);
-        const logicRaw=safeLoadJSON(KEY_LOGIC,null);
-
-        if(cfg) applyCfg(cfg);
-        state.intelligence=Array.isArray(intel)?intel:[];
-        state.bmPrompts=Array.isArray(bm)?bm:[];
-        state.history=Array.isArray(hist)?hist:[];
-        state.userIdentity=user;
-
-        if(logicRaw && Array.isArray(logicRaw.list)){
-          state.logicPacks=logicRaw.list;
-          state.logicActiveIndex=typeof logicRaw.activeIndex==="number"
-            ? logicRaw.activeIndex : (state.logicPacks.length?state.logicPacks.length-1:null);
-        }else if(logicRaw && logicRaw.serial){
-          state.logicPacks=[{
-            serial: logicRaw.serial,
-            rules: logicRaw.rules || {},
-            ts: logicRaw.ts || Date.now()
-          }];
-          state.logicActiveIndex=0;
-        }else{
-          state.logicPacks=[];
-          state.logicActiveIndex=null;
-        }
-
-        renderFaithChips();
-        renderIntelList();
-        renderBMList();
-        renderHistory();
-        loadIdentityForm();
-        setIdentityEditable(false);
-        recomputeBMMetric();
-        updateCapsule();
-        refreshLogicUI();
-        applyUIFromLogic();
-      }
-
-      // EVENTS
-      els.btnOptions.addEventListener("click",()=>{
-        els.optionsMenu.classList.toggle("show");
-      });
-      document.addEventListener("click",(e)=>{
-        if(!els.optionsMenu.contains(e.target) && !els.btnOptions.contains(e.target))
-          els.optionsMenu.classList.remove("show");
-      });
-
-      els.miVoice.addEventListener("click",()=>{
-        state.voiceOn=!state.voiceOn;
-        els.voicePill.textContent=state.voiceOn?"on":"off";
-        els.voicePill.className=state.voiceOn?"pillOn":"pillOff";
-        saveCfg();
-      });
-      els.miLearn.addEventListener("click",()=>{
-        state.learningOn=!state.learningOn;
-        els.learnPill.textContent=state.learningOn?"on":"off";
-        els.learnPill.className=state.learningOn?"pillOn":"pillOff";
-        saveCfg();
-      });
-      els.miFaith.addEventListener("click",()=>showModal("modalFaith"));
-      els.miIntel.addEventListener("click",()=>showModal("modalIntel"));
-      els.miSeed.addEventListener("click",()=>showModal("modalSeed"));
-      els.miLLM.addEventListener("click",()=>showModal("modalLLM"));
-      els.miBMRecall.addEventListener("click",()=>showModal("modalBM"));
-      els.miHistory.addEventListener("click",()=>showModal("modalHistory"));
-      els.miIdentity.addEventListener("click",()=>{
-        loadIdentityForm();
-        setIdentityEditable(false);
-        showModal("modalIdentity");
-      });
-
-      els.sendBtn.addEventListener("click",handleUserMessage);
-      els.userInput.addEventListener("keydown",(e)=>{
-        if(e.key==="Enter" && !e.shiftKey){
-          e.preventDefault();handleUserMessage();
-        }
-      });
-
-      els.intelSearch.addEventListener("input",renderIntelList);
-      els.btnIntelSave.addEventListener("click",()=>{
-        if(!state.editingIntelId) return;
-        const q=(els.intelEditQ.value||"").trim();
-        const a=(els.intelEditA.value||"").trim();
-        if(!q||!a){ alert("Question and answer required."); return; }
-        const idx=state.intelligence.findIndex(x=>x.id===state.editingIntelId);
-        if(idx>=0){
-          state.intelligence[idx].q=q;
-          state.intelligence[idx].a=a;
-          saveIntelligence();renderIntelList();
-        }
-        closeIntelEditor();
-      });
-      els.btnIntelCancel.addEventListener("click",closeIntelEditor);
-
-      els.btnParseSeed.addEventListener("click",parseSeedBlock);
-      els.btnSaveSeed.addEventListener("click",saveParsedSeed);
-      els.btnDiscardSeed.addEventListener("click",discardSeed);
-
-      if(els.btnValidateLogic){
-        els.btnValidateLogic.addEventListener("click",()=>{
-          const raw=els.logicBox.value||"";
-          if(!raw.trim()){ els.logicHint.textContent="Nothing to validate."; return; }
-          try{
-            const obj=JSON.parse(raw);
-            const keys=Object.keys(obj||{});
-            els.logicHint.textContent="Valid JSON with "+keys.length+" root key(s).";
-          }catch(e){
-            els.logicHint.textContent="Invalid JSON: "+e.message;
-          }
-        });
-      }
-
-      if(els.btnSaveLogic){
-        els.btnSaveLogic.addEventListener("click",()=>{
-          const raw=els.logicBox.value||"";
-          if(!raw.trim()){ els.logicHint.textContent="Nothing to save.";return; }
-          let obj;
-          try{ obj=JSON.parse(raw); }
-          catch(e){ els.logicHint.textContent="Invalid JSON: "+e.message;return; }
-          if(!confirm("Save this logic pack? It will control behaviour until you delete it.")) return;
-          const serial="LP-"+new Date().toISOString().replace(/[-:.TZ]/g,"").slice(0,14);
-          const pack={ serial, rules:obj, ts:Date.now() };
-          state.logicPacks = state.logicPacks || [];
-          state.logicPacks.push(pack);
-          state.logicActiveIndex = state.logicPacks.length-1;
-          persistLogicState();
-          refreshLogicUI();
-          applyUIFromLogic();
-        });
-      }
-
-      if(els.btnCopyLogic){
-        els.btnCopyLogic.addEventListener("click",()=>{
-          const list=state.logicPacks||[];
-          if(list.length){
-            const idx = state.logicActiveIndex==null ? (list.length-1) : state.logicActiveIndex;
-            const pack=list[idx];
-            const text="// Logic #"+(idx+1)+" of "+list.length+
-              ", serial: "+pack.serial+"\n"+JSON.stringify(pack.rules,null,2);
-            copyText(text);
-            els.logicHint.textContent="Active logic #"+(idx+1)+" copied with serial.";
-          }else{
-            const raw=els.logicBox.value||"";
-            if(!raw.trim()){ els.logicHint.textContent="No logic or text to copy.";return; }
-            copyText(raw);
-            els.logicHint.textContent="Current box text copied (no stored pack).";
-          }
-        });
-      }
-
-      if(els.btnDeleteLogic){
-        els.btnDeleteLogic.addEventListener("click",()=>{
-          const list=state.logicPacks||[];
-          if(!list.length && !(els.logicBox.value||"").trim()){
-            els.logicHint.textContent="No logic pack to delete.";return;
-          }
-          if(!confirm("Delete active logic pack?")) return;
-          if(!confirm("Are you sure? This cannot be undone.")) return;
-          if(list.length){
-            const idx= state.logicActiveIndex==null ? (list.length-1) : state.logicActiveIndex;
-            list.splice(idx,1);
-            if(!list.length){
-              state.logicActiveIndex=null;
-            }else if(idx>=list.length){
-              state.logicActiveIndex=list.length-1;
-            }else{
-              state.logicActiveIndex=idx;
-            }
-            state.logicPacks=list;
-            persistLogicState();
-          }
-          els.logicBox.value="";
-          els.logicHint.textContent="Logic pack deleted.";
-          els.logicSerial.textContent="none";
-          applyUIFromLogic();
-        });
-      }
-
-      els.btnLoadOffline.addEventListener("click",initOfflineEngine);
-      els.btnSaveLLM.addEventListener("click",()=>{
-        state.apiConfig={
-          endpoint:els.apiEndpoint.value.trim(),
-          model:els.apiModel.value.trim(),
-          key:els.apiKey.value.trim()
-        };
-        saveCfg();
-        logLine("[LLM] Online helper settings saved.");
-      });
-
-      if(els.btnUnlockBM){
-        els.btnUnlockBM.addEventListener("click",()=>{
-          if(!currentBMId) return;
-          if(!confirm("Unlock this BM prompt for editing?")) return;
-          const bm=state.bmPrompts.find(x=>x.id===currentBMId);
-          if(!bm) return;
-          bm.locked=false;saveBM();openBM(currentBMId);
-        });
-      }
-      if(els.btnLiveBM){
-        els.btnLiveBM.addEventListener("click",()=>{
-          if(!currentBMId) return;
-          const bm=state.bmPrompts.find(x=>x.id===currentBMId);
-          if(!bm) return;
-          const now=Date.now();
-          if(!bm.live || !bm.liveUntil || bm.liveUntil<=now){
-            bm.live=true;bm.liveUntil=now+12*60*60*1000;
-          }else{
-            bm.live=false;bm.liveUntil=null;
-          }
-          saveBM();openBM(currentBMId);
-        });
-      }
-      els.btnCopyPrompt.addEventListener("click",()=>{
-        const txt=els.bmTextArea.value||""; if(!txt) return; copyText(txt);
-      });
-      els.btnAutoGen.addEventListener("click",()=>{
-        logLine("[BM] Auto generation can be wired later.");
-      });
-      els.btnDeletePrompt.addEventListener("click",()=>{
-        if(!currentBMId) return;
-        if(!confirm("Delete this BM prompt?")) return;
-        if(!confirm("Are you sure? This cannot be undone.")) return;
-        state.bmPrompts = state.bmPrompts.filter(x=>x.id!==currentBMId);
-        saveBM();renderBMList();els.bmViewer.style.display="none";currentBMId=null;
-        recomputeBMMetric();updateCapsule();
-      });
-
-      els.btnDeleteRecent.addEventListener("click",()=>{
-        if(!confirm("Delete history for last 48h?")) return;
-        state.history=[];saveHistory();renderHistory();
-      });
-      els.btnDeleteAllHist.addEventListener("click",()=>{
-        if(!confirm("Delete ALL history?")) return;
-        if(!confirm("Are you completely sure?")) return;
-        state.history=[];saveHistory();renderHistory();
-      });
-      els.btnCopyHistory.addEventListener("click",()=>{
-        const lines=state.history.map(h=>{
-          const dt=new Date(h.ts).toISOString();
-          const label=h.role==="user"?"You":(h.role==="aura"?"AURA-X Ω":h.role);
-          return `[${dt}] ${label}: ${h.text}`;
-        }).join("\n");
-        if(!lines) return; copyText(lines);
-      });
-
-      els.btnEditIdentity.addEventListener("click",()=>setIdentityEditable(true));
-      els.btnSaveUserIdentity.addEventListener("click",()=>{
-        readIdentityForm();setIdentityEditable(false);logLine("[identity] Saved on this device.");
-      });
-      els.btnDeleteUserIdentity.addEventListener("click",()=>{
-        if(!confirm("Delete stored identity?")) return;
-        if(!confirm("Are you sure? This cannot be undone.")) return;
-        state.userIdentity=null;saveUserIdentity();
-        loadIdentityForm();setIdentityEditable(false);
-      });
-
-      els.faithBubble.addEventListener("click",(e)=>{
-        if(e.target===els.faithBubbleClose){
-          els.faithBubble.classList.remove("show");return;
-        }
-        openFaithArticleFromBubble();
-      });
-      els.btnCopyFaithArticle.addEventListener("click",()=>{
-        const txt=els.faithArticleText.value||""; if(!txt) return; copyText(txt);
-      });
-      els.btnAddFaithToBM.addEventListener("click",linkFaithArticleToBM);
-      els.btnSkipFaithBM.addEventListener("click",()=>{
-        hideModal("modalFaithArticle");els.faithBubble.classList.remove("show");
-      });
-
-      initFromStorage();
-      // No splash message; clean screen on refresh.
+    // ===== Keys =====
+    const KEY_CFG  = "aurax_cfg_v10";
+    const KEY_INT  = "aurax_intel_v10";
+    const KEY_BM   = "aurax_bm_v10";
+    const KEY_HIST = "aurax_hist_v10";
+    const KEY_UID  = "aurax_user_identity_v10";
+
+    const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+    const fmt3  = x=>(Math.round(x*1000)/1000).toFixed(3);
+    const fmt2  = x=>(Math.round(x*100)/100).toFixed(2);
+
+    const loadJSON = (k,f)=>{
+      try{ const v = localStorage.getItem(k); return v?JSON.parse(v):f; }catch(e){ return f }
+    };
+    const saveJSON = (k,v)=>{
+      try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
+    };
+
+    // ===== Stored state =====
+    let cfg = loadJSON(KEY_CFG,{
+      voiceOn:false,
+      learningOn:true,
+      faithLenses:["None"],
+      bmRetentionDays:30,
+      bmMinChars:220,
+      bmRepeatWindowMin:15,
+      bmRepeatLockN:2,
+      smallTalkFilter:true,
+      llm:{endpoint:"",model:"",key:""}
     });
+
+    // migrate old faith labels if any
+    if (Array.isArray(cfg.faithLenses)) {
+      const map = {
+        "Islamic":"Islam",
+        "Christian":"Christianity",
+        "Stoic":"Other / Mixed",
+        "Humanist":"Atheism / Humanism"
+      };
+      cfg.faithLenses = cfg.faithLenses.map(x => map[x] || x);
+      if (!cfg.faithLenses.length) cfg.faithLenses = ["None"];
+      saveJSON(KEY_CFG,cfg);
+    }
+
+    let intelligence = loadJSON(KEY_INT,[]);
+    let bm           = loadJSON(KEY_BM,[]);
+    let historyArr   = loadJSON(KEY_HIST,[]);
+    let userId       = loadJSON(KEY_UID,{
+      locked:true,
+      name:"",
+      nickname:"",
+      phone:"",
+      email:"",
+      origin:"",
+      place:"",
+      profession:"",
+      primaryLang:"",
+      secondaryLang:"",
+      catchphrases:"",
+      voiceTone:"",
+      values:"",
+      joy:"",
+      anger:"",
+      sorrow:"",
+      decisions:"",
+      comfort:"",
+      rel1:"",
+      rel2:"",
+      rel3:"",
+      rel4:"",
+      mission:"",
+      consolation:"",
+      unfinished:"",
+      grounding:"",
+      blocks:""
+    });
+
+    // ===== Seed Q&A =====
+    function hashKey(s){
+      return s.toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+    }
+    function upsertIntel(q,a,meta={}){
+      const qKey = hashKey(q);
+      const idx  = intelligence.findIndex(x=>x.qKey===qKey);
+      const item = {
+        id: idx>=0? intelligence[idx].id : ("E"+Math.floor(1000+Math.random()*9000)),
+        date:new Date().toISOString().slice(0,10),
+        q:q.trim(),
+        a:a.trim(),
+        qKey,
+        code:meta.code || (idx>=0?intelligence[idx].code:"E001"),
+        polarity:meta.polarity || "neutral",
+        intensity:meta.intensity!=null ? meta.intensity : 0.5
+      };
+      if(idx>=0) intelligence[idx] = item; else intelligence.unshift(item);
+      saveJSON(KEY_INT,intelligence);
+    }
+
+    if(intelligence.length===0){
+      const creatorAns = "I am AURA-X Ω, an offline emotional continuity prototype created by Alim ul Haq in Timergara, Pakistan.";
+      const feelAns    = "I am quite fine today, how about you?";
+
+      const seeds = [
+        ["hi","Hello, I am AURA-X Ω. How are you feeling today?",{polarity:"positive",intensity:0.6}],
+        ["hello","Hello, I am AURA-X Ω. How are you feeling today?",{polarity:"positive",intensity:0.6}],
+        ["salam","Wa alaikum assalam. How is your day going?",{polarity:"positive",intensity:0.6}],
+        ["how are you",feelAns,{polarity:"positive",intensity:0.7}],
+        ["how are you feeling",feelAns,{polarity:"positive",intensity:0.7}],
+        ["how is your day today",feelAns,{polarity:"positive",intensity:0.7}],
+        ["who created you",creatorAns,{polarity:"positive",intensity:0.8}],
+        ["who made you",creatorAns,{polarity:"positive",intensity:0.8}],
+        ["who is your creator",creatorAns,{polarity:"positive",intensity:0.8}],
+        ["what are you","I am AURA-X Ω, a local emotional continuity engine that keeps track of feelings over time.",{polarity:"neutral",intensity:0.5}]
+      ];
+      seeds.forEach(([q,a,m])=>upsertIntel(q,a,m));
+    }
+
+    function findIntelAnswer(q){
+      const k = hashKey(q);
+      return intelligence.find(x=>x.qKey===k) || null;
+    }
+
+    // ===== DOM refs =====
+    const el = id => document.getElementById(id);
+
+    const cE0 = el("cE0"), cTM = el("cTM"), cBM = el("cBM"), cCont = el("cCont");
+    const consoleBox = el("console");
+    const userInput  = el("userInput");
+    const sendBtn    = el("sendBtn");
+
+    const btnOptions  = el("btnOptions");
+    const optionsMenu = el("optionsMenu");
+
+    const voicePill  = el("voicePill");
+    const learnPill  = el("learnPill");
+    const faithLabel = el("faithLabel");
+
+    const modalFaith    = el("modalFaith");
+    const modalIntel    = el("modalIntel");
+    const modalSeed     = el("modalSeed");
+    const modalLLM      = el("modalLLM");
+    const modalBM       = el("modalBM");
+    const modalHistory  = el("modalHistory");
+    const modalIdentity = el("modalIdentity");
+
+    const intelSearch = el("intelSearch");
+    const intelList   = el("intelList");
+
+    const seedBox        = el("seedBox");
+    const seedHint       = el("seedHint");
+    const btnParseSeed   = el("btnParseSeed");
+    const btnSaveSeed    = el("btnSaveSeed");
+    const btnDiscardSeed = el("btnDiscardSeed");
+
+    const btnLoadOffline = el("btnLoadOffline");
+    const offlineStatus  = el("offlineStatus");
+    const offlineBar     = el("offlineBar");
+    const apiEndpoint    = el("apiEndpoint");
+    const apiModel       = el("apiModel");
+    const apiKey         = el("apiKey");
+    const btnSaveLLM     = el("btnSaveLLM");
+
+    const historyBox       = el("historyBox");
+    const btnCopyHistory   = el("btnCopyHistory");
+    const btnDeleteRecent  = el("btnDeleteRecent");
+    const btnDeleteAllHist = el("btnDeleteAllHist");
+
+    const faithChips = el("faithChips");
+
+    const bmSelectList = el("bmSelectList");
+    const bmViewer   = el("bmViewer");
+    const bmTextArea = el("bmTextArea");
+    const bmTitle    = el("bmTitle");
+    const bmMeta     = el("bmMeta");
+    const bmLockIcon = el("bmLockIcon");
+    const btnUnlockBM   = el("btnUnlockBM");
+    const btnCopyPrompt = el("btnCopyPrompt");
+    const btnAutoGen    = el("btnAutoGen");
+    const btnDeletePrompt=el("btnDeletePrompt");
+
+    const uName  = el("uName");
+    const uNick  = el("uNick");
+    const uOrigin= el("uOrigin");
+    const uPlace = el("uPlace");
+    const uProfession = el("uProfession");
+    const uLangPrimary = el("uLangPrimary");
+    const uLangSecondary = el("uLangSecondary");
+    const uCatch = el("uCatch");
+    const uVoiceTone = el("uVoiceTone");
+    const uPhone = el("uPhone");
+    const uEmail = el("uEmail");
+    const uValues = el("uValues");
+    const uJoy = el("uJoy");
+    const uAnger = el("uAnger");
+    const uSorrow = el("uSorrow");
+    const uDecisions = el("uDecisions");
+    const uComfort = el("uComfort");
+    const uRel1 = el("uRel1");
+    const uRel2 = el("uRel2");
+    const uRel3 = el("uRel3");
+    const uRel4 = el("uRel4");
+    const uMission = el("uMission");
+    const uConsolation = el("uConsolation");
+    const uUnfinished = el("uUnfinished");
+    const uGrounding = el("uGrounding");
+    const uBlocks= el("uBlocks");
+    const btnEditIdentity        = el("btnEditIdentity");
+    const btnSaveUserIdentity    = el("btnSaveUserIdentity");
+    const btnDeleteUserIdentity  = el("btnDeleteUserIdentity");
+
+    const miVoice    = el("miVoice");
+    const miIntel    = el("miIntel");
+    const miSeed     = el("miSeed");
+    const miLearn    = el("miLearn");
+    const miFaith    = el("miFaith");
+    const miIdentity = el("miIdentity");
+    const miLLM      = el("miLLM");
+    const miBMRecall = el("miBMRecall");
+    const miHistory  = el("miHistory");
+
+    // ===== Modals / options =====
+    const openModal  = m=>m.classList.add("show");
+    const closeModal = m=>m.classList.remove("show");
+
+    document.addEventListener("click",e=>{
+      const t = e.target;
+      const closeId = t?.dataset?.close;
+      if(closeId){
+        const m = el(closeId);
+        if(m) closeModal(m);
+      }
+    });
+
+    btnOptions.addEventListener("click",()=>{
+      optionsMenu.classList.toggle("show");
+    });
+
+    document.addEventListener("click",e=>{
+      if(!optionsMenu.classList.contains("show")) return;
+      const withinMenu   = optionsMenu.contains(e.target);
+      const withinButton = btnOptions.contains(e.target);
+      if(!withinMenu && !withinButton){
+        optionsMenu.classList.remove("show");
+      }
+    });
+
+    miFaith.addEventListener("click",()=>openModal(modalFaith));
+    miIntel.addEventListener("click",()=>openModal(modalIntel));
+    miSeed.addEventListener("click",()=>openModal(modalSeed));
+    miLLM.addEventListener("click",()=>openModal(modalLLM));
+    miBMRecall.addEventListener("click",()=>openModal(modalBM));
+    miHistory.addEventListener("click",()=>openModal(modalHistory));
+    miIdentity.addEventListener("click",()=>openModal(modalIdentity));
+
+    miVoice.addEventListener("click",()=>{
+      cfg.voiceOn = !cfg.voiceOn;
+      saveJSON(KEY_CFG,cfg);
+      voicePill.textContent = cfg.voiceOn ? "on" : "off";
+      voicePill.className   = cfg.voiceOn ? "pillOn" : "pillOff";
+    });
+
+    miLearn.addEventListener("click",()=>{
+      cfg.learningOn = !cfg.learningOn;
+      saveJSON(KEY_CFG,cfg);
+      learnPill.textContent = cfg.learningOn ? "on" : "off";
+      learnPill.className   = cfg.learningOn ? "pillOn" : "pillOff";
+    });
+
+    // ===== Utility =====
+    function escapeHTML(s){
+      return (s||"").replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    }
+
+    // ===== Faith chips =====
+    const allFaiths = [
+      "None",
+      "Islam",
+      "Christianity",
+      "Hinduism",
+      "Buddhism",
+      "Sikhism",
+      "Judaism",
+      "Atheism / Humanism",
+      "Other / Mixed",
+      "Indigenous / Traditional",
+      "Eastern / Chinese"
+    ];
+    function renderFaith(){
+      faithChips.innerHTML="";
+      allFaiths.forEach(name=>{
+        const d = document.createElement("div");
+        d.textContent = name;
+        d.className = "chip"+(cfg.faithLenses.includes(name)?" active":"");
+        d.addEventListener("click",()=>{
+          if(name==="None"){
+            cfg.faithLenses = ["None"];
+          }else{
+            const idx = cfg.faithLenses.indexOf(name);
+            if(idx>=0) cfg.faithLenses.splice(idx,1); else cfg.faithLenses.push(name);
+            cfg.faithLenses = cfg.faithLenses.filter(x=>x!=="None");
+            if(cfg.faithLenses.length===0) cfg.faithLenses=["None"];
+          }
+          saveJSON(KEY_CFG,cfg);
+          faithLabel.textContent = cfg.faithLenses.join(", ");
+          renderFaith();
+        });
+        faithChips.appendChild(d);
+      });
+      faithLabel.textContent = cfg.faithLenses.join(", ");
+    }
+    renderFaith();
+
+    // ===== Identity =====
+    function applyUserIdToInputs(){
+      uName.value  = userId.name || "";
+      uNick.value  = userId.nickname || "";
+      uOrigin.value= userId.origin || "";
+      uPlace.value = userId.place || "";
+      uProfession.value = userId.profession || "";
+      uLangPrimary.value = userId.primaryLang || "";
+      uLangSecondary.value = userId.secondaryLang || "";
+      uCatch.value = userId.catchphrases || "";
+      uVoiceTone.value = userId.voiceTone || "";
+      uPhone.value = userId.phone || "";
+      uEmail.value = userId.email || "";
+      uValues.value = userId.values || "";
+      uJoy.value = userId.joy || "";
+      uAnger.value = userId.anger || "";
+      uSorrow.value = userId.sorrow || "";
+      uDecisions.value = userId.decisions || "";
+      uComfort.value = userId.comfort || "";
+      uRel1.value = userId.rel1 || "";
+      uRel2.value = userId.rel2 || "";
+      uRel3.value = userId.rel3 || "";
+      uRel4.value = userId.rel4 || "";
+      uMission.value = userId.mission || "";
+      uConsolation.value = userId.consolation || "";
+      uUnfinished.value = userId.unfinished || "";
+      uGrounding.value = userId.grounding || "";
+      uBlocks.value= userId.blocks || "";
+    }
+    applyUserIdToInputs();
+
+    btnEditIdentity.addEventListener("click",()=>{
+      userId.locked = false;
+      saveJSON(KEY_UID,userId);
+      alert("Identity unlocked for editing. Remember to Save when done.");
+    });
+
+    btnSaveUserIdentity.addEventListener("click",()=>{
+      userId = {
+        locked:true,
+        name:uName.value.trim(),
+        nickname:uNick.value.trim(),
+        origin:uOrigin.value.trim(),
+        place:uPlace.value.trim(),
+        profession:uProfession.value.trim(),
+        primaryLang:uLangPrimary.value.trim(),
+        secondaryLang:uLangSecondary.value.trim(),
+        catchphrases:uCatch.value.trim(),
+        voiceTone:uVoiceTone.value.trim(),
+        phone:uPhone.value.trim(),
+        email:uEmail.value.trim(),
+        values:uValues.value.trim(),
+        joy:uJoy.value.trim(),
+        anger:uAnger.value.trim(),
+        sorrow:uSorrow.value.trim(),
+        decisions:uDecisions.value.trim(),
+        comfort:uComfort.value.trim(),
+        rel1:uRel1.value.trim(),
+        rel2:uRel2.value.trim(),
+        rel3:uRel3.value.trim(),
+        rel4:uRel4.value.trim(),
+        mission:uMission.value.trim(),
+        consolation:uConsolation.value.trim(),
+        unfinished:uUnfinished.value.trim(),
+        grounding:uGrounding.value.trim(),
+        blocks:uBlocks.value.trim()
+      };
+      saveJSON(KEY_UID,userId);
+
+      if(userId.name){
+        const youAns = `You are ${userId.name}${userId.place? " from "+userId.place:""}.`;
+        upsertIntel("who am i",youAns,{polarity:"positive",intensity:0.7,code:"EID"});
+        upsertIntel("what is my name",youAns,{polarity:"positive",intensity:0.7,code:"EID"});
+      }
+      if(userId.values){
+        const vAns = `Your core values are: ${userId.values}.`;
+        upsertIntel("what are my core values",vAns,{polarity:"positive",intensity:0.7,code:"EIDCV"});
+      }
+      if(userId.mission){
+        const mAns = `Your digital clone's main mission is: ${userId.mission}.`;
+        upsertIntel("what is the mission of my clone",mAns,{polarity:"neutral",intensity:0.6,code:"EIDUP"});
+      }
+
+      alert("Identity saved locally and auto-locked.");
+    });
+
+    btnDeleteUserIdentity.addEventListener("click",()=>{
+      if(!confirm("Delete stored identity?")) return;
+      if(!confirm("Final confirmation: delete identity now?")) return;
+      userId = {
+        locked:true,
+        name:"",nickname:"",origin:"",place:"",profession:"",
+        primaryLang:"",secondaryLang:"",catchphrases:"",voiceTone:"",
+        phone:"",email:"",
+        values:"",joy:"",anger:"",sorrow:"",decisions:"",comfort:"",
+        rel1:"",rel2:"",rel3:"",rel4:"",
+        mission:"",consolation:"",unfinished:"",grounding:"",
+        blocks:""
+      };
+      saveJSON(KEY_UID,userId);
+      applyUserIdToInputs();
+      alert("Identity cleared from this device.");
+    });
+
+    // ===== Intelligence modal (EDIT added) =====
+    let intelEditingId = null;
+
+    function renderIntelList(query=""){
+      intelList.innerHTML="";
+      const q = (query||"").toLowerCase();
+      const list = intelligence.filter(it=>{
+        if(!q) return true;
+        return (it.q||"").toLowerCase().includes(q)
+          || (it.a||"").toLowerCase().includes(q)
+          || (it.code||"").toLowerCase().includes(q);
+      });
+
+      for(const it of list){
+        const d = document.createElement("div");
+        d.style.marginTop="12px";
+        d.style.padding="10px 12px";
+        d.style.borderRadius="12px";
+        d.style.border="1px solid rgba(15,23,42,.15)";
+        d.style.background="rgba(255,255,255,.9)";
+
+        const isEditing = (intelEditingId === it.id);
+
+        if(!isEditing){
+          d.innerHTML =
+            `<div style="font-size:11px;opacity:.7">${escapeHTML(it.date||"")} · code ${escapeHTML(it.code||"")}</div>`+
+            `<div style="margin-top:4px;font-weight:700;">Q:</div><div>${escapeHTML(it.q||"")}</div>`+
+            `<div style="margin-top:6px;font-weight:700;">A:</div><div>${escapeHTML(it.a||"")}</div>`+
+            `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">`+
+            `<button class="btn btnBlue" data-act="copyA" data-id="${it.id}">Copy A</button>`+
+            `<button class="btn btnBlue" data-act="edit"  data-id="${it.id}">Edit</button>`+
+            `<button class="btn btnRed"  data-act="del"   data-id="${it.id}">Delete</button>`+
+            `</div>`;
+        } else {
+          d.innerHTML =
+            `<div style="font-size:11px;opacity:.7">${escapeHTML(it.date||"")} · code ${escapeHTML(it.code||"")}</div>`+
+            `<div style="margin-top:6px;font-weight:800;">Edit Question</div>`+
+            `<input class="intelEditInput" id="editQ_${it.id}" value="${escapeHTML(it.q||"")}" />`+
+            `<div style="margin-top:10px;font-weight:800;">Edit Answer</div>`+
+            `<textarea class="intelEditArea" id="editA_${it.id}">${escapeHTML(it.a||"")}</textarea>`+
+            `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">`+
+            `<button class="btn btnBlue" data-act="saveEdit" data-id="${it.id}">Save</button>`+
+            `<button class="btn btnBlue" data-act="cancelEdit" data-id="${it.id}">Cancel</button>`+
+            `<button class="btn btnRed"  data-act="del" data-id="${it.id}">Delete</button>`+
+            `</div>`;
+        }
+
+        intelList.appendChild(d);
+      }
+    }
+    renderIntelList();
+
+    intelSearch?.addEventListener("input",()=>renderIntelList(intelSearch.value));
+
+    intelList.addEventListener("click",e=>{
+      const b = e.target.closest("button");
+      if(!b) return;
+
+      const id = b.dataset.id;
+      const act = b.dataset.act;
+      const it = intelligence.find(x=>x.id===id);
+      if(!it && act!=="cancelEdit") return;
+
+      if(act==="copyA"){
+        navigator.clipboard?.writeText(it.a||"");
+        return;
+      }
+
+      if(act==="edit"){
+        intelEditingId = id;
+        renderIntelList(intelSearch.value);
+        return;
+      }
+
+      if(act==="cancelEdit"){
+        intelEditingId = null;
+        renderIntelList(intelSearch.value);
+        return;
+      }
+
+      if(act==="saveEdit"){
+        const qEl = document.getElementById("editQ_"+id);
+        const aEl = document.getElementById("editA_"+id);
+        const newQ = (qEl?.value||"").trim();
+        const newA = (aEl?.value||"").trim();
+
+        if(!newQ || !newA){
+          alert("Q and A both are required.");
+          return;
+        }
+
+        // If question changed, update qKey
+        it.q = newQ;
+        it.a = newA;
+        it.qKey = hashKey(newQ);
+        it.date = new Date().toISOString().slice(0,10);
+
+        saveJSON(KEY_INT,intelligence);
+        intelEditingId = null;
+        renderIntelList(intelSearch.value);
+        return;
+      }
+
+      if(act==="del"){
+        if(!confirm("Delete this intelligence item?")) return;
+        if(!confirm("Final confirmation: delete now?")) return;
+        intelligence = intelligence.filter(x=>x.id!==id);
+        saveJSON(KEY_INT,intelligence);
+        if(intelEditingId===id) intelEditingId = null;
+        renderIntelList(intelSearch.value);
+        return;
+      }
+    });
+
+    // ===== Seed parsing =====
+    let parsedSeedItems = [];
+
+    function parseLatexBlock(text){
+      const lines = text.split(/\r?\n/);
+      const items = [];
+      let Q=null, A=null;
+      const flush = ()=>{
+        if(Q && A) items.push({q:Q.trim(),a:A.trim()});
+        Q=null;A=null;
+      };
+      for(const line of lines){
+        const l = line.trim();
+        if(l.startsWith("\\item")){
+          flush();
+          Q = l.replace(/^\\item\s*/,"").trim();
+          A = "";
+          continue;
+        }
+        if(l.includes("\\textbf{A:}")){
+          const parts = l.split("\\textbf{A:}");
+          A += (A? "\n":"") + (parts[1]||"").trim();
+          continue;
+        }
+        if(Q!=null){
+          if(A!=null && A!=="") A += "\n"+l;
+          else Q += " "+l;
+        }
+      }
+      flush();
+      return items;
+    }
+
+    btnParseSeed.addEventListener("click",()=>{
+      const text = seedBox.value.trim();
+      if(!text){
+        seedHint.textContent = "No block yet.";
+        return;
+      }
+      parsedSeedItems = parseLatexBlock(text);
+      seedHint.textContent = parsedSeedItems.length
+        ? `Parsed ${parsedSeedItems.length} Q→A items.`
+        : "Nothing recognized.";
+    });
+
+    btnSaveSeed.addEventListener("click",()=>{
+      if(!parsedSeedItems.length){
+        seedHint.textContent = "Nothing to save.";
+        return;
+      }
+      for(const item of parsedSeedItems){
+        upsertIntel(item.q,item.a,{polarity:"neutral",intensity:0.6,code:"ESEED"});
+      }
+      parsedSeedItems = [];
+      seedBox.value = "";
+      seedHint.textContent = "Saved into intelligence.";
+      renderIntelList(intelSearch.value);
+    });
+
+    btnDiscardSeed.addEventListener("click",()=>{
+      parsedSeedItems = [];
+      seedBox.value = "";
+      seedHint.textContent = "Waiting for block…";
+    });
+
+    // ===== BM recall storage =====
+    function renderBMList(){
+      bmSelectList.innerHTML="";
+      if(!bm.length){
+        bmSelectList.textContent = "No BM prompts saved yet.";
+        bmViewer.style.display="none";
+        return;
+      }
+      bm.forEach((item,idx)=>{
+        const d = document.createElement("div");
+        d.style.marginTop="10px";
+        d.style.padding="8px 10px";
+        d.style.borderRadius="10px";
+        d.style.border="1px solid rgba(15,23,42,.15)";
+        d.style.background="rgba(255,255,255,.9)";
+        d.style.cursor="pointer";
+        d.textContent = `${idx+1}. ${item.title||"Untitled"}`;
+        d.addEventListener("click",()=>showBMItem(idx));
+        bmSelectList.appendChild(d);
+      });
+    }
+
+    function showBMItem(idx){
+      const item = bm[idx];
+      if(!item) return;
+      bmViewer.style.display="block";
+      bmTitle.textContent = item.title || "Prompt";
+      bmMeta.textContent  = `${item.date||""} · ${item.locked? "Locked":"Unlocked"}`;
+      bmLockIcon.textContent = item.locked? "🔒" : "🔓";
+      bmTextArea.value = item.text || "";
+      bmTextArea.readOnly = true;
+      btnUnlockBM.style.display = item.locked? "inline-block":"none";
+      btnUnlockBM.onclick = ()=>{
+        if(!confirm("Unlock this BM prompt for editing?")) return;
+        item.locked = false;
+        saveJSON(KEY_BM,bm);
+        showBMItem(idx);
+      };
+      btnCopyPrompt.onclick = ()=>navigator.clipboard?.writeText(item.text||"");
+      btnAutoGen.onclick = ()=>{
+        userInput.value = item.text || "";
+        closeModal(modalBM);
+        userInput.focus();
+      };
+      btnDeletePrompt.onclick = ()=>{
+        if(!confirm("Delete this BM prompt?")) return;
+        if(!confirm("Final confirmation: delete now?")) return;
+        bm.splice(idx,1);
+        saveJSON(KEY_BM,bm);
+        renderBMList();
+        bmViewer.style.display="none";
+      };
+    }
+    renderBMList();
+
+    // ===== History handling =====
+    function saveHistory(){ saveJSON(KEY_HIST,historyArr); }
+
+    function pruneOldHistory(){
+      const cutoff = Date.now() - 48*60*60*1000; // 48h
+      historyArr = historyArr.filter(item => item.locked || item.ts >= cutoff);
+      saveHistory();
+    }
+
+    function addHistory(role,text,opt={}){
+      const item = {
+        role,
+        text,
+        ts: Date.now(),
+        locked: !!opt.locked
+      };
+      historyArr.push(item);
+      pruneOldHistory();
+      renderHistoryBox();
+    }
+
+    function renderHistoryBox(){
+      historyBox.innerHTML="";
+      if(!historyArr.length){
+        const d = document.createElement("div");
+        d.textContent = "(empty)";
+        d.style.fontSize="12px";
+        d.style.opacity="0.7";
+        d.style.padding="6px 10px";
+        historyBox.appendChild(d);
+        return;
+      }
+      historyArr.forEach((item,idx)=>{
+        const wrap = document.createElement("div");
+        wrap.style.marginTop="8px";
+        wrap.style.padding="10px 12px";
+        wrap.style.borderRadius="12px";
+        wrap.style.border="1px solid rgba(15,23,42,.15)";
+        wrap.style.background="rgba(255,255,255,.95)";
+        const dt = new Date(item.ts||Date.now());
+        const timeStr = dt.toTimeString().slice(0,5);
+
+        wrap.innerHTML =
+          `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11px;opacity:.75;">
+             <span>${escapeHTML(item.role||"")}</span>
+             <div style="display:flex;align-items:center;gap:6px;">
+               <span>${timeStr}</span>
+               <button class="btnLock" data-idx="${idx}"
+                       style="border:none;background:transparent;font-size:16px;padding:0;cursor:pointer;">
+                 ${item.locked ? "🔒" : "🔓"}
+               </button>
+             </div>
+           </div>
+           <div style="font-size:13px;white-space:pre-wrap;">${escapeHTML(item.text||"")}</div>`;
+        historyBox.appendChild(wrap);
+      });
+    }
+
+    historyBox.addEventListener("click",e=>{
+      const b = e.target.closest(".btnLock");
+      if(!b) return;
+      const idx = Number(b.dataset.idx);
+      if(Number.isNaN(idx)) return;
+      const item = historyArr[idx];
+      if(!item) return;
+      item.locked = !item.locked;
+      saveHistory();
+      renderHistoryBox();
+    });
+
+    btnCopyHistory.addEventListener("click",()=>{
+      const lines = historyArr.map(it=>`${it.role}: ${it.text}`);
+      navigator.clipboard?.writeText(lines.join("\n"));
+    });
+
+    btnDeleteRecent.addEventListener("click",()=>{
+      if(!confirm("Delete non-locked messages from last 48 hours?")) return;
+      const cutoff = Date.now() - 48*60*60*1000;
+      historyArr = historyArr.filter(item => item.locked || item.ts < cutoff);
+      saveHistory();
+      renderHistoryBox();
+    });
+
+    btnDeleteAllHist.addEventListener("click",()=>{
+      if(!confirm("Delete all non-locked history?")) return;
+      if(!confirm("Final confirmation: delete non-locked messages now?")) return;
+      historyArr = historyArr.filter(item => item.locked);
+      saveHistory();
+      renderHistoryBox();
+    });
+
+    // ===== Offline / Online LLM =====
+    let offlineEngine = null;
+
+    async function loadOffline(){
+      try{
+        if(!window.webllm){
+          offlineStatus.textContent = "webllm not available in this build.";
+          return;
+        }
+        if(!("gpu" in navigator)){
+          offlineStatus.textContent = "WebGPU not supported in this browser. Use the online helper below.";
+          offlineBar.style.width = "0%";
+          return;
+        }
+
+        offlineStatus.textContent = "initializing…";
+        offlineBar.style.width = "5%";
+
+        const initProgressCallback = (p)=>{
+          const pct = Math.round((p?.progress || 0)*100);
+          offlineBar.style.width = pct+"%";
+          offlineStatus.textContent = "loading "+pct+"%";
+        };
+
+        offlineEngine = await window.webllm.CreateMLCEngine(
+          "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC",
+          { initProgressCallback }
+        );
+
+        offlineStatus.textContent = "ready";
+        offlineBar.style.width = "100%";
+      }catch(err){
+        console.error(err);
+        offlineStatus.textContent = "error: "+(err.message||"failed");
+      }
+    }
+
+    btnLoadOffline.addEventListener("click",()=>{ loadOffline(); });
+
+    btnSaveLLM.addEventListener("click",()=>{
+      cfg.llm = {
+        endpoint:apiEndpoint.value.trim(),
+        model:apiModel.value.trim(),
+        key:apiKey.value.trim()
+      };
+      saveJSON(KEY_CFG,cfg);
+      alert("LLM settings saved for this session.");
+    });
+
+    async function callOfflineLLM(prompt){
+      if(!offlineEngine) return null;
+      try{
+        const reply = await offlineEngine.chat.completions.create({
+          messages:[{role:"user",content:prompt}],
+          stream:false
+        });
+        const text = reply?.choices?.[0]?.message?.content || "";
+        return text.trim() || null;
+      }catch(e){
+        console.error(e);
+        return null;
+      }
+    }
+
+    async function callOnlineLLM(prompt){
+      if(!cfg.llm || !cfg.llm.endpoint || !cfg.llm.model || !cfg.llm.key) return null;
+      try{
+        const res = await fetch(cfg.llm.endpoint,{
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Authorization":"Bearer "+cfg.llm.key
+          },
+          body:JSON.stringify({
+            model:cfg.llm.model,
+            messages:[{role:"user",content:prompt}],
+            temperature:0.7
+          })
+        });
+        const data = await res.json();
+        const text = data?.choices?.[0]?.message?.content || "";
+        return text.trim() || null;
+      }catch(e){
+        console.error(e);
+        return null;
+      }
+    }
+
+    // ===== Voice =====
+    function speakAnswer(text){
+      if(!cfg.voiceOn) return;
+      if(!("speechSynthesis" in window)){
+        logLine("Voice: not supported on this browser.");
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "en-US";
+      utter.rate = 1.0;
+      utter.pitch = 1.0;
+      window.speechSynthesis.speak(utter);
+    }
+
+    // ===== E0 / scoring =====
+    let tmScore = 0;
+    let bmScore = 0.0;
+    let continuity = 0.85;
+
+    function estimatePolarityIntensity(text){
+      const t = text.toLowerCase();
+      let polarity = 0;
+      if(/thanks|thank you|shukria|great|awesome|love/i.test(text)) polarity+=0.4;
+      if(/sorry|sad|upset|angry|hurt|tired/i.test(text)) polarity-=0.4;
+      if(/good|fine|ok|okay|happy|alhamdulillah|great/i.test(text)) polarity+=0.3;
+      if(/bad|terrible|awful|depressed|anxious/i.test(text)) polarity-=0.3;
+      polarity = clamp(polarity,-1,1);
+      const intensity = clamp(Math.min(1, text.length/220),0,1);
+      return {polarity,intensity};
+    }
+
+    function updateScores(userText,sourceInfo){
+      const {polarity,intensity} = estimatePolarityIntensity(userText);
+      const iTM = polarity*intensity;
+      const rTM = 0.2*intensity;
+      const iIntel = sourceInfo.intelUsed ? 0.15 : 0;
+      const iLLM   = sourceInfo.llmUsed   ? 0.20 : 0;
+      const D      = sourceInfo.isNegative ? 0.25 : 0.05;
+
+      const lambdaFaith = cfg.faithLenses.includes("None") ? 0 : 0.08;
+      const lambdaSys   = 0.04;
+      const lambdaTrc   = 0.06;
+
+      tmScore = clamp(tmScore*0.7 + iTM, -1, 1);
+      bmScore = clamp(bmScore*0.9 + rTM, 0, 1);
+      continuity = clamp(continuity*0.96 + 0.02, 0, 1);
+
+      const E0 = Math.tanh(
+        rTM + iTM + iIntel + iLLM - D + lambdaFaith + lambdaSys + lambdaTrc
+      );
+
+      cTM.textContent = fmt2((tmScore+1)/2);
+      cBM.textContent = fmt2(bmScore);
+      cCont.textContent = fmt3(continuity);
+      cE0.textContent   = fmt3((E0+1)/2);
+    }
+
+    // ===== Console log =====
+    function logLine(text){
+      const span = document.createElement("span");
+      span.className="line";
+      span.textContent = text;
+      consoleBox.appendChild(span);
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    // ===== Correction state (*incorrect) =====
+    let lastQA = null;
+    let correctionState = {mode:"idle",question:null,newAnswer:null};
+
+    // ===== Main handler =====
+    async function handleSend(){
+      const textRaw = userInput.value;
+      const text = textRaw.trim();
+      if(!text) return;
+      userInput.value = "";
+
+      if(correctionState.mode === "awaitingAnswer"){
+        correctionState.newAnswer = text;
+        correctionState.mode = "awaitingConfirm";
+        addHistory("system","Received candidate corrected answer.",{locked:true});
+        logLine("System: received candidate corrected answer.");
+        const msg = `Should I save this as the new answer for: "${correctionState.question}" ? (yes/no)`;
+        addHistory("ai",msg);
+        logLine("AURA-X Ω: "+msg);
+        speakAnswer(msg);
+        return;
+      }
+
+      if(correctionState.mode === "awaitingConfirm"){
+        const lc = text.toLowerCase();
+        if(lc==="yes" || lc==="y"){
+          upsertIntel(correctionState.question, correctionState.newAnswer, {
+            polarity:"neutral",
+            intensity:0.6,
+            code:"ECORR"
+          });
+          const msg = "Okay, I have updated that answer for next time.";
+          addHistory("ai",msg);
+          addHistory("system","Corrected answer stored for: "+correctionState.question,{locked:true});
+          logLine("AURA-X Ω: "+msg);
+          speakAnswer(msg);
+        }else{
+          const msg = "Okay, I will keep the previous answer.";
+          addHistory("ai",msg);
+          logLine("AURA-X Ω: "+msg);
+          speakAnswer(msg);
+        }
+        correctionState = {mode:"idle",question:null,newAnswer:null};
+        return;
+      }
+
+      if(/^(\*incorrect|incorrect\*)$/i.test(text)){
+        if(!lastQA){
+          const msg = "I don't have a previous question and answer to correct yet.";
+          addHistory("ai",msg);
+          logLine("AURA-X Ω: "+msg);
+          speakAnswer(msg);
+          return;
+        }
+        correctionState.mode = "awaitingAnswer";
+        correctionState.question = lastQA.q;
+        correctionState.newAnswer = null;
+        const msg = `Please type the correct answer for: "${lastQA.q}"`;
+        addHistory("ai",msg);
+        logLine("AURA-X Ω: "+msg);
+        speakAnswer(msg);
+        return;
+      }
+
+      addHistory("user",text);
+      logLine("User: "+text);
+
+      let answer = null;
+      let intelUsed = false;
+      let offlineUsed = false;
+      let onlineUsed  = false;
+
+      const intel = findIntelAnswer(text);
+      if(intel){
+        answer = intel.a;
+        intelUsed = true;
+      }
+
+      if(!answer && bm.length){
+        if(/remember|recall|last story|previous scene/i.test(text)){
+          const last = bm[0];
+          answer = "Here is a BM scene I remember:\n\n"+(last.text||"");
+        }
+      }
+
+      if(!answer && offlineEngine){
+        const llmAns = await callOfflineLLM(text);
+        if(llmAns){
+          answer = llmAns;
+          offlineUsed = true;
+        }
+      }
+
+      if(!answer){
+        const onlineAns = await callOnlineLLM(text);
+        if(onlineAns){
+          answer = onlineAns;
+          onlineUsed = true;
+        }
+      }
+
+      if(!answer){
+        if(/how are you/i.test(text)){
+          answer = "I am quite fine today, how about you?";
+        }else if(/who created you|who made you/i.test(text)){
+          answer = "I was created by Alim ul Haq as part of the AURA-X Ω emotional continuity project.";
+        }else if(/hi|hello|salam|assalam/i.test(text.toLowerCase())){
+          answer = "Hello, I am AURA-X Ω. How are you feeling right now?";
+        }else{
+          answer = "I am thinking with the emotional continuity engine. Tell me a bit more about what you are feeling or trying to decide.";
+        }
+      }
+
+      const neg = /sad|angry|depressed|anxious|upset|hurt|terrible|bad|fuck/i.test(text);
+      updateScores(text,{intelUsed,llmUsed:(offlineUsed||onlineUsed),isNegative:neg});
+
+      addHistory("ai",answer);
+      logLine("AURA-X Ω: "+answer);
+      speakAnswer(answer);
+
+      if(cfg.learningOn && text.length>=cfg.bmMinChars){
+        const title = "BM " + new Date().toISOString().slice(0,10);
+        bm.unshift({
+          title,
+          text,
+          date:new Date().toISOString().slice(0,10),
+          locked:true
+        });
+        saveJSON(KEY_BM,bm);
+        renderBMList();
+      }
+
+      if(cfg.learningOn && text.length>=4 && text.length<=220){
+        if(!/hi|hello|salam|who created you|how are you/i.test(text)){
+          upsertIntel(text,answer,{polarity:neg?"negative":"neutral",intensity:0.6,code:"ESELF"});
+        }
+      }
+
+      lastQA = {q:text,a:answer};
+    }
+
+    sendBtn.addEventListener("click",handleSend);
+    userInput.addEventListener("keydown",e=>{
+      if(e.key==="Enter" && !e.shiftKey){
+        e.preventDefault();
+        handleSend();
+      }
+    });
+
+    // ===== Initialisation =====
+    function initHistoryWelcome(){
+      pruneOldHistory();
+      if(!historyArr.length){
+        const welcome =
+          "Welcome. I am AURA-X Ω running inside your browser. For this prototype, TM means only your inputs. " +
+          "Inside the engine I keep a long-term emotional trajectory using TM, BM, Intelligence and optionally a helper LLM. " +
+          "If I ever say \"I don't know yet\", you can teach me the answer and I will remember it next time. " +
+          "If a reply is wrong, send *incorrect and I will ask you for the correct answer.";
+        addHistory("ai",welcome,{locked:true});
+        logLine("AURA-X Ω: "+welcome);
+      }else{
+        renderHistoryBox();
+      }
+    }
+
+    voicePill.textContent = cfg.voiceOn ? "on" : "off";
+    voicePill.className   = cfg.voiceOn ? "pillOn" : "pillOff";
+    learnPill.textContent = cfg.learningOn ? "on" : "off";
+    learnPill.className   = cfg.learningOn ? "pillOn" : "pillOff";
+
+    apiEndpoint.value = cfg.llm.endpoint || apiEndpoint.value;
+    apiModel.value    = cfg.llm.model    || apiModel.value;
+
+    initHistoryWelcome();
   </script>
 </body>
 </html>
