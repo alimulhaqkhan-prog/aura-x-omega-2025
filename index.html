@@ -305,6 +305,30 @@
       font-family:ui-monospace,Menlo,Consolas,monospace;
       color:#dbeafe;
     }
+
+    /* NEW: reaction bar for last answer (copy / like / dislike / voice / share) */
+    .reactionBar{
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:10px;
+      font-size:18px;
+      opacity:.9;
+    }
+    .reactBtn{
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      padding:4px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .reactBtn:active{transform:scale(.9)}
+
     .modalOverlay{
       position:fixed;
       inset:0;
@@ -497,6 +521,10 @@
         font-size:9.5px;
         padding:4px 6px;
       }
+      .reactionBar{
+        font-size:16px;
+        gap:8px;
+      }
     }
   </style>
 </head>
@@ -592,6 +620,14 @@
             </div>
             <div class="formula">
               E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
+            </div>
+            <!-- NEW: reaction bar for last answer -->
+            <div class="reactionBar" id="reactionBar">
+              <button class="reactBtn" id="btnCopyLast" title="Copy last answer">📋</button>
+              <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence (like)">👍</button>
+              <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
+              <button class="reactBtn" id="btnSpeakLast" title="Play voice for last answer">🔊</button>
+              <button class="reactBtn" id="btnShareLast" title="Copy question + answer">🔗</button>
             </div>
           </div>
         </div>
@@ -989,7 +1025,13 @@
         uProfession: document.getElementById("uProfession"),
         uEmotionalStyle: document.getElementById("uEmotionalStyle"),
         uKeyPeople: document.getElementById("uKeyPeople"),
-        uLegacyRules: document.getElementById("uLegacyRules")
+        uLegacyRules: document.getElementById("uLegacyRules"),
+        /* NEW reaction buttons */
+        btnCopyLast: document.getElementById("btnCopyLast"),
+        btnLikeLast: document.getElementById("btnLikeLast"),
+        btnDislikeLast: document.getElementById("btnDislikeLast"),
+        btnSpeakLast: document.getElementById("btnSpeakLast"),
+        btnShareLast: document.getElementById("btnShareLast")
       };
 
       const FAITH_OPTIONS = [
@@ -1032,6 +1074,8 @@
         offlineLoading: false,
         offlineReady: false,
         lastAnswerSource: null,
+        lastUserQ: null,     // NEW: last question
+        lastAuraA: null,     // NEW: last answer
         metrics: { TM:0, BM:0, C:0.85, E0:0 },
         parsedSeed: [],
         editingIntelId: null,
@@ -1539,10 +1583,10 @@
           cachedVoices=window.speechSynthesis.getVoices()||[];
         };
       }
-      function speakText(text){
-        if(!state.voiceOn) return;
+      function speakText(text,force){
         if(!("speechSynthesis" in window)) return;
         if(!text) return;
+        if(!force && !state.voiceOn) return;
         try{
           window.speechSynthesis.cancel();
           const u=new SpeechSynthesisUtterance(text);
@@ -1692,7 +1736,7 @@
         els.faithBubble.classList.add("show");
         state.lastStoryInput = userText || answer || "";
         state.lastStoryBMId = null;
-        speakText("Faith suggestion available. Tap the golden bubble if you want a short reflection.");
+        speakText("Faith suggestion available. Tap the golden bubble if you want a short reflection.",false);
         state.faithBubbleTimer=setTimeout(()=>{
           els.faithBubble.classList.remove("show");
         },5000);
@@ -1738,6 +1782,10 @@
         navigator.clipboard.writeText(text).catch(()=>{});
       }
 
+      function hasLastPair(){
+        return !!(state.lastUserQ && state.lastAuraA);
+      }
+
       async function handleUserMessage(){
         const text=(els.userInput.value||"").trim();
         if(!text) return;
@@ -1746,7 +1794,7 @@
         if(state.cooldownUntil && now<state.cooldownUntil){
           const sec=Math.ceil((state.cooldownUntil-now)/1000);
           logLine("AURA-X Ω: Please wait "+sec+"s. Let’s restart calmly.");
-          speakText("Please wait. Let's restart calmly.");
+          speakText("Please wait. Let's restart calmly.",false);
           return;
         }
         els.userInput.value="";
@@ -1762,7 +1810,7 @@
             state.cooldownUntil=Date.now()+runtime.cooldownSeconds*1000;
             state.abuseCount=0;
             logLine("AURA-X Ω: Cooldown activated for "+runtime.cooldownSeconds+" seconds. I’ll help when we stay respectful.");
-            speakText("Cooldown activated. I will help when we stay respectful.");
+            speakText("Cooldown activated. I will help when we stay respectful.",false);
             return;
           }
         }else{
@@ -1771,10 +1819,12 @@
 
         const {answer,source,intelBoost,llmBoost}=await generateAnswer(text);
         state.lastAnswerSource=source;
+        state.lastUserQ = text;
+        state.lastAuraA = answer;
         recomputeE0(intelBoost,llmBoost);updateCapsule();
         addHistory("aura",answer);renderHistory();
         logLine("AURA-X Ω ("+source+"): "+answer);
-        speakText(answer);
+        speakText(answer,false);
         maybeTriggerFaithBubble(text,answer);
         maybeUpdateLiveBM(text,answer);
       }
@@ -2127,7 +2177,7 @@
         loadIdentityForm();setIdentityEditable(false);
       });
 
-      els.faithBubble.addEventListener("click",(e)=>{
+      els.faithBubble.addEventListener("click",e=>{
         if(e.target===els.faithBubbleClose){
           els.faithBubble.classList.remove("show");return;
         }
@@ -2141,8 +2191,66 @@
         hideModal("modalFaithArticle");els.faithBubble.classList.remove("show");
       });
 
+      /* NEW: reaction icons behaviour */
+      if(els.btnCopyLast){
+        els.btnCopyLast.addEventListener("click",()=>{
+          if(!hasLastPair()){ logLine("[learn] No recent answer to copy."); return; }
+          copyText(state.lastAuraA);
+          logLine("[learn] Last answer copied.");
+        });
+      }
+      if(els.btnLikeLast){
+        els.btnLikeLast.addEventListener("click",()=>{
+          if(!hasLastPair()){ logLine("[learn] No recent answer to like."); return; }
+          if(!state.learningOn){
+            logLine("[learn] Learning is OFF. Turn Learning → ON in Options to save liked answers.");
+            return;
+          }
+          const id="intel_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+          const meta="[user-like] source="+(state.lastAnswerSource||"unknown")+"; E0="+state.metrics.E0.toFixed(3);
+          state.intelligence.push({id,q:state.lastUserQ,a:state.lastAuraA,meta});
+          saveIntelligence();
+          renderIntelList();
+          logLine("[learn] Liked answer saved into Intelligence.");
+        });
+      }
+      if(els.btnDislikeLast){
+        els.btnDislikeLast.addEventListener("click",()=>{
+          if(!hasLastPair()){ logLine("[learn] No recent answer to mark incorrect."); return; }
+          if(!state.learningOn){
+            logLine("[learn] Learning is OFF. Turn Learning → ON in Options to correct answers.");
+            return;
+          }
+          const replacement = prompt("Answer was incorrect. Type the correct answer I should learn for this question:", "");
+          if(!replacement || !replacement.trim()){
+            logLine("[learn] Dislike noted. No replacement provided.");
+            return;
+          }
+          const id="intel_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+          const meta="[user-corrected] source="+(state.lastAnswerSource||"unknown")+"; E0="+state.metrics.E0.toFixed(3);
+          state.intelligence.push({id,q:state.lastUserQ,a:replacement.trim(),meta});
+          saveIntelligence();
+          renderIntelList();
+          logLine("[learn] Corrected answer saved into Intelligence.");
+        });
+      }
+      if(els.btnSpeakLast){
+        els.btnSpeakLast.addEventListener("click",()=>{
+          if(!hasLastPair()){ logLine("[learn] No recent answer to speak."); return; }
+          speakText(state.lastAuraA,true);
+        });
+      }
+      if(els.btnShareLast){
+        els.btnShareLast.addEventListener("click",()=>{
+          if(!hasLastPair()){ logLine("[learn] No recent pair to share."); return; }
+          const block="Q: "+state.lastUserQ+"\nA: "+state.lastAuraA;
+          copyText(block);
+          logLine("[learn] Question + answer copied (share).");
+        });
+      }
+
       initFromStorage();
-      // No welcome text; clean console on load.
+      // clean console; no auto welcome
     });
   </script>
 </body>
