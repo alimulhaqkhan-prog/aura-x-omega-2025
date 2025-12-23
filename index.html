@@ -122,6 +122,7 @@
     .line{display:block;margin:2px 0}
     .line-user{color:#bfdbfe;font-weight:600;}
     .line-aura{color:#6ee7b7;font-weight:600;}
+
     .optionsMenu{
       position:fixed;
       left:12px;
@@ -204,6 +205,7 @@
       color:#bae6fd;
       opacity:.95;
     }
+
     .chatWrap{
       margin-top:0;
       padding:12px;
@@ -211,7 +213,7 @@
       border:1px solid rgba(148,163,184,.14);
       background:rgba(2,6,23,.45);
     }
-    /* reaction bar – now left side */
+    /* reaction bar – left side */
     .reactionBar{
       margin-top:4px;
       margin-bottom:6px;
@@ -234,6 +236,7 @@
       -webkit-tap-highlight-color:transparent;
     }
     .reactBtn:active{transform:scale(.9)}
+
     .liveCapsule{
       margin:4px 0 10px;
       width:100%;
@@ -252,6 +255,7 @@
       box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
     }
     .liveCapsule b{ color:#7dd3fc; font-weight:900 }
+
     .faithBubble{
       margin:4px 0 10px;
       padding:8px 10px;
@@ -285,12 +289,12 @@
       padding:0 4px;
       line-height:1;
     }
+
     /* Golden theme from logic */
     body.theme-golden .ethic{
       border-color: rgba(251,191,36,.7);
       background: rgba(251,191,36,.06);
     }
-    /* Faith bubble pulse animation from logic */
     .faithBubble.pulse{
       animation: faithPulse 1.4s infinite;
     }
@@ -298,6 +302,7 @@
       0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.55); }
       100% { box-shadow: 0 0 0 18px rgba(251,191,36,0); }
     }
+
     .inputRow{display:flex;gap:10px;align-items:flex-end;margin-top:4px}
     .input{
       flex:1;
@@ -322,6 +327,7 @@
       -webkit-tap-highlight-color:transparent;
     }
     .send:active{transform:scale(.99)}
+
     .formula{
       margin-top:10px;
       opacity:.8;
@@ -405,6 +411,7 @@
     .btnDark{background:rgba(2,6,23,.92);color:#fff}
     .btnRed{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.22);color:#7f1d1d}
     .btnGreen{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.25);color:#064e2a}
+
     .bmCard{
       border-radius:16px;
       border:1px solid rgba(15,23,42,.12);
@@ -445,6 +452,7 @@
       margin-top:10px;
       justify-content:flex-start;
     }
+
     .intelEditInput, .intelEditArea{
       width:100%;
       border-radius:12px;
@@ -461,7 +469,7 @@
       margin-top:6px;
     }
 
-    /* Conversation history – lighter UI + lock icon */
+    /* History */
     #modalHistory .modalBody{
       background:#f8fafc;
     }
@@ -519,8 +527,6 @@
       opacity:1;
       transform:translate(-50%,0);
     }
-
-    .@media-fix{} /* dummy to keep structure clean */
 
     @media (max-width:760px){
       .console{height:240px}
@@ -624,7 +630,7 @@
         <!-- RIGHT -->
         <div class="rightCol">
           <div class="chatWrap">
-            <!-- reaction bar now above metrics, left aligned -->
+            <!-- reaction bar -->
             <div class="reactionBar" id="reactionBar">
               <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence (like)">👍</button>
               <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
@@ -828,12 +834,13 @@
   <div class="modalOverlay" id="modalBM">
     <div class="modal">
       <div class="modalHeader">
-        <div>📘 Recall from BM<br><small>Long stories / scenes only.</small></div>
+        <div>📘 Recall from BM<br><small>Only long stories (4+ sentences) – greetings are never auto-saved.</small></div>
         <button class="closeX" data-close="modalBM">×</button>
       </div>
       <div class="modalBody">
         <div style="font-size:13px;opacity:.75">
-          Select a BM prompt. Locked prompts must be unlocked first. Delete needs double confirmation.
+          Select a BM prompt. BM auto-saves only when a topic has 4+ sentences and a clear idea.
+          Hi/hello/how-are-you chat is ignored. Locked prompts must be unlocked first. Delete uses double confirmation.
         </div>
         <input id="bmSearch"
           style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:8px 0 6px;outline:none;background:#fff;"
@@ -846,8 +853,8 @@
               <div class="bmSub" id="bmMeta"></div>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-              <button class="btn btnBlue" id="btnLiveBM">Live 12h: off</button>
-              <button class="btn btnBlue" id="btnUnlockBM" style="display:none;">Unlock</button>
+              <button class="btn btnBlue" id="btnLiveBM">Live 24h: off</button>
+              <button class="btn btnBlue" id="btnUnlockBM">Unlock</button>
             </div>
           </div>
           <textarea class="bmText" id="bmTextArea" readonly></textarea>
@@ -1052,7 +1059,6 @@
         uEmotionalStyle: document.getElementById("uEmotionalStyle"),
         uKeyPeople: document.getElementById("uKeyPeople"),
         uLegacyRules: document.getElementById("uLegacyRules"),
-        /* reaction buttons (no left copy now) */
         btnLikeLast: document.getElementById("btnLikeLast"),
         btnDislikeLast: document.getElementById("btnDislikeLast"),
         btnSpeakLast: document.getElementById("btnSpeakLast"),
@@ -1149,9 +1155,7 @@
         els.console.appendChild(div);
         els.console.scrollTop = els.console.scrollHeight;
       }
-      function logLine(text){
-        appendConsoleRole(null,text);
-      }
+      function logLine(text){ appendConsoleRole(null,text); }
       function logUserText(t){ appendConsoleRole("user",t); }
       function logAuraText(t){ appendConsoleRole("aura",t); }
 
@@ -1375,13 +1379,14 @@
         els.bmLockIcon.textContent = bm.locked?"🔒":"🔓";
         els.bmTextArea.value = bm.text || "";
         els.bmTextArea.readOnly = bm.locked;
-        els.btnUnlockBM.style.display = bm.locked?"inline-flex":"none";
+        els.btnUnlockBM.style.display = "inline-flex";
+        els.btnUnlockBM.textContent = bm.locked ? "Unlock" : "Lock";
         els.btnLiveBM.textContent = (bm.live && bm.liveUntil && bm.liveUntil>now)
-          ? "Live 12h: on" : "Live 12h: off";
+          ? "Live 24h: on" : "Live 24h: off";
       }
 
       function ensureBMForLastStory(){
-        if(!state.lastStoryInput) return null;
+        if(!state.lastStoryInput || !isStoryLike(state.lastStoryInput)) return null;
         if(state.lastStoryBMId) return state.lastStoryBMId;
         const id = "bm_"+Date.now();
         const now = Date.now();
@@ -1419,7 +1424,8 @@
         const bm=getActiveLiveBM();
         if(!bm) return;
         const trimmed=(userText||"").trim();
-        if(!trimmed || trimmed.length<40) return;
+        if(!isStoryLike(trimmed)) return; // ignore small talk / short messages
+
         const stamp=new Date().toLocaleString();
 
         bm.repeatCount = (bm.repeatCount || 0) + 1;
@@ -1742,6 +1748,21 @@
         return {hit:hitBasic||hitHate||hitViolence,hate:hitHate,violence:hitViolence};
       }
 
+      // --- STORY FILTER: only long, meaningful texts go to BM auto-logic ---
+      function isStoryLike(text){
+        const t=(text||"").trim();
+        if(!t) return false;
+        const len = t.length;
+        if(len < 80) return false; // بہت چھوٹا
+        const sentences = t.split(/[.!?؟۔]+/).filter(s=>s.trim().length>0).length;
+        if(sentences < 4) return false; // کم از کم 4 جملے
+        const lower = t.toLowerCase();
+        const trivial = ["hi","hello","salam","assalam","asalam","hey","how are you","kia hal","kese ho","kesi ho"];
+        if(len < 200 && trivial.some(p=>lower.includes(p))) return false;
+        return true;
+      }
+      // -------------------------------------------------------------
+
       async function generateAnswer(text){
         let intelBoost=0, llmBoost=0;
         const best=findBestIntelMatch(text);
@@ -1785,7 +1806,7 @@
         els.faithBubbleMeta.textContent="Tap to see "+(names||"selected")+" literature suggestion.";
         if(state.faithBubbleTimer) clearTimeout(state.faithBubbleTimer);
         els.faithBubble.classList.add("show");
-        state.lastStoryInput = userText || answer || "";
+        state.lastStoryInput = isStoryLike(userText) ? userText : "";
         state.lastStoryBMId = null;
         speakText("Faith suggestion available. Tap the golden bubble if you want a short reflection.",false);
         state.faithBubbleTimer=setTimeout(()=>{
@@ -1853,6 +1874,9 @@
         logUserText(text);
         state.metrics.TM = scoreTM(text);
         recomputeBMMetric();updateCapsule();
+
+        const storyLike = isStoryLike(text);
+        if(storyLike) state.lastStoryInput = text;
 
         const abuse=detectAbuse(text);
         if(abuse.hit){
@@ -2145,10 +2169,16 @@
       if(els.btnUnlockBM){
         els.btnUnlockBM.addEventListener("click",()=>{
           if(!currentBMId) return;
-          if(!confirm("Unlock this BM prompt for editing?")) return;
           const bm=state.bmPrompts.find(x=>x.id===currentBMId);
           if(!bm) return;
-          bm.locked=false;saveBM();openBM(currentBMId);
+          const makeLock = !bm.locked;
+          const msg = makeLock
+            ? "Lock this BM prompt so it cannot be edited without unlock?"
+            : "Unlock this BM prompt for editing?";
+          if(!confirm(msg)) return;
+          bm.locked = makeLock;
+          saveBM();
+          openBM(currentBMId);
         });
       }
       if(els.btnLiveBM){
@@ -2158,7 +2188,7 @@
           if(!bm) return;
           const now=Date.now();
           if(!bm.live || !bm.liveUntil || bm.liveUntil<=now){
-            bm.live=true;bm.liveUntil=now+12*60*60*1000;
+            bm.live=true;bm.liveUntil=now+24*60*60*1000; // 24 hours
           }else{
             bm.live=false;bm.liveUntil=null;
           }
@@ -2243,7 +2273,7 @@
         hideModal("modalFaithArticle");els.faithBubble.classList.remove("show");
       });
 
-      /* reaction icons behaviour – silent + toast */
+      // reaction icons – silent + toast only
       if(els.btnLikeLast){
         els.btnLikeLast.addEventListener("click",()=>{
           if(!hasLastPair()){ showToast("No recent answer"); return; }
@@ -2296,7 +2326,7 @@
       }
 
       initFromStorage();
-      // no auto welcome text
+      // کوئی خودکار welcome میسج نہیں، صرف آپ اور AURA کی chat
     });
   </script>
 </body>
