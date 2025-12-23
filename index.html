@@ -5,2422 +5,2084 @@
   <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Offline LLM package (WebLLM, for in-browser models – ready for future use) -->
+  <!-- Offline LLM package (WebLLM, for in-browser models – future ready) -->
   <script type="module">
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
   </script>
 
   <style>
-    /* RESET & BASICS */
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{
-      height:100%;
+
+    :root {
+      --accent-color: #0ea5e9; /* default accent */
+    }
+
+    body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color:#e5e7eb;
       background:
         radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
-        radial-gradient(circle at 80% 0%, #0f172a 0, transparent 55%),
-        radial-gradient(circle at 10% 80%, #0b1120 0, transparent 55%),
-        radial-gradient(circle at 90% 80%, #082f49 0, transparent 50%),
-        #020617;
-      background-attachment:fixed;
-    }
-    body{
+        radial-gradient(circle at 80% 0, #0ea5e9 0, transparent 40%),
+        linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
+      color:#e5e7eb;
+      min-height:100vh;
       display:flex;
-      align-items:stretch;
       justify-content:center;
-      padding:10px;
+      padding:18px 10px;
     }
 
-    /* LAYOUT */
-    .shell{
-      width:100%;
-      max-width:1100px;
-      border-radius:24px;
-      padding:16px;
-      background:radial-gradient(circle at 0 0,rgba(56,189,248,.08) 0,transparent 55%),
-                 radial-gradient(circle at 100% 0,rgba(245,158,11,.12) 0,transparent 60%),
-                 rgba(15,23,42,.9);
-      box-shadow:
-        0 18px 60px rgba(15,23,42,.95),
-        0 0 0 1px rgba(148,163,184,.35),
-        0 0 40px rgba(56,189,248,.25);
-      backdrop-filter:blur(18px);
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      position:relative;
+    .app{
+      width:min(980px,98vw);
+      background:rgba(2,6,23,.45);
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:22px;
       overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,.45);
+      backdrop-filter:blur(10px);
     }
 
-    .shell::before{
-      content:"";
-      position:absolute;
-      inset:-120px;
-      background:
-        radial-gradient(circle at 20% -10%,rgba(59,130,246,.15) 0,transparent 55%),
-        radial-gradient(circle at 80% -10%,rgba(251,191,36,.18) 0,transparent 55%);
-      opacity:.7;
-      pointer-events:none;
-    }
-    .shell::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:radial-gradient(circle at 50% 0,rgba(248,250,252,.06) 0,transparent 60%);
-      mix-blend-mode:screen;
-      opacity:.6;
-      pointer-events:none;
+    .top{
+      padding:20px 18px 10px;
+      border-bottom:1px solid rgba(148,163,184,.14);
+      text-align:center;
     }
 
-    .shell-inner{
-      position:relative;
-      z-index:1;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      height:100%;
+    .brand{
+      font-weight:800;
+      letter-spacing:.5px;
+      font-size:26px;
+      color:#7dd3fc;
+      text-shadow:0 0 22px rgba(14,165,233,.28);
     }
 
-    /* HEADER */
-    .header{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      padding:4px 6px 4px;
-      border-radius:18px;
-    }
-    .brand-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .title-block{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .orb{
-      width:40px;
-      height:40px;
-      border-radius:999px;
-      background:
-        radial-gradient(circle at 30% 20%,#fef9c3 0,#facc15 25%,transparent 60%),
-        radial-gradient(circle at 70% 80%,#38bdf8 0,#0f172a 55%);
-      box-shadow:
-        0 0 20px rgba(250,204,21,.8),
-        0 0 60px rgba(56,189,248,.65);
-      position:relative;
-      overflow:hidden;
-    }
-    .orb::after{
-      content:"Ω";
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:22px;
-      font-weight:700;
-      color:#020617;
-      text-shadow:0 0 12px rgba(248,250,252,.7);
-    }
-    .title-text{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-    }
-    .title-main{
-      font-size:20px;
-      font-weight:700;
-      letter-spacing:.16em;
-    }
-    .title-sub{
-      font-size:11px;
+    .sub{
       opacity:.8;
-    }
-
-    .header-right{
-      display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:4px;
-      font-size:10px;
-      text-align:right;
-      opacity:.9;
-    }
-    .header-pill{
-      padding:3px 9px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.5);
-      background:linear-gradient(135deg,rgba(15,23,42,.95),rgba(15,23,42,.7));
-      display:flex;
-      gap:6px;
-      align-items:center;
-    }
-    .header-pill span.label{
-      opacity:.7;
-    }
-    .header-pill span.value{
-      font-weight:500;
-    }
-
-    .ethic-box{
-      font-size:11px;
       margin-top:2px;
-      border-radius:12px;
-      padding:6px 10px;
-      border:1px solid rgba(148,163,184,.4);
-      background:linear-gradient(135deg,rgba(15,23,42,.95),rgba(15,23,42,.75));
-      box-shadow:0 8px 30px rgba(15,23,42,.7);
-    }
-    .ethic-box strong{color:#facc15;}
-
-    /* MAIN GRID */
-    .main-grid{
-      display:grid;
-      grid-template-columns:minmax(0,2.1fr) minmax(0,1.3fr);
-      gap:10px;
-      min-height:0;
-      flex:1 1 auto;
-    }
-    @media(max-width:900px){
-      .main-grid{
-        grid-template-columns:1fr;
-      }
+      font-size:13px;
     }
 
-    /* LEFT – CHAT AREA */
-    .left-col{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-height:0;
+    .ethic{
+      margin:14px auto 12px;
+      max-width:720px;
+      border:1px solid rgba(251,191,36,.35);
+      border-radius:14px;
+      padding:12px 14px;
+      color:#fbbf24;
+      background:rgba(2,6,23,.35);
+      box-shadow:inset 0 0 0 1px rgba(251,191,36,.08);
+      font-size:14px;
+      line-height:1.45;
     }
-    .lens-row{
-      display:flex;
-      gap:6px;
-      flex-wrap:wrap;
-    }
-    .lens{
-      font-size:10px;
-      padding:4px 8px;
+
+    .pill{
+      margin:10px auto 0;
+      max-width:760px;
+      background:linear-gradient(90deg, rgba(14,165,233,.65), rgba(34,211,238,.45));
+      border:1px solid rgba(125,211,252,.30);
+      color:#0b1220;
+      font-weight:800;
+      letter-spacing:.6px;
       border-radius:999px;
-      border:1px solid rgba(148,163,184,.5);
-      background:radial-gradient(circle at 0 0,rgba(56,189,248,.22),transparent 60%);
-      display:flex;
-      gap:4px;
-      align-items:center;
-      cursor:default;
+      padding:14px 16px;
+      text-transform:uppercase;
+      box-shadow:0 12px 40px rgba(14,165,233,.22);
     }
-    .lens span.label{opacity:.7;}
-    .lens span.value{font-weight:500;}
 
-    .chat-shell{
-      flex:1 1 auto;
-      display:flex;
-      flex-direction:column;
+    .main{ padding:16px 16px 18px }
+
+    .row{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
+    .leftCol{ flex:1 1 340px; min-width:300px }
+    .rightCol{ flex:1 1 360px; min-width:320px }
+
+    .card{
+      background:rgba(2,6,23,.50);
+      border:1px solid rgba(148,163,184,.16);
       border-radius:18px;
-      border:1px solid rgba(148,163,184,.4);
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.95),rgba(15,23,42,.88));
-      box-shadow:0 16px 45px rgba(15,23,42,.95);
-      overflow:hidden;
-      min-height:220px;
+      padding:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      backdrop-filter:blur(10px);
     }
-    .chat-header{
-      display:flex;
-      justify-content:space-between;
+
+    .optionsBtn{
+      display:inline-flex;
       align-items:center;
-      padding:6px 10px;
-      background:linear-gradient(90deg,rgba(15,23,42,.98),rgba(15,23,42,.85));
-      border-bottom:1px solid rgba(30,64,175,.5);
-      gap:8px;
-      flex-wrap:wrap;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(15,23,42,.55);
+      color:#e5e7eb;
+      cursor:pointer;
+      user-select:none;
+      margin:12px 0;
+      -webkit-tap-highlight-color:transparent;
     }
-    .chat-header-left{
+    .optionsBtn:active{transform:scale(.99)}
+    .gear{width:18px;height:18px;filter:drop-shadow(0 0 10px rgba(125,211,252,.25))}
+
+    .console{
+      margin-top:12px;
+      height:230px;
+      border-radius:16px;
+      border:1px solid rgba(148,163,184,.14);
+      background:rgba(0,0,0,.25);
+      padding:14px;
+      overflow:auto;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      font-size:14px;
+      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
+      line-height:1.55;
+      white-space:pre-wrap;
+    }
+    .line{display:block;margin:2px 0}
+
+    .optionsMenu{
+      position:fixed;
+      left:12px;
+      right:12px;
+      top:120px;
+      margin:0 auto;
+      max-width:940px;
+      background:rgba(2,6,23,.92);
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:16px;
+      padding:8px;
+      display:none;
+      z-index:9999;
+      box-shadow:0 18px 45px rgba(0,0,0,.45);
+      backdrop-filter:blur(10px);
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      align-items:stretch;
+    }
+    .optionsMenu.show{display:grid}
+
+    .menuItem{
+      padding:8px 6px;
+      border-radius:13px;
+      cursor:pointer;
       display:flex;
       flex-direction:column;
-      gap:2px;
-      font-size:11px;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      gap:6px;
+      color:#e5e7eb;
+      border:1px solid rgba(148,163,184,.10);
+      background:rgba(15,23,42,.55);
+      user-select:none;
+      min-height:58px;
     }
-    .chat-header-row{
+    .menuItem:active{transform:scale(.995)}
+
+    .menuLeft{
       display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      font-weight:800;
+      font-size:12.5px;
+    }
+
+    .menuIcon{
+      width:18px;
+      height:18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .menuRight{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:44px;
+    }
+
+    .pillOn,.pillOff,.pillMid{
+      font-size:10px;
+      padding:4px 7px;
+      border-radius:999px;
+      font-weight:900;
+      text-transform:lowercase;
+      border:1px solid transparent;
+    }
+    .pillOn{
+      background:rgba(34,197,94,.18);
+      border-color:rgba(34,197,94,.24);
+      color:#bbf7d0;
+    }
+    .pillOff{
+      background:rgba(239,68,68,.12);
+      border-color:rgba(239,68,68,.22);
+      color:#fecaca;
+    }
+    .pillMid{
+      background:rgba(14,165,233,.14);
+      border-color:rgba(14,165,233,.20);
+      color:#bae6fd;
+      opacity:.95;
+    }
+
+    .chatWrap{
+      margin-top:0;
+      padding:12px;
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,.14);
+      background:rgba(2,6,23,.45);
+    }
+
+    .liveCapsule{
+      margin:4px 0 10px;
+      width:100%;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(2,6,23,.55);
+      padding:10px 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      font-size:12px;
+      color:#dbeafe;
+      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
+    }
+    .liveCapsule b{ color:#7dd3fc; font-weight:900 }
+
+    .faithBubble{
+      margin:4px 0 10px;
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(251,191,36,.16);
+      border:1px solid rgba(251,191,36,.4);
+      display:none;
       align-items:center;
       gap:8px;
-      flex-wrap:wrap;
+      font-size:12px;
+      color:#facc15;
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(0,0,0,.35);
+      transition:opacity .25s ease, transform .25s ease;
     }
-    .capsule-line{
+    .faithBubble.show{
       display:flex;
-      gap:4px;
-      flex-wrap:wrap;
-      align-items:center;
+      opacity:1;
+      transform:translateY(0);
     }
-    .capsule{
-      border-radius:999px;
-      padding:2px 7px;
-      font-size:10px;
-      border:1px solid rgba(148,163,184,.55);
-      background:rgba(15,23,42,.95);
-      display:flex;
-      align-items:center;
-      gap:4px;
+    .fbIcon{font-size:18px;}
+    .fbText{flex:1;line-height:1.3;}
+    .fbTitle{font-weight:800;}
+    .fbMeta{opacity:.85;}
+    .fbClose{
+      border:none;
+      background:transparent;
+      color:#fed7aa;
+      font-size:16px;
+      cursor:pointer;
+      padding:0 4px;
+      line-height:1;
     }
-    .capsule span.label{opacity:.7;}
-    .capsule span.value{font-weight:600;}
 
-    .quick-row{
+    /* Golden theme from logic */
+    body.theme-golden .ethic{
+      border-color: rgba(251,191,36,.7);
+      background: rgba(251,191,36,.06);
+    }
+
+    /* Faith bubble pulse animation from logic */
+    .faithBubble.pulse{
+      animation: faithPulse 1.4s infinite;
+    }
+    @keyframes faithPulse{
+      0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.55); }
+      100% { box-shadow: 0 0 0 18px rgba(251,191,36,0); }
+    }
+
+    .inputRow{display:flex;gap:10px;align-items:flex-end}
+    .input{
+      flex:1;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(2,6,23,.55);
+      color:#e5e7eb;
+      padding:12px 14px;
+      outline:none;
+      font-size:14px;
+    }
+
+    .send{
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(90deg, var(--accent-color, #0ea5e9), rgba(34,211,238,.55));
+      color:#0b1220;
+      font-weight:900;
+      padding:12px 18px;
+      cursor:pointer;
+      min-width:88px;
+      box-shadow:0 12px 30px rgba(14,165,233,.18);
+      -webkit-tap-highlight-color:transparent;
+    }
+    .send:active{transform:scale(.99)}
+
+    .formula{
+      margin-top:10px;
+      opacity:.8;
+      font-size:12px;
+      text-align:center;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      color:#dbeafe;
+    }
+
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      padding:18px 12px;
+      z-index:9999;
+    }
+    .modalOverlay.show{display:flex}
+
+    .modal{
+      width:min(860px,96vw);
+      border-radius:18px;
+      overflow:hidden;
+      background:rgba(250,250,250,.93);
+      color:#0b1220;
+      border:1px solid rgba(15,23,42,.18);
+      box-shadow:0 30px 80px rgba(0,0,0,.35);
+      backdrop-filter:blur(12px);
+    }
+
+    .modalHeader{
       display:flex;
-      gap:6px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
       align-items:center;
-      font-size:10px;
+      justify-content:space-between;
+      padding:12px 14px;
+      background:rgba(255,255,255,.75);
+      border-bottom:1px solid rgba(15,23,42,.10);
+      font-weight:800;
+    }
+    .modalHeader small{font-weight:600;opacity:.7}
+    .closeX{
+      border:none;
+      background:transparent;
+      font-size:22px;
+      cursor:pointer;
+      line-height:1;
+      padding:0 4px;
+      opacity:.75;
+    }
+
+    .modalBody{
+      padding:14px;
+      max-height:70vh;
+      overflow:auto;
+    }
+
+    .chipsWrap{margin-top:10px;display:flex;flex-wrap:wrap;gap:10px}
+    .chip{
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(15,23,42,.16);
+      background:rgba(255,255,255,.9);
+      font-weight:800;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .chip.active{
+      background:#0f172a;
+      color:#fff;
+      border-color:rgba(15,23,42,.2);
+      box-shadow:0 12px 30px rgba(2,6,23,.12);
     }
 
     .btn{
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.5);
-      padding:4px 10px;
-      font-size:11px;
-      background:radial-gradient(circle at 0 0,rgba(30,64,175,.9),rgba(15,23,42,.95));
-      color:#e5e7eb;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      box-shadow:0 0 0 1px rgba(15,23,42,1),0 8px 25px rgba(15,23,42,.9);
-      transition:transform .08s ease,box-shadow .08s ease,background .12s ease,opacity .1s ease;
-    }
-    .btn span.icon{font-size:13px;}
-    .btn:hover{
-      transform:translateY(-1px);
-      box-shadow:0 12px 30px rgba(15,23,42,.9);
-    }
-    .btn:active{
-      transform:translateY(0);
-      box-shadow:0 5px 18px rgba(15,23,42,.9);
-    }
-    .btnSmall{
-      padding:3px 8px;
-      font-size:10px;
-    }
-
-    .btnBlue{
-      background:radial-gradient(circle at 0 0,rgba(37,99,235,.92),rgba(17,24,39,1));
-      border-color:rgba(129,140,248,.85);
-    }
-    .btnGreen{
-      background:radial-gradient(circle at 0 0,rgba(22,163,74,.95),rgba(15,23,42,1));
-      border-color:rgba(74,222,128,.9);
-    }
-    .btnRed{
-      background:radial-gradient(circle at 0 0,rgba(220,38,38,.96),rgba(15,23,42,1));
-      border-color:rgba(248,113,113,.9);
-    }
-    .btnGhost{
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.9),rgba(15,23,42,.9));
-      border-color:rgba(148,163,184,.6);
-    }
-
-    .chat-log{
-      flex:1 1 auto;
-      padding:8px 10px 6px;
-      overflow:auto;
-      font-size:12px;
-      line-height:1.4;
-    }
-    .chat-line{
-      margin-bottom:4px;
-      opacity:.9;
-    }
-    .chat-line span.role{
-      font-weight:600;
-      color:#93c5fd;
-    }
-    .chat-line span.role-user{color:#a5b4fc;}
-    .chat-line span.role-sys{color:#facc15;}
-
-    .chat-input-wrap{
-      padding:6px 8px 8px;
-      border-top:1px solid rgba(30,64,175,.6);
-      background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(15,23,42,.98));
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-    .input-row{
-      display:flex;
-      gap:6px;
-      align-items:flex-end;
-    }
-    .input-main{
-      flex:1 1 auto;
-      border-radius:14px;
-      border:1px solid rgba(55,65,81,.8);
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.98),rgba(15,23,42,.94));
-      padding:6px 8px;
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-    .input-main textarea{
-      width:100%;
-      min-height:40px;
-      max-height:120px;
-      resize:vertical;
       border:none;
-      outline:none;
-      background:transparent;
-      color:#e5e7eb;
-      font-size:13px;
-      line-height:1.3;
+      cursor:pointer;
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:900;
+      -webkit-tap-highlight-color:transparent;
+      font-size:12px;
     }
-    .input-meta{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      font-size:10px;
-      opacity:.7;
-    }
+    .btnBlue{background:rgba(59,130,246,.16);border:1px solid rgba(59,130,246,.22)}
+    .btnDark{background:rgba(2,6,23,.92);color:#fff}
+    .btnRed{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.22);color:#7f1d1d}
+    .btnGreen{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.25);color:#064e2a}
 
-    /* RIGHT – WINDOWS COLUMN */
-    .right-col{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-height:0;
-    }
-    .window{
+    .bmCard{
       border-radius:16px;
-      border:1px solid rgba(148,163,184,.45);
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.96),rgba(15,23,42,.88));
-      box-shadow:0 14px 40px rgba(15,23,42,.9);
-      padding:7px 8px 8px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      position:relative;
-      min-height:0;
+      border:1px solid rgba(15,23,42,.12);
+      background:rgba(255,255,255,.85);
+      padding:12px;
+      margin-top:12px;
     }
-    .window-header{
+    .bmTop{
       display:flex;
+      align-items:center;
       justify-content:space-between;
-      align-items:center;
-      gap:6px;
-      font-size:11px;
-    }
-    .window-title{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      font-weight:600;
-      letter-spacing:.05em;
-      text-transform:uppercase;
-      font-size:10px;
-      opacity:.95;
-    }
-    .window-title span.icon{font-size:13px;}
-    .window-header-right{
-      display:flex;
-      gap:5px;
-      align-items:center;
-      font-size:10px;
-      opacity:.75;
-    }
-    .window-body{
-      font-size:11px;
-      opacity:.9;
-      border-radius:12px;
-      padding:6px 7px;
-      border:1px solid rgba(55,65,81,.8);
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.96),rgba(15,23,42,.92));
-      min-height:0;
-    }
-    .window-body p{margin-bottom:4px;}
-    .window-body small{opacity:.8;}
-
-    .window-scroll{
-      max-height:180px;
-      overflow:auto;
-    }
-
-    .window-footer{
-      display:flex;
-      justify-content:flex-end;
-      gap:6px;
-      flex-wrap:wrap;
-      margin-top:4px;
-    }
-
-    .faith-chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap:4px;
-      margin-top:4px;
-      font-size:10px;
-    }
-    .faith-chip{
-      padding:2px 7px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.5);
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.97),rgba(15,23,42,.9));
-      cursor:pointer;
-      opacity:.85;
-    }
-    .faith-chip.active{
-      border-color:rgba(251,191,36,.9);
-      box-shadow:0 0 15px rgba(250,204,21,.7);
-      opacity:1;
-    }
-
-    .history-log{
-      font-size:11px;
-      line-height:1.35;
-    }
-
-    /* MODALS (Feed / BM / Identity / Options / LLM / History / Faith) */
-    .modal-backdrop{
-      position:fixed;
-      inset:0;
-      background:rgba(15,23,42,.82);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:40;
-      padding:10px;
-    }
-    .modal-backdrop.show{display:flex;}
-
-    .modal{
-      width:100%;
-      max-width:680px;
-      max-height:90vh;
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.98),rgba(15,23,42,.96));
-      border-radius:22px;
-      border:1px solid rgba(148,163,184,.6);
-      box-shadow:0 22px 60px rgba(15,23,42,1);
-      display:flex;
-      flex-direction:column;
-      overflow:hidden;
-    }
-    .modal-header{
-      padding:8px 12px 6px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border-bottom:1px solid rgba(30,64,175,.6);
-      background:linear-gradient(90deg,rgba(15,23,42,1),rgba(15,23,42,.9));
-      gap:8px;
-    }
-    .modal-title{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-      font-size:13px;
-      font-weight:600;
-    }
-    .modal-title small{font-size:11px;opacity:.8;}
-    .modal-close{
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.6);
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.98),rgba(15,23,42,.96));
-      color:#e5e7eb;
-      cursor:pointer;
-      padding:2px 8px;
-      font-size:12px;
-    }
-    .modal-body{
-      padding:10px 12px 10px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      overflow:auto;
-      font-size:12px;
-    }
-    .modal-footer{
-      padding:8px 12px;
-      border-top:1px solid rgba(31,41,55,.9);
-      display:flex;
-      justify-content:flex-end;
-      gap:8px;
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.98),rgba(15,23,42,.96));
-    }
-
-    textarea.modal-input{
-      width:100%;
-      min-height:130px;
-      resize:vertical;
-      border-radius:12px;
-      border:1px solid rgba(55,65,81,.9);
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.98),rgba(15,23,42,.96));
-      padding:6px 8px;
-      color:#e5e7eb;
-      font-size:12px;
-      line-height:1.4;
-    }
-    textarea.modal-input::placeholder{opacity:.6;}
-
-    .two-column{
-      display:grid;
-      grid-template-columns:1.4fr 1.1fr;
       gap:10px;
+      margin-bottom:10px;
     }
-    @media(max-width:720px){
-      .two-column{grid-template-columns:1fr;}
-    }
-
-    .subtle-label{
-      font-size:11px;
-      opacity:.75;
-      margin-bottom:4px;
-    }
-
-    .label-row{
+    .bmTop .title{
+      font-weight:900;
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      gap:6px;
-      flex-wrap:wrap;
-      font-size:11px;
-      margin-bottom:4px;
-    }
-    .label-row small{opacity:.8;}
-
-    .pill-badge{
-      border-radius:999px;
-      padding:2px 7px;
-      border:1px solid rgba(148,163,184,.55);
-      font-size:10px;
-      opacity:.85;
-    }
-
-    .small-input{
-      width:100%;
-      border-radius:8px;
-      border:1px solid rgba(55,65,81,.9);
-      background:rgba(15,23,42,.96);
-      color:#e5e7eb;
-      padding:4px 6px;
-      font-size:11px;
-    }
-
-    .identity-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:6px;
-    }
-    .identity-field{
-      display:flex;
-      flex-direction:column;
-      gap:3px;
-      font-size:11px;
-    }
-    .identity-field label{opacity:.8;}
-
-    .option-list{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      font-size:11px;
-    }
-    .option-item{
-      display:flex;
-      justify-content:space-between;
       gap:8px;
-      align-items:center;
-      border-radius:10px;
-      border:1px solid rgba(55,65,81,.9);
-      padding:6px 7px;
-      background:radial-gradient(circle at 0 0,rgba(15,23,42,.98),rgba(15,23,42,.96));
     }
-    .option-item main{
+    .bmSub{font-size:12px;opacity:.7;margin-top:2px}
+    .bmText{
+      width:100%;
+      min-height:240px;
+      border-radius:14px;
+      border:1px solid rgba(15,23,42,.18);
+      padding:12px;
+      outline:none;
+      resize:vertical;
+      background:#fff;
+      font-size:14px;
+      line-height:1.45;
+    }
+    .bmActions{
       display:flex;
-      flex-direction:column;
-      gap:2px;
-    }
-    .option-item main strong{font-size:11px;}
-    .option-item main span{opacity:.8;}
-
-    .toggle{
-      width:36px;
-      height:18px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.7);
-      background:rgba(15,23,42,1);
-      position:relative;
-      cursor:pointer;
-    }
-    .toggle::after{
-      content:"";
-      position:absolute;
-      top:1px;
-      left:1px;
-      width:14px;
-      height:14px;
-      border-radius:999px;
-      background:rgba(148,163,184,1);
-      transition:transform .15s ease,background .15s ease;
-    }
-    .toggle.on{
-      background:radial-gradient(circle at 0 0,rgba(34,197,94,.9),rgba(21,128,61,1));
-      border-color:rgba(74,222,128,.95);
-    }
-    .toggle.on::after{transform:translateX(16px);background:#f9fafb;}
-
-    /* Faith bubble */
-    .faith-bubble{
-      position:fixed;
-      right:16px;
-      bottom:16px;
-      z-index:35;
-      display:none;
-    }
-    .faith-bubble.show{display:block;}
-    .faith-bubble-inner{
-      border-radius:999px;
-      padding:6px 10px;
-      border:1px solid rgba(251,191,36,.9);
-      background:radial-gradient(circle at 0 0,rgba(30,64,175,1),rgba(15,23,42,1));
-      box-shadow:0 16px 40px rgba(15,23,42,1),0 0 35px rgba(250,204,21,.9);
-      display:flex;
-      align-items:center;
-      gap:6px;
-      font-size:11px;
-    }
-    .faith-bubble-inner span.icon{font-size:15px;}
-    .faith-bubble-inner button{
-      border-radius:999px;
-      border:1px solid rgba(251,191,36,.9);
-      padding:2px 7px;
-      background:rgba(15,23,42,.98);
-      color:#fef9c3;
-      font-size:10px;
-      cursor:pointer;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      justify-content:flex-start;
     }
 
-    /* Utility scrollbars */
-    ::-webkit-scrollbar{width:6px;height:6px;}
-    ::-webkit-scrollbar-track{background:rgba(15,23,42,.9);}
-    ::-webkit-scrollbar-thumb{
-      background:rgba(30,64,175,.8);
-      border-radius:999px;
+    .intelEditInput, .intelEditArea{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(15,23,42,.18);
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
     }
-    ::-webkit-scrollbar-thumb:hover{background:rgba(59,130,246,.95);}
+    .intelEditArea{
+      min-height:90px;
+      resize:vertical;
+      line-height:1.4;
+      margin-top:6px;
+    }
 
+    .historyLine{
+      padding:4px 10px;
+      font-size:12px;
+    }
+
+    @media (max-width:760px){
+      .console{height:240px}
+      .optionsMenu{top:112px}
+    }
+    @media (max-width:420px){
+      .brand{font-size:22px}
+      .pill{font-size:14px}
+      .ethic{font-size:13px}
+      .console{height:260px}
+      .optionsMenu{
+        gap:6px;
+        padding:7px;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+      }
+      .menuItem{
+        min-height:52px;
+        padding:6px 4px;
+      }
+      .menuLeft{font-size:11px}
+      .pillOn,.pillOff,.pillMid{
+        font-size:9.5px;
+        padding:4px 6px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="shell">
-    <div class="shell-inner">
-      <header class="header">
-        <div class="brand-row">
-          <div class="title-block">
-            <div class="orb"></div>
-            <div class="title-text">
-              <div class="title-main">AURA-X Ω</div>
-              <div class="title-sub">
-                Offline emotional continuity engine (prototype) —
-                TM = user inputs only · Internal layers keep continuity and emotional trajectory.
+  <div class="app">
+    <div class="top">
+      <div class="brand">AURA-X Ω</div>
+      <div class="sub">
+        Offline emotional continuity engine (prototype)<br>
+        TM = user inputs only · Internal layers keep continuity and emotional trajectory.
+      </div>
+      <div class="ethic">
+        Universal ethic: avoid actions that grow negative emotions in you or others.
+        Move gently toward choices that increase shared positive feeling for everyone.
+      </div>
+      <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
+    </div>
+
+    <div class="main">
+      <div class="row">
+        <!-- LEFT -->
+        <div class="leftCol">
+          <div class="card">
+            <div class="optionsBtn" id="btnOptions">
+              <svg class="gear" viewBox="0 0 24 24" fill="none">
+                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+                      stroke="#7dd3fc" stroke-width="2"/>
+                <path d="M19.4 15a8.2 8.2 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a8.5 8.5 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a8.2 8.2 0 0 0 .1 2L2.7 16.5l2 3.5 2.4-1a8.5 8.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.5L19.4 15Z"
+                      stroke="#7dd3fc" stroke-width="1.6" opacity=".9"/>
+              </svg>
+              <span>Options</span>
+            </div>
+
+            <div class="optionsMenu" id="optionsMenu">
+              <div class="menuItem" id="miVoice">
+                <div class="menuLeft"><span class="menuIcon">🎤</span><span>Voice</span></div>
+                <div class="menuRight"><span class="pillOff" id="voicePill">off</span></div>
+              </div>
+              <div class="menuItem" id="miIntel">
+                <div class="menuLeft"><span class="menuIcon">🧠</span><span>Intelligence</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
+              <div class="menuItem" id="miLearn">
+                <div class="menuLeft"><span class="menuIcon">📚</span><span>Learning</span></div>
+                <div class="menuRight"><span class="pillOn" id="learnPill">on</span></div>
+              </div>
+              <div class="menuItem" id="miSeed">
+                <div class="menuLeft"><span class="menuIcon">🌱</span><span>Feed</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
+              <div class="menuItem" id="miFaith">
+                <div class="menuLeft"><span class="menuIcon">🕊</span><span>Faith</span></div>
+                <div class="menuRight"><span class="pillOff" id="faithLabel">none</span></div>
+              </div>
+              <div class="menuItem" id="miIdentity">
+                <div class="menuLeft"><span class="menuIcon">🪪</span><span>Identity</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
+              <div class="menuItem" id="miLLM">
+                <div class="menuLeft"><span class="menuIcon">🤖</span><span>LLM</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
+              <div class="menuItem" id="miBMRecall">
+                <div class="menuLeft"><span class="menuIcon">📘</span><span>BM Recall</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
+              <div class="menuItem" id="miHistory">
+                <div class="menuLeft"><span class="menuIcon">📜</span><span>History</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
               </div>
             </div>
+
+            <div class="console" id="console"></div>
           </div>
-          <div class="header-right">
-            <div class="header-pill">
-              <span class="label">Continuity vector:</span>
-              <span class="value" id="continuityLabel">E₀ = tanh((TM×BM) − D + λᶠᵃⁱᵗʰ + λˢʸˢ + λᵗʳᶜ)</span>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="rightCol">
+          <div class="chatWrap">
+            <div class="liveCapsule">
+              <span><b>E0</b>: <span id="cE0">0.000</span></span><span>·</span>
+              <span><b>TM</b>: <span id="cTM">0.00</span></span><span>·</span>
+              <span><b>BM</b>: <span id="cBM">0.00</span></span><span>·</span>
+              <span><b>C</b>: <span id="cCont">0.850</span></span>
             </div>
-            <div class="header-pill">
-              <span class="label">Mode:</span>
-              <span class="value" id="modeLabel">Prototype · browser-only</span>
+
+            <div class="faithBubble" id="faithBubble">
+              <div class="fbIcon">💭</div>
+              <div class="fbText">
+                <div class="fbTitle" id="faithBubbleTitle">Faith reflection bubble</div>
+                <div class="fbMeta" id="faithBubbleMeta">Tap to see a short suggestion.</div>
+              </div>
+              <button class="fbClose" id="faithBubbleClose">×</button>
+            </div>
+
+            <div class="inputRow">
+              <input class="input" id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
+              <button class="send" id="sendBtn">Send</button>
+            </div>
+
+            <div class="formula">
+              E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
             </div>
           </div>
         </div>
-        <div class="ethic-box">
-          <strong>Universal ethic:</strong> avoid actions that grow negative emotions in you or others.
-          Move gently toward choices that increase calm, clarity and mercy.
-        </div>
-      </header>
-
-      <div class="main-grid">
-        <!-- LEFT COLUMN -->
-        <section class="left-col">
-          <div class="lens-row">
-            <div class="lens">
-              <span class="label">Faith lens:</span>
-              <span class="value" id="faithLabel">soft on · respect all humans</span>
-            </div>
-            <div class="lens">
-              <span class="label">Small-talk filter:</span>
-              <span class="value" id="smallTalkLabel">on (skip low-meaning chatter)</span>
-            </div>
-            <div class="lens">
-              <span class="label">LLM stack:</span>
-              <span class="value" id="llmStackLabel">Seed → Intelligence → Offline LLM → API helper</span>
-            </div>
-          </div>
-
-          <div class="chat-shell">
-            <div class="chat-header">
-              <div class="chat-header-left">
-                <div class="chat-header-row">
-                  <span style="font-size:11px;opacity:.85;">Emotional reactor live metrics</span>
-                </div>
-                <div class="capsule-line">
-                  <div class="capsule"><span class="label">E:</span><span class="value" id="capsuleE">0.00</span></div>
-                  <div class="capsule"><span class="label">TM:</span><span class="value" id="capsuleTM">0</span></div>
-                  <div class="capsule"><span class="label">BM:</span><span class="value" id="capsuleBM">0</span></div>
-                  <div class="capsule"><span class="label">R (continuity):</span><span class="value" id="capsuleR">0.00</span></div>
-                </div>
-              </div>
-              <div class="quick-row">
-                <button class="btn btnSmall" id="btnOptions"><span class="icon">☰</span> Options</button>
-                <button class="btn btnSmall" id="btnHistory"><span class="icon">🕒</span> History</button>
-                <button class="btn btnSmall" id="btnBM"><span class="icon">🧠</span> BM recall</button>
-              </div>
-            </div>
-
-            <div class="chat-log" id="chatLog"></div>
-
-            <div class="chat-input-wrap">
-              <div class="input-row">
-                <div class="input-main">
-                  <textarea id="userInput" placeholder="Talk to AURA-X Ω..."></textarea>
-                  <div class="input-meta">
-                    <span id="inputHint">Prototype runs inside your browser. No data leaves your device unless an API helper is used.</span>
-                    <div style="display:flex;gap:6px;align-items:center;">
-                      <label style="display:flex;align-items:center;gap:4px;font-size:10px;opacity:.8;">
-                        <input type="checkbox" id="voiceToggle" style="accent-color:#4ade80;"/> Voice (future)
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <button class="btn btnGreen" id="btnSend">
-                  <span class="icon">➤</span> Send
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- RIGHT COLUMN -->
-        <section class="right-col">
-          <!-- Feed the seed -->
-          <div class="window">
-            <div class="window-header">
-              <div class="window-title">
-                <span class="icon">🌱</span> Feed the seed
-              </div>
-              <div class="window-header-right">
-                <span style="opacity:.75;font-size:10px;">LaTeX Q→A blocks + Logic Pack</span>
-                <button class="btn btnSmall" id="btnOpenFeed">Open</button>
-              </div>
-            </div>
-            <div class="window-body">
-              <p style="margin-bottom:4px;">
-                Add LaTeX Q → A blocks to expand the internal seed. Use <code>\item</code> questions and
-                <code>\textbf{A:}</code> answers. Optionally mark each answer with
-                <code>[polarity=positive; code=E031; intensity=0.8]</code>.
-              </p>
-              <p style="font-size:10px;opacity:.8;">
-                Logic Pack (JSON) stores behaviour rules like abuse filters, cooldown and auto-lock rules.
-                Saved packs never auto-delete; they can only be removed manually with double confirmation.
-              </p>
-            </div>
-          </div>
-
-          <!-- Intelligence window -->
-          <div class="window">
-            <div class="window-header">
-              <div class="window-title">
-                <span class="icon">🧠</span> Intelligence
-              </div>
-              <div class="window-header-right">
-                <span id="intelCount" style="font-size:10px;opacity:.8;">0 pairs</span>
-                <button class="btn btnSmall" id="btnOpenIntel">Edit</button>
-              </div>
-            </div>
-            <div class="window-body">
-              <p>Runtime Q→A pairs that the engine has learned. First answers come from here before any LLM is used.</p>
-              <div id="intelPreview" class="window-scroll" style="margin-top:4px;font-size:11px;opacity:.9;"></div>
-            </div>
-          </div>
-
-          <!-- Identity window -->
-          <div class="window">
-            <div class="window-header">
-              <div class="window-title">
-                <span class="icon">🪪</span> Identity
-              </div>
-              <div class="window-header-right">
-                <span style="font-size:10px;opacity:.8;">Deep profiling</span>
-                <button class="btn btnSmall" id="btnOpenIdentity">Profile</button>
-              </div>
-            </div>
-            <div class="window-body">
-              <p>
-                Store who you are (surface + deep). Identity fields are locked by default and require double confirmation
-                before deletion.
-              </p>
-              <p style="margin-top:4px;font-size:10px;opacity:.8;" id="identitySummary">No identity profile stored yet.</p>
-            </div>
-          </div>
-        </section>
       </div>
     </div>
   </div>
 
-  <!-- Faith bubble -->
-  <div class="faith-bubble" id="faithBubble">
-    <div class="faith-bubble-inner">
-      <span class="icon">✨</span>
-      <span id="faithBubbleText">Faith lens noticed a resonance. Open?</span>
-      <button id="btnOpenFaithArticle">Open</button>
-      <button id="btnDismissFaithBubble">×</button>
-    </div>
-  </div>
-
-  <!-- MODALS -->
-
-  <!-- Feed the seed modal -->
-  <div class="modal-backdrop" id="modalFeed">
+  <!-- Faith selection -->
+  <div class="modalOverlay" id="modalFaith">
     <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">
-          🌱 Feed the seed
-          <small>Add LaTeX Q→A blocks and optional Logic Pack (JSON rules).</small>
-        </div>
-        <button class="modal-close" data-close="modalFeed">×</button>
+      <div class="modalHeader">
+        <div>⚙️ AURA-X Ω options<br><small>Optional faith lens for encouragement lines.</small></div>
+        <button class="closeX" data-close="modalFaith">×</button>
       </div>
-      <div class="modal-body">
-        <div class="two-column">
-          <div>
-            <div class="label-row">
-              <span>Add LaTeX conversation / Q→A block</span>
-              <small>You can optionally start each answer with
-                <code>[polarity=positive; code=E031; intensity=0.8]</code>.</small>
-            </div>
-            <textarea id="seedBlock" class="modal-input"
-              placeholder="Paste LaTeX conversation / logic block here..."></textarea>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
-              <button class="btn btnBlue btnSmall" id="btnParseSeed">Parse block</button>
-              <button class="btn btnGreen btnSmall" id="btnSaveSeed">Save to seed</button>
-              <button class="btn btnRed btnSmall" id="btnDiscardSeed">Discard</button>
-            </div>
-            <div style="margin-top:6px;font-size:11px;opacity:.8;" id="seedStatus">
-              Waiting for block…
-            </div>
-          </div>
+      <div class="modalBody" style="background:#fdf7e5;">
+        <div style="opacity:.8;font-size:13px;line-height:1.35;margin-bottom:8px">
+          Universal ethics are always active. You can optionally pick one or more faith lenses.
+          Nothing is sent to any server.
+        </div>
+        <div class="chipsWrap" id="faithChips"></div>
+      </div>
+    </div>
+  </div>
 
-          <div>
-            <div class="label-row">
-              <span>🧩 Logic Pack (JSON rules – advanced)</span>
-              <small>Store behaviour rules as JSON. A saved logic pack never auto-deletes; only removed manually with double confirmation.</small>
-            </div>
-            <textarea id="logicBox" class="modal-input"
-              placeholder='Example skeleton:
-{
+  <!-- Faith article -->
+  <div class="modalOverlay" id="modalFaithArticle">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>💭 Faith reflection<br><small>Story-related suggestion from your selected literature.</small></div>
+        <button class="closeX" data-close="modalFaithArticle">×</button>
+      </div>
+      <div class="modalBody" style="background:#fefce8;">
+        <div id="faithArticleMeta" style="font-size:12px;opacity:.75;margin-bottom:6px;"></div>
+        <div id="faithArticleTitle" style="font-weight:800;margin-bottom:6px;"></div>
+        <textarea id="faithArticleText"
+          style="width:100%;min-height:160px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;background:#fff;"></textarea>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+          <button class="btn btnBlue" id="btnCopyFaithArticle">Copy</button>
+          <button class="btn btnBlue" id="btnAddFaithToBM">Add under BM prompt</button>
+          <button class="btn btnRed" id="btnSkipFaithBM">Skip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intelligence -->
+  <div class="modalOverlay" id="modalIntel">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🧠 Intelligence<br><small>Stored Q → A pairs.</small></div>
+        <button class="closeX" data-close="modalIntel">×</button>
+      </div>
+      <div class="modalBody">
+        <input id="intelSearch"
+          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none"
+          placeholder="Search intelligence..." />
+        <div id="intelEditor" style="margin-top:10px;display:none;">
+          <input id="intelEditQ" class="intelEditInput" placeholder="Question" />
+          <textarea id="intelEditA" class="intelEditArea" placeholder="Answer"></textarea>
+          <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+            <button class="btn btnBlue" id="btnIntelSave">Save</button>
+            <button class="btn btnRed" id="btnIntelCancel">Cancel</button>
+          </div>
+        </div>
+        <div id="intelList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seed + Logic -->
+  <div class="modalOverlay" id="modalSeed">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🌱 Feed the seed<br><small>Add LaTeX Q → A blocks and optional Logic Pack.</small></div>
+        <button class="closeX" data-close="modalSeed">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="opacity:.75;font-size:13px;line-height:1.35;margin-bottom:10px">
+          Paste a LaTeX block with \item questions and \textbf{A:} answers. You can optionally start each
+          answer with [polarity=positive; code=E031; intensity=0.8].
+        </div>
+        <textarea id="seedBox"
+          style="width:100%;min-height:150px;resize:vertical;border-radius:14px;border:2px solid rgba(59,130,246,.25);padding:12px;font-size:14px;outline:none;background:#fff"
+          placeholder="Paste LaTeX conversation / logic block here..."></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px">
+          <div style="font-size:12px;opacity:.7" id="seedHint">Waiting for block…</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btnBlue" id="btnParseSeed">Parse block</button>
+            <button class="btn btnBlue" id="btnSaveSeed">Save to seed</button>
+            <button class="btn btnRed" id="btnDiscardSeed">Discard</button>
+          </div>
+        </div>
+
+        <hr style="margin:14px 0;border:none;border-top:1px dashed rgba(15,23,42,.18);" />
+
+        <div style="font-weight:800;font-size:13px;margin-bottom:6px;">🧩 Logic Pack (JSON rules – advanced)</div>
+        <div style="font-size:12px;opacity:.75;line-height:1.4;margin-bottom:6px;">
+          Each time you press <b>Save</b>, a new logic pack is stored with its own number.
+          Saved logic packs never auto-delete; they can only be removed manually with double confirmation.
+        </div>
+        <textarea id="logicBox"
+          style="width:100%;min-height:130px;resize:vertical;border-radius:14px;border:2px solid rgba(15,23,42,.18);padding:10px;font-size:13px;outline:none;background:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;"
+          placeholder='{
   "cooldown": { "hits": 3, "seconds": 10 },
   "abuseWords": ["stfu","idiot"],
   "faithSoftener": true,
-  "repeatRetention": {
-    "baseDeleteHours": 48,
-    "weekRepeatThreshold": 2,
-    "weekRepeatWindowHours": 24,
-    "monthRepeatThreshold": 10,
-    "monthRepeatWindowDays": 7,
-    "autoLockThreshold": 12,
-    "autoLockWindowDays": 30
-  }
-}
-'></textarea>
-
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px">
-              <div style="font-size:12px;opacity:.7" id="logicHint">No logic pack stored yet.</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn btnBlue btnSmall" id="btnValidateLogic">Validate</button>
-                <button class="btn btnBlue btnSmall" id="btnSaveLogic">Save</button>
-                <button class="btn btnBlue btnSmall" id="btnCopyLogic">Copy</button>
-                <button class="btn btnRed btnSmall" id="btnDeleteLogic">Delete</button>
-              </div>
-            </div>
-            <div id="logicSerial" style="margin-top:4px;font-size:11px;opacity:.65;">Current serial: none</div>
+  "ui": { "theme": "golden", "accentColor": "#f97316" }
+}'>
+        </textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
+          <div style="font-size:12px;opacity:.7" id="logicHint">No logic pack loaded.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btnBlue" id="btnValidateLogic">Validate</button>
+            <button class="btn btnBlue" id="btnSaveLogic">Save</button>
+            <button class="btn btnBlue" id="btnCopyLogic">Copy</button>
+            <button class="btn btnRed" id="btnDeleteLogic">Delete</button>
           </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btnGhost btnSmall" data-close="modalFeed">Close</button>
+        <div style="margin-top:6px;font-size:11px;opacity:.6;">
+          Current serial: <span id="logicSerial">none</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Intelligence modal -->
-  <div class="modal-backdrop" id="modalIntel">
+  <!-- LLM -->
+  <div class="modalOverlay" id="modalLLM">
     <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">
-          🧠 Intelligence editor
-          <small>Seed + learned Q→A. First stop before any LLM is used.</small>
-        </div>
-        <button class="modal-close" data-close="modalIntel">×</button>
+      <div class="modalHeader">
+        <div>🤖 LLM link<br><small>Offline LLM + optional online helper.</small></div>
+        <button class="closeX" data-close="modalLLM">×</button>
       </div>
-      <div class="modal-body">
-        <div class="two-column">
-          <div>
-            <div class="label-row">
-              <span>Current pairs</span>
-              <small>Tap a row to edit or delete.</small>
-            </div>
-            <div id="intelList" class="window-scroll" style="border-radius:10px;border:1px solid rgba(55,65,81,.9);padding:6px 6px;"></div>
+      <div class="modalBody">
+        <div style="border-radius:14px;border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.12);padding:12px;">
+          <div style="font-weight:900;">Offline LLM (WebLLM)</div>
+          <div style="font-size:13px;opacity:.8;margin-top:6px;line-height:1.35">
+            Loads a small local model in your browser (WebGPU required). On many mobile browsers this may not be supported.
           </div>
-          <div>
-            <div class="label-row">
-              <span>Edit pair</span>
-              <small>Changes apply immediately when you save.</small>
-            </div>
-            <div class="identity-field">
-              <label>Question</label>
-              <textarea id="intelQ" class="modal-input" style="min-height:60px;"></textarea>
-            </div>
-            <div class="identity-field" style="margin-top:4px;">
-              <label>Answer</label>
-              <textarea id="intelA" class="modal-input" style="min-height:80px;"></textarea>
-            </div>
-            <div class="identity-field" style="margin-top:4px;">
-              <label>Meta (emotion / polarity / intensity / category / CRM code)</label>
-              <input id="intelMeta" class="small-input" placeholder="e.g. emotion=warm; polarity=positive; intensity=0.7; category=greeting; crm=G001"/>
-            </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-              <button class="btn btnGreen btnSmall" id="btnSaveIntel">Save pair</button>
-              <button class="btn btnRed btnSmall" id="btnDeleteIntel">Delete pair</button>
-              <button class="btn btnBlue btnSmall" id="btnNewIntel">New empty pair</button>
-            </div>
+          <div style="margin-top:10px;">
+            <button class="btn btnGreen" id="btnLoadOffline">Load offline model</button>
+          </div>
+          <div style="margin-top:8px;font-size:12px;opacity:.75">Status: <span id="offlineStatus">idle</span></div>
+          <div style="margin-top:8px;height:10px;border-radius:999px;background:rgba(2,6,23,.12);overflow:hidden;border:1px solid rgba(2,6,23,.08)">
+            <div id="offlineBar" style="height:100%;width:0%;background:#22c55e;transition:width .2s ease;"></div>
           </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btnGhost btnSmall" data-close="modalIntel">Close</button>
+
+        <div style="font-weight:900;margin-top:14px;">Online helper LLM (connects & works)</div>
+        <div style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:4px;">
+          Use any compatible API (OpenAI, DeepSeek, xAI, etc.). Nothing is stored on server by AURA-X Ω itself.
+        </div>
+
+        <div style="margin-top:6px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API endpoint</label>
+          <input id="apiEndpoint"
+            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+            value="https://api.openai.com/v1/chat/completions" />
+        </div>
+
+        <div style="margin-top:10px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Model</label>
+          <input id="apiModel"
+            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+            value="gpt-4o-mini" />
+        </div>
+
+        <div style="margin-top:10px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API key (session only)</label>
+          <input id="apiKey"
+            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+            placeholder="sk-..." />
+        </div>
+
+        <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+          <button class="btn btnBlue" id="btnSaveLLM">Save</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- BM modal -->
-  <div class="modal-backdrop" id="modalBM">
+  <!-- BM Recall -->
+  <div class="modalOverlay" id="modalBM">
     <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">
-          🧠 BM nodes
-          <small>Bold Memory – manually curated continuity anchors.</small>
-        </div>
-        <button class="modal-close" data-close="modalBM">×</button>
+      <div class="modalHeader">
+        <div>📘 Recall from BM<br><small>Long stories / scenes only.</small></div>
+        <button class="closeX" data-close="modalBM">×</button>
       </div>
-      <div class="modal-body">
-        <div class="two-column">
-          <div>
-            <div class="label-row">
-              <span>BM prompts</span>
-              <small>Each node can be locked or allowed to decay.</small>
+      <div class="modalBody">
+        <div style="font-size:13px;opacity:.75">
+          Select a BM prompt. Locked prompts must be unlocked first. Delete needs double confirmation.
+        </div>
+        <div id="bmSelectList"></div>
+        <div class="bmCard" id="bmViewer" style="display:none;">
+          <div class="bmTop">
+            <div>
+              <div class="title"><span id="bmLockIcon">🔓</span> <span id="bmTitle">Prompt</span></div>
+              <div class="bmSub" id="bmMeta"></div>
             </div>
-            <div id="bmList" class="window-scroll" style="border-radius:10px;border:1px solid rgba(55,65,81,.9);padding:6px 6px;"></div>
-          </div>
-          <div>
-            <div class="identity-field">
-              <label>Node text</label>
-              <textarea id="bmText" class="modal-input" style="min-height:80px;"></textarea>
-            </div>
-            <div class="identity-field" style="margin-top:4px;">
-              <label>Lock state</label>
-              <select id="bmLock" class="small-input">
-                <option value="auto">Auto (decay rules)</option>
-                <option value="locked">Locked (never auto-delete)</option>
-              </select>
-            </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-              <button class="btn btnGreen btnSmall" id="btnSaveBM">Save BM node</button>
-              <button class="btn btnRed btnSmall" id="btnDeleteBM">Delete BM node</button>
-              <button class="btn btnBlue btnSmall" id="btnNewBM">New empty node</button>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+              <button class="btn btnBlue" id="btnLiveBM">Live 12h: off</button>
+              <button class="btn btnBlue" id="btnUnlockBM" style="display:none;">Unlock</button>
             </div>
           </div>
+          <textarea class="bmText" id="bmTextArea" readonly></textarea>
+          <div class="bmActions">
+            <button class="btn btnBlue" id="btnCopyPrompt">Copy prompt</button>
+            <button class="btn btnBlue" id="btnAutoGen">Auto generate</button>
+            <button class="btn btnRed" id="btnDeletePrompt">Delete</button>
+          </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btnGhost btnSmall" data-close="modalBM">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- Identity modal -->
-  <div class="modal-backdrop" id="modalIdentity">
+  <!-- History -->
+  <div class="modalOverlay" id="modalHistory">
     <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">
-          🪪 Deep identity
-          <small>Who you are, in layers (surface → story → core values).</small>
-        </div>
-        <button class="modal-close" data-close="modalIdentity">×</button>
+      <div class="modalHeader">
+        <div>📜 Conversation history<br><small>Recent TM log.</small></div>
+        <button class="closeX" data-close="modalHistory">×</button>
       </div>
-      <div class="modal-body">
-        <div class="identity-grid">
-          <div class="identity-field">
-            <label>Full name</label>
-            <input id="idName" class="small-input" placeholder="e.g. Alim ul Haq"/>
-          </div>
-          <div class="identity-field">
-            <label>Preferred short name</label>
-            <input id="idShortName" class="small-input" placeholder="e.g. Alim"/>
-          </div>
-          <div class="identity-field">
-            <label>City / region</label>
-            <input id="idLocation" class="small-input" placeholder="e.g. Timergara, Pakistan"/>
-          </div>
-          <div class="identity-field">
-            <label>Primary role(s)</label>
-            <input id="idRoles" class="small-input" placeholder="e.g. researcher, founder, teacher"/>
-          </div>
-          <div class="identity-field">
-            <label>Languages (with comfort level)</label>
-            <input id="idLanguages" class="small-input" placeholder="e.g. Urdu (native), English (fluent)"/>
-          </div>
-          <div class="identity-field">
-            <label>Deep values / red lines</label>
-            <input id="idValues" class="small-input" placeholder="e.g. truth, mercy, loyalty, justice"/>
-          </div>
-          <div class="identity-field">
-            <label>Long-term goals</label>
-            <input id="idGoals" class="small-input" placeholder="e.g. build AURA-X Ω, support my family, ..."/>
-          </div>
-          <div class="identity-field">
-            <label>Emotional triggers (things to be gentle about)</label>
-            <input id="idTriggers" class="small-input" placeholder="e.g. family health, injustice, ..."/>
-          </div>
+      <div class="modalBody">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="btn btnBlue" id="btnDeleteRecent">Delete history last 48h</button>
+          <button class="btn btnRed" id="btnDeleteAllHist">Delete all history</button>
+          <button class="btn btnBlue" id="btnCopyHistory">Copy</button>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btnGreen btnSmall" id="btnSaveIdentity">Save identity</button>
-        <button class="btn btnRed btnSmall" id="btnDeleteIdentity">Delete identity</button>
-        <button class="btn btnGhost btnSmall" data-close="modalIdentity">Close</button>
+        <div id="historyBox"
+          style="margin-top:4px;border-radius:14px;padding:4px 0;max-height:60vh;overflow:auto;"></div>
       </div>
     </div>
   </div>
 
-  <!-- Options modal -->
-  <div class="modal-backdrop" id="modalOptions">
+  <!-- Identity -->
+  <div class="modalOverlay" id="modalIdentity">
     <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">
-          ⚙️ Engine options
-          <small>Small-talk filter, helper LLMs and decay rules.</small>
+      <div class="modalHeader">
+        <div>🪪 User identity<br><small>Deep profiling for continuity.</small></div>
+        <button class="closeX" data-close="modalIdentity">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="opacity:.8;font-size:13px;line-height:1.35">
+          Stored only on this device. Saved data auto-locks. Delete requires double confirmation.
         </div>
-        <button class="modal-close" data-close="modalOptions">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="option-list">
-          <div class="option-item">
-            <main>
-              <strong>Small-talk filter</strong>
-              <span>Skip very low-meaning chatter so TM stays clean.</span>
-            </main>
-            <div class="toggle" id="toggleSmallTalk"></div>
-          </div>
-          <div class="option-item">
-            <main>
-              <strong>Faith lens</strong>
-              <span>Use gentle faith-based softening when emotions spike.</span>
-            </main>
-            <div class="toggle" id="toggleFaith"></div>
-          </div>
-          <div class="option-item">
-            <main>
-              <strong>Offline LLM helper</strong>
-              <span>Browser model (WebLLM) – future; for now, stub only.</span>
-            </main>
-            <div class="toggle" id="toggleOffline"></div>
-          </div>
-          <div class="option-item">
-            <main>
-              <strong>API helper LLM</strong>
-              <span>Optional online helper (e.g. ChatGPT or other APIs).</span>
-            </main>
-            <div class="toggle" id="toggleApi"></div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btnGhost btnSmall" data-close="modalOptions">Close</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- LLM modal -->
-  <div class="modal-backdrop" id="modalLLM">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">
-          🧩 Helper LLM stack
-          <small>Offline + API routing (prototype view only).</small>
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+          <button class="btn btnBlue" id="btnEditIdentity">Edit</button>
+          <button class="btn btnBlue" id="btnSaveUserIdentity">Save</button>
+          <button class="btn btnRed" id="btnDeleteUserIdentity">Delete</button>
         </div>
-        <button class="modal-close" data-close="modalLLM">×</button>
-      </div>
-      <div class="modal-body">
-        <p style="margin-bottom:6px;">
-          This prototype keeps the full routing idea visible but only simulates calls. In a future build:
-        </p>
-        <ul style="margin-left:16px;font-size:11px;opacity:.9;">
-          <li>Seed / Intelligence are checked first.</li>
-          <li>If no answer, an offline browser model (WebLLM) is used.</li>
-          <li>If still unclear, an API helper (e.g. ChatGPT) is asked with emotional context.</li>
-        </ul>
-        <p style="margin-top:6px;font-size:11px;opacity:.8;">
-          For now, offline and API helpers are simulated so that the interface works without any keys.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btnGhost btnSmall" data-close="modalLLM">Close</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- History modal -->
-  <div class="modal-backdrop" id="modalHistory">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">
-          🕒 Conversation history
-          <small>Recent TM log (user + system messages).</small>
+        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 1 – Basic</div>
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Full legal name</label>
+          <input id="uName"
+            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+            placeholder="e.g., Alim ul Haq" />
         </div>
-        <button class="modal-close" data-close="modalHistory">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="label-row">
-          <span>Recent TM log</span>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn btnBlue btnSmall" id="btnDeleteRecent">Delete history last 48h</button>
-            <button class="btn btnRed btnSmall" id="btnDeleteAllHist">Delete all history</button>
+
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Preferred name</label>
+            <input id="uNick"
+              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+              placeholder="Nickname" />
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Place of origin</label>
+            <input id="uOrigin"
+              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+              placeholder="Village / town" />
           </div>
         </div>
-        <div id="historyBox" class="window-scroll history-log" style="border-radius:10px;border:1px solid rgba(55,65,81,.9);padding:6px 6px;"></div>
-        <p style="margin-top:6px;font-size:11px;opacity:.75;">
-          🔒 Locked nodes never auto-delete and are also protected from the history delete buttons.
-          🔓 Unlocked nodes follow the 48h → 1 week → 1 month → auto-lock rules based on repetition.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btnGhost btnSmall" data-close="modalHistory">Close</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- Faith article modal -->
-  <div class="modal-backdrop" id="modalFaithArticle">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">
-          ✨ Faith lens reflection
-          <small>Soft, non-preaching reflections when emotional charge is high.</small>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Current city / country</label>
+            <input id="uPlace"
+              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+              placeholder="Timergara, Pakistan" />
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Profession</label>
+            <input id="uProfession"
+              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+              placeholder="Entrepreneur, researcher…" />
+          </div>
         </div>
-        <button class="modal-close" data-close="modalFaithArticle">×</button>
-      </div>
-      <div class="modal-body">
-        <textarea id="faithArticleText" class="modal-input" style="min-height:160px;"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btnBlue btnSmall" id="btnCopyFaithArticle">Copy</button>
-        <button class="btn btnGreen btnSmall" id="btnAddFaithToBM">Link to BM</button>
-        <button class="btn btnGhost btnSmall" id="btnSkipFaithBM">Close</button>
+
+        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 2 – Emotional style</div>
+        <textarea id="uEmotionalStyle"
+          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:90px;"
+          placeholder="How you react under stress, joy, fear, success…"></textarea>
+
+        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 3 – Relationships & legacy</div>
+        <textarea id="uKeyPeople"
+          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
+          placeholder="Key people and roles in your life…"></textarea>
+
+        <textarea id="uLegacyRules"
+          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
+          placeholder="If one day this system speaks for you, which boundaries and rules must it follow?"></textarea>
       </div>
     </div>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener("DOMContentLoaded", () => {
+      const KEY_CFG   = "aurax_cfg_v12";
+      const KEY_INT   = "aurax_intel_v11";
+      const KEY_BM    = "aurax_bm_v11";
+      const KEY_HIST  = "aurax_hist_v11";
+      const KEY_USER  = "aurax_user_v11";
+      const KEY_LOGIC = "aurax_logic_v12";
+      const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
+
       const els = {
-        chatLog: document.getElementById("chatLog"),
-        userInput: document.getElementById("userInput"),
-        btnSend: document.getElementById("btnSend"),
-        capsuleE: document.getElementById("capsuleE"),
-        capsuleTM: document.getElementById("capsuleTM"),
-        capsuleBM: document.getElementById("capsuleBM"),
-        capsuleR: document.getElementById("capsuleR"),
-        faithLabel: document.getElementById("faithLabel"),
-        smallTalkLabel: document.getElementById("smallTalkLabel"),
-        llmStackLabel: document.getElementById("llmStackLabel"),
-        modeLabel: document.getElementById("modeLabel"),
-        continuityLabel: document.getElementById("continuityLabel"),
-        btnOpenFeed: document.getElementById("btnOpenFeed"),
-        btnOpenIntel: document.getElementById("btnOpenIntel"),
-        btnOpenIdentity: document.getElementById("btnOpenIdentity"),
+        console: document.getElementById("console"),
         btnOptions: document.getElementById("btnOptions"),
-        btnHistory: document.getElementById("btnHistory"),
-        btnBM: document.getElementById("btnBM"),
-        modalFeed: document.getElementById("modalFeed"),
-        modalIntel: document.getElementById("modalIntel"),
-        modalIdentity: document.getElementById("modalIdentity"),
-        modalOptions: document.getElementById("modalOptions"),
-        modalBM: document.getElementById("modalBM"),
-        modalLLM: document.getElementById("modalLLM"),
-        modalHistory: document.getElementById("modalHistory"),
+        optionsMenu: document.getElementById("optionsMenu"),
+        miVoice: document.getElementById("miVoice"),
+        miIntel: document.getElementById("miIntel"),
+        miLearn: document.getElementById("miLearn"),
+        miSeed: document.getElementById("miSeed"),
+        miFaith: document.getElementById("miFaith"),
+        miIdentity: document.getElementById("miIdentity"),
+        miLLM: document.getElementById("miLLM"),
+        miBMRecall: document.getElementById("miBMRecall"),
+        miHistory: document.getElementById("miHistory"),
+        voicePill: document.getElementById("voicePill"),
+        learnPill: document.getElementById("learnPill"),
+        faithLabel: document.getElementById("faithLabel"),
+        cE0: document.getElementById("cE0"),
+        cTM: document.getElementById("cTM"),
+        cBM: document.getElementById("cBM"),
+        cCont: document.getElementById("cCont"),
+        userInput: document.getElementById("userInput"),
+        sendBtn: document.getElementById("sendBtn"),
+        faithBubble: document.getElementById("faithBubble"),
+        faithBubbleTitle: document.getElementById("faithBubbleTitle"),
+        faithBubbleMeta: document.getElementById("faithBubbleMeta"),
+        faithBubbleClose: document.getElementById("faithBubbleClose"),
+        modalFaith: document.getElementById("modalFaith"),
+        faithChips: document.getElementById("faithChips"),
         modalFaithArticle: document.getElementById("modalFaithArticle"),
-        seedBlock: document.getElementById("seedBlock"),
-        seedStatus: document.getElementById("seedStatus"),
+        faithArticleMeta: document.getElementById("faithArticleMeta"),
+        faithArticleTitle: document.getElementById("faithArticleTitle"),
+        faithArticleText: document.getElementById("faithArticleText"),
+        btnCopyFaithArticle: document.getElementById("btnCopyFaithArticle"),
+        btnAddFaithToBM: document.getElementById("btnAddFaithToBM"),
+        btnSkipFaithBM: document.getElementById("btnSkipFaithBM"),
+        modalIntel: document.getElementById("modalIntel"),
+        intelSearch: document.getElementById("intelSearch"),
+        intelList: document.getElementById("intelList"),
+        intelEditor: document.getElementById("intelEditor"),
+        intelEditQ: document.getElementById("intelEditQ"),
+        intelEditA: document.getElementById("intelEditA"),
+        btnIntelSave: document.getElementById("btnIntelSave"),
+        btnIntelCancel: document.getElementById("btnIntelCancel"),
+        modalSeed: document.getElementById("modalSeed"),
+        seedBox: document.getElementById("seedBox"),
+        seedHint: document.getElementById("seedHint"),
         btnParseSeed: document.getElementById("btnParseSeed"),
         btnSaveSeed: document.getElementById("btnSaveSeed"),
         btnDiscardSeed: document.getElementById("btnDiscardSeed"),
         logicBox: document.getElementById("logicBox"),
         logicHint: document.getElementById("logicHint"),
+        logicSerial: document.getElementById("logicSerial"),
         btnValidateLogic: document.getElementById("btnValidateLogic"),
         btnSaveLogic: document.getElementById("btnSaveLogic"),
         btnCopyLogic: document.getElementById("btnCopyLogic"),
         btnDeleteLogic: document.getElementById("btnDeleteLogic"),
-        logicSerial: document.getElementById("logicSerial"),
-        intelList: document.getElementById("intelList"),
-        intelPreview: document.getElementById("intelPreview"),
-        intelCount: document.getElementById("intelCount"),
-        intelQ: document.getElementById("intelQ"),
-        intelA: document.getElementById("intelA"),
-        intelMeta: document.getElementById("intelMeta"),
-        btnSaveIntel: document.getElementById("btnSaveIntel"),
-        btnDeleteIntel: document.getElementById("btnDeleteIntel"),
-        btnNewIntel: document.getElementById("btnNewIntel"),
-        bmList: document.getElementById("bmList"),
-        bmText: document.getElementById("bmText"),
-        bmLock: document.getElementById("bmLock"),
-        btnSaveBM: document.getElementById("btnSaveBM"),
-        btnDeleteBM: document.getElementById("btnDeleteBM"),
-        btnNewBM: document.getElementById("btnNewBM"),
-        idName: document.getElementById("idName"),
-        idShortName: document.getElementById("idShortName"),
-        idLocation: document.getElementById("idLocation"),
-        idRoles: document.getElementById("idRoles"),
-        idLanguages: document.getElementById("idLanguages"),
-        idValues: document.getElementById("idValues"),
-        idGoals: document.getElementById("idGoals"),
-        idTriggers: document.getElementById("idTriggers"),
-        identitySummary: document.getElementById("identitySummary"),
-        btnSaveIdentity: document.getElementById("btnSaveIdentity"),
-        btnDeleteIdentity: document.getElementById("btnDeleteIdentity"),
-        toggleSmallTalk: document.getElementById("toggleSmallTalk"),
-        toggleFaith: document.getElementById("toggleFaith"),
-        toggleOffline: document.getElementById("toggleOffline"),
-        toggleApi: document.getElementById("toggleApi"),
-        voiceToggle: document.getElementById("voiceToggle"),
-        historyBox: document.getElementById("historyBox"),
+        modalLLM: document.getElementById("modalLLM"),
+        btnLoadOffline: document.getElementById("btnLoadOffline"),
+        offlineStatus: document.getElementById("offlineStatus"),
+        offlineBar: document.getElementById("offlineBar"),
+        apiEndpoint: document.getElementById("apiEndpoint"),
+        apiModel: document.getElementById("apiModel"),
+        apiKey: document.getElementById("apiKey"),
+        btnSaveLLM: document.getElementById("btnSaveLLM"),
+        modalBM: document.getElementById("modalBM"),
+        bmSelectList: document.getElementById("bmSelectList"),
+        bmViewer: document.getElementById("bmViewer"),
+        bmLockIcon: document.getElementById("bmLockIcon"),
+        bmTitle: document.getElementById("bmTitle"),
+        bmMeta: document.getElementById("bmMeta"),
+        bmTextArea: document.getElementById("bmTextArea"),
+        btnLiveBM: document.getElementById("btnLiveBM"),
+        btnUnlockBM: document.getElementById("btnUnlockBM"),
+        btnCopyPrompt: document.getElementById("btnCopyPrompt"),
+        btnAutoGen: document.getElementById("btnAutoGen"),
+        btnDeletePrompt: document.getElementById("btnDeletePrompt"),
+        modalHistory: document.getElementById("modalHistory"),
         btnDeleteRecent: document.getElementById("btnDeleteRecent"),
         btnDeleteAllHist: document.getElementById("btnDeleteAllHist"),
-        faithBubble: document.getElementById("faithBubble"),
-        faithBubbleText: document.getElementById("faithBubbleText"),
-        btnOpenFaithArticle: document.getElementById("btnOpenFaithArticle"),
-        btnDismissFaithBubble: document.getElementById("btnDismissFaithBubble"),
-        faithArticleText: document.getElementById("faithArticleText"),
-        btnCopyFaithArticle: document.getElementById("btnCopyFaithArticle"),
-        btnAddFaithToBM: document.getElementById("btnAddFaithToBM"),
-        btnSkipFaithBM: document.getElementById("btnSkipFaithBM"),
-        inputHint: document.getElementById("inputHint")
+        btnCopyHistory: document.getElementById("btnCopyHistory"),
+        historyBox: document.getElementById("historyBox"),
+        modalIdentity: document.getElementById("modalIdentity"),
+        btnEditIdentity: document.getElementById("btnEditIdentity"),
+        btnSaveUserIdentity: document.getElementById("btnSaveUserIdentity"),
+        btnDeleteUserIdentity: document.getElementById("btnDeleteUserIdentity"),
+        uName: document.getElementById("uName"),
+        uNick: document.getElementById("uNick"),
+        uOrigin: document.getElementById("uOrigin"),
+        uPlace: document.getElementById("uPlace"),
+        uProfession: document.getElementById("uProfession"),
+        uEmotionalStyle: document.getElementById("uEmotionalStyle"),
+        uKeyPeople: document.getElementById("uKeyPeople"),
+        uLegacyRules: document.getElementById("uLegacyRules")
       };
 
-      const KEY_CONFIG = "auraX_config_v1";
-      const KEY_INTEL = "auraX_intel_v1";
-      const KEY_BM = "auraX_bm_v1";
-      const KEY_HIST = "auraX_hist_v1";
-      const KEY_ID = "auraX_id_v1";
-      const KEY_LOGIC = "auraX_logic_v1";
+      const FAITH_OPTIONS = [
+        { id: "none",        label: "None" },
+        { id: "islam",       label: "Islam ☪️" },
+        { id: "christianity",label: "Christianity ✝️" },
+        { id: "hinduism",    label: "Hinduism ॐ" },
+        { id: "buddhism",    label: "Buddhism ☸️" },
+        { id: "sikhism",     label: "Sikhism 🪯" },
+        { id: "judaism",     label: "Judaism ✡️" },
+        { id: "atheism",     label: "Atheism / Humanism" },
+        { id: "mixed",       label: "Other / Mixed" },
+        { id: "indigenous",  label: "Indigenous / Traditional" },
+        { id: "eastern",     label: "Eastern / Chinese" }
+      ];
+
+      const FAITH_LIBRARY = {
+        islam: [{
+          id: "islam_generic",
+          title: "Meaning of hardship and patience",
+          short: "Trust, sabr and good opinion of Allah during hard stories.",
+          content:
+            "In Islamic reflection, hardship is often seen as a temporary test that polishes the heart. " +
+            "Believers are invited toward sabr (patience), shukr (gratitude where possible), and husn-uz-zann " +
+            "(a good opinion of Allah). You can ask: what quality is being trained in me here, and which door " +
+            "of mercy may open later from this chapter of my life?"
+        }]
+      };
 
       let state = {
         voiceOn: false,
-        smallTalkFilter: true,
-        faithLensOn: true,
-        offlineLLMOn: false,
-        apiHelperOn: false,
-        tmCount: 0,
-        bmCount: 0,
-        eValue: 0,
-        rValue: 0,
+        learningOn: true,
+        faithSelection: [],
         intelligence: [],
         bmPrompts: [],
         history: [],
         userIdentity: null,
-        currentIntelId: null,
-        currentBMId: null,
+        apiConfig: { endpoint: "", model: "", key: "" },
+        offlineEngine: null,
+        offlineLoading: false,
+        offlineReady: false,
+        lastAnswerSource: null,
+        metrics: { TM:0, BM:0, C:0.85, E0:0 },
+        parsedSeed: [],
+        editingIntelId: null,
+        lastStoryInput: null,
+        lastStoryBMId: null,
+        faithBubbleTimer: null,
         currentFaithArticle: null,
-        logicPack: null,
-        logicPackUpdatedAt: null,
-        logicSerial: null
+        logicPacks: [],
+        logicActiveIndex: null,
+        abuseCount: 0,
+        cooldownUntil: 0,
+        mode: "adult",
+        logicFaithSoftener: true
       };
 
-      function saveConfig() {
-        const cfg = {
-          smallTalkFilter: state.smallTalkFilter,
-          faithLensOn: state.faithLensOn,
-          offlineLLMOn: state.offlineLLMOn,
-          apiHelperOn: state.apiHelperOn
-        };
-        localStorage.setItem(KEY_CONFIG, JSON.stringify(cfg));
-      }
-      function saveIntelligence() {
-        localStorage.setItem(KEY_INTEL, JSON.stringify(state.intelligence));
-      }
-      function saveBM() {
-        localStorage.setItem(KEY_BM, JSON.stringify(state.bmPrompts));
-      }
-      function saveHistory() {
-        localStorage.setItem(KEY_HIST, JSON.stringify(state.history));
-      }
-      function saveIdentity() {
-        localStorage.setItem(KEY_ID, JSON.stringify(state.userIdentity || null));
-      }
-
-      function safeLoadJSON(key, defaultValue) {
-        try {
+      function safeLoadJSON(key, fallback){
+        try{
           const raw = localStorage.getItem(key);
-          if (!raw) return defaultValue;
-          return JSON.parse(raw);
-        } catch (e) {
-          console.warn("Failed to parse", key, e);
-          return defaultValue;
-        }
+          return raw ? JSON.parse(raw) : fallback;
+        }catch{ return fallback; }
       }
 
-      function generateLogicSerial() {
-        const now = new Date();
-        const pad = (n) => String(n).padStart(2, "0");
-        const stamp =
-          now.getFullYear().toString() +
-          pad(now.getMonth() + 1) +
-          pad(now.getDate()) +
-          pad(now.getHours()) +
-          pad(now.getMinutes()) +
-          pad(now.getSeconds());
-        return "LP-" + stamp;
+      function logLine(text){
+        const div = document.createElement("div");
+        div.className = "line";
+        div.textContent = text;
+        els.console.appendChild(div);
+        els.console.scrollTop = els.console.scrollHeight;
       }
 
-      function saveLogicPack() {
-        if (!state.logicPack) {
-          localStorage.removeItem(KEY_LOGIC);
-          state.logicSerial = null;
-          return;
-        }
-        if (!state.logicSerial) {
-          state.logicSerial = generateLogicSerial();
-        }
-        const payload = {
-          pack: state.logicPack,
-          updatedAt: state.logicPackUpdatedAt || Date.now(),
-          serial: state.logicSerial
+      function scoreTM(t){
+        const len = Math.min((t||"").length,600);
+        return Number(Math.tanh(len/200).toFixed(2));
+      }
+
+      function recomputeBMMetric(){
+        const count = state.bmPrompts.length || 0;
+        state.metrics.BM = Number(Math.tanh(count/10).toFixed(2));
+      }
+
+      function recomputeE0(intelBoost, llmBoost){
+        const TM = state.metrics.TM;
+        const BM = state.metrics.BM;
+        const R = TM * BM;
+        const I_tm = 0.3 * TM;
+        const D = 0.1;
+        const lambdaFaith = state.faithSelection.length ? 0.15 : 0;
+        const lambdaSys   = 0.05;
+        const lambdaTrc   = 0.05;
+        const raw = R + I_tm + intelBoost + llmBoost - D + lambdaFaith + lambdaSys + lambdaTrc;
+        state.metrics.E0 = Number(Math.tanh(raw).toFixed(3));
+      }
+
+      function updateCapsule(){
+        els.cTM.textContent = state.metrics.TM.toFixed(2);
+        els.cBM.textContent = state.metrics.BM.toFixed(2);
+        els.cCont.textContent = state.metrics.C.toFixed(3);
+        els.cE0.textContent = state.metrics.E0.toFixed(3);
+      }
+
+      function saveCfg(){
+        const cfg = {
+          voiceOn: state.voiceOn,
+          learningOn: state.learningOn,
+          faithSelection: state.faithSelection,
+          apiConfig: state.apiConfig,
+          offlineReady: state.offlineReady
         };
-        localStorage.setItem(KEY_LOGIC, JSON.stringify(payload));
+        localStorage.setItem(KEY_CFG, JSON.stringify(cfg));
       }
 
-      function setLogicHint(msg, isWarn=false) {
-        if (!els.logicHint) return;
-        els.logicHint.textContent = msg;
-        els.logicHint.style.color = isWarn ? "#b91c1c" : "";
+      function saveIntelligence(){ localStorage.setItem(KEY_INT, JSON.stringify(state.intelligence)); }
+      function saveBM(){ localStorage.setItem(KEY_BM, JSON.stringify(state.bmPrompts)); }
+      function saveHistory(){ localStorage.setItem(KEY_HIST, JSON.stringify(state.history)); }
+      function saveUserIdentity(){ localStorage.setItem(KEY_USER, JSON.stringify(state.userIdentity)); }
+
+      function persistLogicState(){
+        const data = { list: state.logicPacks || [], activeIndex: state.logicActiveIndex };
+        localStorage.setItem(KEY_LOGIC, JSON.stringify(data));
       }
 
-      function updateLogicSerialLabel() {
-        if (!els.logicSerial) return;
-        if (state.logicSerial) {
-          els.logicSerial.textContent = "Current serial: " + state.logicSerial;
-        } else {
-          els.logicSerial.textContent = "Current serial: none";
-        }
-      }
-
-      function applyConfigToUI(cfg) {
-        state.smallTalkFilter = !!cfg.smallTalkFilter;
-        state.faithLensOn = !!cfg.faithLensOn;
-        state.offlineLLMOn = !!cfg.offlineLLMOn;
-        state.apiHelperOn = !!cfg.apiHelperOn;
-
-        setToggle(els.toggleSmallTalk, state.smallTalkFilter);
-        setToggle(els.toggleFaith, state.faithLensOn);
-        setToggle(els.toggleOffline, state.offlineLLMOn);
-        setToggle(els.toggleApi, state.apiHelperOn);
-
-        els.smallTalkLabel.textContent = state.smallTalkFilter
-          ? "on (skip low-meaning chatter)"
-          : "off (keep everything)";
-        els.faithLabel.textContent = state.faithLensOn
-          ? "soft on · respect all humans"
-          : "off for now";
-        els.llmStackLabel.textContent = state.offlineLLMOn || state.apiHelperOn
-          ? "Seed → Intelligence → Offline LLM → API helper"
-          : "Seed → Intelligence only (helpers off)";
-      }
-
-      function setToggle(el, on) {
-        if (!el) return;
-        if (on) el.classList.add("on");
-        else el.classList.remove("on");
-      }
-
-      function applyLogicPackToRuntime() {
-        // For now we don't modify runtime deeply; helpers below read from state.logicPack.
-        // This hook is kept so future prototypes can attach behaviour here without breaking older saves.
-      }
-
-      function getRepeatRetentionConfig() {
-        const base = {
-          baseDeleteHours: 48,
-          weekRepeatThreshold: 2,
-          weekRepeatWindowHours: 24,
-          monthRepeatThreshold: 10,
-          monthRepeatWindowDays: 7,
-          autoLockThreshold: 12,
-          autoLockWindowDays: 30
-        };
-        const cfg =
-          state.logicPack && state.logicPack.repeatRetention
-            ? state.logicPack.repeatRetention
-            : {};
-        return {
-          baseDeleteHours: cfg.baseDeleteHours || base.baseDeleteHours,
-          weekRepeatThreshold: cfg.weekRepeatThreshold || base.weekRepeatThreshold,
-          weekRepeatWindowHours: cfg.weekRepeatWindowHours || base.weekRepeatWindowHours,
-          monthRepeatThreshold: cfg.monthRepeatThreshold || base.monthRepeatThreshold,
-          monthRepeatWindowDays: cfg.monthRepeatWindowDays || base.monthRepeatWindowDays,
-          autoLockThreshold: cfg.autoLockThreshold || base.autoLockThreshold,
-          autoLockWindowDays: cfg.autoLockWindowDays || base.autoLockWindowDays
-        };
-      }
-
-      function normalizeHistory() {
-        const baseMs = getRepeatRetentionConfig().baseDeleteHours * 60 * 60 * 1000;
-        const now = Date.now();
-        state.history = (state.history || []).map((h) => {
-          if (!h) return null;
-          if (!h.id) {
-            h.id =
-              "h_" +
-              (h.ts || now) +
-              "_" +
-              Math.random().toString(16).slice(2);
-          }
-          if (!h.ts) h.ts = now;
-          if (typeof h.locked !== "boolean") h.locked = false;
-          if (typeof h.autoLock !== "boolean") h.autoLock = false;
-          if (typeof h.disableAutoDelete !== "boolean")
-            h.disableAutoDelete = false;
-          if (!h.retentionUntil) h.retentionUntil = h.ts + baseMs;
-          if (!h.key && h.text) {
-            h.key = h.text.toLowerCase().replace(/\s+/g, " ").trim().slice(0, 200);
-          }
-          if (typeof h.promotedToIntel !== "boolean")
-            h.promotedToIntel = false;
-          return h;
-        }).filter(Boolean);
-      }
-
-      function autoPromoteHistoryToIntel(item) {
-        const q = (item && item.text ? item.text : "").trim();
-        if (!q) return;
-        // find the last AURA answer closest to this node (searching backwards)
-        let answer = null;
-        for (let i = state.history.length - 1; i >= 0; i--) {
-          const h = state.history[i];
-          if (!h) continue;
-          if (h.role === "aura" && h.ts <= item.ts) {
-            answer = h.text;
-            break;
-          }
-        }
-        if (!answer) return;
-        const existing = state.intelligence.find(
-          (x) => x.q && x.q.toLowerCase() === q.toLowerCase()
-        );
-        if (existing) {
-          existing.a = answer;
-          existing.meta = (existing.meta || "") + " [autoPromoted]";
-        } else {
-          state.intelligence.push({
-            id:
-              "intel_autolock_" +
-              Date.now() +
-              "_" +
-              Math.random().toString(16).slice(2),
-            q,
-            a: answer,
-            meta: "autoPromoted=monthLock"
-          });
-        }
-        saveIntelligence();
-        renderIntelList();
-      }
-
-      function applyRepeatRetentionToItem(item) {
-        if (!item || !item.text) return;
-        if (item.role !== "user") return; // retention logic is driven by user prompts
-        const cfg = getRepeatRetentionConfig();
-        const now = Date.now();
-        const dayMs = 24 * 60 * 60 * 1000;
-        const window24hMs = (cfg.weekRepeatWindowHours || 24) * 60 * 60 * 1000;
-        const weekWindowMs = (cfg.monthRepeatWindowDays || 7) * dayMs;
-        const monthWindowMs = (cfg.autoLockWindowDays || 30) * dayMs;
-        const key =
-          item.key ||
-          item.text.toLowerCase().replace(/\s+/g, " ").trim().slice(0, 200);
-        item.key = key;
-        const matches = state.history.filter(
-          (h) => h && h.role === "user" && h.key === key
-        );
-        const within24h = matches.filter((m) => now - m.ts <= window24hMs).length;
-        const within7d = matches.filter((m) => now - m.ts <= weekWindowMs).length;
-        const within30d = matches.filter((m) => now - m.ts <= monthWindowMs).length;
-
-        let retentionMs = cfg.baseDeleteHours * 60 * 60 * 1000;
-        let promoteToIntel = false;
-
-        if (within24h >= cfg.weekRepeatThreshold) {
-          retentionMs = Math.max(retentionMs, 7 * dayMs);
-        }
-        if (within7d >= cfg.monthRepeatThreshold) {
-          retentionMs = Math.max(retentionMs, 30 * dayMs);
-          promoteToIntel = true;
-        }
-        if (within30d >= cfg.autoLockThreshold) {
-          retentionMs = Math.max(retentionMs, 3650 * dayMs);
-          item.locked = true;
-          item.autoLock = true;
-          item.disableAutoDelete = true;
-          promoteToIntel = true;
-        }
-
-        item.retentionUntil = now + retentionMs;
-        item.repeat24h = within24h;
-        item.repeat7d = within7d;
-        item.repeat30d = within30d;
-
-        if (promoteToIntel && !item.promotedToIntel) {
-          autoPromoteHistoryToIntel(item);
-          item.promotedToIntel = true;
-        }
-      }
-
-      function renderIntelList() {
-        const list = els.intelList;
-        const preview = els.intelPreview;
-        list.innerHTML = "";
-        preview.innerHTML = "";
-        state.intelligence.forEach(pair => {
-          const row = document.createElement("div");
-          row.style.padding = "4px 6px";
-          row.style.marginBottom = "4px";
-          row.style.borderRadius = "8px";
-          row.style.border = "1px solid rgba(55,65,81,.9)";
-          row.style.cursor = "pointer";
-          row.style.fontSize = "11px";
-          row.innerHTML = `<strong>Q:</strong> ${escapeHtml(pair.q)}<br/><strong>A:</strong> ${escapeHtml(pair.a)}`;
-          row.addEventListener("click", () => {
-            state.currentIntelId = pair.id;
-            els.intelQ.value = pair.q;
-            els.intelA.value = pair.a;
-            els.intelMeta.value = pair.meta || "";
-          });
-          list.appendChild(row);
-
-          if (preview && preview.children.length < 4) {
-            const p = document.createElement("div");
-            p.style.marginBottom = "4px";
-            p.style.fontSize = "11px";
-            p.style.opacity = .9;
-            p.innerHTML = `<strong>Q:</strong> ${escapeHtml(pair.q)}<br/><strong>A:</strong> ${escapeHtml(pair.a)}`;
-            preview.appendChild(p);
-          }
-        });
-        els.intelCount.textContent = state.intelligence.length + " pairs";
-        if (!state.intelligence.length && preview) {
-          preview.textContent = "No intelligence pairs yet. Teach AURA-X Ω by correcting answers.";
-        }
-      }
-
-      function renderBMList() {
-        const list = els.bmList;
-        list.innerHTML = "";
-        state.bmPrompts.forEach(node => {
-          const row = document.createElement("div");
-          row.style.padding = "4px 6px";
-          row.style.marginBottom = "4px";
-          row.style.borderRadius = "8px";
-          row.style.border = "1px solid rgba(55,65,81,.9)";
-          row.style.cursor = "pointer";
-          row.style.fontSize = "11px";
-          const lockLabel = node.lock === "locked" ? "🔒" : "auto";
-          row.innerHTML = `<strong>${lockLabel}</strong> ${escapeHtml(node.text)}`;
-          row.addEventListener("click", () => {
-            state.currentBMId = node.id;
-            els.bmText.value = node.text;
-            els.bmLock.value = node.lock || "auto";
-          });
-          list.appendChild(row);
-        });
-        state.bmCount = state.bmPrompts.length;
-        els.capsuleBM.textContent = state.bmCount;
-      }
-
-      function addHistory(role, text) {
-        const now = Date.now();
-        const cfg = getRepeatRetentionConfig();
-        const baseMs = cfg.baseDeleteHours * 60 * 60 * 1000;
-        const key = (text || "").toLowerCase().replace(/\s+/g, " ").trim().slice(0, 200);
-        const item = {
-          id: "h_" + now + "_" + Math.random().toString(16).slice(2),
-          role,
-          text,
-          ts: now,
-          locked: false,
-          autoLock: false,
-          disableAutoDelete: false,
-          key,
-          retentionUntil: now + baseMs,
-          promotedToIntel: false
-        };
-        state.history.push(item);
-        if (role === "user") {
-          applyRepeatRetentionToItem(item);
-        }
-        pruneHistory();
+      function addHistory(role,text){
+        state.history.push({role,text,ts:Date.now()});
+        const cutoff = Date.now() - 48*60*60*1000;
+        state.history = state.history.filter(h => h.ts >= cutoff);
         saveHistory();
       }
 
-      function pruneHistory() {
-        const now = Date.now();
-        const cfg = getRepeatRetentionConfig();
-        const baseMs = cfg.baseDeleteHours * 60 * 60 * 1000;
-        const maxEntries = 400;
-        state.history = (state.history || []).filter((h) => {
-          if (!h) return false;
-          if (h.locked || h.disableAutoDelete) return true;
-          const limit = h.retentionUntil || (h.ts || now) + baseMs;
-          return limit >= now;
+      function renderHistory(){
+        els.historyBox.innerHTML = "";
+        state.history.forEach(h=>{
+          const row = document.createElement("div");
+          row.className = "historyLine";
+          row.style.opacity = h.role==="system" ? 0.9 : 1;
+          const dt = new Date(h.ts).toLocaleString();
+          const label = h.role==="user" ? "You" : (h.role==="aura"?"AURA-X Ω":h.role);
+          row.textContent = `[${dt}] ${label}: ${h.text}`;
+          els.historyBox.appendChild(row);
         });
-        if (state.history.length > maxEntries) {
-          state.history.sort((a, b) => a.ts - b.ts);
-          let toRemove = state.history.length - maxEntries;
-          const kept = [];
-          for (const h of state.history) {
-            if (toRemove > 0 && !h.locked && !h.disableAutoDelete) {
-              toRemove--;
-              continue;
-            }
-            kept.push(h);
-          }
-          state.history = kept;
+      }
+
+      function renderFaithChips(){
+        els.faithChips.innerHTML = "";
+        FAITH_OPTIONS.forEach(opt=>{
+          const chip = document.createElement("button");
+          const active = opt.id==="none"
+            ? state.faithSelection.length===0
+            : state.faithSelection.includes(opt.id);
+          chip.className = "chip"+(active?" active":"");
+          chip.textContent = opt.label;
+          chip.addEventListener("click",()=>toggleFaith(opt.id));
+          els.faithChips.appendChild(chip);
+        });
+        updateFaithLabel();
+      }
+
+      function updateFaithLabel(){
+        if(!state.faithSelection.length){
+          els.faithLabel.textContent = "none";
+          els.faithLabel.className = "pillOff";
+        }else if(state.faithSelection.length===1){
+          const opt = FAITH_OPTIONS.find(o=>o.id===state.faithSelection[0]);
+          els.faithLabel.textContent = opt ? opt.label.split(" ")[0] : "1";
+          els.faithLabel.className = "pillOn";
+        }else{
+          els.faithLabel.textContent = "multi";
+          els.faithLabel.className = "pillMid";
         }
       }
 
-      function renderHistoryBox() {
-        if (!els.historyBox) return;
-        els.historyBox.innerHTML = "";
-        if (!state.history.length) {
-          els.historyBox.innerHTML =
-            '<div style="padding:6px 10px;font-size:12px;opacity:.6;">No history yet.</div>';
+      function toggleFaith(id){
+        if(id==="none") state.faithSelection = [];
+        else{
+          const idx = state.faithSelection.indexOf(id);
+          if(idx>=0) state.faithSelection.splice(idx,1);
+          else state.faithSelection.push(id);
+        }
+        saveCfg();
+        renderFaithChips();
+      }
+
+      function showModal(id){ const el=document.getElementById(id); if(el) el.classList.add("show"); }
+      function hideModal(id){ const el=document.getElementById(id); if(el) el.classList.remove("show"); }
+
+      document.querySelectorAll(".closeX").forEach(btn=>{
+        const target=btn.getAttribute("data-close");
+        if(target) btn.addEventListener("click",()=>hideModal(target));
+      });
+
+      function renderBMList(){
+        els.bmSelectList.innerHTML = "";
+        if(!state.bmPrompts.length){
+          els.bmSelectList.innerHTML =
+            '<div style="margin-top:8px;font-size:12px;opacity:.6;">No BM prompts yet.</div>';
+          els.bmViewer.style.display = "none";
           return;
         }
-        const dayMs = 24 * 60 * 60 * 1000;
-        state.history
-          .slice()
-          .sort((a, b) => a.ts - b.ts)
-          .forEach((h) => {
-            const row = document.createElement("div");
-            row.style.display = "flex";
-            row.style.alignItems = "flex-start";
-            row.style.justifyContent = "space-between";
-            row.style.gap = "8px";
-            row.style.padding = "4px 10px";
-            row.style.fontSize = "12px";
-            row.style.borderRadius = "10px";
-            row.style.margin = "2px 6px";
-            row.style.background =
-              h.role === "user"
-                ? "rgba(15,23,42,0.85)"
-                : h.role === "aura"
-                ? "rgba(15,23,42,0.6)"
-                : "rgba(15,23,42,0.4)";
-            row.style.border = h.locked || h.disableAutoDelete
-              ? "1px solid rgba(250,204,21,0.8)"
-              : "1px solid rgba(148,163,184,0.35)";
-            const left = document.createElement("div");
-            left.style.flex = "1";
-            const dt = new Date(h.ts);
-            const label =
-              h.role === "user"
-                ? "You"
-                : h.role === "aura"
-                ? "AURA-X Ω"
-                : h.role || "sys";
-            const header = document.createElement("div");
-            header.style.opacity = "0.85";
-            header.style.marginBottom = "2px";
-            header.textContent = `[${dt.toLocaleString()}] ${label}`;
-            const body = document.createElement("div");
-            body.textContent = h.text;
-            left.appendChild(header);
-            left.appendChild(body);
-            const right = document.createElement("button");
-            right.style.borderRadius = "999px";
-            right.style.border = "1px solid rgba(148,163,184,0.6)";
-            right.style.background = "rgba(15,23,42,0.9)";
-            right.style.color = "#e5e7eb";
-            right.style.cursor = "pointer";
-            right.style.minWidth = "34px";
-            right.style.padding = "2px 6px";
-            right.style.fontSize = "14px";
-            right.textContent =
-              h.locked || h.disableAutoDelete ? "🔒" : "🔓";
-            right.title =
-              h.locked || h.disableAutoDelete
-                ? "Locked (kept from auto delete). Tap to unlock."
-                : "Unlocked. Tap to lock and keep.";
-            right.addEventListener("click", () => {
-              const lockedNow = !(h.locked || h.disableAutoDelete);
-              h.locked = lockedNow;
-              h.disableAutoDelete = lockedNow;
-              if (lockedNow) {
-                h.retentionUntil = Date.now() + 3650 * dayMs;
-              }
-              saveHistory();
-              renderHistoryBox();
-            });
-            row.appendChild(left);
-            row.appendChild(right);
-            els.historyBox.appendChild(row);
-          });
+        const now = Date.now();
+        state.bmPrompts.slice().sort((a,b)=>b.ts-a.ts).forEach(bm=>{
+          const card = document.createElement("div");
+          card.className = "bmCard";
+          card.style.cursor="pointer";
+          const title = document.createElement("div");
+          title.style.fontWeight="800";
+          title.textContent = bm.title || "(untitled story)";
+          const meta = document.createElement("div");
+          meta.style.fontSize="11px";
+          meta.style.opacity=".7";
+          meta.style.marginTop="2px";
+          let txt = new Date(bm.ts).toLocaleString() + (bm.locked?" · locked":" · editable");
+          if(bm.live && bm.liveUntil){
+            if(bm.liveUntil>now) txt += " · live";
+            else txt += " · live expired";
+          }
+          meta.textContent = txt;
+          card.appendChild(title);
+          card.appendChild(meta);
+          card.addEventListener("click",()=>openBM(bm.id));
+          els.bmSelectList.appendChild(card);
+        });
       }
 
-      function escapeHtml(str) {
-        if (!str) return "";
-        return str
-          .replace(/&/g,"&amp;")
-          .replace(/</g,"&lt;")
-          .replace(/>/g,"&gt;")
-          .replace(/"/g,"&quot;")
-          .replace(/'/g,"&#39;");
-      }
-
-      function logLine(role, text) {
-        const line = document.createElement("div");
-        line.className = "chat-line";
-        const roleSpan = document.createElement("span");
-        roleSpan.className = "role";
-        if (role === "user") roleSpan.classList.add("role-user");
-        else if (role === "system") roleSpan.classList.add("role-sys");
-        roleSpan.textContent =
-          role === "user" ? "You: " :
-          role === "aura" ? "AURA-X Ω: " :
-          "System: ";
-        const textSpan = document.createElement("span");
-        textSpan.textContent = text;
-        line.appendChild(roleSpan);
-        line.appendChild(textSpan);
-        els.chatLog.appendChild(line);
-        els.chatLog.scrollTop = els.chatLog.scrollHeight;
-      }
-
-      function updateContinuityMetrics() {
-        const tm = state.tmCount;
-        const bm = state.bmCount;
-        const D = Math.max(0, tm - bm * 0.3);
-        const lambdaFaith = state.faithLensOn ? 0.4 : 0.05;
-        const lambdaSys = 0.2;
-        const lambdaTrc = 0.3;
-        const raw = tm * 0.5 + bm * 0.8 - D + lambdaFaith + lambdaSys + lambdaTrc;
-        const E0 = Math.tanh(raw / 10);
-        state.eValue = E0;
-        state.rValue = parseFloat((E0 * (1 + bm * 0.02)).toFixed(2));
-        els.capsuleE.textContent = E0.toFixed(2);
-        els.capsuleTM.textContent = tm;
-        els.capsuleBM.textContent = bm;
-        els.capsuleR.textContent = state.rValue.toFixed(2);
-      }
-
-      function shouldSkipAsSmallTalk(text) {
-        if (!state.smallTalkFilter) return false;
-        const t = text.trim().toLowerCase();
-        if (!t) return true;
-        const short = t.replace(/[^a-zA-Zا-ی0-9]+/g," ").trim();
-        if (!short) return true;
-        if (short.split(/\s+/).length <= 2 &&
-            ["hi","hello","salam","salaam","hey","yo","bye","ok","okay","hmm"].includes(short)) {
-          return true;
+      let currentBMId = null;
+      function openBM(id){
+        const bm = state.bmPrompts.find(x=>x.id===id);
+        if(!bm) return;
+        currentBMId=id;
+        els.bmViewer.style.display="block";
+        els.bmTitle.textContent = bm.title || "(untitled story)";
+        const now = Date.now();
+        let meta = new Date(bm.ts).toLocaleString() + (bm.locked?" · locked":" · editable");
+        if(bm.live && bm.liveUntil){
+          if(bm.liveUntil>now)
+            meta += " · live until "+new Date(bm.liveUntil).toLocaleTimeString();
+          else
+            meta += " · live expired";
         }
-        return false;
+        els.bmMeta.textContent=meta;
+        els.bmLockIcon.textContent = bm.locked?"🔒":"🔓";
+        els.bmTextArea.value = bm.text || "";
+        els.bmTextArea.readOnly = bm.locked;
+        els.btnUnlockBM.style.display = bm.locked?"inline-flex":"none";
+        els.btnLiveBM.textContent = (bm.live && bm.liveUntil && bm.liveUntil>now)
+          ? "Live 12h: on" : "Live 12h: off";
       }
 
-      function findBestIntelMatch(userText) {
-        if (!userText) return null;
-        const normalized = userText.trim().toLowerCase();
-        const variants = [
-          normalized,
-          normalized.replace(/[?!.]+$/,"").trim(),
-          normalized.replace(/\s+/g," ")
-        ];
-        let best = null;
-        let bestScore = 0;
-        for (const pair of state.intelligence) {
-          const q = (pair.q || "").toLowerCase();
-          if (!q) continue;
-          let score = 0;
-          if (variants.includes(q)) score = 1.0;
-          else if (q.includes(variants[1] || "")) score = 0.7;
-          else if (variants[1] && variants[1].includes(q) && q.length >= 6) score = 0.65;
-          else if (q.startsWith(variants[1] || "")) score = 0.6;
-          if (score > bestScore) {
-            bestScore = score;
-            best = pair;
+      function ensureBMForLastStory(){
+        if(!state.lastStoryInput) return null;
+        if(state.lastStoryBMId) return state.lastStoryBMId;
+        const id = "bm_"+Date.now();
+        const obj = {
+          id,
+          title:"Story @ "+new Date().toLocaleString(),
+          summary: state.lastStoryInput.slice(0,180),
+          text: state.lastStoryInput,
+          locked:true,
+          ts:Date.now(),
+          live:false,
+          liveUntil:null
+        };
+        state.bmPrompts.push(obj);
+        state.lastStoryBMId = id;
+        saveBM();
+        renderBMList();
+        recomputeBMMetric();
+        updateCapsule();
+        return id;
+      }
+
+      function getActiveLiveBM(){
+        const now=Date.now();
+        const active=state.bmPrompts.filter(bm=>bm.live && bm.liveUntil && bm.liveUntil>now);
+        if(!active.length) return null;
+        active.sort((a,b)=>b.ts-a.ts);
+        return active[0];
+      }
+
+      function maybeUpdateLiveBM(userText,answer){
+        const bm=getActiveLiveBM();
+        if(!bm) return;
+        const trimmed=(userText||"").trim();
+        if(!trimmed || trimmed.length<40) return;
+        const stamp=new Date().toLocaleString();
+        bm.text = (bm.text||"")+
+          "\n\n[Update @ "+stamp+"]\nYou: "+userText+"\nAURA-X Ω: "+answer;
+        bm.summary = bm.text.slice(0,180);
+        bm.ts=Date.now();
+        saveBM();
+        renderBMList();
+        if(currentBMId===bm.id) openBM(bm.id);
+      }
+
+      function renderIntelList(){
+        els.intelList.innerHTML="";
+        const q=(els.intelSearch.value||"").toLowerCase();
+        const items=state.intelligence.filter(it=>{
+          if(!q) return true;
+          return it.q.toLowerCase().includes(q) || it.a.toLowerCase().includes(q);
+        });
+        if(!items.length){
+          els.intelList.innerHTML=
+            '<div style="margin-top:8px;font-size:12px;opacity:.6;">No intelligence saved yet.</div>';
+          return;
+        }
+        items.forEach(it=>{
+          const card=document.createElement("div");
+          card.className="bmCard";
+          const qEl=document.createElement("div");
+          qEl.style.fontWeight="800";
+          qEl.textContent="Q: "+it.q;
+          const aEl=document.createElement("div");
+          aEl.style.marginTop="4px";
+          aEl.style.fontSize="13px";
+          aEl.textContent="A: "+it.a;
+          const meta=document.createElement("div");
+          meta.style.fontSize="11px";
+          meta.style.opacity=".7";
+          meta.style.marginTop="4px";
+          meta.textContent=it.meta||"";
+          const row=document.createElement("div");
+          row.style.display="flex";
+          row.style.gap="8px";
+          row.style.marginTop="8px";
+          const btnE=document.createElement("button");
+          btnE.className="btn btnBlue";
+          btnE.textContent="Edit";
+          btnE.addEventListener("click",()=>openIntelEditor(it));
+          const btnD=document.createElement("button");
+          btnD.className="btn btnRed";
+          btnD.textContent="Delete";
+          btnD.addEventListener("click",()=>deleteIntel(it.id));
+          row.appendChild(btnE);row.appendChild(btnD);
+          card.appendChild(qEl);card.appendChild(aEl);card.appendChild(meta);card.appendChild(row);
+          els.intelList.appendChild(card);
+        });
+      }
+
+      function openIntelEditor(it){
+        state.editingIntelId=it.id;
+        els.intelEditQ.value=it.q;
+        els.intelEditA.value=it.a;
+        els.intelEditor.style.display="block";
+      }
+      function closeIntelEditor(){
+        state.editingIntelId=null;
+        els.intelEditQ.value="";els.intelEditA.value="";
+        els.intelEditor.style.display="none";
+      }
+      function deleteIntel(id){
+        if(!confirm("Delete this intelligence pair?")) return;
+        state.intelligence = state.intelligence.filter(x=>x.id!==id);
+        saveIntelligence();renderIntelList();
+      }
+
+      function parseSeedBlock(){
+        const text=els.seedBox.value||"";
+        state.parsedSeed=[];
+        if(!text.trim()){ els.seedHint.textContent="No text to parse."; return; }
+        const regex=/\\item\s*(.*?)\s*\\textbf\{A:\}\s*([\s\S]*?)(?=\\item|$)/g;
+        let m;
+        while((m=regex.exec(text))!==null){
+          const q=m[1].replace(/\s+/g," ").trim();
+          const aRaw=m[2].trim();
+          const metaMatch=aRaw.match(/^\[(.*?)\]\s*(.*)$/s);
+          let meta=""; let a=aRaw;
+          if(metaMatch){ meta=metaMatch[1]; a=metaMatch[2].trim(); }
+          if(q && a){
+            state.parsedSeed.push({
+              id:"intel_"+Date.now()+"_"+Math.random().toString(16).slice(2),
+              q,a,meta
+            });
           }
         }
-        if (bestScore >= 0.6) return best;
-        return null;
+        if(!state.parsedSeed.length)
+          els.seedHint.textContent="No LaTeX-style items detected.";
+        else
+          els.seedHint.textContent="Parsed "+state.parsedSeed.length+" Q→A pairs. Click 'Save to seed'.";
       }
 
-      function routeAnswer(userText) {
-        const seedMatch = findBestIntelMatch(userText);
-        if (seedMatch) {
-          return {
-            source: "intelligence",
-            text: seedMatch.a || "I remember your earlier answer for this."
-          };
+      function saveParsedSeed(){
+        if(!state.parsedSeed.length){
+          els.seedHint.textContent="Nothing parsed yet."; return;
         }
+        state.intelligence = state.intelligence.concat(state.parsedSeed);
+        saveIntelligence();
+        renderIntelList();
+        els.seedHint.textContent="Saved "+state.parsedSeed.length+" pairs into intelligence.";
+        state.parsedSeed=[];
+        els.seedBox.value="";
+      }
+      function discardSeed(){
+        state.parsedSeed=[];els.seedBox.value="";
+        els.seedHint.textContent="Waiting for block…";
+      }
 
-        if (state.offlineLLMOn) {
-          return {
-            source: "offlineLLM",
-            text: "I would normally ask the offline browser model here, but this prototype only simulates that call."
-          };
+      function findBestIntelMatch(text){
+        const t=text.toLowerCase();
+        let best=null;
+        state.intelligence.forEach(item=>{
+          const q=item.q.toLowerCase();
+          let score=0;
+          if(t===q) score=1;
+          else if(t.includes(q)||q.includes(t)) score=.8;
+          else{
+            const words=t.split(/\s+/);let hits=0;
+            words.forEach(w=>{if(w.length>3 && q.includes(w)) hits++;});
+            score=hits/Math.max(words.length,1);
+          }
+          if(score>0.35 && (!best || score>best.score)) best={item,score};
+        });
+        return best;
+      }
+
+      async function callOfflineLLM(text){
+        if(!state.offlineEngine || !window.webllm) return null;
+        try{
+          const messages=[
+            {role:"system",content:"You are AURA-X Ω, an offline emotional continuity assistant. Answer briefly and kindly."},
+            {role:"user",content:text}
+          ];
+          const reply=await state.offlineEngine.chat.completions.create({messages});
+          const msg=reply && reply.choices && reply.choices[0] && reply.choices[0].message && reply.choices[0].message.content;
+          return msg?msg.trim():null;
+        }catch(e){
+          logLine("[offline LLM error] "+e.message);return null;
         }
-        if (state.apiHelperOn) {
-          return {
-            source: "api",
-            text: "I would normally call an online helper LLM here (like ChatGPT) with your emotional context, but in this prototype it is simulated."
-          };
+      }
+
+      async function initOfflineEngine(){
+        if(!window.webllm || state.offlineLoading || state.offlineReady) return;
+        state.offlineLoading=true;
+        els.offlineStatus.textContent="loading…";
+        els.offlineBar.style.width="5%";
+        try{
+          const engine=await window.webllm.CreateMLCEngine(OFFLINE_MODEL_ID,{
+            initProgressCallback:(report)=>{
+              if(!report) return;
+              if(typeof report.progress==="number"){
+                const pct=Math.round(report.progress*100);
+                els.offlineBar.style.width=pct+"%";
+              }
+              if(report.text) els.offlineStatus.textContent=report.text;
+            }
+          });
+          state.offlineEngine=engine;
+          state.offlineReady=true;
+          els.offlineStatus.textContent="ready";
+          els.offlineBar.style.width="100%";
+          saveCfg();
+        }catch(e){
+          console.error(e);
+          els.offlineStatus.textContent="error";
+          els.offlineBar.style.width="0%";
+          state.offlineLoading=false;
+          logLine("[offline LLM] Failed to load model.");
         }
-        return {
-          source: "fallback",
-          text: "I heard you, but my LLM engines are offline in this prototype. You can teach me the right answer using the Intelligence editor."
+      }
+
+      async function callOnlineLLM(text){
+        const cfg=state.apiConfig;
+        if(!cfg || !cfg.endpoint || !cfg.model || !cfg.key) return null;
+        try{
+          const res=await fetch(cfg.endpoint,{
+            method:"POST",
+            headers:{
+              "Content-Type":"application/json",
+              "Authorization":"Bearer "+cfg.key
+            },
+            body:JSON.stringify({
+              model:cfg.model,
+              messages:[
+                {role:"system",content:"You are AURA-X Ω, an emotional continuity assistant. Answer briefly and clearly."},
+                {role:"user",content:text}
+              ]
+            })
+          });
+          if(!res.ok) throw new Error("HTTP "+res.status);
+          const data=await res.json();
+          const msg=data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+          return msg?msg.trim():null;
+        }catch(e){
+          logLine("[online LLM error] "+e.message);
+          return null;
+        }
+      }
+
+      // VOICE
+      let cachedVoices=[];
+      if("speechSynthesis" in window){
+        cachedVoices=window.speechSynthesis.getVoices()||[];
+        window.speechSynthesis.onvoiceschanged=()=>{
+          cachedVoices=window.speechSynthesis.getVoices()||[];
         };
       }
+      function speakText(text){
+        if(!state.voiceOn) return;
+        if(!("speechSynthesis" in window)) return;
+        if(!text) return;
+        try{
+          window.speechSynthesis.cancel();
+          const u=new SpeechSynthesisUtterance(text);
+          u.rate=0.95;u.pitch=0.7;
+          let voices=cachedVoices;
+          if(!voices || !voices.length) voices=window.speechSynthesis.getVoices()||[];
+          const pick=voices.find(v=>
+            /male|old|grand|baritone/i.test((v.name||"") + " " + (v.voiceURI||""))
+          ) || voices[0];
+          if(pick) u.voice=pick;
+          window.speechSynthesis.speak(u);
+        }catch{}
+      }
 
-      function parseSeedBlock(text) {
-        const lines = text.split(/\r?\n/);
-        const blocks = [];
-        let currentQ = "";
-        let currentA = "";
-        for (let line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          if (trimmed.startsWith("\\item")) {
-            if (currentQ || currentA) {
-              blocks.push({q: currentQ.trim(), a: currentA.trim()});
-              currentQ = "";
-              currentA = "";
-            }
-            currentQ = trimmed.replace(/^\\item\s*/,"");
-          } else if (trimmed.startsWith("\\textbf{A:}")) {
-            currentA += trimmed.replace(/^\\textbf{A:}\s*/,"") + " ";
-          } else {
-            if (currentA) currentA += trimmed + " ";
-            else currentQ += " " + trimmed;
+      function reactionText(base){
+        if(state.mode==="teen"){
+          return base.replace("I won’t accept insults.","Let’s be kind, okay?");
+        }
+        return base;
+      }
+      function faithSoftener(){
+        if(!state.logicFaithSoftener) return "";
+        if(!state.faithSelection.length) return "";
+        return " (Let’s keep words gentle and respectful.)";
+      }
+
+      function getActiveLogic() {
+        const list = state.logicPacks || [];
+        if (!list.length) return null;
+        let idx = state.logicActiveIndex;
+        if (idx == null || idx >= list.length) idx = list.length - 1;
+        return list[idx];
+      }
+
+      function getRuntimeConfig(){
+        const pack = getActiveLogic();
+        const r = (pack && pack.rules) || {};
+        const cfg = {};
+        cfg.cooldownHits    = r.cooldown && typeof r.cooldown.hits==="number" ? r.cooldown.hits : 3;
+        cfg.cooldownSeconds = r.cooldown && typeof r.cooldown.seconds==="number" ? r.cooldown.seconds : 10;
+        cfg.abuseWords      = Array.isArray(r.abuseWords) && r.abuseWords.length ? r.abuseWords : null;
+        cfg.faithSoftener   = (r.faithSoftener !== false);
+        cfg.mode            = (r.mode==="teen") ? "teen" : "adult";
+        cfg.ui              = r.ui || null;
+        // repeatRetention reserved for future
+        return cfg;
+      }
+
+      function applyUIFromLogic() {
+        const root = document.documentElement;
+        const runtime = getRuntimeConfig();
+        const ui = runtime.ui;
+        state.mode = runtime.mode;
+        state.logicFaithSoftener = runtime.faithSoftener;
+
+        if (!ui) {
+          root.style.removeProperty("--accent-color");
+          document.body.classList.remove("theme-golden");
+          if (els.console) els.console.style.boxShadow = "";
+          if (els.faithBubble) els.faithBubble.classList.remove("pulse");
+          return;
+        }
+
+        if (ui.accentColor) root.style.setProperty("--accent-color", ui.accentColor);
+        else root.style.removeProperty("--accent-color");
+
+        if (ui.theme === "golden") document.body.classList.add("theme-golden");
+        else document.body.classList.remove("theme-golden");
+
+        if (ui.consoleGlow && els.console)
+          els.console.style.boxShadow = "0 0 25px rgba(34,197,94,.35)";
+        else if (els.console)
+          els.console.style.boxShadow = "";
+
+        if (ui.faithBubblePulse && els.faithBubble)
+          els.faithBubble.classList.add("pulse");
+        else if (els.faithBubble)
+          els.faithBubble.classList.remove("pulse");
+      }
+
+      function refreshLogicUI(){
+        if(!els.logicBox || !els.logicHint || !els.logicSerial) return;
+        const list = state.logicPacks || [];
+        if(!list.length){
+          els.logicBox.value="";
+          els.logicHint.textContent="No logic pack stored. Paste JSON and press Save to add Logic #1.";
+          els.logicSerial.textContent="none";
+          return;
+        }
+        if(state.logicActiveIndex==null || state.logicActiveIndex>=list.length)
+          state.logicActiveIndex = list.length - 1;
+        const idx = state.logicActiveIndex;
+        const pack = list[idx];
+        const n = list.length;
+        els.logicBox.value="";
+        els.logicHint.textContent =
+          "Stored logic packs: " + n +
+          ". Active logic #" + (idx+1) + " (serial " + pack.serial + "). Box kept empty — use Copy to export JSON.";
+        els.logicSerial.textContent = "Logic #" + (idx+1) + " of " + n;
+      }
+
+      function detectAbuse(text){
+        const t=(text||"").toLowerCase();
+        const runtime = getRuntimeConfig();
+        const basePatterns=["stfu","idiot","dumb","trash","f u","fk you"];
+        const patterns = runtime.abuseWords || basePatterns;
+        const hitBasic=patterns.some(p=>t.includes(p.toLowerCase()));
+        const hateTargets=["muslims","hindus","jews","christians","sikhs","buddhists"];
+        const hitHate=t.includes("i hate") && hateTargets.some(g=>t.includes(g));
+        const hitViolence=t.includes("kill") && (t.includes("them")||t.includes("all"));
+        return {hit:hitBasic||hitHate||hitViolence,hate:hitHate,violence:hitViolence};
+      }
+
+      async function generateAnswer(text){
+        let intelBoost=0, llmBoost=0;
+        const best=findBestIntelMatch(text);
+        if(best){
+          intelBoost=0.25+Math.min(best.score,0.4);
+          let ans=best.item.a;
+          ans=reactionText(ans)+faithSoftener();
+          return {answer:ans,source:"INTEL",intelBoost,llmBoost};
+        }
+        if(state.offlineReady && state.offlineEngine){
+          const offline=await callOfflineLLM(text);
+          if(offline){
+            llmBoost=0.3;
+            let ans=reactionText(offline)+faithSoftener();
+            return {answer:ans,source:"OFFLINE",intelBoost,llmBoost};
           }
         }
-        if (currentQ || currentA) blocks.push({q: currentQ.trim(), a: currentA.trim()});
-        return blocks;
+        const online=await callOnlineLLM(text);
+        if(online){
+          llmBoost=0.35;
+          let ans=reactionText(online)+faithSoftener();
+          return {answer:ans,source:"ONLINE",intelBoost,llmBoost};
+        }
+        let fb="I heard you, but my LLM engines are offline. Configure LLM or teach me via Intelligence for better answers.";
+        fb=reactionText(fb)+faithSoftener();
+        return {answer:fb,source:"BASIC",intelBoost,llmBoost};
       }
 
-      function validateLogicText(text) {
-        let obj;
-        try {
-          obj = JSON.parse(text);
-        } catch (e) {
-          return { ok:false, error:"JSON parse error: " + e.message };
-        }
-        if (typeof obj !== "object" || obj === null) {
-          return { ok:false, error:"Logic pack must be a JSON object." };
-        }
-        if (!obj.rules && !obj.cooldown && !obj.abuseWords && !obj.repeatRetention) {
-          return { ok:false, error:"Expected at least one of: rules, cooldown, abuseWords, repeatRetention." };
-        }
-        if (obj.rules && !Array.isArray(obj.rules)) {
-          return { ok:false, error:"If present, rules must be an array." };
-        }
-        if (obj.cooldown && (typeof obj.cooldown.hits !== "number" || typeof obj.cooldown.seconds !== "number")) {
-          return { ok:false, error:"cooldown must have numeric hits and seconds." };
-        }
-        if (obj.abuseWords && !Array.isArray(obj.abuseWords)) {
-          return { ok:false, error:"abuseWords must be an array." };
-        }
-        return { ok:true, data:obj };
+      function maybeTriggerFaithBubble(userText,answer){
+        if(!state.faithSelection.length) return;
+        const combined=(userText+" "+answer).toLowerCase();
+        const longEnough=userText.length>120 || answer.length>160;
+        const emotionalWords=["death","life","fear","hope","dream","future","family","loss","grief","pray","dua","prayer"];
+        const emoHit=emotionalWords.some(w=>combined.includes(w));
+        if(!(longEnough||emoHit)) return;
+        const names=state.faithSelection.map(id=>{
+          const o=FAITH_OPTIONS.find(x=>x.id===id);
+          return o?o.label.split(" ")[0]:id;
+        }).join(" + ");
+        els.faithBubbleTitle.textContent="Faith reflection bubble";
+        els.faithBubbleMeta.textContent="Tap to see "+(names||"selected")+" literature suggestion.";
+        if(state.faithBubbleTimer) clearTimeout(state.faithBubbleTimer);
+        els.faithBubble.classList.add("show");
+        state.lastStoryInput = userText || answer || "";
+        state.lastStoryBMId = null;
+        speakText("Faith suggestion available. Tap the golden bubble if you want a short reflection.");
+        state.faithBubbleTimer=setTimeout(()=>{
+          els.faithBubble.classList.remove("show");
+        },5000);
       }
 
-      function renderIdentitySummary() {
-        if (!state.userIdentity) {
-          els.identitySummary.textContent = "No identity profile stored yet.";
-          return;
+      function openFaithArticleFromBubble(){
+        const primary=state.faithSelection[0]||null;
+        let entry=null;
+        if(primary && FAITH_LIBRARY[primary] && FAITH_LIBRARY[primary].length)
+          entry=FAITH_LIBRARY[primary][0];
+        if(!entry){
+          entry={
+            title:"Generic encouragement",
+            short:"",
+            content:"This is a placeholder. Here you can write your own reflection from your tradition."
+          };
         }
-        const u = state.userIdentity;
-        const parts = [];
-        if (u.name) parts.push(u.name);
-        if (u.location) parts.push("@" + u.location);
-        if (u.roles) parts.push("roles: " + u.roles);
-        if (u.values) parts.push("values: " + u.values);
-        els.identitySummary.textContent = parts.join(" · ");
+        state.currentFaithArticle=entry;
+        els.faithArticleTitle.textContent=entry.title;
+        els.faithArticleText.value=entry.content;
+        const names=state.faithSelection.map(id=>{
+          const o=FAITH_OPTIONS.find(x=>x.id===id);
+          return o?o.label.split(" ")[0]:id;
+        }).join(" + ") || "ethics only";
+        els.faithArticleMeta.textContent="Faith lens: "+names;
+        showModal("modalFaithArticle");
       }
 
-      function openModal(id) {
-        const el = document.getElementById(id);
-        if (el) el.classList.add("show");
-      }
-      function hideModal(id) {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove("show");
+      function linkFaithArticleToBM(){
+        const text=(els.faithArticleText.value||"").trim();
+        if(!text){ alert("Nothing to add into BM."); return; }
+        const bmId=ensureBMForLastStory();
+        if(!bmId){ alert("No linked BM story. Tell a story first."); return; }
+        const bm=state.bmPrompts.find(x=>x.id===bmId);
+        if(!bm) return;
+        bm.text=(bm.text||"")+"\n\n[Faith reflection]\n"+text;
+        bm.ts=Date.now();
+        saveBM();renderBMList();hideModal("modalFaithArticle");
+        els.faithBubble.classList.remove("show");
+        recomputeBMMetric();updateCapsule();
       }
 
-      function copyTextToClipboard(text) {
-        if (!navigator.clipboard) {
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          document.body.appendChild(ta);
-          ta.select();
-          try { document.execCommand("copy"); } catch(e){}
-          document.body.removeChild(ta);
-          return;
-        }
+      function copyText(text){
+        if(!navigator.clipboard){ alert("Clipboard not available."); return; }
         navigator.clipboard.writeText(text).catch(()=>{});
       }
 
-      function initFromStorage() {
-        const cfg = safeLoadJSON(KEY_CONFIG, null);
-        const intel = safeLoadJSON(KEY_INTEL, []);
-        const bm = safeLoadJSON(KEY_BM, []);
-        const hist = safeLoadJSON(KEY_HIST, []);
-        const user = safeLoadJSON(KEY_ID, null);
-        const logic = safeLoadJSON(KEY_LOGIC, null);
-        if (cfg) applyConfigToUI(cfg);
-        state.intelligence = Array.isArray(intel) ? intel : [];
-        state.bmPrompts = Array.isArray(bm) ? bm : [];
-        state.history = Array.isArray(hist) ? hist : [];
-        normalizeHistory();
-        state.userIdentity = user;
-        if (logic && logic.pack) {
-          state.logicPack = logic.pack;
-          state.logicPackUpdatedAt = logic.updatedAt || null;
-          state.logicSerial = logic.serial || null;
-          if (els.logicBox) els.logicBox.value = "";
-          const ruleCount = state.logicPack.rules ? state.logicPack.rules.length : 0;
-          setLogicHint("Stored logic pack: 1. Box kept empty — use Copy to export JSON. Rules: " + ruleCount);
-        } else {
-          state.logicPack = null;
-          state.logicPackUpdatedAt = null;
-          state.logicSerial = null;
-          if (els.logicBox) els.logicBox.value = "";
-          setLogicHint("No logic pack stored yet.");
+      async function handleUserMessage(){
+        const text=(els.userInput.value||"").trim();
+        if(!text) return;
+        const now=Date.now();
+        const runtime=getRuntimeConfig();
+
+        if(state.cooldownUntil && now<state.cooldownUntil){
+          const sec=Math.ceil((state.cooldownUntil-now)/1000);
+          logLine("AURA-X Ω: Please wait "+sec+"s. Let’s restart calmly.");
+          speakText("Please wait. Let's restart calmly.");
+          return;
         }
-        updateLogicSerialLabel();
+        els.userInput.value="";
+        addHistory("user",text);renderHistory();
+        logLine("You: "+text);
+        state.metrics.TM = scoreTM(text);
+        recomputeBMMetric();updateCapsule();
+
+        const abuse=detectAbuse(text);
+        if(abuse.hit){
+          state.abuseCount=(state.abuseCount||0)+1;
+          if(state.abuseCount>=runtime.cooldownHits){
+            state.cooldownUntil=Date.now()+runtime.cooldownSeconds*1000;
+            state.abuseCount=0;
+            logLine("AURA-X Ω: Cooldown activated for "+runtime.cooldownSeconds+" seconds. I’ll help when we stay respectful.");
+            speakText("Cooldown activated. I will help when we stay respectful.");
+            return;
+          }
+        }else{
+          state.abuseCount=Math.max(0,(state.abuseCount||0)-1);
+        }
+
+        const {answer,source,intelBoost,llmBoost}=await generateAnswer(text);
+        state.lastAnswerSource=source;
+        recomputeE0(intelBoost,llmBoost);updateCapsule();
+        addHistory("aura",answer);renderHistory();
+        logLine("AURA-X Ω ("+source+"): "+answer);
+        speakText(answer);
+        maybeTriggerFaithBubble(text,answer);
+        maybeUpdateLiveBM(text,answer);
+      }
+
+      function setIdentityEditable(editable){
+        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
+         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules]
+         .forEach(f=>{ if(f) f.readOnly=!editable; });
+      }
+      function loadIdentityForm(){
+        const u=state.userIdentity||{};
+        els.uName.value=u.name||"";
+        els.uNick.value=u.nick||"";
+        els.uOrigin.value=u.origin||"";
+        els.uPlace.value=u.place||"";
+        els.uProfession.value=u.profession||"";
+        els.uEmotionalStyle.value=u.emotionalStyle||"";
+        els.uKeyPeople.value=u.keyPeople||"";
+        els.uLegacyRules.value=u.legacyRules||"";
+      }
+      function readIdentityForm(){
+        state.userIdentity={
+          name:els.uName.value||"",
+          nick:els.uNick.value||"",
+          origin:els.uOrigin.value||"",
+          place:els.uPlace.value||"",
+          profession:els.uProfession.value||"",
+          emotionalStyle:els.uEmotionalStyle.value||"",
+          keyPeople:els.uKeyPeople.value||"",
+          legacyRules:els.uLegacyRules.value||"",
+          ts:Date.now()
+        };
+        saveUserIdentity();
+      }
+
+      function applyCfg(cfg){
+        if(!cfg) return;
+        state.voiceOn=!!cfg.voiceOn;
+        state.learningOn=cfg.learningOn!==false;
+        state.faithSelection=Array.isArray(cfg.faithSelection)?cfg.faithSelection:[];
+        state.apiConfig=cfg.apiConfig || {endpoint:"",model:"",key:""};
+        state.offlineReady=!!cfg.offlineReady;
+        els.voicePill.textContent=state.voiceOn?"on":"off";
+        els.voicePill.className=state.voiceOn?"pillOn":"pillOff";
+        els.learnPill.textContent=state.learningOn?"on":"off";
+        els.learnPill.className=state.learningOn?"pillOn":"pillOff";
+        if(state.apiConfig.endpoint) els.apiEndpoint.value=state.apiConfig.endpoint;
+        if(state.apiConfig.model) els.apiModel.value=state.apiConfig.model;
+        if(state.apiConfig.key) els.apiKey.value=state.apiConfig.key;
+      }
+
+      function initFromStorage(){
+        const cfg=safeLoadJSON(KEY_CFG,null);
+        const intel=safeLoadJSON(KEY_INT,[]);
+        const bm=safeLoadJSON(KEY_BM,[]);
+        const hist=safeLoadJSON(KEY_HIST,[]);
+        const user=safeLoadJSON(KEY_USER,null);
+        const logicRaw=safeLoadJSON(KEY_LOGIC,null);
+
+        if(cfg) applyCfg(cfg);
+        state.intelligence=Array.isArray(intel)?intel:[];
+        state.bmPrompts=Array.isArray(bm)?bm:[];
+        state.history=Array.isArray(hist)?hist:[];
+        state.userIdentity=user;
+
+        if(logicRaw && Array.isArray(logicRaw.list)){
+          state.logicPacks=logicRaw.list;
+          state.logicActiveIndex=typeof logicRaw.activeIndex==="number"
+            ? logicRaw.activeIndex : (state.logicPacks.length?state.logicPacks.length-1:null);
+        }else if(logicRaw && logicRaw.serial){
+          state.logicPacks=[{
+            serial: logicRaw.serial,
+            rules: logicRaw.rules || {},
+            ts: logicRaw.ts || Date.now()
+          }];
+          state.logicActiveIndex=0;
+        }else{
+          state.logicPacks=[];
+          state.logicActiveIndex=null;
+        }
+
         renderFaithChips();
         renderIntelList();
         renderBMList();
-        renderHistoryBox();
-        renderIdentitySummary();
-        state.tmCount = state.history.filter(h => h.role === "user").length;
-        state.bmCount = state.bmPrompts.length;
-        updateContinuityMetrics();
+        renderHistory();
+        loadIdentityForm();
+        setIdentityEditable(false);
+        recomputeBMMetric();
+        updateCapsule();
+        refreshLogicUI();
+        applyUIFromLogic();
       }
 
-      function renderFaithChips() {
-        const container = document.querySelector(".faith-chips");
-        if (!container) return;
-      }
+      // EVENTS
+      els.btnOptions.addEventListener("click",()=>{
+        els.optionsMenu.classList.toggle("show");
+      });
+      document.addEventListener("click",(e)=>{
+        if(!els.optionsMenu.contains(e.target) && !els.btnOptions.contains(e.target))
+          els.optionsMenu.classList.remove("show");
+      });
 
-      function handleUserMessage() {
-        const text = (els.userInput.value || "").trim();
-        if (!text) return;
-        if (shouldSkipAsSmallTalk(text)) {
-          logLine("system","(Small-talk filter skipped a very light message to keep TM clean.)");
-          els.userInput.value = "";
-          return;
+      els.miVoice.addEventListener("click",()=>{
+        state.voiceOn=!state.voiceOn;
+        els.voicePill.textContent=state.voiceOn?"on":"off";
+        els.voicePill.className=state.voiceOn?"pillOn":"pillOff";
+        saveCfg();
+      });
+      els.miLearn.addEventListener("click",()=>{
+        state.learningOn=!state.learningOn;
+        els.learnPill.textContent=state.learningOn?"on":"off";
+        els.learnPill.className=state.learningOn?"pillOn":"pillOff";
+        saveCfg();
+      });
+      els.miFaith.addEventListener("click",()=>showModal("modalFaith"));
+      els.miIntel.addEventListener("click",()=>showModal("modalIntel"));
+      els.miSeed.addEventListener("click",()=>showModal("modalSeed"));
+      els.miLLM.addEventListener("click",()=>showModal("modalLLM"));
+      els.miBMRecall.addEventListener("click",()=>showModal("modalBM"));
+      els.miHistory.addEventListener("click",()=>showModal("modalHistory"));
+      els.miIdentity.addEventListener("click",()=>{
+        loadIdentityForm();
+        setIdentityEditable(false);
+        showModal("modalIdentity");
+      });
+
+      els.sendBtn.addEventListener("click",handleUserMessage);
+      els.userInput.addEventListener("keydown",(e)=>{
+        if(e.key==="Enter" && !e.shiftKey){
+          e.preventDefault();handleUserMessage();
         }
-        logLine("user", text);
-        addHistory("user", text);
-        state.tmCount += 1;
-        updateContinuityMetrics();
-        els.userInput.value = "";
+      });
 
-        const route = routeAnswer(text);
-        const answerText = route.text;
-        logLine("aura", answerText);
-        addHistory("aura", answerText);
-        updateContinuityMetrics();
+      els.intelSearch.addEventListener("input",renderIntelList);
+      els.btnIntelSave.addEventListener("click",()=>{
+        if(!state.editingIntelId) return;
+        const q=(els.intelEditQ.value||"").trim();
+        const a=(els.intelEditA.value||"").trim();
+        if(!q||!a){ alert("Question and answer required."); return; }
+        const idx=state.intelligence.findIndex(x=>x.id===state.editingIntelId);
+        if(idx>=0){
+          state.intelligence[idx].q=q;
+          state.intelligence[idx].a=a;
+          saveIntelligence();renderIntelList();
+        }
+        closeIntelEditor();
+      });
+      els.btnIntelCancel.addEventListener("click",closeIntelEditor);
+
+      els.btnParseSeed.addEventListener("click",parseSeedBlock);
+      els.btnSaveSeed.addEventListener("click",saveParsedSeed);
+      els.btnDiscardSeed.addEventListener("click",discardSeed);
+
+      if(els.btnValidateLogic){
+        els.btnValidateLogic.addEventListener("click",()=>{
+          const raw=els.logicBox.value||"";
+          if(!raw.trim()){ els.logicHint.textContent="Nothing to validate."; return; }
+          try{
+            const obj=JSON.parse(raw);
+            const keys=Object.keys(obj||{});
+            els.logicHint.textContent="Valid JSON with "+keys.length+" root key(s).";
+          }catch(e){
+            els.logicHint.textContent="Invalid JSON: "+e.message;
+          }
+        });
       }
 
-      function renderFaithArticleFor(text) {
-        const base = `When language becomes rough or hopeless, remember that every heart is still a work in progress.
-Move one step back from anger, one step closer to mercy.
-You wrote: "${text.slice(0,140)}..." · Let us choose words that heal, not words that leave scars.`;
-        els.faithArticleText.value = base;
-        state.currentFaithArticle = base;
+      if(els.btnSaveLogic){
+        els.btnSaveLogic.addEventListener("click",()=>{
+          const raw=els.logicBox.value||"";
+          if(!raw.trim()){ els.logicHint.textContent="Nothing to save.";return; }
+          let obj;
+          try{ obj=JSON.parse(raw); }
+          catch(e){ els.logicHint.textContent="Invalid JSON: "+e.message;return; }
+          if(!confirm("Save this logic pack? It will control behaviour until you delete it.")) return;
+          const serial="LP-"+new Date().toISOString().replace(/[-:.TZ]/g,"").slice(0,14);
+          const pack={ serial, rules:obj, ts:Date.now() };
+          state.logicPacks = state.logicPacks || [];
+          state.logicPacks.push(pack);
+          state.logicActiveIndex = state.logicPacks.length-1;
+          persistLogicState();
+          refreshLogicUI();
+          applyUIFromLogic();
+        });
       }
 
-      function linkFaithArticleToBM() {
-        const txt = els.faithArticleText.value.trim();
-        if (!txt) return;
-        const node = {
-          id: "bm_faith_" + Date.now(),
-          text: txt,
-          lock: "locked"
+      if(els.btnCopyLogic){
+        els.btnCopyLogic.addEventListener("click",()=>{
+          const list=state.logicPacks||[];
+          if(list.length){
+            const idx = state.logicActiveIndex==null ? (list.length-1) : state.logicActiveIndex;
+            const pack=list[idx];
+            const text="// Logic #"+(idx+1)+" of "+list.length+
+              ", serial: "+pack.serial+"\n"+JSON.stringify(pack.rules,null,2);
+            copyText(text);
+            els.logicHint.textContent="Active logic #"+(idx+1)+" copied with serial.";
+          }else{
+            const raw=els.logicBox.value||"";
+            if(!raw.trim()){ els.logicHint.textContent="No logic or text to copy.";return; }
+            copyText(raw);
+            els.logicHint.textContent="Current box text copied (no stored pack).";
+          }
+        });
+      }
+
+      if(els.btnDeleteLogic){
+        els.btnDeleteLogic.addEventListener("click",()=>{
+          const list=state.logicPacks||[];
+          if(!list.length && !(els.logicBox.value||"").trim()){
+            els.logicHint.textContent="No logic pack to delete.";return;
+          }
+          if(!confirm("Delete active logic pack?")) return;
+          if(!confirm("Are you sure? This cannot be undone.")) return;
+          if(list.length){
+            const idx= state.logicActiveIndex==null ? (list.length-1) : state.logicActiveIndex;
+            list.splice(idx,1);
+            if(!list.length){
+              state.logicActiveIndex=null;
+            }else if(idx>=list.length){
+              state.logicActiveIndex=list.length-1;
+            }else{
+              state.logicActiveIndex=idx;
+            }
+            state.logicPacks=list;
+            persistLogicState();
+          }
+          els.logicBox.value="";
+          els.logicHint.textContent="Logic pack deleted.";
+          els.logicSerial.textContent="none";
+          applyUIFromLogic();
+        });
+      }
+
+      els.btnLoadOffline.addEventListener("click",initOfflineEngine);
+      els.btnSaveLLM.addEventListener("click",()=>{
+        state.apiConfig={
+          endpoint:els.apiEndpoint.value.trim(),
+          model:els.apiModel.value.trim(),
+          key:els.apiKey.value.trim()
         };
-        state.bmPrompts.push(node);
-        saveBM();
-        renderBMList();
-        hideModal("modalFaithArticle");
-        els.faithBubble.classList.remove("show");
-      }
-
-      function openFaithArticleFromBubble() {
-        if (!state.currentFaithArticle) return;
-        openModal("modalFaithArticle");
-      }
-
-      // Faith chips dummy (placeholder)
-      renderFaithChips();
-
-      // BUTTON / UI EVENTS
-      els.btnSend.addEventListener("click", handleUserMessage);
-      els.userInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          handleUserMessage();
-        }
+        saveCfg();
+        logLine("[LLM] Online helper settings saved.");
       });
 
-      els.btnOpenFeed.addEventListener("click", () => openModal("modalFeed"));
-      els.btnOpenIntel.addEventListener("click", () => openModal("modalIntel"));
-      els.btnOpenIdentity.addEventListener("click", () => openModal("modalIdentity"));
-      els.btnOptions.addEventListener("click", () => openModal("modalOptions"));
-      els.btnBM.addEventListener("click", () => openModal("modalBM"));
-      els.btnHistory.addEventListener("click", () => openModal("modalHistory"));
-
-      document.querySelectorAll(".modal-close").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const id = btn.getAttribute("data-close");
-          if (id) hideModal(id);
-        });
-      });
-      document.querySelectorAll(".modal-footer [data-close]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const id = btn.getAttribute("data-close");
-          if (id) hideModal(id);
-        });
-      });
-
-      els.btnParseSeed.addEventListener("click", () => {
-        const raw = (els.seedBlock.value || "").trim();
-        if (!raw) {
-          els.seedStatus.textContent = "Nothing to parse yet.";
-          return;
-        }
-        const blocks = parseSeedBlock(raw);
-        if (!blocks.length) {
-          els.seedStatus.textContent = "No Q→A pairs detected. Make sure you use \\item and \\textbf{A:}.";
-          return;
-        }
-        els.seedStatus.textContent = "Parsed " + blocks.length + " pairs. Press “Save to seed” to merge into Intelligence.";
-        els.seedStatus.dataset.parsed = JSON.stringify(blocks);
-      });
-
-      els.btnSaveSeed.addEventListener("click", () => {
-        const stash = els.seedStatus.dataset.parsed;
-        if (!stash) {
-          els.seedStatus.textContent = "Nothing parsed yet. First press “Parse block”.";
-          return;
-        }
-        let blocks;
-        try { blocks = JSON.parse(stash); } catch(e) {
-          els.seedStatus.textContent = "Internal parse error, please parse again.";
-          return;
-        }
-        blocks.forEach(b => {
-          if (!b.q || !b.a) return;
-          state.intelligence.push({
-            id: "seed_" + Date.now() + "_" + Math.random().toString(16).slice(2),
-            q: b.q,
-            a: b.a,
-            meta: "seed"
-          });
-        });
-        saveIntelligence();
-        renderIntelList();
-        els.seedStatus.textContent = "Merged " + blocks.length + " pairs into Intelligence.";
-        els.seedStatus.dataset.parsed = "";
-      });
-
-      els.btnDiscardSeed.addEventListener("click", () => {
-        els.seedBlock.value = "";
-        els.seedStatus.textContent = "Waiting for block…";
-        els.seedStatus.dataset.parsed = "";
-      });
-
-      // Logic Pack (advanced)
-      if (els.btnValidateLogic) {
-        els.btnValidateLogic.addEventListener("click", () => {
-          const text = els.logicBox ? els.logicBox.value.trim() : "";
-          if (!text) {
-            setLogicHint("Paste JSON logic first, then press Validate.");
-            return;
-          }
-          const res = validateLogicText(text);
-          if (!res.ok) {
-            setLogicHint("⚠️ " + res.error, true);
-            return;
-          }
-          setLogicHint(
-            "✅ Valid logic pack. Rules: " +
-              (res.data.rules ? res.data.rules.length : 0)
-          );
+      if(els.btnUnlockBM){
+        els.btnUnlockBM.addEventListener("click",()=>{
+          if(!currentBMId) return;
+          if(!confirm("Unlock this BM prompt for editing?")) return;
+          const bm=state.bmPrompts.find(x=>x.id===currentBMId);
+          if(!bm) return;
+          bm.locked=false;saveBM();openBM(currentBMId);
         });
       }
-
-      if (els.btnSaveLogic) {
-        els.btnSaveLogic.addEventListener("click", () => {
-          const text = els.logicBox ? els.logicBox.value.trim() : "";
-          if (!text) {
-            alert("Paste JSON logic into the box before saving.");
-            return;
+      if(els.btnLiveBM){
+        els.btnLiveBM.addEventListener("click",()=>{
+          if(!currentBMId) return;
+          const bm=state.bmPrompts.find(x=>x.id===currentBMId);
+          if(!bm) return;
+          const now=Date.now();
+          if(!bm.live || !bm.liveUntil || bm.liveUntil<=now){
+            bm.live=true;bm.liveUntil=now+12*60*60*1000;
+          }else{
+            bm.live=false;bm.liveUntil=null;
           }
-          const res = validateLogicText(text);
-          if (!res.ok) {
-            alert(res.error);
-            setLogicHint("⚠️ " + res.error, true);
-            return;
-          }
-          if (!confirm("Save this logic pack into intelligence rules?")) return;
-          state.logicPack = res.data;
-          state.logicPackUpdatedAt = Date.now();
-          saveLogicPack();
-          applyLogicPackToRuntime();
-          setLogicHint(
-            "Logic pack saved. Rules: " +
-              (state.logicPack.rules ? state.logicPack.rules.length : 0)
-          );
-          if (els.logicBox) els.logicBox.value = "";
-          updateLogicSerialLabel();
+          saveBM();openBM(currentBMId);
         });
       }
-
-      if (els.btnCopyLogic) {
-        els.btnCopyLogic.addEventListener("click", () => {
-          if (!state.logicPack) {
-            setLogicHint("No saved logic pack to copy yet.", true);
-            return;
-          }
-          if (els.logicBox) {
-            els.logicBox.value = JSON.stringify(state.logicPack, null, 2);
-            els.logicBox.focus();
-          }
-          setLogicHint(
-            "Loaded active logic pack into the box. You can edit and press Save."
-          );
-        });
-      }
-
-      if (els.btnDeleteLogic) {
-        els.btnDeleteLogic.addEventListener("click", () => {
-          if (!state.logicPack) {
-            setLogicHint("No logic pack stored.", true);
-            return;
-          }
-          if (!confirm("Delete the saved logic pack (JSON rules)?")) return;
-          if (!confirm("Are you sure? This cannot be undone.")) return;
-          state.logicPack = null;
-          state.logicPackUpdatedAt = null;
-          state.logicSerial = null;
-          saveLogicPack();
-          if (els.logicBox) els.logicBox.value = "";
-          setLogicHint("Deleted. No logic pack stored.");
-          updateLogicSerialLabel();
-        });
-      }
-
-      els.btnSaveIntel.addEventListener("click", () => {
-        const q = els.intelQ.value.trim();
-        const a = els.intelA.value.trim();
-        if (!q || !a) {
-          alert("Both question and answer are required.");
-          return;
-        }
-        const meta = els.intelMeta.value.trim();
-        if (!state.currentIntelId) {
-          state.currentIntelId = "intel_" + Date.now() + "_" + Math.random().toString(16).slice(2);
-          state.intelligence.push({id:state.currentIntelId,q,a,meta});
-        } else {
-          const found = state.intelligence.find(p => p.id === state.currentIntelId);
-          if (found) {
-            found.q = q;
-            found.a = a;
-            found.meta = meta;
-          } else {
-            state.intelligence.push({id:state.currentIntelId,q,a,meta});
-          }
-        }
-        saveIntelligence();
-        renderIntelList();
+      els.btnCopyPrompt.addEventListener("click",()=>{
+        const txt=els.bmTextArea.value||""; if(!txt) return; copyText(txt);
+      });
+      els.btnAutoGen.addEventListener("click",()=>{
+        logLine("[BM] Auto generation can be wired later.");
+      });
+      els.btnDeletePrompt.addEventListener("click",()=>{
+        if(!currentBMId) return;
+        if(!confirm("Delete this BM prompt?")) return;
+        if(!confirm("Are you sure? This cannot be undone.")) return;
+        state.bmPrompts = state.bmPrompts.filter(x=>x.id!==currentBMId);
+        saveBM();renderBMList();els.bmViewer.style.display="none";currentBMId=null;
+        recomputeBMMetric();updateCapsule();
       });
 
-      els.btnDeleteIntel.addEventListener("click", () => {
-        if (!state.currentIntelId) return;
-        if (!confirm("Delete this intelligence pair?")) return;
-        state.intelligence = state.intelligence.filter(p => p.id !== state.currentIntelId);
-        state.currentIntelId = null;
-        els.intelQ.value = "";
-        els.intelA.value = "";
-        els.intelMeta.value = "";
-        saveIntelligence();
-        renderIntelList();
+      els.btnDeleteRecent.addEventListener("click",()=>{
+        if(!confirm("Delete history for last 48h?")) return;
+        state.history=[];saveHistory();renderHistory();
+      });
+      els.btnDeleteAllHist.addEventListener("click",()=>{
+        if(!confirm("Delete ALL history?")) return;
+        if(!confirm("Are you completely sure?")) return;
+        state.history=[];saveHistory();renderHistory();
+      });
+      els.btnCopyHistory.addEventListener("click",()=>{
+        const lines=state.history.map(h=>{
+          const dt=new Date(h.ts).toISOString();
+          const label=h.role==="user"?"You":(h.role==="aura"?"AURA-X Ω":h.role);
+          return `[${dt}] ${label}: ${h.text}`;
+        }).join("\n");
+        if(!lines) return; copyText(lines);
       });
 
-      els.btnNewIntel.addEventListener("click", () => {
-        state.currentIntelId = null;
-        els.intelQ.value = "";
-        els.intelA.value = "";
-        els.intelMeta.value = "";
+      els.btnEditIdentity.addEventListener("click",()=>setIdentityEditable(true));
+      els.btnSaveUserIdentity.addEventListener("click",()=>{
+        readIdentityForm();setIdentityEditable(false);logLine("[identity] Saved on this device.");
+      });
+      els.btnDeleteUserIdentity.addEventListener("click",()=>{
+        if(!confirm("Delete stored identity?")) return;
+        if(!confirm("Are you sure? This cannot be undone.")) return;
+        state.userIdentity=null;saveUserIdentity();
+        loadIdentityForm();setIdentityEditable(false);
       });
 
-      els.btnSaveBM.addEventListener("click", () => {
-        const text = els.bmText.value.trim();
-        if (!text) {
-          alert("BM node text is required.");
-          return;
-        }
-        const lock = els.bmLock.value || "auto";
-        if (!state.currentBMId) {
-          state.currentBMId = "bm_" + Date.now() + "_" + Math.random().toString(16).slice(2);
-          state.bmPrompts.push({id:state.currentBMId,text,lock});
-        } else {
-          const found = state.bmPrompts.find(n => n.id === state.currentBMId);
-          if (found) {
-            found.text = text;
-            found.lock = lock;
-          } else {
-            state.bmPrompts.push({id:state.currentBMId,text,lock});
-          }
-        }
-        saveBM();
-        renderBMList();
-        updateContinuityMetrics();
-      });
-
-      els.btnDeleteBM.addEventListener("click", () => {
-        if (!state.currentBMId) return;
-        if (!confirm("Delete this BM node?")) return;
-        state.bmPrompts = state.bmPrompts.filter(n => n.id !== state.currentBMId);
-        state.currentBMId = null;
-        els.bmText.value = "";
-        els.bmLock.value = "auto";
-        saveBM();
-        renderBMList();
-        updateContinuityMetrics();
-      });
-
-      els.btnNewBM.addEventListener("click", () => {
-        state.currentBMId = null;
-        els.bmText.value = "";
-        els.bmLock.value = "auto";
-      });
-
-      els.btnSaveIdentity.addEventListener("click", () => {
-        const u = {
-          name: els.idName.value.trim(),
-          shortName: els.idShortName.value.trim(),
-          location: els.idLocation.value.trim(),
-          roles: els.idRoles.value.trim(),
-          languages: els.idLanguages.value.trim(),
-          values: els.idValues.value.trim(),
-          goals: els.idGoals.value.trim(),
-          triggers: els.idTriggers.value.trim()
-        };
-        state.userIdentity = u;
-        saveIdentity();
-        renderIdentitySummary();
-      });
-
-      els.btnDeleteIdentity.addEventListener("click", () => {
-        if (!state.userIdentity) return;
-        if (!confirm("Delete identity profile?")) return;
-        if (!confirm("Are you sure? This cannot be undone.")) return;
-        state.userIdentity = null;
-        saveIdentity();
-        ["idName","idShortName","idLocation","idRoles","idLanguages","idValues","idGoals","idTriggers"].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.value = "";
-        });
-        renderIdentitySummary();
-      });
-
-      els.toggleSmallTalk.addEventListener("click", () => {
-        state.smallTalkFilter = !state.smallTalkFilter;
-        saveConfig();
-        applyConfigToUI(state);
-      });
-      els.toggleFaith.addEventListener("click", () => {
-        state.faithLensOn = !state.faithLensOn;
-        saveConfig();
-        applyConfigToUI(state);
-      });
-      els.toggleOffline.addEventListener("click", () => {
-        state.offlineLLMOn = !state.offlineLLMOn;
-        saveConfig();
-        applyConfigToUI(state);
-        if (state.offlineLLMOn) openModal("modalLLM");
-      });
-      els.toggleApi.addEventListener("click", () => {
-        state.apiHelperOn = !state.apiHelperOn;
-        saveConfig();
-        applyConfigToUI(state);
-        if (state.apiHelperOn) openModal("modalLLM");
-      });
-
-      els.btnDeleteRecent.addEventListener("click", () => {
-        if (!confirm("Delete history from last 48h (unlocked only)?")) return;
-        const cutoff = Date.now() - 48 * 60 * 60 * 1000;
-        state.history = (state.history || []).filter((h) => {
-          if (!h) return false;
-          if (h.locked || h.disableAutoDelete) return true;
-          return (h.ts || 0) < cutoff;
-        });
-        saveHistory();
-        renderHistoryBox();
-      });
-      els.btnDeleteAllHist.addEventListener("click", () => {
-        if (!confirm("Delete ALL unlocked history? Locked nodes will stay.")) return;
-        if (!confirm("Are you completely sure?")) return;
-        state.history = (state.history || []).filter(
-          (h) => h && (h.locked || h.disableAutoDelete)
-        );
-        saveHistory();
-        renderHistoryBox();
-      });
-
-      els.btnDismissFaithBubble.addEventListener("click", () => {
-        els.faithBubble.classList.remove("show");
-      });
-      els.btnOpenFaithArticle.addEventListener("click", () => {
-        if (!state.currentFaithArticle) {
-          return;
+      els.faithBubble.addEventListener("click",(e)=>{
+        if(e.target===els.faithBubbleClose){
+          els.faithBubble.classList.remove("show");return;
         }
         openFaithArticleFromBubble();
       });
-
-      els.btnCopyFaithArticle.addEventListener("click", () => {
-        const txt = els.faithArticleText.value || "";
-        if (!txt) return;
-        copyTextToClipboard(txt);
+      els.btnCopyFaithArticle.addEventListener("click",()=>{
+        const txt=els.faithArticleText.value||""; if(!txt) return; copyText(txt);
       });
-      els.btnAddFaithToBM.addEventListener("click", linkFaithArticleToBM);
-      els.btnSkipFaithBM.addEventListener("click", () => {
-        hideModal("modalFaithArticle");
-        els.faithBubble.classList.remove("show");
+      els.btnAddFaithToBM.addEventListener("click",linkFaithArticleToBM);
+      els.btnSkipFaithBM.addEventListener("click",()=>{
+        hideModal("modalFaithArticle");els.faithBubble.classList.remove("show");
       });
 
       initFromStorage();
-      // کوئی auto-message نہیں، screen clean رہے گی
+      // No splash message; clean screen on refresh.
     });
   </script>
 </body>
