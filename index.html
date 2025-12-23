@@ -120,8 +120,15 @@
       white-space:pre-wrap;
     }
     .line{display:block;margin:2px 0}
-    .line-user{color:#bfdbfe;font-weight:600;}
-    .line-aura{color:#6ee7b7;font-weight:600;}
+    /* colored tags for conversation */
+    .console .youTag{
+      color:#bfdbfe;
+      font-weight:700;
+    }
+    .console .auraTag{
+      color:#a7f3d0;
+      font-weight:700;
+    }
 
     .optionsMenu{
       position:fixed;
@@ -205,7 +212,6 @@
       color:#bae6fd;
       opacity:.95;
     }
-
     .chatWrap{
       margin-top:0;
       padding:12px;
@@ -213,7 +219,8 @@
       border:1px solid rgba(148,163,184,.14);
       background:rgba(2,6,23,.45);
     }
-    /* reaction bar – left side */
+
+    /* reaction bar ABOVE metrics + left aligned */
     .reactionBar{
       margin-top:4px;
       margin-bottom:6px;
@@ -255,7 +262,6 @@
       box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
     }
     .liveCapsule b{ color:#7dd3fc; font-weight:900 }
-
     .faithBubble{
       margin:4px 0 10px;
       padding:8px 10px;
@@ -289,12 +295,12 @@
       padding:0 4px;
       line-height:1;
     }
-
     /* Golden theme from logic */
     body.theme-golden .ethic{
       border-color: rgba(251,191,36,.7);
       background: rgba(251,191,36,.06);
     }
+    /* Faith bubble pulse animation from logic */
     .faithBubble.pulse{
       animation: faithPulse 1.4s infinite;
     }
@@ -302,8 +308,7 @@
       0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.55); }
       100% { box-shadow: 0 0 0 18px rgba(251,191,36,0); }
     }
-
-    .inputRow{display:flex;gap:10px;align-items:flex-end;margin-top:4px}
+    .inputRow{display:flex;gap:10px;align-items:flex-end}
     .input{
       flex:1;
       border-radius:999px;
@@ -327,7 +332,6 @@
       -webkit-tap-highlight-color:transparent;
     }
     .send:active{transform:scale(.99)}
-
     .formula{
       margin-top:10px;
       opacity:.8;
@@ -411,7 +415,6 @@
     .btnDark{background:rgba(2,6,23,.92);color:#fff}
     .btnRed{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.22);color:#7f1d1d}
     .btnGreen{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.25);color:#064e2a}
-
     .bmCard{
       border-radius:16px;
       border:1px solid rgba(15,23,42,.12);
@@ -452,7 +455,6 @@
       margin-top:10px;
       justify-content:flex-start;
     }
-
     .intelEditInput, .intelEditArea{
       width:100%;
       border-radius:12px;
@@ -469,7 +471,7 @@
       margin-top:6px;
     }
 
-    /* History */
+    /* Conversation history – lighter UI + lock icon */
     #modalHistory .modalBody{
       background:#f8fafc;
     }
@@ -506,27 +508,29 @@
       padding:0 2px;
     }
 
-    /* toast bubble for copy / like */
+    /* small toast bubble */
     .toast{
       position:fixed;
-      bottom:22px;
+      bottom:18px;
       left:50%;
-      transform:translate(-50%,10px);
+      transform:translateX(-50%);
       background:rgba(15,23,42,.96);
       color:#e5e7eb;
-      padding:7px 14px;
+      padding:6px 14px;
       border-radius:999px;
       border:1px solid rgba(148,163,184,.45);
       font-size:12px;
       opacity:0;
       pointer-events:none;
-      transition:opacity .2s ease, transform .2s ease;
-      z-index:10000;
+      transition:opacity .18s ease, transform .18s ease;
+      z-index:99999;
     }
     .toast.show{
       opacity:1;
-      transform:translate(-50%,0);
+      transform:translateX(-50%) translateY(-4px);
     }
+
+    .@media-fix{} /* dummy to keep structure clean */
 
     @media (max-width:760px){
       .console{height:240px}
@@ -630,12 +634,13 @@
         <!-- RIGHT -->
         <div class="rightCol">
           <div class="chatWrap">
-            <!-- reaction bar -->
+            <!-- reaction bar ABOVE metrics, left-aligned -->
             <div class="reactionBar" id="reactionBar">
-              <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence (like)">👍</button>
-              <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
+              <button class="reactBtn" id="btnCopyLast" title="Copy last answer">⧉</button>
+              <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence">👍</button>
+              <button class="reactBtn" id="btnDislikeLast" title="Correct answer">👎</button>
               <button class="reactBtn" id="btnSpeakLast" title="Play voice for last answer">🔊</button>
-              <button class="reactBtn" id="btnShareLast" title="Copy question + answer">🔗</button>
+              <button class="reactBtn" id="btnShareLast" title="Copy Q + A">🔗</button>
             </div>
             <div class="liveCapsule">
               <span><b>E0</b>: <span id="cE0">0.000</span></span><span>·</span>
@@ -663,6 +668,9 @@
       </div>
     </div>
   </div>
+
+  <!-- toast bubble -->
+  <div class="toast" id="toast"></div>
 
   <!-- Faith selection -->
   <div class="modalOverlay" id="modalFaith">
@@ -834,17 +842,21 @@
   <div class="modalOverlay" id="modalBM">
     <div class="modal">
       <div class="modalHeader">
-        <div>📘 Recall from BM<br><small>Only long stories (4+ sentences) – greetings are never auto-saved.</small></div>
+        <div>📘 Recall from BM<br><small>Long stories / scenes only.</small></div>
         <button class="closeX" data-close="modalBM">×</button>
       </div>
       <div class="modalBody">
         <div style="font-size:13px;opacity:.75">
-          Select a BM prompt. BM auto-saves only when a topic has 4+ sentences and a clear idea.
-          Hi/hello/how-are-you chat is ignored. Locked prompts must be unlocked first. Delete uses double confirmation.
+          Select a BM prompt. Locked prompts must be unlocked first. Delete needs double confirmation.
         </div>
-        <input id="bmSearch"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:8px 0 6px;outline:none;background:#fff;"
-          placeholder="Search BM by text or date (YYYY-MM-DD)..." />
+        <!-- search + calendar row -->
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <input id="bmSearch"
+            style="flex:1;min-width:160px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:0;outline:none;background:#fff;"
+            placeholder="Search BM by text..." />
+          <input id="bmDate" type="date"
+            style="width:150px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;outline:none;background:#fff;" />
+        </div>
         <div id="bmSelectList"></div>
         <div class="bmCard" id="bmViewer" style="display:none;">
           <div class="bmTop">
@@ -854,7 +866,7 @@
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
               <button class="btn btnBlue" id="btnLiveBM">Live 24h: off</button>
-              <button class="btn btnBlue" id="btnUnlockBM">Unlock</button>
+              <button class="btn btnBlue" id="btnUnlockBM" style="display:none;">Unlock</button>
             </div>
           </div>
           <textarea class="bmText" id="bmTextArea" readonly></textarea>
@@ -952,9 +964,6 @@
     </div>
   </div>
 
-  <!-- toast bubble -->
-  <div class="toast" id="toast"></div>
-
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       const KEY_CFG   = "aurax_cfg_v12";
@@ -1031,6 +1040,7 @@
         btnSaveLLM: document.getElementById("btnSaveLLM"),
         modalBM: document.getElementById("modalBM"),
         bmSearch: document.getElementById("bmSearch"),
+        bmDate: document.getElementById("bmDate"),
         bmSelectList: document.getElementById("bmSelectList"),
         bmViewer: document.getElementById("bmViewer"),
         bmLockIcon: document.getElementById("bmLockIcon"),
@@ -1059,6 +1069,8 @@
         uEmotionalStyle: document.getElementById("uEmotionalStyle"),
         uKeyPeople: document.getElementById("uKeyPeople"),
         uLegacyRules: document.getElementById("uLegacyRules"),
+        /* reaction buttons */
+        btnCopyLast: document.getElementById("btnCopyLast"),
         btnLikeLast: document.getElementById("btnLikeLast"),
         btnDislikeLast: document.getElementById("btnDislikeLast"),
         btnSpeakLast: document.getElementById("btnSpeakLast"),
@@ -1120,19 +1132,8 @@
         abuseCount: 0,
         cooldownUntil: 0,
         mode: "adult",
-        logicFaithSoftener: true,
-        toastTimer: null
+        logicFaithSoftener: true
       };
-
-      function showToast(msg){
-        if(!els.toast) return;
-        els.toast.textContent = msg;
-        els.toast.classList.add("show");
-        if(state.toastTimer) clearTimeout(state.toastTimer);
-        state.toastTimer = setTimeout(()=>{
-          els.toast.classList.remove("show");
-        }, 1600);
-      }
 
       function safeLoadJSON(key, fallback){
         try{
@@ -1140,24 +1141,39 @@
           return raw ? JSON.parse(raw) : fallback;
         }catch{ return fallback; }
       }
-      function appendConsoleRole(role,text){
+      function logLine(text){
         const div = document.createElement("div");
         div.className = "line";
-        if(role==="user"){
-          div.classList.add("line-user");
-          div.textContent = "You: " + text;
-        }else if(role==="aura"){
-          div.classList.add("line-aura");
-          div.textContent = "AURA: " + text;
-        }else{
-          div.textContent = text;
-        }
+        div.textContent = text;
         els.console.appendChild(div);
         els.console.scrollTop = els.console.scrollHeight;
       }
-      function logLine(text){ appendConsoleRole(null,text); }
-      function logUserText(t){ appendConsoleRole("user",t); }
-      function logAuraText(t){ appendConsoleRole("aura",t); }
+      /* conversation lines with colored AURA / You */
+      function appendChat(role, text){
+        const line = document.createElement("div");
+        line.className = "line";
+        const tag = document.createElement("span");
+        const msg = document.createElement("span");
+        if(role === "user"){
+          tag.className = "youTag";
+          tag.textContent = "You: ";
+        }else{
+          tag.className = "auraTag";
+          tag.textContent = "AURA: ";
+        }
+        msg.textContent = text;
+        line.appendChild(tag);
+        line.appendChild(msg);
+        els.console.appendChild(line);
+        els.console.scrollTop = els.console.scrollHeight;
+      }
+
+      function showToast(msg){
+        if(!els.toast) return;
+        els.toast.textContent = msg;
+        els.toast.classList.add("show");
+        setTimeout(()=>els.toast.classList.remove("show"), 1400);
+      }
 
       function scoreTM(t){
         const len = Math.min((t||"").length,600);
@@ -1225,7 +1241,7 @@
           const row = document.createElement("div");
           row.className = "historyLine";
           const dt = new Date(h.ts).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
-          const label = h.role==="user" ? "You" : (h.role==="aura" ? "AURA" : h.role);
+          const label = h.role==="user" ? "you" : (h.role==="aura" ? "aura" : h.role);
           const txt = document.createElement("div");
           txt.className = "historyText";
           txt.textContent = label + "\n" + h.text;
@@ -1304,27 +1320,32 @@
           return;
         }
         const q = els.bmSearch ? (els.bmSearch.value || "").trim().toLowerCase() : "";
+        const dateStr = els.bmDate ? (els.bmDate.value || "") : "";
         let list = state.bmPrompts.slice();
+
+        // text search
         if(q){
-          const isDate = /^\d{4}-\d{2}-\d{2}$/.test(q);
-          if(isDate){
-            const parts = q.split("-").map(Number);
+          list = list.filter(bm=>{
+            const hay = ((bm.title||"") + " " + (bm.summary||"") + " " + (bm.text||"")).toLowerCase();
+            return hay.includes(q);
+          });
+        }
+        // calendar date filter
+        if(dateStr){
+          const parts = dateStr.split("-").map(Number);
+          if(parts.length===3 && !Number.isNaN(parts[0])){
             const start = new Date(parts[0], parts[1]-1, parts[2]).getTime();
             const end   = start + 24*60*60*1000;
             list = list.filter(bm=>{
               const t = bm.createdAt || bm.ts || 0;
-              return t>=start && t<end;
-            });
-          }else{
-            list = list.filter(bm=>{
-              const hay = ((bm.title||"") + " " + (bm.summary||"") + " " + (bm.text||"")).toLowerCase();
-              return hay.includes(q);
+              return t >= start && t < end;
             });
           }
         }
+
         if(!list.length){
           els.bmSelectList.innerHTML =
-            '<div style="margin-top:8px;font-size:12px;opacity:.6;">No BM prompts match this search.</div>';
+            '<div style="margin-top:8px;font-size:12px;opacity:.6;">No BM prompts match this filter.</div>';
           els.bmViewer.style.display = "none";
           return;
         }
@@ -1379,14 +1400,13 @@
         els.bmLockIcon.textContent = bm.locked?"🔒":"🔓";
         els.bmTextArea.value = bm.text || "";
         els.bmTextArea.readOnly = bm.locked;
-        els.btnUnlockBM.style.display = "inline-flex";
-        els.btnUnlockBM.textContent = bm.locked ? "Unlock" : "Lock";
+        els.btnUnlockBM.style.display = bm.locked?"inline-flex":"none";
         els.btnLiveBM.textContent = (bm.live && bm.liveUntil && bm.liveUntil>now)
           ? "Live 24h: on" : "Live 24h: off";
       }
 
       function ensureBMForLastStory(){
-        if(!state.lastStoryInput || !isStoryLike(state.lastStoryInput)) return null;
+        if(!state.lastStoryInput) return null;
         if(state.lastStoryBMId) return state.lastStoryBMId;
         const id = "bm_"+Date.now();
         const now = Date.now();
@@ -1424,8 +1444,7 @@
         const bm=getActiveLiveBM();
         if(!bm) return;
         const trimmed=(userText||"").trim();
-        if(!isStoryLike(trimmed)) return; // ignore small talk / short messages
-
+        if(!trimmed || trimmed.length<40) return;
         const stamp=new Date().toLocaleString();
 
         bm.repeatCount = (bm.repeatCount || 0) + 1;
@@ -1748,21 +1767,6 @@
         return {hit:hitBasic||hitHate||hitViolence,hate:hitHate,violence:hitViolence};
       }
 
-      // --- STORY FILTER: only long, meaningful texts go to BM auto-logic ---
-      function isStoryLike(text){
-        const t=(text||"").trim();
-        if(!t) return false;
-        const len = t.length;
-        if(len < 80) return false; // بہت چھوٹا
-        const sentences = t.split(/[.!?؟۔]+/).filter(s=>s.trim().length>0).length;
-        if(sentences < 4) return false; // کم از کم 4 جملے
-        const lower = t.toLowerCase();
-        const trivial = ["hi","hello","salam","assalam","asalam","hey","how are you","kia hal","kese ho","kesi ho"];
-        if(len < 200 && trivial.some(p=>lower.includes(p))) return false;
-        return true;
-      }
-      // -------------------------------------------------------------
-
       async function generateAnswer(text){
         let intelBoost=0, llmBoost=0;
         const best=findBestIntelMatch(text);
@@ -1806,7 +1810,7 @@
         els.faithBubbleMeta.textContent="Tap to see "+(names||"selected")+" literature suggestion.";
         if(state.faithBubbleTimer) clearTimeout(state.faithBubbleTimer);
         els.faithBubble.classList.add("show");
-        state.lastStoryInput = isStoryLike(userText) ? userText : "";
+        state.lastStoryInput = userText || answer || "";
         state.lastStoryBMId = null;
         speakText("Faith suggestion available. Tap the golden bubble if you want a short reflection.",false);
         state.faithBubbleTimer=setTimeout(()=>{
@@ -1858,6 +1862,74 @@
         return !!(state.lastUserQ && state.lastAuraA);
       }
 
+      /* small-talk / story detection for auto BM */
+      function isGreetingText(t){
+        const low = (t||"").toLowerCase().trim();
+        const shortNoPunc = low.replace(/[^\w\s]/g," ");
+        const patterns = [
+          "hi","hello","hey",
+          "salam","salaam","assalam o alaikum","assalamualaikum","assalamu alaikum",
+          "good morning","good night","how are you","kia hal","kese ho","kese hain"
+        ];
+        return patterns.some(p=>shortNoPunc.includes(p));
+      }
+      function countMeaningfulSentences(t){
+        const parts = (t||"").split(/[\.!\?؟\n]+/).map(s=>s.trim()).filter(s=>s.length>20);
+        return parts.length;
+      }
+      function maybeAutoStoryBMFromUser(text){
+        const trimmed=(text||"").trim();
+        if(!trimmed) return;
+        if(isGreetingText(trimmed)) return;
+
+        const sentences = countMeaningfulSentences(trimmed);
+        if(sentences < 4) return; // کم از کم 4 معنی خیز جملے
+
+        // اگر پہلے سے live BM ہے تو اسی میں add کر دیں
+        const live = getActiveLiveBM();
+        if(live){
+          const stamp = new Date().toLocaleString();
+          live.text = (live.text||"") + "\n\n[User story @ "+stamp+"]\n" + trimmed;
+          live.summary = live.text.slice(0,180);
+          live.repeatCount = (live.repeatCount || 0) + 1;
+          if(live.repeatCount >= 1) live.keep = true;
+          if(live.repeatCount >= 3) live.locked = true;
+          live.ts = Date.now();
+          saveBM();
+          renderBMList();
+          if(currentBMId===live.id) openBM(live.id);
+          recomputeBMMetric();
+          updateCapsule();
+          state.lastStoryInput = trimmed;
+          state.lastStoryBMId = live.id;
+          return;
+        }
+
+        // نیا BM story prompt بنائیں (24h live)
+        const id = "bm_"+Date.now();
+        const now = Date.now();
+        const obj = {
+          id,
+          title: "Story @ " + new Date().toLocaleString(),
+          summary: trimmed.slice(0,180),
+          text: trimmed,
+          locked: false,
+          ts: now,
+          createdAt: now,
+          live: true,
+          liveUntil: now + 24*60*60*1000,
+          repeatCount: 0,
+          keep: false
+        };
+        state.bmPrompts.push(obj);
+        state.lastStoryInput = trimmed;
+        state.lastStoryBMId = id;
+        saveBM();
+        renderBMList();
+        recomputeBMMetric();
+        updateCapsule();
+      }
+
       async function handleUserMessage(){
         const text=(els.userInput.value||"").trim();
         if(!text) return;
@@ -1865,18 +1937,18 @@
         const runtime=getRuntimeConfig();
         if(state.cooldownUntil && now<state.cooldownUntil){
           const sec=Math.ceil((state.cooldownUntil-now)/1000);
-          logAuraText("Please wait "+sec+"s. Let’s restart calmly.");
+          logLine("Please wait "+sec+"s and then speak calmly.");
           speakText("Please wait. Let's restart calmly.",false);
           return;
         }
         els.userInput.value="";
         addHistory("user",text);renderHistory();
-        logUserText(text);
+        appendChat("user", text);
         state.metrics.TM = scoreTM(text);
         recomputeBMMetric();updateCapsule();
 
-        const storyLike = isStoryLike(text);
-        if(storyLike) state.lastStoryInput = text;
+        // auto story BM for long meaningful text
+        maybeAutoStoryBMFromUser(text);
 
         const abuse=detectAbuse(text);
         if(abuse.hit){
@@ -1884,7 +1956,7 @@
           if(state.abuseCount>=runtime.cooldownHits){
             state.cooldownUntil=Date.now()+runtime.cooldownSeconds*1000;
             state.abuseCount=0;
-            logAuraText("Cooldown activated for "+runtime.cooldownSeconds+" seconds. I’ll help when we stay respectful.");
+            logLine("Cooldown activated for "+runtime.cooldownSeconds+" seconds.");
             speakText("Cooldown activated. I will help when we stay respectful.",false);
             return;
           }
@@ -1898,7 +1970,7 @@
         state.lastAuraA = answer;
         recomputeE0(intelBoost,llmBoost);updateCapsule();
         addHistory("aura",answer);renderHistory();
-        logAuraText(answer);
+        appendChat("aura", answer);
         speakText(answer,false);
         maybeTriggerFaithBubble(text,answer);
         maybeUpdateLiveBM(text,answer);
@@ -2169,16 +2241,10 @@
       if(els.btnUnlockBM){
         els.btnUnlockBM.addEventListener("click",()=>{
           if(!currentBMId) return;
+          if(!confirm("Unlock this BM prompt for editing?")) return;
           const bm=state.bmPrompts.find(x=>x.id===currentBMId);
           if(!bm) return;
-          const makeLock = !bm.locked;
-          const msg = makeLock
-            ? "Lock this BM prompt so it cannot be edited without unlock?"
-            : "Unlock this BM prompt for editing?";
-          if(!confirm(msg)) return;
-          bm.locked = makeLock;
-          saveBM();
-          openBM(currentBMId);
+          bm.locked=false;saveBM();openBM(currentBMId);
         });
       }
       if(els.btnLiveBM){
@@ -2188,7 +2254,7 @@
           if(!bm) return;
           const now=Date.now();
           if(!bm.live || !bm.liveUntil || bm.liveUntil<=now){
-            bm.live=true;bm.liveUntil=now+24*60*60*1000; // 24 hours
+            bm.live=true;bm.liveUntil=now+24*60*60*1000;
           }else{
             bm.live=false;bm.liveUntil=null;
           }
@@ -2198,6 +2264,7 @@
 
       els.btnCopyPrompt.addEventListener("click",()=>{
         const txt=els.bmTextArea.value||""; if(!txt) return; copyText(txt);
+        showToast("Copied");
         if(currentBMId){
           const bm=state.bmPrompts.find(x=>x.id===currentBMId);
           if(bm){
@@ -2225,6 +2292,9 @@
       if(els.bmSearch){
         els.bmSearch.addEventListener("input",renderBMList);
       }
+      if(els.bmDate){
+        els.bmDate.addEventListener("change",renderBMList);
+      }
 
       els.btnDeleteRecent.addEventListener("click",()=>{
         if(!confirm("Delete history for last 48h? Locked items stay.")) return;
@@ -2245,6 +2315,7 @@
           return `[${dt}] ${label}: ${h.text}${h.locked ? " [locked]" : ""}`;
         }).join("\n");
         if(!lines) return; copyText(lines);
+        showToast("History copied");
       });
 
       els.btnEditIdentity.addEventListener("click",()=>setIdentityEditable(true));
@@ -2268,17 +2339,24 @@
         const txt=els.faithArticleText.value||""; if(!txt) return; copyText(txt);
         showToast("Copied");
       });
-      els.btnAddFaithToBM.addEventListener("click",()=>{linkFaithArticleToBM();});
+      els.btnAddFaithToBM.addEventListener("click",linkFaithArticleToBM);
       els.btnSkipFaithBM.addEventListener("click",()=>{
         hideModal("modalFaithArticle");els.faithBubble.classList.remove("show");
       });
 
-      // reaction icons – silent + toast only
+      /* reaction icons behaviour */
+      if(els.btnCopyLast){
+        els.btnCopyLast.addEventListener("click",()=>{
+          if(!hasLastPair()){ logLine("No recent answer to copy."); return; }
+          copyText(state.lastAuraA);
+          showToast("Copied");
+        });
+      }
       if(els.btnLikeLast){
         els.btnLikeLast.addEventListener("click",()=>{
-          if(!hasLastPair()){ showToast("No recent answer"); return; }
+          if(!hasLastPair()){ logLine("No recent answer to save."); return; }
           if(!state.learningOn){
-            showToast("Turn Learning ON first");
+            logLine("Learning is OFF. Turn Learning → ON in Options to save answers.");
             return;
           }
           const id="intel_"+Date.now()+"_"+Math.random().toString(16).slice(2);
@@ -2286,19 +2364,18 @@
           state.intelligence.push({id,q:state.lastUserQ,a:state.lastAuraA,meta});
           saveIntelligence();
           renderIntelList();
-          showToast("Liked & saved");
+          showToast("Saved");
         });
       }
       if(els.btnDislikeLast){
         els.btnDislikeLast.addEventListener("click",()=>{
-          if(!hasLastPair()){ showToast("No recent answer"); return; }
+          if(!hasLastPair()){ logLine("No recent answer to correct."); return; }
           if(!state.learningOn){
-            showToast("Turn Learning ON first");
+            logLine("Learning is OFF. Turn Learning → ON in Options to correct answers.");
             return;
           }
-          const replacement = prompt("Answer was incorrect. Type the correct answer I should learn for this question:", "");
+          const replacement = prompt("Type the correct answer I should learn for this question:", "");
           if(!replacement || !replacement.trim()){
-            showToast("No replacement typed");
             return;
           }
           const id="intel_"+Date.now()+"_"+Math.random().toString(16).slice(2);
@@ -2306,19 +2383,18 @@
           state.intelligence.push({id,q:state.lastUserQ,a:replacement.trim(),meta});
           saveIntelligence();
           renderIntelList();
-          showToast("Fixed & saved");
+          showToast("Updated");
         });
       }
       if(els.btnSpeakLast){
         els.btnSpeakLast.addEventListener("click",()=>{
-          if(!hasLastPair()){ showToast("No recent answer"); return; }
+          if(!hasLastPair()){ logLine("No recent answer to speak."); return; }
           speakText(state.lastAuraA,true);
-          showToast("Speaking…");
         });
       }
       if(els.btnShareLast){
         els.btnShareLast.addEventListener("click",()=>{
-          if(!hasLastPair()){ showToast("No recent pair"); return; }
+          if(!hasLastPair()){ logLine("No recent pair to copy."); return; }
           const block="Q: "+state.lastUserQ+"\nA: "+state.lastAuraA;
           copyText(block);
           showToast("Copied");
@@ -2326,7 +2402,7 @@
       }
 
       initFromStorage();
-      // کوئی خودکار welcome میسج نہیں، صرف آپ اور AURA کی chat
+      // console clean start; no auto welcome line
     });
   </script>
 </body>
