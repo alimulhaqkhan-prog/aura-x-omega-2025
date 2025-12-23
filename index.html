@@ -12,7 +12,7 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root {
-      --accent-color: #0ea5e9;
+      --accent-color: #0ea5e9; /* default accent */
     }
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -260,10 +260,12 @@
       padding:0 4px;
       line-height:1;
     }
+    /* Golden theme from logic */
     body.theme-golden .ethic{
       border-color: rgba(251,191,36,.7);
       background: rgba(251,191,36,.06);
     }
+    /* Faith bubble pulse animation from logic */
     .faithBubble.pulse{
       animation: faithPulse 1.4s infinite;
     }
@@ -432,34 +434,46 @@
       line-height:1.4;
       margin-top:6px;
     }
+
+    /* Conversation history – lighter UI + lock icon */
+    #modalHistory .modalBody{
+      background:#f8fafc;
+    }
+    #historyBox{
+      margin-top:4px;
+      border-radius:14px;
+      padding:4px 0;
+      max-height:60vh;
+      overflow:auto;
+    }
     .historyLine{
       padding:8px 10px;
       font-size:12px;
       margin-bottom:6px;
       border-radius:12px;
-      background:rgba(15,23,42,.9);
-      border:1px solid rgba(148,163,184,.18);
-    }
-    .historyHeaderRow{
+      background:#f9fafb;
+      border:1px solid rgba(148,163,184,.45);
+      color:#0b1120;
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
-      gap:8px;
-      margin-bottom:2px;
-      font-size:11px;
-      opacity:.85;
+      gap:6px;
     }
-    .historyRole{font-weight:800;text-transform:lowercase;}
-    .historyTime{font-variant-numeric:tabular-nums;}
+    .historyText{
+      flex:1;
+      white-space:pre-wrap;
+    }
     .historyLock{
-      margin-left:6px;
-      font-size:13px;
-      cursor:pointer;
       border:none;
       background:transparent;
-      padding:0;
+      cursor:pointer;
+      font-size:15px;
+      line-height:1;
+      padding:0 2px;
     }
-    .historyText{line-height:1.35;}
+
+    .@media-fix{} /* dummy to keep structure clean */
+
     @media (max-width:760px){
       .console{height:240px}
       .optionsMenu{top:112px}
@@ -670,9 +684,7 @@
             <button class="btn btnRed" id="btnDiscardSeed">Discard</button>
           </div>
         </div>
-
         <hr style="margin:14px 0;border:none;border-top:1px dashed rgba(15,23,42,.18);" />
-
         <div style="font-weight:800;font-size:13px;margin-bottom:6px;">🧩 Logic Pack (JSON rules – advanced)</div>
         <div style="font-size:12px;opacity:.75;line-height:1.4;margin-bottom:6px;">
           Each time you press <b>Save</b>, a new logic pack is stored with its own number.
@@ -724,7 +736,6 @@
             <div id="offlineBar" style="height:100%;width:0%;background:#22c55e;transition:width .2s ease;"></div>
           </div>
         </div>
-
         <div style="font-weight:900;margin-top:14px;">Online helper LLM (connects & works)</div>
         <div style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:4px;">
           Use any compatible API (OpenAI, DeepSeek, xAI, etc.). Nothing is stored on server by AURA-X Ω itself.
@@ -765,12 +776,9 @@
         <div style="font-size:13px;opacity:.75">
           Select a BM prompt. Locked prompts must be unlocked first. Delete needs double confirmation.
         </div>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <input type="date" id="bmSearchDate"
-            style="flex:1;min-width:160px;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:12px;" />
-          <button class="btn btnBlue" id="bmSearchBtn">Search</button>
-          <button class="btn btnBlue" id="bmClearBmSearch">Clear</button>
-        </div>
+        <input id="bmSearch"
+          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:8px 0 6px;outline:none;background:#fff;"
+          placeholder="Search BM by text or date (YYYY-MM-DD)..." />
         <div id="bmSelectList"></div>
         <div class="bmCard" id="bmViewer" style="display:none;">
           <div class="bmTop">
@@ -807,8 +815,7 @@
           <button class="btn btnRed" id="btnDeleteAllHist">Delete all history</button>
           <button class="btn btnBlue" id="btnCopyHistory">Copy</button>
         </div>
-        <div id="historyBox"
-          style="margin-top:4px;border-radius:14px;padding:4px 0;max-height:60vh;overflow:auto;"></div>
+        <div id="historyBox"></div>
       </div>
     </div>
   </div>
@@ -954,6 +961,7 @@
         apiKey: document.getElementById("apiKey"),
         btnSaveLLM: document.getElementById("btnSaveLLM"),
         modalBM: document.getElementById("modalBM"),
+        bmSearch: document.getElementById("bmSearch"),
         bmSelectList: document.getElementById("bmSelectList"),
         bmViewer: document.getElementById("bmViewer"),
         bmLockIcon: document.getElementById("bmLockIcon"),
@@ -965,9 +973,6 @@
         btnCopyPrompt: document.getElementById("btnCopyPrompt"),
         btnAutoGen: document.getElementById("btnAutoGen"),
         btnDeletePrompt: document.getElementById("btnDeletePrompt"),
-        bmSearchDate: document.getElementById("bmSearchDate"),
-        bmSearchBtn: document.getElementById("bmSearchBtn"),
-        bmClearBmSearch: document.getElementById("bmClearBmSearch"),
         modalHistory: document.getElementById("modalHistory"),
         btnDeleteRecent: document.getElementById("btnDeleteRecent"),
         btnDeleteAllHist: document.getElementById("btnDeleteAllHist"),
@@ -989,12 +994,12 @@
 
       const FAITH_OPTIONS = [
         { id: "none",        label: "None" },
-        { id: "islam",       label: "Islam ☪️" },
-        { id: "christianity",label: "Christianity ✝️" },
-        { id: "hinduism",    label: "Hinduism ॐ" },
-        { id: "buddhism",    label: "Buddhism ☸️" },
-        { id: "sikhism",     label: "Sikhism 🪯" },
-        { id: "judaism",     label: "Judaism ✡️" },
+        { id: "islam",       label: "Islam" },
+        { id: "christianity",label: "Christianity" },
+        { id: "hinduism",    label: "Hinduism" },
+        { id: "buddhism",    label: "Buddhism" },
+        { id: "sikhism",     label: "Sikhism" },
+        { id: "judaism",     label: "Judaism" },
         { id: "atheism",     label: "Atheism / Humanism" },
         { id: "mixed",       label: "Other / Mixed" },
         { id: "indigenous",  label: "Indigenous / Traditional" },
@@ -1009,7 +1014,7 @@
           content:
             "In Islamic reflection, hardship is often seen as a temporary test that polishes the heart. " +
             "Believers are invited toward sabr (patience), shukr (gratitude where possible), and husn-uz-zann " +
-            "a good opinion of Allah. You can ask: what quality is being trained in me here, and which door " +
+            "(a good opinion of Allah). You can ask: what quality is being trained in me here, and which door " +
             "of mercy may open later from this chapter of my life?"
         }]
       };
@@ -1102,58 +1107,46 @@
       }
 
       function addHistory(role,text){
-        state.history.push({role,text,ts:Date.now(),locked:false});
+        const item = { role, text, ts: Date.now(), locked: false };
+        state.history.push(item);
         const cutoff = Date.now() - 48*60*60*1000;
         state.history = state.history.filter(h => h.locked || h.ts >= cutoff);
         saveHistory();
       }
-
+      function toggleHistoryLock(idx){
+        const h = state.history[idx];
+        if(!h) return;
+        h.locked = !h.locked;
+        saveHistory();
+        renderHistory();
+      }
       function renderHistory(){
         els.historyBox.innerHTML = "";
-        if(!state.history.length){
-          els.historyBox.innerHTML =
-            '<div style="padding:6px 10px;font-size:12px;opacity:.6;">No history yet.</div>';
-          return;
-        }
-        state.history.slice().sort((a,b)=>a.ts-b.ts).forEach(h=>{
+        state.history.forEach((h,idx)=>{
           const row = document.createElement("div");
           row.className = "historyLine";
-          const header = document.createElement("div");
-          header.className = "historyHeaderRow";
-
-          const left = document.createElement("div");
-          const roleSpan = document.createElement("span");
-          roleSpan.className = "historyRole";
-          roleSpan.textContent = h.role==="user" ? "user" :
-                                 (h.role==="aura" ? "ai" : h.role);
-          left.appendChild(roleSpan);
-          header.appendChild(left);
-
-          const right = document.createElement("div");
-          const timeSpan = document.createElement("span");
-          timeSpan.className = "historyTime";
-          timeSpan.textContent = new Date(h.ts).toLocaleTimeString();
+          const dt = new Date(h.ts).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+          const label = h.role==="user" ? "user" : (h.role==="aura" ? "ai" : h.role);
+          const txt = document.createElement("div");
+          txt.className = "historyText";
+          txt.textContent = label + "\n" + h.text;
           const lockBtn = document.createElement("button");
-          lockBtn.className = "historyLock";
           lockBtn.type = "button";
+          lockBtn.className = "historyLock";
           lockBtn.textContent = h.locked ? "🔒" : "🔓";
-          lockBtn.title = h.locked ? "Unlock message" : "Lock message";
-          lockBtn.addEventListener("click",(ev)=>{
+          lockBtn.title = h.locked ? "Locked (won't auto-delete)" : "Tap to lock";
+          lockBtn.addEventListener("click", (ev)=>{
             ev.stopPropagation();
-            h.locked = !h.locked;
-            saveHistory();
-            renderHistory();
+            toggleHistoryLock(idx);
           });
-          right.appendChild(timeSpan);
-          right.appendChild(lockBtn);
-          header.appendChild(right);
-
-          const body = document.createElement("div");
-          body.className = "historyText";
-          body.textContent = h.text;
-
-          row.appendChild(header);
-          row.appendChild(body);
+          const timeSpan = document.createElement("div");
+          timeSpan.style.fontSize = "10px";
+          timeSpan.style.opacity = ".7";
+          timeSpan.textContent = dt;
+          txt.appendChild(document.createElement("br"));
+          txt.appendChild(timeSpan);
+          row.appendChild(txt);
+          row.appendChild(lockBtn);
           els.historyBox.appendChild(row);
         });
       }
@@ -1178,7 +1171,7 @@
           els.faithLabel.className = "pillOff";
         }else if(state.faithSelection.length===1){
           const opt = FAITH_OPTIONS.find(o=>o.id===state.faithSelection[0]);
-          els.faithLabel.textContent = opt ? opt.label.split(" ")[0] : "1";
+          els.faithLabel.textContent = opt ? opt.label : "1";
           els.faithLabel.className = "pillOn";
         }else{
           els.faithLabel.textContent = "multi";
@@ -1195,6 +1188,7 @@
         saveCfg();
         renderFaithChips();
       }
+
       function showModal(id){ const el=document.getElementById(id); if(el) el.classList.add("show"); }
       function hideModal(id){ const el=document.getElementById(id); if(el) el.classList.remove("show"); }
       document.querySelectorAll(".closeX").forEach(btn=>{
@@ -1202,33 +1196,42 @@
         if(target) btn.addEventListener("click",()=>hideModal(target));
       });
 
-      let currentBMId = null;
-      let bmFilterDate = null;
-
       function renderBMList(){
         els.bmSelectList.innerHTML = "";
-        let list = state.bmPrompts || [];
-        if(bmFilterDate){
-          const target = bmFilterDate;
-          list = list.filter(bm=>{
-            if(!bm.ts) return false;
-            const d = new Date(bm.ts);
-            if(isNaN(d.getTime())) return false;
-            const iso = d.toISOString().slice(0,10);
-            return iso === target;
-          });
+        if(!state.bmPrompts.length){
+          els.bmSelectList.innerHTML =
+            '<div style="margin-top:8px;font-size:12px;opacity:.6;">No BM prompts yet.</div>';
+          els.bmViewer.style.display = "none";
+          return;
+        }
+        const q = els.bmSearch ? (els.bmSearch.value || "").trim().toLowerCase() : "";
+        let list = state.bmPrompts.slice();
+        if(q){
+          const isDate = /^\d{4}-\d{2}-\d{2}$/.test(q);
+          if(isDate){
+            const parts = q.split("-").map(Number);
+            const start = new Date(parts[0], parts[1]-1, parts[2]).getTime();
+            const end   = start + 24*60*60*1000;
+            list = list.filter(bm=>{
+              const t = bm.createdAt || bm.ts || 0;
+              return t>=start && t<end;
+            });
+          }else{
+            list = list.filter(bm=>{
+              const hay = ((bm.title||"") + " " + (bm.summary||"") + " " + (bm.text||"")).toLowerCase();
+              return hay.includes(q);
+            });
+          }
         }
         if(!list.length){
-          const msg = bmFilterDate
-            ? "No BM prompts for this date."
-            : "No BM prompts yet.";
           els.bmSelectList.innerHTML =
-            '<div style="margin-top:8px;font-size:12px;opacity:.6;">'+msg+'</div>';
+            '<div style="margin-top:8px;font-size:12px;opacity:.6;">No BM prompts match this search.</div>';
           els.bmViewer.style.display = "none";
           return;
         }
         const now = Date.now();
-        list.slice().sort((a,b)=>b.ts-a.ts).forEach(bm=>{
+        list.sort((a,b)=>b.ts-a.ts);
+        list.forEach(bm=>{
           const card = document.createElement("div");
           card.className = "bmCard";
           card.style.cursor="pointer";
@@ -1239,7 +1242,10 @@
           meta.style.fontSize="11px";
           meta.style.opacity=".7";
           meta.style.marginTop="2px";
-          let txt = new Date(bm.ts).toLocaleString() + (bm.locked?" · locked":" · editable");
+          const created = bm.createdAt || bm.ts;
+          let txt = new Date(created).toLocaleString() + (bm.locked?" · locked":" · editable");
+          if(bm.repeatCount) txt += " · repeats: "+bm.repeatCount;
+          if(bm.keep) txt += " · keep";
           if(bm.live && bm.liveUntil){
             if(bm.liveUntil>now) txt += " · live";
             else txt += " · live expired";
@@ -1252,6 +1258,7 @@
         });
       }
 
+      let currentBMId = null;
       function openBM(id){
         const bm = state.bmPrompts.find(x=>x.id===id);
         if(!bm) return;
@@ -1259,7 +1266,10 @@
         els.bmViewer.style.display="block";
         els.bmTitle.textContent = bm.title || "(untitled story)";
         const now = Date.now();
-        let meta = new Date(bm.ts).toLocaleString() + (bm.locked?" · locked":" · editable");
+        const created = bm.createdAt || bm.ts;
+        let meta = new Date(created).toLocaleString() + (bm.locked?" · locked":" · editable");
+        if(bm.repeatCount) meta += " · repeats: "+bm.repeatCount;
+        if(bm.keep) meta += " · keep";
         if(bm.live && bm.liveUntil){
           if(bm.liveUntil>now)
             meta += " · live until "+new Date(bm.liveUntil).toLocaleTimeString();
@@ -1279,15 +1289,19 @@
         if(!state.lastStoryInput) return null;
         if(state.lastStoryBMId) return state.lastStoryBMId;
         const id = "bm_"+Date.now();
+        const now = Date.now();
         const obj = {
           id,
           title:"Story @ "+new Date().toLocaleString(),
           summary: state.lastStoryInput.slice(0,180),
           text: state.lastStoryInput,
           locked:true,
-          ts:Date.now(),
+          ts: now,
+          createdAt: now,
           live:false,
-          liveUntil:null
+          liveUntil:null,
+          repeatCount:0,
+          keep:false
         };
         state.bmPrompts.push(obj);
         state.lastStoryBMId = id;
@@ -1312,6 +1326,11 @@
         const trimmed=(userText||"").trim();
         if(!trimmed || trimmed.length<40) return;
         const stamp=new Date().toLocaleString();
+
+        bm.repeatCount = (bm.repeatCount || 0) + 1;
+        if (bm.repeatCount >= 1) bm.keep = true;
+        if (bm.repeatCount >= 3) bm.locked = true;
+
         bm.text = (bm.text||"")+
           "\n\n[Update @ "+stamp+"]\nYou: "+userText+"\nAURA-X Ω: "+answer;
         bm.summary = bm.text.slice(0,180);
@@ -1365,6 +1384,7 @@
           els.intelList.appendChild(card);
         });
       }
+
       function openIntelEditor(it){
         state.editingIntelId=it.id;
         els.intelEditQ.value=it.q;
@@ -1511,6 +1531,7 @@
         }
       }
 
+      // VOICE
       let cachedVoices=[];
       if("speechSynthesis" in window){
         cachedVoices=window.speechSynthesis.getVoices()||[];
@@ -1663,7 +1684,7 @@
         if(!(longEnough||emoHit)) return;
         const names=state.faithSelection.map(id=>{
           const o=FAITH_OPTIONS.find(x=>x.id===id);
-          return o?o.label.split(" ")[0]:id;
+          return o?o.label:id;
         }).join(" + ");
         els.faithBubbleTitle.textContent="Faith reflection bubble";
         els.faithBubbleMeta.textContent="Tap to see "+(names||"selected")+" literature suggestion.";
@@ -1693,7 +1714,7 @@
         els.faithArticleText.value=entry.content;
         const names=state.faithSelection.map(id=>{
           const o=FAITH_OPTIONS.find(x=>x.id===id);
-          return o?o.label.split(" ")[0]:id;
+          return o?o.label:id;
         }).join(" + ") || "ethics only";
         els.faithArticleMeta.textContent="Faith lens: "+names;
         showModal("modalFaithArticle");
@@ -1805,6 +1826,31 @@
         if(state.apiConfig.key) els.apiKey.value=state.apiConfig.key;
       }
 
+      function pruneBM(){
+        let changed=false;
+        const now=Date.now();
+        const monthMs=30*24*60*60*1000;
+        state.bmPrompts = (state.bmPrompts || []).filter(bm=>{
+          const created = bm.createdAt || bm.ts || now;
+          bm.createdAt = created;
+          if (typeof bm.repeatCount !== "number") bm.repeatCount = 0;
+          if (typeof bm.keep !== "boolean") bm.keep = false;
+          if (typeof bm.locked !== "boolean") bm.locked = !!bm.locked;
+
+          if (bm.locked) return true;
+          if (bm.repeatCount >= 1 || bm.keep) {
+            bm.keep = true;
+            return true;
+          }
+          if (now - created > monthMs) {
+            changed=true;
+            return false;
+          }
+          return true;
+        });
+        if(changed) saveBM();
+      }
+
       function initFromStorage(){
         const cfg=safeLoadJSON(KEY_CFG,null);
         const intel=safeLoadJSON(KEY_INT,[]);
@@ -1816,7 +1862,6 @@
         state.intelligence=Array.isArray(intel)?intel:[];
         state.bmPrompts=Array.isArray(bm)?bm:[];
         state.history=Array.isArray(hist)?hist:[];
-        // ensure locked property exists
         state.history.forEach(h=>{ if(typeof h.locked!=="boolean") h.locked=false; });
         state.userIdentity=user;
         if(logicRaw && Array.isArray(logicRaw.list)){
@@ -1836,6 +1881,7 @@
         }
         renderFaithChips();
         renderIntelList();
+        pruneBM();
         renderBMList();
         renderHistory();
         loadIdentityForm();
@@ -1854,6 +1900,7 @@
         if(!els.optionsMenu.contains(e.target) && !els.btnOptions.contains(e.target))
           els.optionsMenu.classList.remove("show");
       });
+
       els.miVoice.addEventListener("click",()=>{
         state.voiceOn=!state.voiceOn;
         els.voicePill.textContent=state.voiceOn?"on":"off";
@@ -1934,7 +1981,7 @@
           persistLogicState();
           refreshLogicUI();
           applyUIFromLogic();
-          els.logicHint.textContent = "Logic pack saved as "+serial+". Box cleared.";
+          els.logicBox.value="";
         });
       }
       if(els.btnCopyLogic){
@@ -2017,22 +2064,21 @@
           saveBM();openBM(currentBMId);
         });
       }
-      if(els.bmSearchBtn){
-        els.bmSearchBtn.addEventListener("click",()=>{
-          bmFilterDate = els.bmSearchDate.value || null;
-          renderBMList();
-        });
-      }
-      if(els.bmClearBmSearch){
-        els.bmClearBmSearch.addEventListener("click",()=>{
-          bmFilterDate = null;
-          if(els.bmSearchDate) els.bmSearchDate.value = "";
-          renderBMList();
-        });
-      }
 
       els.btnCopyPrompt.addEventListener("click",()=>{
         const txt=els.bmTextArea.value||""; if(!txt) return; copyText(txt);
+        if(currentBMId){
+          const bm=state.bmPrompts.find(x=>x.id===currentBMId);
+          if(bm){
+            bm.repeatCount = (bm.repeatCount || 0) + 1;
+            if (bm.repeatCount >= 1) bm.keep = true;
+            if (bm.repeatCount >= 3) bm.locked = true;
+            bm.ts = Date.now();
+            saveBM();
+            renderBMList();
+            openBM(currentBMId);
+          }
+        }
       });
       els.btnAutoGen.addEventListener("click",()=>{
         logLine("[BM] Auto generation can be wired later.");
@@ -2040,29 +2086,32 @@
       els.btnDeletePrompt.addEventListener("click",()=>{
         if(!currentBMId) return;
         if(!confirm("Delete this BM prompt?")) return;
-        if(!confirm("Are you sure? This cannot be undone?")) return;
+        if(!confirm("Are you sure? This cannot be undone.")) return;
         state.bmPrompts = state.bmPrompts.filter(x=>x.id!==currentBMId);
         saveBM();renderBMList();els.bmViewer.style.display="none";currentBMId=null;
         recomputeBMMetric();updateCapsule();
       });
+      if(els.bmSearch){
+        els.bmSearch.addEventListener("input",renderBMList);
+      }
 
       els.btnDeleteRecent.addEventListener("click",()=>{
-        if(!confirm("Delete history for last 48h (unlocked only)?")) return;
+        if(!confirm("Delete history for last 48h? Locked items stay.")) return;
         const cutoff = Date.now() - 48*60*60*1000;
         state.history = state.history.filter(h => h.locked || h.ts < cutoff);
         saveHistory();renderHistory();
       });
       els.btnDeleteAllHist.addEventListener("click",()=>{
-        if(!confirm("Delete ALL unlocked history? Locked messages will stay.")) return;
-        if(!confirm("Are you sure?")) return;
-        state.history = state.history.filter(h => h.locked);
+        if(!confirm("Delete ALL unlocked history? Locked items stay.")) return;
+        if(!confirm("Are you completely sure?")) return;
+        state.history = state.history.filter(h=>h.locked);
         saveHistory();renderHistory();
       });
       els.btnCopyHistory.addEventListener("click",()=>{
         const lines=state.history.map(h=>{
           const dt=new Date(h.ts).toISOString();
           const label=h.role==="user"?"You":(h.role==="aura"?"AURA-X Ω":h.role);
-          return `[${dt}] ${label}: ${h.text}`;
+          return `[${dt}] ${label}: ${h.text}${h.locked ? " [locked]" : ""}`;
         }).join("\n");
         if(!lines) return; copyText(lines);
       });
@@ -2093,6 +2142,7 @@
       });
 
       initFromStorage();
+      // No welcome text; clean console on load.
     });
   </script>
 </body>
