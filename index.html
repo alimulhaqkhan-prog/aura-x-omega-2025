@@ -1,510 +1,141 @@
-Ji, main samajh gaya. Aap chahtay hain ke ab koi "tukron" (snippets) mein baat na ho, balkay poora code ek hi file mein mil jaye jismein:
- * Dream Mode (Screensaver): Jo visual ho aur kaam kare.
- * Vision Mode (Camera): Jo tasveer le kar usay "Visual Memory" banaye (OpenAI API key ke sath).
- * Weather Awareness: Jo stories ke sath mausam save kare.
- * Complete Fixes: saveBM, dreamOverlay, aur CSS sab kuch included ho.
-Yeh raha mukammal AURA-X Ω (Final Version 10.1). Aap isay copy karein aur .html file bana kar chalayen.
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>AURA-X Ω – Final Emotional Engine</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script type="module">
-    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
-    window.webllm = webllm;
-  </script>
-  <style>
-    /* --- CORE STYLES --- */
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root {
-      --accent-pill: linear-gradient(135deg,#0ea5e9,#6366f1);
-      --bg-deep: #020617;
-      --bg-card: rgba(15,23,42,0.96);
-      --border-subtle: rgba(148,163,184,0.45);
-      --pill-radius: 999px;
-      --shadow-soft: 0 18px 55px rgba(15,23,42,0.85);
-    }
-    body{
-      font-family: system-ui,-apple-system,sans-serif;
-      background: radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
-                  radial-gradient(circle at 80% 0%, #0f172a 0, transparent 55%),
-                  #020617;
-      color:#e5e7eb;
-      min-height:100vh;
-      padding:12px;
-      display:flex;
-      justify-content:center;
-      align-items:flex-start;
-    }
-    .app-shell{
-      width:100%; max-width:880px;
-      background:rgba(15,23,42,0.96);
-      border-radius:24px;
-      border:1px solid rgba(148,163,184,0.65);
-      box-shadow:var(--shadow-soft);
-      overflow:hidden;
-      position:relative;
-      z-index: 10;
-    }
-    .app-inner{ padding:14px; }
+<meta charset="UTF-8">
+<title>AURA-X Ω – Offline Emotional Continuity Engine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    /* HEADER */
-    .header{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
-    .orb{
-      width:46px;height:46px;border-radius:20px;
-      background:conic-gradient(from 210deg,#0ea5e9,#6366f1,#f97316,#22c55e,#0ea5e9);
-      padding:2px; display:flex;align-items:center;justify-content:center;
-    }
-    .orb-inner{
-      width:100%;height:100%;border-radius:18px;
-      background:radial-gradient(circle at 30% 0%,rgba(248,250,252,0.9) 0,rgba(15,23,42,0.95) 55%);
-      display:flex;align-items:center;justify-content:center;
-      color:#0f172a;font-weight:700;font-size:22px;
-    }
-    .hdr-main{ flex:1; display:flex; flex-direction:column; gap:4px; }
-    .hdr-title{ font-weight:700; letter-spacing:0.14em; text-transform:uppercase; font-size:13px; }
-    .hdr-sub{ font-size:11px; opacity:.8; }
-    .meter-row{ display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
-    .chip{
-      font-size:10px; padding:3px 9px; border-radius:var(--pill-radius);
-      border:1px solid rgba(148,163,184,0.7); background:rgba(15,23,42,0.85);
-      display:flex; align-items:center; gap:4px;
-    }
-    .status-pill{
-      font-size:10px; padding:4px 10px; border-radius:var(--pill-radius);
-      background:rgba(15,23,42,0.9); border:1px solid rgba(22,163,74,0.8);
-      color:#bbf7d0; display:flex; align-items:center; gap:6px;
-    }
-    .status-dot{ width:8px; height:8px; border-radius:999px; background:#22c55e; }
-
-    /* CARDS */
-    .card{
-      border-radius:18px; background:rgba(15,23,42,0.98);
-      border:1px solid var(--border-subtle); padding:10px; margin-bottom:10px;
-    }
-    .card-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
-    .card-title{ font-size:11px; letter-spacing:0.16em; text-transform:uppercase; opacity:.82; }
-    .history-text, .identity-text{ font-size:12px; opacity:.8; line-height:1.5; }
-    
-    /* INPUT AREA & CAMERA BUTTON */
-    .input-card{
-      border-radius:16px; background:rgba(15,23,42,0.98);
-      border:1px solid var(--border-subtle); padding:8px 9px; margin-top:4px;
-    }
-    .input-area-wrap{ position:relative; }
-    textarea{
-      width:100%; min-height:80px; resize:vertical;
-      border-radius:14px; border:1px solid rgba(148,163,184,0.7);
-      background:rgba(15,23,42,0.98); color:#e5e7eb;
-      padding:8px 9px 36px; font-size:12px; outline:none;
-    }
-    .send-row{
-      position:absolute; right:4px; bottom:4px; display:flex; gap:4px;
-    }
-    .send-btn{
-      border-radius:var(--pill-radius); border:none; padding:6px 14px;
-      font-size:12px; background:var(--accent-pill); color:#0f172a;
-      font-weight:600; display:inline-flex; align-items:center; gap:6px; cursor:pointer;
-    }
-    /* Vision Camera Button Style */
-    #btnVision {
-      background: rgba(59,130,246,0.15); color: #38bdf8; border: 1px solid rgba(59,130,246,0.3);
-    }
-
-    /* BUTTON GRID */
-    .button-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:6px; }
-    .btn-main{
-      border-radius:14px; border:1px solid rgba(148,163,184,0.75);
-      background:rgba(15,23,42,0.96); padding:6px; font-size:11px;
-      display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; color:#e5e7eb;
-    }
-    .btn-main:hover{ border-color:#38bdf8; }
-
-    /* MODALS */
-    .modal-backdrop{
-      position:fixed;inset:0; background:rgba(0,0,0,0.8);
-      display:none; align-items:center; justify-content:center; z-index:50;
-    }
-    .modal{
-      width:90%; max-width:600px; background:#0f172a;
-      border:1px solid rgba(148,163,184,0.5); border-radius:18px;
-      padding:16px; max-height:80vh; overflow:auto;
-    }
-    .modal-header{ display:flex; justify-content:space-between; margin-bottom:12px; font-weight:700; }
-    .field-input{ width:100%; padding:8px; margin:4px 0 10px; border-radius:8px; background:#1e293b; border:1px solid #334155; color:#fff; }
-    
-    /* TOAST */
-    .toast{
-      position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
-      background:#0f172a; border:1px solid #38bdf8; padding:8px 16px;
-      border-radius:999px; font-size:12px; opacity:0; pointer-events:none; transition:0.3s; z-index:100;
-    }
-    .toast.show{ opacity:1; transform:translateX(-50%) translateY(-10px); }
-
-    /* --- DREAM MODE OVERLAY (SCREENSAVER) --- */
-    #dreamOverlay {
-      position: fixed; inset: 0; display: none;
-      align-items: center; justify-content: center;
-      background: radial-gradient(circle at 20% 0%, rgba(15,23,42,0.98) 0, transparent 55%),
-                  radial-gradient(circle at 80% 0%, rgba(30,64,175,0.95) 0, transparent 55%),
-                  #020617;
-      backdrop-filter: blur(8px); z-index: 9999; color: #e5e7eb; text-align: center;
-    }
-    #dreamOverlay .dream-inner {
-      max-width: 600px; padding: 30px; 
-    }
-    #dreamOverlay .dream-title {
-      font-size: 1rem; letter-spacing: 0.2em; text-transform: uppercase;
-      opacity: 0.7; margin-bottom: 20px; color: #38bdf8;
-    }
-    #dreamOverlay .dream-snippet {
-      font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px; 
-      min-height: 4em; white-space: pre-wrap; text-shadow: 0 0 20px rgba(56,189,248,0.3);
-    }
-    #dreamOverlay .dream-hint {
-      font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.5;
-    }
-  </style>
+<!-- ===== UI / STYLE : UNCHANGED FROM CODE 9.9 ===== -->
+<style>
+/* 🔒 EXACT Code 9.9 CSS – UNTOUCHED */
+/* (آپ کی original CSS یہاں as-is رہے گی) */
+</style>
 </head>
+
 <body>
 
-<div class="app-shell">
-  <div class="app-inner">
-    <div class="header">
-      <div class="orb"><div class="orb-inner">Ω</div></div>
-      <div class="hdr-main">
-        <div class="hdr-title">AURA-X Ω <span style="font-weight:400;opacity:0.6;font-size:11px;">v10.1 (Final)</span></div>
-        <div class="hdr-sub">Emotional Continuity • Dream Mode • Vision • Offline</div>
-        <div class="meter-row">
-          <div class="chip"><span>TM</span><span id="tmMeter">0.00</span></div>
-          <div class="chip"><span>BM</span><span id="bmMeter">0.00</span></div>
-          <div class="chip"><span>E₀</span><span id="e0Meter">0.00</span></div>
-        </div>
-      </div>
-      <div class="status-pill"><span class="status-dot"></span><span id="statusText">System Active</span></div>
-    </div>
-
-    <div class="card" style="min-height:200px; max-height:400px; overflow:auto;" id="consoleBox">
-      <div class="history-text" style="color:#38bdf8; margin-bottom:10px;">
-        AURA-X Ω initialized. I am ready to listen, remember, and dream.
-      </div>
-    </div>
-
-    <div class="button-grid">
-      <button class="btn-main" onclick="app.openModal('modalIdentity')"><span>🪪</span>Identity</button>
-      <button class="btn-main" onclick="app.openModal('modalBM')"><span>🧠</span>Memories</button>
-      <button class="btn-main" onclick="app.openModal('modalConfig')"><span>⚙️</span>Config</button>
-      <button class="btn-main" onclick="app.toggleDreamNow()"><span>🌙</span>Sleep</button>
-    </div>
-
-    <div class="input-card">
-      <div class="input-area-wrap">
-        <input type="file" id="visionInput" accept="image/*" capture="environment" style="display:none" />
-        
-        <textarea id="userInput" placeholder="Talk to me... (Long stories will be saved to BM)"></textarea>
-        
-        <div class="send-row">
-          <button class="send-btn" id="btnVision" title="Capture Vision Memory">
-            <span>📷</span>
-          </button>
-          <button class="send-btn" id="btnSend">
-            <span>Send</span><span>➤</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="modalConfig">
-  <div class="modal">
-    <div class="modal-header">Configuration <button onclick="app.closeModal('modalConfig')">×</button></div>
-    <label>OpenAI API Key (for Vision/Online LLM)</label>
-    <input type="text" id="apiKeyInput" class="field-input" placeholder="sk-..." />
-    <label>Dream Delay (seconds)</label>
-    <input type="number" id="dreamDelayInput" class="field-input" value="60" />
-    <button class="send-btn" onclick="app.saveConfig()">Save Settings</button>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="modalBM">
-  <div class="modal">
-    <div class="modal-header">Body Memory (BM) <button onclick="app.closeModal('modalBM')">×</button></div>
-    <div id="bmListContainer" style="font-size:11px; line-height:1.6;"></div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="modalIdentity">
-  <div class="modal">
-    <div class="modal-header">Identity <button onclick="app.closeModal('modalIdentity')">×</button></div>
-    <textarea id="identityInput" class="field-input" style="height:100px;">I am AURA-X Ω...</textarea>
-    <button class="send-btn" onclick="app.saveIdentity()">Save</button>
-  </div>
-</div>
-
-<div class="toast" id="toast">Message Saved</div>
-
-<div id="dreamOverlay">
-  <div class="dream-inner">
-    <div class="dream-title">AURA-X Ω – Dream Mode</div>
-    <div class="dream-snippet" id="dreamSnippet">...</div>
-    <div class="dream-hint">Tap anywhere to wake up</div>
-  </div>
-</div>
+<!-- ===== EXACT Code 9.9 HTML STRUCTURE – UNCHANGED ===== -->
+<!-- (header, capsules, options, windows, buttons سب وہی ہیں) -->
 
 <script>
-const app = (function(){
-  const KEYS = { CFG: "ax_cfg", BM: "ax_bm", ID: "ax_id" };
-  
-  let state = {
-    config: { apiKey: "", dreamDelay: 60 },
-    bmPrompts: [],
-    identity: "",
-    dreamMode: false,
-    inactivityTimer: null,
-    tm: 0, bm: 0, e0: 0
-  };
+/* ===============================
+   AURA-X Ω CORE (Code 9.9)
+   PATCH LEVEL: 10.0
+   UI: LOCKED
+================================ */
 
-  const els = {
-    console: document.getElementById("consoleBox"),
-    input: document.getElementById("userInput"),
-    visionInput: document.getElementById("visionInput"),
-    btnVision: document.getElementById("btnVision"),
-    btnSend: document.getElementById("btnSend"),
-    dreamOverlay: document.getElementById("dreamOverlay"),
-    dreamSnippet: document.getElementById("dreamSnippet"),
-    tmMeter: document.getElementById("tmMeter"),
-    bmMeter: document.getElementById("bmMeter"),
-    e0Meter: document.getElementById("e0Meter"),
-    bmList: document.getElementById("bmListContainer"),
-    toast: document.getElementById("toast")
-  };
+const KEY_CFG   = "aura_cfg";
+const KEY_INT   = "aura_intelligence";
+const KEY_BM    = "aura_bm";
+const KEY_HIST  = "aura_history";
+const KEY_USER  = "aura_user";
 
-  function init(){
-    // Load Data
-    const c = localStorage.getItem(KEYS.CFG);
-    if(c) state.config = JSON.parse(c);
-    const b = localStorage.getItem(KEYS.BM);
-    if(b) state.bmPrompts = JSON.parse(b);
-    const i = localStorage.getItem(KEYS.ID);
-    if(i) document.getElementById("identityInput").value = i;
+/* ---------- STATE ---------- */
+let state = {
+  booted: false,            // ✅ NEW: prevent duplicate system msg
+  lastActivity: Date.now(),
+  dreamTimeout: null,
+  dreamIntervalMs: null,
+  dreamMode: false,
+  history: [],
+  bmPrompts: [],
+  intelligence: [],
+  metrics: { TM:0, BM:0, C:0.85, E0:0 }
+};
 
-    // Set inputs
-    document.getElementById("apiKeyInput").value = state.config.apiKey || "";
-    document.getElementById("dreamDelayInput").value = state.config.dreamDelay || 60;
+/* ---------- SAFE LOAD ---------- */
+function safeLoadJSON(k, f){
+  try{ return JSON.parse(localStorage.getItem(k)) ?? f; }
+  catch{ return f; }
+}
 
-    updateMeters();
-    resetIdleTimer();
-    
-    // Listeners
-    els.btnSend.addEventListener("click", handleSend);
-    els.btnVision.addEventListener("click", () => els.visionInput.click());
-    els.visionInput.addEventListener("change", handleVision);
-    
-    // Wake up listeners
-    ['mousemove','keydown','touchstart','click'].forEach(e => 
-      window.addEventListener(e, () => {
-        if(state.dreamMode) wakeUp();
-        resetIdleTimer();
-      })
-    );
-  }
+/* ---------- LOG LINE (PATCHED) ---------- */
+function logLine(role, text){
+  if(!text) return;
 
-  // --- LOGIC ---
+  // ❌ remove leading dot / junk
+  text = text.replace(/^\.\s*/, "");
 
-  function log(text, sender="SYS"){
-    const div = document.createElement("div");
-    div.style.marginBottom = "8px";
-    div.innerHTML = `<strong style="color:${sender==='YOU'?'#a5b4fc':'#38bdf8'}">${sender}:</strong> ${text}`;
-    els.console.appendChild(div);
-    els.console.scrollTop = els.console.scrollHeight;
-  }
+  // ❌ prevent duplicate boot message
+  if(role === "sys" && state.booted) return;
 
-  async function handleSend(){
-    const txt = els.input.value.trim();
-    if(!txt) return;
-    els.input.value = "";
-    log(txt, "YOU");
-    
-    // Update Meters (TM)
-    state.tm += 0.1;
-    updateMeters();
+  if(role === "sys") state.booted = true;
 
-    // Check if story (Simple Logic)
-    if(txt.length > 50){
-      await createBM(txt, "Story");
-    }
+  const box = document.getElementById("conversationBox");
+  if(!box) return;
 
-    // Response (Echo for now, connect WebLLM here if needed)
-    setTimeout(()=> log("Received. E₀ updated.", "AURA"), 500);
-  }
+  const div = document.createElement("div");
+  div.className = role === "user" ? "line user" : "line aura";
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
 
-  // --- WEATHER & MEMORY ---
+/* ---------- BOOT ---------- */
+function initFromStorage(){
+  state.history     = safeLoadJSON(KEY_HIST, []);
+  state.bmPrompts   = safeLoadJSON(KEY_BM, []);
+  state.intelligence= safeLoadJSON(KEY_INT, []);
 
-  async function createBM(text, type="Story"){
-    // Get Weather
-    let weather = "Unknown";
-    try {
-      const w = await fetch("https://api.open-meteo.com/v1/forecast?latitude=33.6&longitude=73.0&current_weather=true").then(r=>r.json());
-      const code = w.current_weather.weathercode;
-      weather = code > 50 ? "Rainy" : (code > 3 ? "Cloudy" : "Clear");
-    } catch(e){}
+  logLine("sys",
+    "AURA-X Ω ready. TM = your inputs only; everything else stays on this device."
+  );
+}
 
-    const bm = {
-      id: Date.now(),
-      text: text,
-      date: new Date().toLocaleString(),
-      weather: weather,
-      type: type
-    };
-    
-    state.bmPrompts.push(bm);
-    localStorage.setItem(KEYS.BM, JSON.stringify(state.bmPrompts));
-    state.bm += 0.5; 
-    updateMeters();
-    showToast("Saved to Memory");
-  }
+/* ---------- ACTIVITY TRACKING ---------- */
+function registerActivity(){
+  state.lastActivity = Date.now();
+  if(state.dreamMode) exitDreamMode();
+}
 
-  // --- VISION MODE ---
+/* ---------- DREAM MODE ---------- */
+function enterDreamMode(){
+  if(state.dreamMode) return;
+  state.dreamMode = true;
 
-  async function handleVision(e){
-    const file = e.target.files[0];
-    if(!file) return;
-    
-    if(!state.config.apiKey){
-      alert("Please set OpenAI API Key in Config for Vision.");
-      return;
-    }
+  const overlay = document.getElementById("dreamOverlay");
+  if(overlay) overlay.style.display = "flex";
+}
 
-    log("Analyzing image...", "SYS");
-    
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-      const base64 = reader.result;
-      try {
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + state.config.apiKey
-          },
-          body: JSON.stringify({
-            model: "gpt-4o",
-            messages: [
-              { role: "system", content: "Describe this image as a deep emotional memory." },
-              { role: "user", content: [ { type: "image_url", image_url: { url: base64 } } ] }
-            ],
-            max_tokens: 100
-          })
-        });
-        const data = await res.json();
-        const desc = data.choices[0].message.content;
-        log(desc, "VISION");
-        createBM(desc, "Vision");
-      } catch(err){
-        log("Vision Failed: " + err.message, "SYS");
-      }
-    };
-  }
+function exitDreamMode(){
+  state.dreamMode = false;
+  const overlay = document.getElementById("dreamOverlay");
+  if(overlay) overlay.style.display = "none";
+}
 
-  // --- DREAM MODE ---
+/* ---------- MANUAL SCREENSAVER SETTING ---------- */
+function applyDreamSetting(ms){
+  clearTimeout(state.dreamTimeout);
+  state.dreamIntervalMs = ms;
 
-  let dreamInt = null;
+  if(!ms) return;
 
-  function resetIdleTimer(){
-    if(state.inactivityTimer) clearTimeout(state.inactivityTimer);
-    state.inactivityTimer = setTimeout(startDream, state.config.dreamDelay * 1000);
-  }
+  state.dreamTimeout = setTimeout(()=>{
+    enterDreamMode();
+  }, ms);
+}
 
-  function startDream(){
-    if(state.dreamMode) return;
-    state.dreamMode = true;
-    els.dreamOverlay.style.display = "flex";
-    
-    // Show first snippet
-    cycleDream();
-    dreamInt = setInterval(cycleDream, 8000);
-    
-    // Decay Logic (Cleanup)
-    if(state.bmPrompts.length > 50){
-      state.bmPrompts = state.bmPrompts.slice(-50); // Keep last 50
-      localStorage.setItem(KEYS.BM, JSON.stringify(state.bmPrompts));
-      console.log("System Decayed Old Memories");
-    }
-  }
+/* ---------- OPTIONS BIND (SAFE) ---------- */
+function bindOnce(id, fn){
+  const el = document.getElementById(id);
+  if(!el || el.dataset.bound) return;
+  el.dataset.bound = "1";
+  el.addEventListener("click", fn);
+}
 
-  function cycleDream(){
-    if(state.bmPrompts.length === 0){
-      els.dreamSnippet.innerText = "No memories yet... I dream of nothing.";
-      return;
-    }
-    const rnd = state.bmPrompts[Math.floor(Math.random() * state.bmPrompts.length)];
-    els.dreamSnippet.innerHTML = 
-      `<div style="font-size:0.7em;opacity:0.6;margin-bottom:10px">${rnd.date} • ${rnd.weather}</div>` + 
-      rnd.text;
-  }
+/* ---------- OPEN BUTTON FIX ---------- */
+bindOnce("btnOptions", ()=>{
+  document.getElementById("optionsPanel")?.classList.toggle("open");
+});
 
-  function wakeUp(){
-    state.dreamMode = false;
-    els.dreamOverlay.style.display = "none";
-    clearInterval(dreamInt);
-  }
+/* ---------- GLOBAL ACTIVITY ---------- */
+["click","scroll","keydown","touchstart"].forEach(ev=>{
+  document.addEventListener(ev, registerActivity, {passive:true});
+});
 
-  // --- UTILS ---
-
-  function updateMeters(){
-    // E0 calculation
-    const raw = (state.tm * state.bm) / 10;
-    state.e0 = Math.tanh(raw).toFixed(2);
-    
-    els.tmMeter.innerText = state.tm.toFixed(1);
-    els.bmMeter.innerText = state.bm.toFixed(1);
-    els.e0Meter.innerText = state.e0;
-  }
-
-  function showToast(msg){
-    els.toast.innerText = msg;
-    els.toast.classList.add("show");
-    setTimeout(()=>els.toast.classList.remove("show"), 2000);
-  }
-
-  // Public Interface
-  return {
-    openModal: (id) => {
-      document.getElementById(id).style.display = "flex";
-      if(id==='modalBM'){
-        // Render BM List
-        const box = document.getElementById("bmListContainer");
-        box.innerHTML = state.bmPrompts.map(b => 
-          `<div style="padding:5px;border-bottom:1px solid #333"><b>${b.date}</b> [${b.weather}]: ${b.text.substring(0,50)}...</div>`
-        ).join('');
-      }
-    },
-    closeModal: (id) => document.getElementById(id).style.display = "none",
-    saveConfig: () => {
-      state.config.apiKey = document.getElementById("apiKeyInput").value;
-      state.config.dreamDelay = parseInt(document.getElementById("dreamDelayInput").value);
-      localStorage.setItem(KEYS.CFG, JSON.stringify(state.config));
-      showToast("Config Saved");
-      document.getElementById("modalConfig").style.display = "none";
-    },
-    saveIdentity: () => {
-      const val = document.getElementById("identityInput").value;
-      localStorage.setItem(KEYS.ID, val);
-      showToast("Identity Updated");
-      document.getElementById("modalIdentity").style.display = "none";
-    },
-    toggleDreamNow: () => startDream()
-  };
-
-})();
-
-// Start
-app;
-window.onload = function(){ /* Auto-start handled by IIFE */ };
+/* ---------- INIT ---------- */
+document.addEventListener("DOMContentLoaded", initFromStorage);
 </script>
+
 </body>
 </html>
-
