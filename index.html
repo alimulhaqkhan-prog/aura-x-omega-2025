@@ -564,7 +564,7 @@
       inset:0;
       background:
         radial-gradient(circle at 10% 0%, #020617 0, transparent 45%),
-        radial-gradient(circle at 90% 0%, #0ea5e9 0, transparent 45%),
+        radial-gradient(circle at 90% 0, #0ea5e9 0, transparent 45%),
         rgba(2,6,23,.96);
       display:none;
       align-items:center;
@@ -753,6 +753,7 @@
       </div>
     </div>
   </div>
+
   <!-- Toast bubble -->
   <div class="toastBubble" id="toastBubble"></div>
 
@@ -784,6 +785,7 @@
       </div>
     </div>
   </div>
+
   <!-- Faith article -->
   <div class="modalOverlay" id="modalFaithArticle">
     <div class="modal">
@@ -798,12 +800,13 @@
           style="width:100%;min-height:160px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;background:#fff;"></textarea>
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
           <button class="btn btnBlue" id="btnCopyFaithArticle">Copy</button>
-          <button class="btn btnBlue" id="btnAddFaithToBM">Add under BM prompt</button>
+          <button class="btn btnBlue" id="btnExportFaith">Export</button>
           <button class="btn btnRed" id="btnSkipFaithBM">Skip</button>
         </div>
       </div>
     </div>
   </div>
+
   <!-- Intelligence -->
   <div class="modalOverlay" id="modalIntel">
     <div class="modal">
@@ -820,6 +823,7 @@
       </div>
     </div>
   </div>
+
   <!-- Seed + Logic -->
   <div class="modalOverlay" id="modalSeed">
     <div class="modal">
@@ -873,6 +877,7 @@
       </div>
     </div>
   </div>
+
   <!-- LLM -->
   <div class="modalOverlay" id="modalLLM">
     <div class="modal">
@@ -922,6 +927,7 @@
       </div>
     </div>
   </div>
+
   <!-- BM Recall -->
   <div class="modalOverlay" id="modalBM">
     <div class="modal">
@@ -1001,6 +1007,7 @@
       </div>
     </div>
   </div>
+
   <!-- History -->
   <div class="modalOverlay" id="modalHistory">
     <div class="modal">
@@ -1018,6 +1025,7 @@
       </div>
     </div>
   </div>
+
   <!-- Identity -->
   <div class="modalOverlay" id="modalIdentity">
     <div class="modal">
@@ -1083,6 +1091,7 @@
       </div>
     </div>
   </div>
+
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       const KEY_CFG   = "aurax_cfg_v13";
@@ -1092,6 +1101,7 @@
       const KEY_USER  = "aurax_user_v11";
       const KEY_LOGIC = "aurax_logic_v12";
       const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
+
       const els = {
         console: document.getElementById("console"),
         btnOptions: document.getElementById("btnOptions"),
@@ -1125,7 +1135,7 @@
         faithArticleTitle: document.getElementById("faithArticleTitle"),
         faithArticleText: document.getElementById("faithArticleText"),
         btnCopyFaithArticle: document.getElementById("btnCopyFaithArticle"),
-        btnAddFaithToBM: document.getElementById("btnAddFaithToBM"),
+        btnExportFaith: document.getElementById("btnExportFaith"),
         btnSkipFaithBM: document.getElementById("btnSkipFaithBM"),
         modalIntel: document.getElementById("modalIntel"),
         intelSearch: document.getElementById("intelSearch"),
@@ -1194,6 +1204,7 @@
         btnTestDream: document.getElementById("btnTestDream"),
         dreamStatusText: document.getElementById("dreamStatusText")
       };
+
       const FAITH_OPTIONS = [
         { id: "none",         label: "None" },
         { id: "islam",        label: "Islam" },
@@ -1207,6 +1218,7 @@
         { id: "indigenous",   label: "Indigenous / Traditional" },
         { id: "eastern",      label: "Eastern / Chinese" }
       ];
+
       const FAITH_LIBRARY = {
         islam: [{
           id: "islam_generic",
@@ -1219,6 +1231,7 @@
             "of mercy may open later from this chapter of my life?"
         }]
       };
+
       let state = {
         voiceOn: false,
         learningOn: true,
@@ -1256,12 +1269,14 @@
         dreamTimerId: null,
         lastActivityTs: Date.now()
       };
+
       function safeLoadJSON(key, fallback){
         try{
           const raw = localStorage.getItem(key);
           return raw ? JSON.parse(raw) : fallback;
         }catch{ return fallback; }
       }
+
       function logLine(roleOrText, maybeText){
         let role = "";
         let text;
@@ -1280,14 +1295,17 @@
           addHistory(role, text);
         }
       }
+
       function scoreTM(t){
         const len = Math.min((t||"").length,600);
         return Number(Math.tanh(len/200).toFixed(2));
       }
+
       function recomputeBMMetric(){
         const count = state.bmPrompts.length || 0;
         state.metrics.BM = Number(Math.tanh(count/10).toFixed(2));
       }
+
       function recomputeE0(intelBoost, llmBoost){
         const TM = state.metrics.TM;
         const BM = state.metrics.BM;
@@ -1300,12 +1318,14 @@
         const raw = R + I_tm + intelBoost + llmBoost - D + lambdaFaith + lambdaSys + lambdaTrc;
         state.metrics.E0 = Number(Math.tanh(raw).toFixed(3));
       }
+
       function updateCapsule(){
         els.cTM.textContent = state.metrics.TM.toFixed(2);
         els.cBM.textContent = state.metrics.BM.toFixed(2);
         els.cCont.textContent = state.metrics.C.toFixed(3);
         els.cE0.textContent = state.metrics.E0.toFixed(3);
       }
+
       function showToast(msg){
         if(!els.toastBubble) return;
         els.toastBubble.textContent = msg;
@@ -1316,10 +1336,35 @@
         },1600);
       }
 
+      /* Export helpers */
+      function exportTextFile(filename, content, mime="text/plain;charset=utf-8"){
+        try{
+          const blob = new Blob([content], { type: mime });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(()=>URL.revokeObjectURL(url), 500);
+          return true;
+        }catch(e){
+          return false;
+        }
+      }
+
+      function safeFileName(name){
+        return (name || "faith_reflection")
+          .toLowerCase()
+          .replace(/[^\w\-]+/g,"_")
+          .replace(/_+/g,"_")
+          .slice(0,60);
+      }
+
       /* Dream mode helpers */
       function updateDreamUI(){
         if(!els.dreamDelaySelect || !els.btnToggleDream || !els.dreamStatusText) return;
-        // set button
         if(state.dreamEnabled){
           els.btnToggleDream.textContent = "Disable";
           els.btnToggleDream.className = "btn btnRed";
@@ -1327,7 +1372,6 @@
           els.btnToggleDream.textContent = "Enable";
           els.btnToggleDream.className = "btn btnGreen";
         }
-        // sync select (choose closest)
         const current = state.dreamDelayMs;
         let bestVal = els.dreamDelaySelect.options.length ? els.dreamDelaySelect.options[0].value : String(current);
         let bestDiff = Infinity;
@@ -1337,7 +1381,7 @@
           if(diff<bestDiff){bestDiff=diff;bestVal=opt.value;}
         });
         els.dreamDelaySelect.value = bestVal;
-        // status text
+
         const ms = state.dreamDelayMs;
         let label;
         if(ms < 60000){
@@ -1355,6 +1399,7 @@
           ? "Screensaver is ON · starts after " + label + " of no activity."
           : "Screensaver is OFF.";
       }
+
       function showDreamOverlay(){
         if(!els.dreamOverlay) return;
         const bmCount = state.bmPrompts.length || 0;
@@ -1365,23 +1410,25 @@
         }
         els.dreamOverlay.classList.add("show");
       }
+
       function hideDreamOverlay(){
         if(!els.dreamOverlay) return;
         els.dreamOverlay.classList.remove("show");
-        scheduleDreamTimer(); // restart countdown after wake
+        scheduleDreamTimer();
       }
+
       function scheduleDreamTimer(){
         state.lastActivityTs = Date.now();
         if(state.dreamTimerId){ clearTimeout(state.dreamTimerId); state.dreamTimerId = null; }
         if(!state.dreamEnabled) return;
-        const delay = Math.min(Math.max(state.dreamDelayMs,30000), 28800000); // clamp 30s-8h
+        const delay = Math.min(Math.max(state.dreamDelayMs,30000), 28800000);
         state.dreamDelayMs = delay;
         state.dreamTimerId = setTimeout(()=>{
           showDreamOverlay();
         }, delay);
       }
+
       function registerActivity(){
-        // do not restart if user is already on dream overlay; click there will close it separately
         if(els.dreamOverlay && els.dreamOverlay.classList.contains("show")) return;
         scheduleDreamTimer();
       }
@@ -1400,14 +1447,17 @@
         };
         localStorage.setItem(KEY_CFG, JSON.stringify(cfg));
       }
+
       function saveIntelligence(){ localStorage.setItem(KEY_INT, JSON.stringify(state.intelligence)); }
       function saveBM(){ localStorage.setItem(KEY_BM, JSON.stringify(state.bmPrompts)); }
       function saveHistory(){ localStorage.setItem(KEY_HIST, JSON.stringify(state.history)); }
       function saveUserIdentity(){ localStorage.setItem(KEY_USER, JSON.stringify(state.userIdentity)); }
+
       function persistLogicState(){
         const data = { list: state.logicPacks || [], activeIndex: state.logicActiveIndex };
         localStorage.setItem(KEY_LOGIC, JSON.stringify(data));
       }
+
       function addHistory(role,text){
         const item = { role, text, ts: Date.now(), locked: false };
         state.history.push(item);
@@ -1415,6 +1465,7 @@
         state.history = state.history.filter(h => h.locked || h.ts >= cutoff);
         saveHistory();
       }
+
       function toggleHistoryLock(idx){
         const h = state.history[idx];
         if(!h) return;
@@ -1422,6 +1473,7 @@
         saveHistory();
         renderHistory();
       }
+
       function renderHistory(){
         els.historyBox.innerHTML = "";
         state.history.forEach((h,idx)=>{
@@ -1441,6 +1493,7 @@
           els.historyBox.appendChild(row);
         });
       }
+
       /* Faith chips */
       function renderFaithChips(){
         els.faithChips.innerHTML = "";
@@ -1466,6 +1519,7 @@
           els.faithChips.appendChild(chip);
         });
       }
+
       function maybeShowFaithBubble(){
         if(!state.faithSelection.length) return;
         const pick = state.faithSelection[0];
@@ -1477,13 +1531,16 @@
         els.faithBubbleMeta.textContent = art.short;
         els.faithBubble.classList.add("show","pulse");
       }
+
       function openModal(el){
         el.classList.add("show");
       }
+
       function closeModalById(id){
         const el = document.getElementById(id);
         if(el) el.classList.remove("show");
       }
+
       document.body.addEventListener("click",(e)=>{
         const target = e.target;
         if(target.dataset && target.dataset.close){
@@ -1493,6 +1550,7 @@
           target.classList.remove("show");
         }
       });
+
       if(els.faithBubble){
         els.faithBubble.addEventListener("click",()=>{
           if(!state.currentFaithArticle) return;
@@ -1504,38 +1562,70 @@
           openModal(els.modalFaithArticle);
         });
       }
+
       if(els.faithBubbleClose){
         els.faithBubbleClose.addEventListener("click",(ev)=>{
           ev.stopPropagation();
           els.faithBubble.classList.remove("show","pulse");
         });
       }
+
       els.btnCopyFaithArticle.addEventListener("click",()=>{
         navigator.clipboard?.writeText(els.faithArticleText.value||"");
         showToast("Faith reflection copied");
       });
-      els.btnAddFaithToBM.addEventListener("click",()=>{
-        if(!els.faithArticleText.value.trim()) return;
-        const now = Date.now();
-        const bm = {
-          id: "bm_"+now,
-          title: els.faithArticleTitle.textContent || "Faith reflection",
-          text: els.faithArticleText.value,
-          ts: now,
-          locked: true,
-          liveUntil: null
-        };
-        state.bmPrompts.push(bm);
-        saveBM();
-        recomputeBMMetric();
-        recomputeE0(0,0);
-        updateCapsule();
-        renderBMList();
-        showToast("Added under BM (locked)");
-      });
+
+      // NEW: Export button (txt + json) instead of "Add under BM prompt"
+      if(els.btnExportFaith){
+        els.btnExportFaith.addEventListener("click", async ()=>{
+          const text = (els.faithArticleText.value || "").trim();
+          if(!text){
+            showToast("Nothing to export");
+            return;
+          }
+
+          const title = (els.faithArticleTitle.textContent || "Faith reflection").trim();
+          const meta  = (els.faithArticleMeta.textContent || "").trim();
+          const ts    = new Date().toISOString();
+
+          const plain =
+`[AURA-X Ω — Faith Reflection Export]
+Title: ${title}
+${meta ? "Meta: " + meta : ""}
+ExportedAt: ${ts}
+
+${text}
+`;
+
+          const jsonObj = {
+            type: "faith_reflection",
+            title,
+            meta,
+            exportedAt: ts,
+            text
+          };
+          const json = JSON.stringify(jsonObj, null, 2);
+
+          const base = safeFileName(title) + "_" + ts.slice(0,10);
+          const ok1 = exportTextFile(base + ".txt", plain, "text/plain;charset=utf-8");
+          const ok2 = exportTextFile(base + ".json", json, "application/json;charset=utf-8");
+
+          if(!ok1 && navigator.clipboard){
+            try{
+              await navigator.clipboard.writeText(plain);
+              showToast("Export failed — copied to clipboard");
+              return;
+            }catch{}
+          }
+
+          showToast(ok1 || ok2 ? "Exported (txt + json)" : "Export failed");
+        });
+      }
+
       els.btnSkipFaithBM.addEventListener("click",()=>{
         closeModalById("modalFaithArticle");
       });
+
       /* Intelligence rendering with inline edit */
       function renderIntelligence(filter=""){
         els.intelList.innerHTML = "";
@@ -1644,7 +1734,9 @@
           els.intelList.appendChild(card);
         });
       }
+
       els.intelSearch.addEventListener("input",()=>renderIntelligence(els.intelSearch.value));
+
       /* Seed parsing */
       function parseSeedBlock(text){
         const lines = text.split(/\r?\n/);
@@ -1664,6 +1756,7 @@
         }
         return out;
       }
+
       els.btnParseSeed.addEventListener("click",()=>{
         const txt = els.seedBox.value.trim();
         if(!txt){ els.seedHint.textContent = "Nothing to parse."; return; }
@@ -1671,6 +1764,7 @@
         state.parsedSeed = parsed;
         els.seedHint.textContent = `Parsed ${parsed.length} Q→A pairs (not saved yet).`;
       });
+
       els.btnSaveSeed.addEventListener("click",()=>{
         if(!state.parsedSeed.length){
           els.seedHint.textContent = "Nothing parsed yet.";
@@ -1682,11 +1776,13 @@
         els.seedBox.value = "";
         showToast("Seed updated");
       });
+
       els.btnDiscardSeed.addEventListener("click",()=>{
         els.seedBox.value = "";
         state.parsedSeed = [];
         els.seedHint.textContent = "Discarded block.";
       });
+
       /* Logic packs */
       function applyLogicPack(idx){
         state.logicActiveIndex = idx;
@@ -1705,15 +1801,17 @@
         }
         persistLogicState();
       }
+
       els.btnValidateLogic.addEventListener("click",()=>{
         try{
-          const obj = JSON.parse(els.logicBox.value);
+          JSON.parse(els.logicBox.value);
           els.logicHint.textContent = "Valid JSON.";
           showToast("Logic JSON valid");
         }catch(e){
           els.logicHint.textContent = "Invalid JSON: "+e.message;
         }
       });
+
       els.btnSaveLogic.addEventListener("click",()=>{
         try{
           const obj = JSON.parse(els.logicBox.value);
@@ -1728,10 +1826,12 @@
           els.logicHint.textContent = "Cannot save: invalid JSON.";
         }
       });
+
       els.btnCopyLogic.addEventListener("click",()=>{
         navigator.clipboard?.writeText(els.logicBox.value||"");
         showToast("Logic copied");
       });
+
       els.btnDeleteLogic.addEventListener("click",()=>{
         if(state.logicActiveIndex==null || !state.logicPacks[state.logicActiveIndex]){
           els.logicHint.textContent = "No active logic pack.";
@@ -1746,6 +1846,7 @@
         document.documentElement.style.setProperty("--accent-color", "#0ea5e9");
         persistLogicState();
       });
+
       /* BM list & viewer with date filter */
       function renderBMList(){
         els.bmSelectList.innerHTML = "";
@@ -1762,6 +1863,7 @@
           }
           return ok;
         }).sort((a,b)=> (b.ts||0)-(a.ts||0));
+
         if(!list.length){
           const div = document.createElement("div");
           div.style.fontSize = "12px";
@@ -1770,6 +1872,7 @@
           els.bmSelectList.appendChild(div);
           return;
         }
+
         list.forEach(bm=>{
           const item = document.createElement("div");
           item.className = "bmItem";
@@ -1788,6 +1891,7 @@
           els.bmSelectList.appendChild(item);
         });
       }
+
       function selectBM(id){
         const bm = state.bmPrompts.find(x=>x.id===id);
         state.selectedBMId = id;
@@ -1806,7 +1910,9 @@
         els.btnUnlockBM.style.display = bm.locked ? "inline-flex" : "none";
         els.btnLiveBM.textContent = live ? "Live 12h: on" : "Live 12h: off";
       }
+
       els.bmSearch.addEventListener("input", renderBMList);
+
       els.bmDate.addEventListener("change", ()=>{
         renderBMList();
         const d = els.bmDate.value;
@@ -1818,6 +1924,7 @@
           if(found) selectBM(found.id);
         }
       });
+
       els.btnLiveBM.addEventListener("click",()=>{
         if(!state.selectedBMId) return;
         const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
@@ -1832,6 +1939,7 @@
         renderBMList();
         selectBM(bm.id);
       });
+
       els.btnUnlockBM.addEventListener("click",()=>{
         if(!state.selectedBMId) return;
         const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
@@ -1842,6 +1950,7 @@
         renderBMList();
         selectBM(bm.id);
       });
+
       els.btnCopyPrompt.addEventListener("click",()=>{
         if(!state.selectedBMId) return;
         const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
@@ -1849,9 +1958,11 @@
         navigator.clipboard?.writeText(bm.text||"");
         showToast("BM prompt copied");
       });
+
       els.btnAutoGen.addEventListener("click",()=>{
         showToast("Video generation is a placeholder in this offline prototype.");
       });
+
       els.btnDeletePrompt.addEventListener("click",()=>{
         if(!state.selectedBMId) return;
         const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
@@ -1882,6 +1993,7 @@
           scheduleDreamTimer();
         });
       }
+
       if(els.dreamDelaySelect){
         els.dreamDelaySelect.addEventListener("change",()=>{
           const v = parseInt(els.dreamDelaySelect.value,10);
@@ -1893,11 +2005,13 @@
           }
         });
       }
+
       if(els.btnTestDream && els.dreamOverlay){
         els.btnTestDream.addEventListener("click",()=>{
           showDreamOverlay();
         });
       }
+
       if(els.dreamOverlay){
         els.dreamOverlay.addEventListener("click",()=>{
           hideDreamOverlay();
@@ -1916,11 +2030,13 @@
         els.uKeyPeople.value = u.keyPeople || "";
         els.uLegacyRules.value = u.legacyRules || "";
       }
+
       els.btnEditIdentity.addEventListener("click",()=>{
         [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
          els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.removeAttribute("readonly"));
         showToast("Identity fields unlocked for edit");
       });
+
       els.btnSaveUserIdentity.addEventListener("click",()=>{
         state.userIdentity = {
           name: els.uName.value.trim(),
@@ -1938,6 +2054,7 @@
          els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.setAttribute("readonly","readonly"));
         showToast("Identity saved locally");
       });
+
       els.btnDeleteUserIdentity.addEventListener("click",()=>{
         if(!confirm("Delete stored identity data?")) return;
         if(!confirm("Are you sure?")) return;
@@ -1947,6 +2064,7 @@
          els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.value="");
         showToast("Identity deleted");
       });
+
       /* LLM */
       els.btnSaveLLM.addEventListener("click",()=>{
         state.apiConfig = {
@@ -1957,6 +2075,7 @@
         saveCfg();
         showToast("LLM config saved");
       });
+
       async function loadOfflineModel(){
         if(!window.webllm){
           els.offlineStatus.textContent = "WebLLM not available.";
@@ -1986,7 +2105,9 @@
           showToast("Offline model error");
         }
       }
+
       els.btnLoadOffline.addEventListener("click", loadOfflineModel);
+
       async function callOfflineLLM(prompt){
         if(!state.offlineReady || !state.offlineEngine) return null;
         try{
@@ -2000,6 +2121,7 @@
           return null;
         }
       }
+
       async function callOnlineLLM(prompt){
         const {endpoint,model,key} = state.apiConfig;
         if(!endpoint || !model || !key) return null;
@@ -2024,22 +2146,26 @@
           return null;
         }
       }
+
       /* Options */
       els.btnOptions.addEventListener("click",()=>{
         els.optionsMenu.classList.toggle("show");
       });
+
       els.miVoice.addEventListener("click",()=>{
         state.voiceOn = !state.voiceOn;
         els.voicePill.textContent = state.voiceOn ? "on" : "off";
         els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
         saveCfg();
       });
+
       els.miLearn.addEventListener("click",()=>{
         state.learningOn = !state.learningOn;
         els.learnPill.textContent = state.learningOn ? "on" : "off";
         els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
         saveCfg();
       });
+
       els.miFaith.addEventListener("click",()=>openModal(els.modalFaith));
       els.miIntel.addEventListener("click",()=>openModal(els.modalIntel));
       els.miSeed.addEventListener("click",()=>openModal(els.modalSeed));
@@ -2047,6 +2173,7 @@
       els.miBMRecall.addEventListener("click",()=>openModal(els.modalBM));
       els.miHistory.addEventListener("click",()=>{renderHistory();openModal(els.modalHistory);});
       els.miIdentity.addEventListener("click",()=>{loadIdentityIntoForm();openModal(els.modalIdentity);});
+
       /* History buttons */
       els.btnDeleteRecent.addEventListener("click",()=>{
         const cutoff = Date.now() - 48*60*60*1000;
@@ -2054,12 +2181,14 @@
         saveHistory();
         renderHistory();
       });
+
       els.btnDeleteAllHist.addEventListener("click",()=>{
         if(!confirm("Delete all history (except locked)?")) return;
         state.history = state.history.filter(h=>h.locked);
         saveHistory();
         renderHistory();
       });
+
       els.btnCopyHistory.addEventListener("click",()=>{
         const text = state.history.map(h=>{
           const dt = new Date(h.ts).toLocaleString();
@@ -2069,6 +2198,7 @@
         navigator.clipboard?.writeText(text);
         showToast("History copied");
       });
+
       /* Main chat + self-learning pipeline */
       async function handleSend(){
         const raw = els.userInput.value;
@@ -2076,6 +2206,7 @@
         if(!text) return;
         els.userInput.value = "";
         els.optionsMenu.classList.remove("show");
+
         // "incorrect" flow
         if(state.correcting){
           const correctA = text;
@@ -2095,20 +2226,25 @@
           state.correcting = false;
           return;
         }
+
         // normal user entry
         logLine("user","You: "+text);
         registerActivity();
+
         const now = Date.now();
         if(state.cooldownUntil && now < state.cooldownUntil){
           logLine("sys","[Cooldown] Please wait a moment before sending more messages.");
           return;
         }
+
         state.metrics.TM = scoreTM(text);
         recomputeBMMetric();
+
         let intelBoost = 0, llmBoost = 0;
         let answer = null;
         let source = "none";
-        // 1) check intelligence first (exact / contains)
+
+        // 1) check intelligence first
         const tLower = text.toLowerCase();
         let bestMatch = state.intelligence.find(p=>p.q.toLowerCase()===tLower);
         if(!bestMatch){
@@ -2119,6 +2255,7 @@
           source = "intelligence";
           intelBoost = 0.35;
         }
+
         // 2) then seed
         if(!answer && state.seedPairs.length){
           let sMatch = state.seedPairs.find(p=>p.q.toLowerCase()===tLower);
@@ -2131,6 +2268,7 @@
             intelBoost = 0.25;
           }
         }
+
         // 3) then offline LLM
         if(!answer && state.offlineReady){
           answer = await callOfflineLLM(text);
@@ -2139,6 +2277,7 @@
             llmBoost = 0.25;
           }
         }
+
         // 4) last fallback: online
         if(!answer){
           answer = await callOnlineLLM(text);
@@ -2147,36 +2286,46 @@
             llmBoost = 0.30;
           }
         }
+
         // fallback static reply
         if(!answer){
           answer = "I don't have a stored answer yet. You can teach me using the 👎 button or by adding LaTeX blocks under Feed the seed.";
           source = "fallback";
         }
+
         state.lastUserQ = text;
         state.lastAuraA = answer;
         state.lastAnswerSource = source;
+
         recomputeE0(intelBoost, llmBoost);
         updateCapsule();
+
         logLine("aura","AURA: "+answer+"  (source: "+source+")");
+
         if(state.voiceOn){
           try{
             const u = new SpeechSynthesisUtterance(answer);
             speechSynthesis.speak(u);
           }catch{}
         }
+
         maybeShowFaithBubble();
       }
+
       els.sendBtn.addEventListener("click",handleSend);
+
       els.userInput.addEventListener("keydown",e=>{
         if(e.key==="Enter" && !e.shiftKey){
           e.preventDefault();
           handleSend();
         }
       });
+
       /* "incorrect" keyword flow */
       function interceptIncorrect(text){
         return text.trim().toLowerCase()==="incorrect";
       }
+
       els.userInput.addEventListener("keydown",e=>{
         if(e.key==="Enter" && !e.shiftKey){
           const val = els.userInput.value.trim();
@@ -2190,6 +2339,7 @@
           }
         }
       });
+
       /* Reaction buttons */
       els.btnLikeLast.addEventListener("click",()=>{
         if(!state.lastUserQ || !state.lastAuraA){
@@ -2207,6 +2357,7 @@
         renderIntelligence(els.intelSearch.value);
         showToast("Saved to intelligence");
       });
+
       els.btnDislikeLast.addEventListener("click",()=>{
         if(!state.lastUserQ || !state.lastAuraA){
           showToast("No last answer");
@@ -2215,6 +2366,7 @@
         logLine("sys","[Self-learning] Type the correct answer in chat. It will replace the last one.");
         state.correcting = true;
       });
+
       els.btnSpeakLast.addEventListener("click",()=>{
         if(!state.lastAuraA){
           showToast("No last answer");
@@ -2225,6 +2377,7 @@
           speechSynthesis.speak(u);
         }catch{}
       });
+
       els.btnShareLast.addEventListener("click",()=>{
         if(!state.lastUserQ || !state.lastAuraA){
           showToast("No last pair");
@@ -2258,30 +2411,37 @@
         els.learnPill.textContent = state.learningOn ? "on" : "off";
         els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
         els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
+
         state.intelligence = safeLoadJSON(KEY_INT,[]);
         state.bmPrompts = safeLoadJSON(KEY_BM,[]);
         state.history = safeLoadJSON(KEY_HIST,[]);
         state.userIdentity = safeLoadJSON(KEY_USER,null);
+
         const logicStored = safeLoadJSON(KEY_LOGIC,null);
         if(logicStored){
           state.logicPacks = logicStored.list||[];
           state.logicActiveIndex = logicStored.activeIndex;
           if(state.logicActiveIndex!=null) applyLogicPack(state.logicActiveIndex);
         }
+
         if(state.apiConfig.endpoint) els.apiEndpoint.value = state.apiConfig.endpoint;
         if(state.apiConfig.model) els.apiModel.value = state.apiConfig.model;
         if(state.apiConfig.key) els.apiKey.value = state.apiConfig.key;
+
         renderFaithChips();
         renderIntelligence("");
         renderBMList();
         renderHistory();
         loadIdentityIntoForm();
+
         recomputeBMMetric();
         recomputeE0(0,0);
         updateCapsule();
+
         updateDreamUI();
         scheduleDreamTimer();
       }
+
       initFromStorage();
       logLine("sys","AURA-X Ω ready. TM = your inputs only; everything else stays on this device.");
     });
