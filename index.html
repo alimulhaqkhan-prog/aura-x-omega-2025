@@ -176,7 +176,6 @@
       min-height:58px;
     }
     .menuItem:active{transform:scale(.995)}
-
     .menuLeft{
       display:flex;
       align-items:center;
@@ -309,15 +308,7 @@
       line-height:1;
     }
 
-    /* Golden theme */
-    body.theme-golden .ethic{
-      border-color: rgba(251,191,36,.7);
-      background: rgba(251,191,36,.06);
-    }
-
-    .faithBubble.pulse{
-      animation: faithPulse 1.4s infinite;
-    }
+    .faithBubble.pulse{ animation: faithPulse 1.4s infinite; }
     @keyframes faithPulse{
       0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.55); }
       100% { box-shadow: 0 0 0 18px rgba(251,191,36,0); }
@@ -483,7 +474,7 @@
     .bmSub{font-size:12px;opacity:.7;margin-top:2px}
     .bmText{
       width:100%;
-      min-height:240px;
+      min-height:140px;
       border-radius:14px;
       border:1px solid rgba(15,23,42,.18);
       padding:12px;
@@ -545,10 +536,8 @@
       background:#fff;
     }
 
-    /* Conversation history – lighter UI + lock icon */
-    #modalHistory .modalBody{
-      background:#f8fafc;
-    }
+    /* Conversation history */
+    #modalHistory .modalBody{ background:#f8fafc; }
     #historyBox{
       margin-top:4px;
       border-radius:14px;
@@ -598,7 +587,56 @@
     .bmItemTitle{font-weight:700;}
     .bmItemMeta{opacity:.65;font-size:11px;}
 
-    .@media-fix{} /* dummy */
+    /* Dream screensaver overlay */
+    #dreamOverlay{
+      position:fixed;
+      inset:0;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(56,189,248,.28), transparent 55%),
+        radial-gradient(circle at 80% 100%, rgba(129,140,248,.35), transparent 55%),
+        rgba(15,23,42,.96);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9998;
+    }
+    #dreamOverlay.show{display:flex;}
+
+    .dreamScreen{
+      width:min(780px,94vw);
+      border-radius:24px;
+      padding:24px 20px 18px;
+      border:1px solid rgba(148,163,184,.55);
+      background:linear-gradient(135deg, rgba(15,23,42,.98), rgba(15,23,42,.9));
+      box-shadow:0 30px 80px rgba(0,0,0,.8);
+      color:#e5e7eb;
+      text-align:center;
+    }
+    .dreamTitle{
+      font-size:16px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:#bae6fd;
+      margin-bottom:8px;
+    }
+    .dreamBody{
+      font-size:14px;
+      line-height:1.6;
+      opacity:.9;
+      max-height:260px;
+      overflow:auto;
+      padding:10px;
+      border-radius:16px;
+      border:1px solid rgba(148,163,184,.4);
+      background:rgba(15,23,42,.9);
+      text-align:left;
+      white-space:pre-wrap;
+    }
+    .dreamHint{
+      font-size:11px;
+      opacity:.7;
+      margin-top:8px;
+    }
 
     @media (max-width:760px){
       .console{height:240px}
@@ -718,7 +756,6 @@
           <div class="chatWrap">
             <!-- reaction buttons above metrics, left-aligned -->
             <div class="reactionBar" id="reactionBar">
-              <!-- left copy button REMOVED on purpose -->
               <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence (like)">👍</button>
               <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
               <button class="reactBtn" id="btnSpeakLast" title="Play voice for last answer">🔊</button>
@@ -775,7 +812,7 @@
     </div>
   </div>
 
-  <!-- Faith article -->
+  <!-- Faith article (simple stub) -->
   <div class="modalOverlay" id="modalFaithArticle">
     <div class="modal">
       <div class="modalHeader">
@@ -789,8 +826,7 @@
           style="width:100%;min-height:160px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;background:#fff;"></textarea>
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
           <button class="btn btnBlue" id="btnCopyFaithArticle">Copy</button>
-          <button class="btn btnBlue" id="btnAddFaithToBM">Add under BM prompt</button>
-          <button class="btn btnRed" id="btnSkipFaithBM">Skip</button>
+          <button class="btn btnRed" data-close="modalFaithArticle">Close</button>
         </div>
       </div>
     </div>
@@ -807,7 +843,6 @@
         <input id="intelSearch"
           style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none"
           placeholder="Search intelligence..." />
-        <!-- per-card inline editor -->
         <div id="intelList" style="margin-top:10px;"></div>
       </div>
     </div>
@@ -873,92 +908,72 @@
   <div class="modalOverlay" id="modalLLM">
     <div class="modal">
       <div class="modalHeader">
-        <div>🤖 LLM link<br><small>Offline LLM + optional online helper.</small></div>
+        <div>🤖 Offline LLM<br><small>Local seed → Intelligence → Offline LLM → (future API).</small></div>
         <button class="closeX" data-close="modalLLM">×</button>
       </div>
       <div class="modalBody">
-        <div style="border-radius:14px;border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.12);padding:12px;">
-          <div style="font-weight:900;">Offline LLM (WebLLM)</div>
-          <div style="font-size:13px;opacity:.8;margin-top:6px;line-height:1.35">
-            Loads a small local model in your browser (WebGPU required). On many mobile browsers this may not be supported.
-          </div>
-          <div style="margin-top:10px;">
-            <button class="btn btnGreen" id="btnLoadOffline">Load offline model</button>
-          </div>
-          <div style="margin-top:8px;font-size:12px;opacity:.75">Status: <span id="offlineStatus">idle</span></div>
-          <div style="margin-top:8px;height:10px;border-radius:999px;background:rgba(2,6,23,.12);overflow:hidden;border:1px solid rgba(2,6,23,.08)">
-            <div id="offlineBar" style="height:100%;width:0%;background:#22c55e;transition:width .2s ease;"></div>
-          </div>
-        </div>
-
-        <div style="font-weight:900;margin-top:14px;">Online helper LLM (connects & works)</div>
-        <div style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:4px;">
-          Use any compatible API (OpenAI, DeepSeek, xAI, etc.). Nothing is stored on server by AURA-X Ω itself.
-        </div>
-
-        <div style="margin-top:6px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API endpoint</label>
-          <input id="apiEndpoint"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            value="https://api.openai.com/v1/chat/completions" />
-        </div>
-
-        <div style="margin-top:10px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Model</label>
-          <input id="apiModel"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            value="gpt-4o-mini" />
-        </div>
-
-        <div style="margin-top:10px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API key (session only)</label>
-          <input id="apiKey"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            placeholder="sk-..." />
-        </div>
-
-        <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-          <button class="btn btnBlue" id="btnSaveLLM">Save</button>
-        </div>
+        <p style="font-size:13px;line-height:1.5;opacity:.85;">
+          This prototype is wired for <b>WebLLM</b>. Once you load a supported model in the browser,
+          AURA-X Ω can route unanswered questions to it after checking local Seed and Intelligence.
+        </p>
+        <p style="font-size:12px;opacity:.7;margin-top:8px;">
+          For now, if no local answer is found, AURA-X Ω will respond with a simple offline rule-based answer.
+        </p>
       </div>
     </div>
   </div>
 
-  <!-- BM Recall -->
+  <!-- BM snapshots + Dream Mode -->
   <div class="modalOverlay" id="modalBM">
     <div class="modal">
       <div class="modalHeader">
-        <div>📘 Recall from BM<br><small>Only long stories and scenes (photo/video-ready).</small></div>
+        <div>📘 BM snapshots & Dream Mode<br><small>Save bold memories and set the dream screensaver.</small></div>
         <button class="closeX" data-close="modalBM">×</button>
       </div>
       <div class="modalBody">
-        <div style="font-size:13px;opacity:.75">
-          Select a BM prompt. Locked prompts must be unlocked first. Delete needs double confirmation.
-        </div>
-        <input id="bmSearch"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:8px 0 4px;outline:none;background:#fff;"
-          placeholder="Search BM by text..." />
-        <!-- calendar search by date -->
-        <input id="bmDate" type="date"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:0 0 6px;outline:none;background:#fff;" />
-        <div id="bmSelectList"></div>
-
-        <div class="bmCard" id="bmViewer" style="display:none;">
+        <div class="bmCard">
           <div class="bmTop">
-            <div>
-              <div class="title"><span id="bmLockIcon">🔓</span> <span id="bmTitle">Prompt</span></div>
-              <div class="bmSub" id="bmMeta"></div>
-            </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-              <button class="btn btnBlue" id="btnLiveBM">Live 12h: off</button>
-              <button class="btn btnBlue" id="btnUnlockBM" style="display:none;">Unlock</button>
-            </div>
+            <div class="title">✍️ New BM snapshot</div>
           </div>
-          <textarea class="bmText" id="bmTextArea" readonly></textarea>
+          <div class="bmSub">Write a long, meaningful story, event, or memory. It will be saved locally as a Bold Memory (BM).</div>
+          <textarea id="bmText" class="bmText" placeholder="Example: The day my life changed when…"></textarea>
           <div class="bmActions">
-            <button class="btn btnBlue" id="btnCopyPrompt">Copy prompt</button>
-            <button class="btn btnBlue" id="btnAutoGen">Generate video</button>
-            <button class="btn btnRed" id="btnDeletePrompt">Delete</button>
+            <button class="btn btnGreen" id="btnSaveBM">Save snapshot</button>
+            <button class="btn btnBlue" id="btnClearBM">Clear</button>
+          </div>
+        </div>
+
+        <div class="bmCard">
+          <div class="bmTop">
+            <div class="title">🌙 Dream screensaver</div>
+          </div>
+          <div class="bmSub" style="margin-bottom:6px;">Dream screensaver after how much idle time?</div>
+          <select id="dreamDelaySelect"
+            style="width:100%;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:#fff;">
+            <option value="0">Disabled (no screensaver)</option>
+            <option value="30000">30 seconds</option>
+            <option value="60000">1 minute</option>
+            <option value="180000">3 minutes</option>
+            <option value="300000">5 minutes</option>
+            <option value="600000">10 minutes</option>
+            <option value="1800000">30 minutes</option>
+            <option value="3600000">1 hour</option>
+            <option value="7200000">2 hours</option>
+            <option value="14400000">4 hours</option>
+            <option value="28800000">8 hours</option>
+          </select>
+          <div class="bmSub" style="margin-top:8px;">
+            AURA-X Ω will gently fade into Dream Mode and show floating BM snapshots after this much inactivity.
+            Any tap or key press will wake it up immediately.
+          </div>
+        </div>
+
+        <div class="bmCard">
+          <div class="bmTop">
+            <div class="title">📚 Saved BM snapshots</div>
+          </div>
+          <div id="bmList" style="margin-top:4px;font-size:12px;min-height:20px;opacity:.8;">
+            No BM snapshots yet.
           </div>
         </div>
       </div>
@@ -969,14 +984,12 @@
   <div class="modalOverlay" id="modalHistory">
     <div class="modal">
       <div class="modalHeader">
-        <div>📜 Conversation history<br><small>Recent TM log.</small></div>
+        <div>📜 Conversation history<br><small>Last turns with lock for important lines.</small></div>
         <button class="closeX" data-close="modalHistory">×</button>
       </div>
       <div class="modalBody">
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-          <button class="btn btnBlue" id="btnDeleteRecent">Delete history last 48h</button>
-          <button class="btn btnRed" id="btnDeleteAllHist">Delete all history</button>
-          <button class="btn btnBlue" id="btnCopyHistory">Copy</button>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px;">
+          <button class="btn btnRed" id="btnClearUnlocked">Clear unlocked only</button>
         </div>
         <div id="historyBox"></div>
       </div>
@@ -987,1250 +1000,737 @@
   <div class="modalOverlay" id="modalIdentity">
     <div class="modal">
       <div class="modalHeader">
-        <div>🪪 User identity<br><small>Deep profiling for continuity.</small></div>
+        <div>🪪 Deep identity snapshot<br><small>Who are you, in your own words?</small></div>
         <button class="closeX" data-close="modalIdentity">×</button>
       </div>
       <div class="modalBody">
-        <div style="opacity:.8;font-size:13px;line-height:1.35">
-          Stored only on this device. Saved data auto-locks. Delete requires double confirmation.
-        </div>
-        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-          <button class="btn btnBlue" id="btnEditIdentity">Edit</button>
-          <button class="btn btnBlue" id="btnSaveUserIdentity">Save</button>
-          <button class="btn btnRed" id="btnDeleteUserIdentity">Delete</button>
-        </div>
-
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 1 – Basic</div>
-        <div style="margin-top:8px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Full legal name</label>
-          <input id="uName"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            placeholder="e.g., Alim ul Haq" />
-        </div>
-
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Preferred name</label>
-            <input id="uNick"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Nickname" />
+        <div class="bmCard">
+          <div class="bmTop">
+            <div class="title">Self identity</div>
           </div>
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Place of origin</label>
-            <input id="uOrigin"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Village / town" />
+          <textarea id="identityText" class="bmText"
+            placeholder="I am Alim ul Haq… My story begins in… My current work and roles are…"></textarea>
+          <div class="bmActions">
+            <button class="btn btnGreen" id="btnSaveIdentity">Save identity</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Current city / country</label>
-            <input id="uPlace"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Timergara, Pakistan" />
-          </div>
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Profession</label>
-            <input id="uProfession"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Entrepreneur, researcher…" />
-          </div>
-        </div>
-
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 2 – Emotional style</div>
-        <textarea id="uEmotionalStyle"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:90px;"
-          placeholder="How you react under stress, joy, fear, success…"></textarea>
-
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 3 – Relationships & legacy</div>
-        <textarea id="uKeyPeople"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
-          placeholder="Key people and roles in your life…"></textarea>
-        <textarea id="uLegacyRules"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
-          placeholder="If one day this system speaks for you, which boundaries and rules must it follow?"></textarea>
+  <!-- Dream screensaver overlay -->
+  <div id="dreamOverlay">
+    <div class="dreamScreen">
+      <div class="dreamTitle">Dream Mode · BM snapshots</div>
+      <div class="dreamBody" id="dreamBody">
+        No BM snapshots yet. Long, meaningful stories will appear here once you save them.
+      </div>
+      <div class="dreamHint">
+        Any tap or key press will wake AURA-X Ω and return to normal mode.
+      </div>
+      <div style="margin-top:12px;">
+        <button class="btn btnDark" id="btnWake">Wake up</button>
       </div>
     </div>
   </div>
 
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const KEY_CFG   = "aurax_cfg_v12";
-      const KEY_INT   = "aurax_intel_v11";
-      const KEY_BM    = "aurax_bm_v11";
-      const KEY_HIST  = "aurax_hist_v11";
-      const KEY_USER  = "aurax_user_v11";
-      const KEY_LOGIC = "aurax_logic_v12";
+  (function(){
+    "use strict";
 
-      const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
+    // ---------- Shortcuts ----------
+    const $ = id => document.getElementById(id);
 
-      const els = {
-        console: document.getElementById("console"),
-        btnOptions: document.getElementById("btnOptions"),
-        optionsMenu: document.getElementById("optionsMenu"),
-        miVoice: document.getElementById("miVoice"),
-        miIntel: document.getElementById("miIntel"),
-        miLearn: document.getElementById("miLearn"),
-        miSeed: document.getElementById("miSeed"),
-        miFaith: document.getElementById("miFaith"),
-        miIdentity: document.getElementById("miIdentity"),
-        miLLM: document.getElementById("miLLM"),
-        miBMRecall: document.getElementById("miBMRecall"),
-        miHistory: document.getElementById("miHistory"),
-        voicePill: document.getElementById("voicePill"),
-        learnPill: document.getElementById("learnPill"),
-        faithLabel: document.getElementById("faithLabel"),
+    const consoleBox   = $("console");
+    const input        = $("userInput");
+    const sendBtn      = $("sendBtn");
+    const toastBubble  = $("toastBubble");
+    const optionsBtn   = $("btnOptions");
+    const optionsMenu  = $("optionsMenu");
+    const faithBubble  = $("faithBubble");
 
-        cE0: document.getElementById("cE0"),
-        cTM: document.getElementById("cTM"),
-        cBM: document.getElementById("cBM"),
-        cCont: document.getElementById("cCont"),
+    const cE0 = $("cE0"), cTM = $("cTM"), cBM = $("cBM"), cCont = $("cCont");
 
-        userInput: document.getElementById("userInput"),
-        sendBtn: document.getElementById("sendBtn"),
+    // Dream mode elements
+    const dreamOverlay = $("dreamOverlay");
+    const dreamBody    = $("dreamBody");
+    const btnWake      = $("btnWake");
+    const dreamDelaySelect = $("dreamDelaySelect");
 
-        faithBubble: document.getElementById("faithBubble"),
-        faithBubbleTitle: document.getElementById("faithBubbleTitle"),
-        faithBubbleMeta: document.getElementById("faithBubbleMeta"),
-        faithBubbleClose: document.getElementById("faithBubbleClose"),
-        modalFaith: document.getElementById("modalFaith"),
-        faithChips: document.getElementById("faithChips"),
+    // ---------- State ----------
+    const STORAGE_KEY = "aura_x_state_v9_9";
 
-        modalFaithArticle: document.getElementById("modalFaithArticle"),
-        faithArticleMeta: document.getElementById("faithArticleMeta"),
-        faithArticleTitle: document.getElementById("faithArticleTitle"),
-        faithArticleText: document.getElementById("faithArticleText"),
-        btnCopyFaithArticle: document.getElementById("btnCopyFaithArticle"),
-        btnAddFaithToBM: document.getElementById("btnAddFaithToBM"),
-        btnSkipFaithBM: document.getElementById("btnSkipFaithBM"),
+    const defaultState = {
+      tmChars: 0,
+      bmScore: 0,
+      e0: 0,
+      continuity: 0.85,
+      history: [],          // {role:'user'|'aura'|'sys', text, ts, locked}
+      bmSnapshots: [],      // {id, title, text, ts}
+      identity: "",
+      seedPairs: [],        // [{q,a}]
+      intelPairs: [],       // learned
+      logicPacks: [],       // [{id,json}]
+      logicSerial: null,
+      learningEnabled: true,
+      voiceEnabled: false,
+      faithTags: [],        // ['Quran','Seerah',...]
+      faithCounter: 0,
+      dreamDelayMs: 0,      // 0 = disabled
+      lastActivity: Date.now(),
+      lastQA: null          // {q,a}
+    };
 
-        modalIntel: document.getElementById("modalIntel"),
-        intelSearch: document.getElementById("intelSearch"),
-        intelList: document.getElementById("intelList"),
+    let state = loadState();
+    let dreamTimer = null;
 
-        modalSeed: document.getElementById("modalSeed"),
-        seedBox: document.getElementById("seedBox"),
-        seedHint: document.getElementById("seedHint"),
-        btnParseSeed: document.getElementById("btnParseSeed"),
-        btnSaveSeed: document.getElementById("btnSaveSeed"),
-        btnDiscardSeed: document.getElementById("btnDiscardSeed"),
-
-        logicBox: document.getElementById("logicBox"),
-        logicHint: document.getElementById("logicHint"),
-        logicSerial: document.getElementById("logicSerial"),
-        btnValidateLogic: document.getElementById("btnValidateLogic"),
-        btnSaveLogic: document.getElementById("btnSaveLogic"),
-        btnCopyLogic: document.getElementById("btnCopyLogic"),
-        btnDeleteLogic: document.getElementById("btnDeleteLogic"),
-
-        modalLLM: document.getElementById("modalLLM"),
-        btnLoadOffline: document.getElementById("btnLoadOffline"),
-        offlineStatus: document.getElementById("offlineStatus"),
-        offlineBar: document.getElementById("offlineBar"),
-        apiEndpoint: document.getElementById("apiEndpoint"),
-        apiModel: document.getElementById("apiModel"),
-        apiKey: document.getElementById("apiKey"),
-        btnSaveLLM: document.getElementById("btnSaveLLM"),
-
-        modalBM: document.getElementById("modalBM"),
-        bmSearch: document.getElementById("bmSearch"),
-        bmDate: document.getElementById("bmDate"),
-        bmSelectList: document.getElementById("bmSelectList"),
-        bmViewer: document.getElementById("bmViewer"),
-        bmLockIcon: document.getElementById("bmLockIcon"),
-        bmTitle: document.getElementById("bmTitle"),
-        bmMeta: document.getElementById("bmMeta"),
-        bmTextArea: document.getElementById("bmTextArea"),
-        btnLiveBM: document.getElementById("btnLiveBM"),
-        btnUnlockBM: document.getElementById("btnUnlockBM"),
-        btnCopyPrompt: document.getElementById("btnCopyPrompt"),
-        btnAutoGen: document.getElementById("btnAutoGen"),
-        btnDeletePrompt: document.getElementById("btnDeletePrompt"),
-
-        modalHistory: document.getElementById("modalHistory"),
-        btnDeleteRecent: document.getElementById("btnDeleteRecent"),
-        btnDeleteAllHist: document.getElementById("btnDeleteAllHist"),
-        btnCopyHistory: document.getElementById("btnCopyHistory"),
-        historyBox: document.getElementById("historyBox"),
-
-        modalIdentity: document.getElementById("modalIdentity"),
-        btnEditIdentity: document.getElementById("btnEditIdentity"),
-        btnSaveUserIdentity: document.getElementById("btnSaveUserIdentity"),
-        btnDeleteUserIdentity: document.getElementById("btnDeleteUserIdentity"),
-        uName: document.getElementById("uName"),
-        uNick: document.getElementById("uNick"),
-        uOrigin: document.getElementById("uOrigin"),
-        uPlace: document.getElementById("uPlace"),
-        uProfession: document.getElementById("uProfession"),
-        uEmotionalStyle: document.getElementById("uEmotionalStyle"),
-        uKeyPeople: document.getElementById("uKeyPeople"),
-        uLegacyRules: document.getElementById("uLegacyRules"),
-
-        btnLikeLast: document.getElementById("btnLikeLast"),
-        btnDislikeLast: document.getElementById("btnDislikeLast"),
-        btnSpeakLast: document.getElementById("btnSpeakLast"),
-        btnShareLast: document.getElementById("btnShareLast"),
-        toastBubble: document.getElementById("toastBubble")
-      };
-
-      const FAITH_OPTIONS = [
-        { id: "none",         label: "None" },
-        { id: "islam",        label: "Islam" },
-        { id: "christianity", label: "Christianity" },
-        { id: "hinduism",     label: "Hinduism" },
-        { id: "buddhism",     label: "Buddhism" },
-        { id: "sikhism",      label: "Sikhism" },
-        { id: "judaism",      label: "Judaism" },
-        { id: "atheism",      label: "Atheism / Humanism" },
-        { id: "mixed",        label: "Other / Mixed" },
-        { id: "indigenous",   label: "Indigenous / Traditional" },
-        { id: "eastern",      label: "Eastern / Chinese" }
-      ];
-
-      const FAITH_LIBRARY = {
-        islam: [{
-          id: "islam_generic",
-          title: "Meaning of hardship and patience",
-          short: "Trust, sabr and good opinion of Allah during hard stories.",
-          content:
-            "In Islamic reflection, hardship is often seen as a temporary test that polishes the heart. " +
-            "Believers are invited toward sabr (patience), shukr (gratitude where possible), and husn-uz-zann " +
-            "(a good opinion of Allah). You can ask: what quality is being trained in me here, and which door " +
-            "of mercy may open later from this chapter of my life?"
-        }]
-      };
-
-      let state = {
-        voiceOn: false,
-        learningOn: true,
-        faithSelection: [],
-        intelligence: [],
-        seedPairs: [],
-        bmPrompts: [],
-        history: [],
-        userIdentity: null,
-        apiConfig: { endpoint: "", model: "", key: "" },
-        offlineEngine: null,
-        offlineLoading: false,
-        offlineReady: false,
-        lastAnswerSource: null,
-        lastUserQ: null,
-        lastAuraA: null,
-        correcting: false, // for "incorrect" flow
-        metrics: { TM:0, BM:0, C:0.85, E0:0 },
-        parsedSeed: [],
-        editingIntelId: null,
-        lastStoryInput: null,
-        lastStoryBMId: null,
-        faithBubbleTimer: null,
-        currentFaithArticle: null,
-        logicPacks: [],
-        logicActiveIndex: null,
-        abuseCount: 0,
-        cooldownUntil: 0,
-        mode: "adult",
-        logicFaithSoftener: true,
-        toastTimer: null,
-        selectedBMId: null
-      };
-
-      function safeLoadJSON(key, fallback){
-        try{
-          const raw = localStorage.getItem(key);
-          return raw ? JSON.parse(raw) : fallback;
-        }catch{ return fallback; }
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return {...defaultState};
+        const obj = JSON.parse(raw);
+        return Object.assign({}, defaultState, obj);
+      }catch(e){
+        console.warn("State load error", e);
+        return {...defaultState};
       }
+    }
+    function saveState(){
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+      catch(e){ console.warn("State save error", e); }
+    }
 
-      function logLine(roleOrText, maybeText){
-        let role = "";
-        let text;
-        if (typeof maybeText === "undefined"){
-          text = roleOrText;
-        } else {
-          role = roleOrText || "";
-          text = maybeText;
-        }
-        const div = document.createElement("div");
-        div.className = "line" + (role ? " " + role : "");
-        div.textContent = text;
-        els.console.appendChild(div);
-        els.console.scrollTop = els.console.scrollHeight;
+    // ---------- Toast ----------
+    let toastTimeout;
+    function showToast(msg, ms=1800){
+      toastBubble.textContent = msg;
+      toastBubble.classList.add("show");
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(()=>toastBubble.classList.remove("show"), ms);
+    }
 
-        if(role === "user" || role === "aura"){
-          addHistory(role, text);
-        }
+    // ---------- Console output ----------
+    function addLine(text, role="sys"){
+      const span = document.createElement("span");
+      span.className = "line " + role;
+      span.textContent = (role==="user" ? "You: " : role==="aura" ? "AURA-X Ω: " : "· ") + text;
+      consoleBox.appendChild(span);
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+
+      state.history.push({
+        role,
+        text,
+        ts: Date.now(),
+        locked: false
+      });
+      // soft cap
+      if(state.history.length > 400){
+        state.history = state.history.slice(state.history.length - 400);
       }
+      saveState();
+      updateMetrics();
+    }
 
-      function scoreTM(t){
-        const len = Math.min((t||"").length,600);
-        return Number(Math.tanh(len/200).toFixed(2));
+    // ---------- Metrics (very simple approximation) ----------
+    function updateMetrics(){
+      // TM ~ recent user chars
+      const userLines = state.history.filter(h=>h.role==="user").slice(-30);
+      state.tmChars = userLines.reduce((s,h)=>s + h.text.length,0);
+      const tm = Math.min(1.2, state.tmChars/800);  // 0–1.2
+      // BM score from snapshots count + avg length
+      const bm = Math.min(1.2, state.bmSnapshots.length * 0.15);
+      state.bmScore = bm;
+      const R = Math.tanh(0.8*tm + 0.9*bm);
+      const iIntel = Math.min(0.4, state.intelPairs.length * 0.02);
+      const iLLM   = 0.0; // stub
+      const D = 0.05;     // soft decay
+      const lambdaFaith = state.faithTags.length ? 0.05 : 0;
+      const lambdaSys   = 0.10;
+      const lambdaTrc   = 0.05;
+      state.e0 = Math.tanh(R + tm*0.4 + iIntel + iLLM - D + lambdaFaith + lambdaSys + lambdaTrc);
+      state.continuity = 0.85 + bm*0.05;
+
+      cE0.textContent   = state.e0.toFixed(3);
+      cTM.textContent   = tm.toFixed(2);
+      cBM.textContent   = bm.toFixed(2);
+      cCont.textContent = state.continuity.toFixed(3);
+      saveState();
+    }
+
+    // ---------- Dream Mode ----------
+    function applyDreamDelayToUI(){
+      dreamDelaySelect.value = String(state.dreamDelayMs || 0);
+    }
+
+    function scheduleDream(){
+      clearTimeout(dreamTimer);
+      if(!state.dreamDelayMs) return;
+      const delay = state.dreamDelayMs;
+      dreamTimer = setTimeout(()=>enterDreamMode(), delay);
+    }
+
+    function registerActivity(){
+      state.lastActivity = Date.now();
+      if(dreamOverlay.classList.contains("show")){
+        exitDreamMode();
       }
-
-      function recomputeBMMetric(){
-        const count = state.bmPrompts.length || 0;
-        state.metrics.BM = Number(Math.tanh(count/10).toFixed(2));
+      saveState();
+      if(state.dreamDelayMs){
+        scheduleDream();
       }
+    }
 
-      function recomputeE0(intelBoost, llmBoost){
-        const TM = state.metrics.TM;
-        const BM = state.metrics.BM;
-        const R = TM * BM;
-        const I_tm = 0.3 * TM;
-        const D = 0.1;
-        const lambdaFaith = state.faithSelection.length ? 0.15 : 0;
-        const lambdaSys   = 0.05;
-        const lambdaTrc   = 0.05;
-        const raw = R + I_tm + intelBoost + llmBoost - D + lambdaFaith + lambdaSys + lambdaTrc;
-        state.metrics.E0 = Number(Math.tanh(raw).toFixed(3));
+    function enterDreamMode(){
+      if(!state.dreamDelayMs) return;
+      // choose BM text
+      let txt = "No BM snapshots yet. Long, meaningful stories will appear here once you save them.";
+      if(state.bmSnapshots.length){
+        const snap = state.bmSnapshots[Math.floor(Math.random()*state.bmSnapshots.length)];
+        txt = (snap.title ? snap.title+" — " : "") + snap.text;
       }
+      dreamBody.textContent = txt;
+      dreamOverlay.classList.add("show");
+    }
 
-      function updateCapsule(){
-        els.cTM.textContent = state.metrics.TM.toFixed(2);
-        els.cBM.textContent = state.metrics.BM.toFixed(2);
-        els.cCont.textContent = state.metrics.C.toFixed(3);
-        els.cE0.textContent = state.metrics.E0.toFixed(3);
+    function exitDreamMode(){
+      dreamOverlay.classList.remove("show");
+      if(state.dreamDelayMs){
+        scheduleDream();
       }
+    }
 
-      function showToast(msg){
-        if(!els.toastBubble) return;
-        els.toastBubble.textContent = msg;
-        els.toastBubble.classList.add("show");
-        if(state.toastTimer) clearTimeout(state.toastTimer);
-        state.toastTimer = setTimeout(()=>{
-          els.toastBubble.classList.remove("show");
-        },1600);
+    dreamDelaySelect.addEventListener("change", () => {
+      const v = parseInt(dreamDelaySelect.value,10) || 0;
+      state.dreamDelayMs = v;
+      saveState();
+      if(v){
+        showToast("Dream screensaver set.");
+        scheduleDream();
+      }else{
+        clearTimeout(dreamTimer);
+        showToast("Dream screensaver disabled.");
       }
-
-      function saveCfg(){
-        const cfg = {
-          voiceOn: state.voiceOn,
-          learningOn: state.learningOn,
-          faithSelection: state.faithSelection,
-          apiConfig: state.apiConfig,
-          offlineReady: state.offlineReady
-        };
-        localStorage.setItem(KEY_CFG, JSON.stringify(cfg));
-      }
-      function saveIntelligence(){ localStorage.setItem(KEY_INT, JSON.stringify(state.intelligence)); }
-      function saveBM(){ localStorage.setItem(KEY_BM, JSON.stringify(state.bmPrompts)); }
-      function saveHistory(){ localStorage.setItem(KEY_HIST, JSON.stringify(state.history)); }
-      function saveUserIdentity(){ localStorage.setItem(KEY_USER, JSON.stringify(state.userIdentity)); }
-      function persistLogicState(){
-        const data = { list: state.logicPacks || [], activeIndex: state.logicActiveIndex };
-        localStorage.setItem(KEY_LOGIC, JSON.stringify(data));
-      }
-
-      function addHistory(role,text){
-        const item = { role, text, ts: Date.now(), locked: false };
-        state.history.push(item);
-        const cutoff = Date.now() - 48*60*60*1000;
-        state.history = state.history.filter(h => h.locked || h.ts >= cutoff);
-        saveHistory();
-      }
-
-      function toggleHistoryLock(idx){
-        const h = state.history[idx];
-        if(!h) return;
-        h.locked = !h.locked;
-        saveHistory();
-        renderHistory();
-      }
-
-      function renderHistory(){
-        els.historyBox.innerHTML = "";
-        state.history.forEach((h,idx)=>{
-          const row = document.createElement("div");
-          row.className = "historyLine";
-          const dt = new Date(h.ts).toLocaleString([], {hour:"2-digit",minute:"2-digit", day:"2-digit", month:"short"});
-          const label = h.role==="user" ? "You" : (h.role==="aura" ? "AURA" : h.role);
-          const left = document.createElement("div");
-          left.className = "historyText";
-          left.textContent = `[${dt}] ${label}: ${h.text}`;
-          const btn = document.createElement("button");
-          btn.className = "historyLock";
-          btn.textContent = h.locked ? "🔒" : "🔓";
-          btn.addEventListener("click", ()=>toggleHistoryLock(idx));
-          row.appendChild(left);
-          row.appendChild(btn);
-          els.historyBox.appendChild(row);
-        });
-      }
-
-      /* Faith chips */
-      function renderFaithChips(){
-        els.faithChips.innerHTML = "";
-        FAITH_OPTIONS.forEach(opt=>{
-          const chip = document.createElement("button");
-          chip.className = "chip" + (state.faithSelection.includes(opt.id) ? " active" : "");
-          chip.textContent = opt.label;
-          chip.addEventListener("click", ()=>{
-            if(opt.id==="none"){
-              state.faithSelection = [];
-            } else {
-              if(state.faithSelection.includes(opt.id)){
-                state.faithSelection = state.faithSelection.filter(x=>x!==opt.id);
-              } else {
-                state.faithSelection = state.faithSelection.filter(x=>x!=="none");
-                state.faithSelection.push(opt.id);
-              }
-            }
-            els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
-            renderFaithChips();
-            saveCfg();
-          });
-          els.faithChips.appendChild(chip);
-        });
-      }
-
-      function maybeShowFaithBubble(){
-        if(!state.faithSelection.length) return;
-        const pick = state.faithSelection[0];
-        const list = FAITH_LIBRARY[pick];
-        if(!list || !list.length) return;
-        const art = list[0];
-        state.currentFaithArticle = art;
-        els.faithBubbleTitle.textContent = art.title;
-        els.faithBubbleMeta.textContent = art.short;
-        els.faithBubble.classList.add("show","pulse");
-      }
-
-      function openModal(el){
-        el.classList.add("show");
-      }
-      function closeModalById(id){
-        const el = document.getElementById(id);
-        if(el) el.classList.remove("show");
-      }
-
-      document.body.addEventListener("click",(e)=>{
-        const target = e.target;
-        if(target.dataset && target.dataset.close){
-          closeModalById(target.dataset.close);
-        }
-        if(target.classList.contains("modalOverlay") && !target.classList.contains("noClose")){
-          target.classList.remove("show");
-        }
-      });
-
-      els.faithBubble.addEventListener("click",()=>{
-        if(!state.currentFaithArticle) return;
-        const art = state.currentFaithArticle;
-        const meta = `Lens: ${state.faithSelection.join(", ")} · id=${art.id}`;
-        els.faithArticleMeta.textContent = meta;
-        els.faithArticleTitle.textContent = art.title;
-        els.faithArticleText.value = art.content;
-        openModal(els.modalFaithArticle);
-      });
-      els.faithBubbleClose.addEventListener("click",(ev)=>{
-        ev.stopPropagation();
-        els.faithBubble.classList.remove("show","pulse");
-      });
-
-      els.btnCopyFaithArticle.addEventListener("click",()=>{
-        navigator.clipboard?.writeText(els.faithArticleText.value||"");
-        showToast("Faith reflection copied");
-      });
-      els.btnAddFaithToBM.addEventListener("click",()=>{
-        if(!els.faithArticleText.value.trim()) return;
-        const now = Date.now();
-        const bm = {
-          id: "bm_"+now,
-          title: els.faithArticleTitle.textContent || "Faith reflection",
-          text: els.faithArticleText.value,
-          ts: now,
-          locked: true,
-          liveUntil: null
-        };
-        state.bmPrompts.push(bm);
-        saveBM();
-        recomputeBMMetric();
-        recomputeE0(0,0);
-        updateCapsule();
-        renderBMList();
-        showToast("Added under BM (locked)");
-      });
-      els.btnSkipFaithBM.addEventListener("click",()=>{
-        closeModalById("modalFaithArticle");
-      });
-
-      /* Intelligence rendering with inline edit */
-      function renderIntelligence(filter=""){
-        els.intelList.innerHTML = "";
-        const q = (filter||"").toLowerCase();
-        const list = state.intelligence.filter(item=>{
-          if(!q) return true;
-          return (item.q||"").toLowerCase().includes(q) || (item.a||"").toLowerCase().includes(q);
-        });
-        if(!list.length){
-          const p = document.createElement("div");
-          p.style.fontSize = "12px";
-          p.style.opacity = "0.65";
-          p.textContent = "No intelligence stored yet.";
-          els.intelList.appendChild(p);
-          return;
-        }
-        list.forEach(item=>{
-          const card = document.createElement("div");
-          card.className = "intelCard";
-          const top = document.createElement("div");
-          top.className = "intelTop";
-          const qDiv = document.createElement("div");
-          qDiv.className = "intelQ";
-          qDiv.textContent = "Q: " + item.q;
-          const meta = document.createElement("div");
-          meta.className = "intelMeta";
-          const dt = new Date(item.ts||Date.now()).toLocaleString();
-          meta.textContent = `id=${item.id} · ${dt}`;
-          top.appendChild(qDiv);
-          top.appendChild(meta);
-
-          const aDiv = document.createElement("div");
-          aDiv.className = "intelA";
-          aDiv.textContent = "A: " + item.a;
-
-          const btns = document.createElement("div");
-          btns.className = "intelButtons";
-          const bEdit = document.createElement("button");
-          bEdit.className = "btn btnBlue";
-          bEdit.textContent = "Edit";
-          const bDelete = document.createElement("button");
-          bDelete.className = "btn btnRed";
-          bDelete.textContent = "Delete";
-          const bCopy = document.createElement("button");
-          bCopy.className = "btn btnBlue";
-          bCopy.textContent = "Copy";
-
-          bCopy.addEventListener("click",()=>{
-            navigator.clipboard?.writeText(`Q: ${item.q}\nA: ${item.a}`);
-            showToast("Pair copied");
-          });
-
-          bDelete.addEventListener("click",()=>{
-            if(!confirm("Delete this Q→A pair?")) return;
-            state.intelligence = state.intelligence.filter(x=>x.id!==item.id);
-            saveIntelligence();
-            renderIntelligence(els.intelSearch.value);
-            showToast("Deleted");
-          });
-
-          bEdit.addEventListener("click",()=>{
-            state.editingIntelId = (state.editingIntelId === item.id) ? null : item.id;
-            renderIntelligence(els.intelSearch.value);
-          });
-
-          btns.appendChild(bEdit);
-          btns.appendChild(bCopy);
-          btns.appendChild(bDelete);
-
-          card.appendChild(top);
-          card.appendChild(aDiv);
-          card.appendChild(btns);
-
-          if(state.editingIntelId === item.id){
-            const editBlock = document.createElement("div");
-            editBlock.className = "intelEditBlock";
-            const qi = document.createElement("input");
-            qi.className = "intelEditInput";
-            qi.value = item.q;
-            const ai = document.createElement("textarea");
-            ai.className = "intelEditArea";
-            ai.value = item.a;
-            const row = document.createElement("div");
-            row.style.display = "flex";
-            row.style.gap = "8px";
-            row.style.marginTop = "6px";
-            row.style.flexWrap = "wrap";
-            const bSave = document.createElement("button");
-            bSave.className = "btn btnGreen";
-            bSave.textContent = "Save";
-            const bCancel = document.createElement("button");
-            bCancel.className = "btn btnRed";
-            bCancel.textContent = "Cancel";
-            bSave.addEventListener("click",()=>{
-              item.q = qi.value.trim();
-              item.a = ai.value.trim();
-              item.ts = item.ts || Date.now();
-              saveIntelligence();
-              state.editingIntelId = null;
-              renderIntelligence(els.intelSearch.value);
-              showToast("Updated");
-            });
-            bCancel.addEventListener("click",()=>{
-              state.editingIntelId = null;
-              renderIntelligence(els.intelSearch.value);
-            });
-            row.appendChild(bSave);
-            row.appendChild(bCancel);
-            editBlock.appendChild(qi);
-            editBlock.appendChild(ai);
-            editBlock.appendChild(row);
-            card.appendChild(editBlock);
-          }
-
-          els.intelList.appendChild(card);
-        });
-      }
-
-      els.intelSearch.addEventListener("input",()=>renderIntelligence(els.intelSearch.value));
-
-      /* Seed parsing */
-      function parseSeedBlock(text){
-        const lines = text.split(/\r?\n/);
-        const joined = lines.join("\n");
-        const regex = /\\item\s*(.+?)\s*\\textbf\{A:\}\s*([\s\S]*?)(?=\\item|$)/g;
-        const out = [];
-        let m;
-        while((m = regex.exec(joined))!==null){
-          const q = m[1].trim();
-          const rawA = m[2].trim();
-          let a = rawA;
-          const bracket = rawA.match(/^\[.*?\]\s*(.*)$/s);
-          if(bracket) a = bracket[1].trim();
-          if(q && a){
-            out.push({ id:"seed_"+(Date.now()+"_"+out.length), q, a, ts:Date.now() });
-          }
-        }
-        return out;
-      }
-
-      els.btnParseSeed.addEventListener("click",()=>{
-        const txt = els.seedBox.value.trim();
-        if(!txt){ els.seedHint.textContent = "Nothing to parse."; return; }
-        const parsed = parseSeedBlock(txt);
-        state.parsedSeed = parsed;
-        els.seedHint.textContent = `Parsed ${parsed.length} Q→A pairs (not saved yet).`;
-      });
-
-      els.btnSaveSeed.addEventListener("click",()=>{
-        if(!state.parsedSeed.length){
-          els.seedHint.textContent = "Nothing parsed yet.";
-          return;
-        }
-        state.seedPairs = state.seedPairs.concat(state.parsedSeed);
-        state.parsedSeed = [];
-        els.seedHint.textContent = "Saved into seed memory.";
-        els.seedBox.value = "";
-        showToast("Seed updated");
-      });
-
-      els.btnDiscardSeed.addEventListener("click",()=>{
-        els.seedBox.value = "";
-        state.parsedSeed = [];
-        els.seedHint.textContent = "Discarded block.";
-      });
-
-      /* Logic packs */
-      function applyLogicPack(idx){
-        state.logicActiveIndex = idx;
-        if(idx==null || !state.logicPacks[idx]) return;
-        const pack = state.logicPacks[idx];
-        state.logicFaithSoftener = pack.faithSoftener !== false;
-        if(pack.ui){
-          if(pack.ui.theme === "golden"){
-            document.body.classList.add("theme-golden");
-          } else {
-            document.body.classList.remove("theme-golden");
-          }
-          if(pack.ui.accentColor){
-            document.documentElement.style.setProperty("--accent-color", pack.ui.accentColor);
-          }
-        }
-        persistLogicState();
-      }
-
-      els.btnValidateLogic.addEventListener("click",()=>{
-        try{
-          const obj = JSON.parse(els.logicBox.value);
-          els.logicHint.textContent = "Valid JSON.";
-          showToast("Logic JSON valid");
-        }catch(e){
-          els.logicHint.textContent = "Invalid JSON: "+e.message;
-        }
-      });
-
-      els.btnSaveLogic.addEventListener("click",()=>{
-        try{
-          const obj = JSON.parse(els.logicBox.value);
-          obj.serial = obj.serial || ("L"+(state.logicPacks.length+1));
-          state.logicPacks.push(obj);
-          els.logicSerial.textContent = obj.serial;
-          els.logicHint.textContent = "Saved as "+obj.serial;
-          applyLogicPack(state.logicPacks.length-1);
-          persistLogicState();
-          showToast("Logic pack saved");
-        }catch(e){
-          els.logicHint.textContent = "Cannot save: invalid JSON.";
-        }
-      });
-
-      els.btnCopyLogic.addEventListener("click",()=>{
-        navigator.clipboard?.writeText(els.logicBox.value||"");
-        showToast("Logic copied");
-      });
-
-      els.btnDeleteLogic.addEventListener("click",()=>{
-        if(state.logicActiveIndex==null || !state.logicPacks[state.logicActiveIndex]){
-          els.logicHint.textContent = "No active logic pack.";
-          return;
-        }
-        if(!confirm("Delete current logic pack?")) return;
-        state.logicPacks.splice(state.logicActiveIndex,1);
-        state.logicActiveIndex = null;
-        els.logicSerial.textContent = "none";
-        els.logicHint.textContent = "Deleted.";
-        document.body.classList.remove("theme-golden");
-        document.documentElement.style.setProperty("--accent-color", "#0ea5e9");
-        persistLogicState();
-      });
-
-      /* BM list & viewer with date filter */
-      function renderBMList(){
-        els.bmSelectList.innerHTML = "";
-        const q = (els.bmSearch.value||"").toLowerCase();
-        const d = (els.bmDate.value||"");
-        const list = state.bmPrompts.filter(b=>{
-          let ok = true;
-          if(q){
-            ok = (b.title||"").toLowerCase().includes(q) || (b.text||"").toLowerCase().includes(q);
-          }
-          if(ok && d){
-            const dStr = new Date(b.ts||Date.now()).toISOString().slice(0,10);
-            ok = (dStr === d);
-          }
-          return ok;
-        }).sort((a,b)=> (b.ts||0)-(a.ts||0));
-        if(!list.length){
-          const div = document.createElement("div");
-          div.style.fontSize = "12px";
-          div.style.opacity = "0.65";
-          div.textContent = "No BM prompts yet.";
-          els.bmSelectList.appendChild(div);
-          return;
-        }
-        list.forEach(bm=>{
-          const item = document.createElement("div");
-          item.className = "bmItem";
-          const left = document.createElement("div");
-          const title = document.createElement("div");
-          title.className = "bmItemTitle";
-          title.textContent = bm.title||"(untitled)";
-          const meta = document.createElement("div");
-          meta.className = "bmItemMeta";
-          const ds = new Date(bm.ts||Date.now()).toISOString().slice(0,10);
-          meta.textContent = ds + (bm.locked ? " · 🔒" : "");
-          left.appendChild(title);
-          left.appendChild(meta);
-          item.appendChild(left);
-          item.addEventListener("click",()=>selectBM(bm.id));
-          els.bmSelectList.appendChild(item);
-        });
-      }
-
-      function selectBM(id){
-        const bm = state.bmPrompts.find(x=>x.id===id);
-        state.selectedBMId = id;
-        if(!bm){
-          els.bmViewer.style.display = "none";
-          return;
-        }
-        els.bmViewer.style.display = "block";
-        els.bmTitle.textContent = bm.title||"Prompt";
-        const ds = new Date(bm.ts||Date.now()).toLocaleString();
-        const live = bm.liveUntil && bm.liveUntil > Date.now();
-        els.bmMeta.textContent = ds + (bm.locked ? " · locked" : " · editable") + (live ? " · LIVE 12h" : "");
-        els.bmTextArea.value = bm.text||"";
-        els.bmTextArea.readOnly = true;
-        els.bmLockIcon.textContent = bm.locked ? "🔒" : "🔓";
-        els.btnUnlockBM.style.display = bm.locked ? "inline-flex" : "none";
-        els.btnLiveBM.textContent = live ? "Live 12h: on" : "Live 12h: off";
-      }
-
-      els.bmSearch.addEventListener("input", renderBMList);
-      els.bmDate.addEventListener("change", ()=>{
-        renderBMList();
-        // اگر اس date پر کوئی BM ہو تو پہلا والا خود بخود open ہو جائے
-        const d = els.bmDate.value;
-        if(d){
-          const found = state.bmPrompts.find(b=>{
-            const ds = new Date(b.ts||Date.now()).toISOString().slice(0,10);
-            return ds === d;
-          });
-          if(found) selectBM(found.id);
-        }
-      });
-
-      els.btnLiveBM.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        const now = Date.now();
-        if(bm.liveUntil && bm.liveUntil > now){
-          bm.liveUntil = null;
-        } else {
-          bm.liveUntil = now + 12*60*60*1000;
-        }
-        saveBM();
-        renderBMList();
-        selectBM(bm.id);
-      });
-
-      els.btnUnlockBM.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        if(!confirm("Unlock this BM prompt for editing?")) return;
-        bm.locked = false;
-        saveBM();
-        renderBMList();
-        selectBM(bm.id);
-      });
-
-      els.btnCopyPrompt.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        navigator.clipboard?.writeText(bm.text||"");
-        showToast("BM prompt copied");
-      });
-
-      els.btnAutoGen.addEventListener("click",()=>{
-        showToast("Video generation is a placeholder in this offline prototype.");
-      });
-
-      els.btnDeletePrompt.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        if(!confirm("Delete this BM prompt?")) return;
-        if(!confirm("Are you sure? This cannot be undone.")) return;
-        state.bmPrompts = state.bmPrompts.filter(x=>x.id!==bm.id);
-        state.selectedBMId = null;
-        saveBM();
-        recomputeBMMetric();
-        recomputeE0(0,0);
-        updateCapsule();
-        renderBMList();
-        els.bmViewer.style.display = "none";
-        showToast("BM prompt deleted");
-      });
-
-      /* Identity */
-      function loadIdentityIntoForm(){
-        const u = state.userIdentity || {};
-        els.uName.value = u.name || "";
-        els.uNick.value = u.nick || "";
-        els.uOrigin.value = u.origin || "";
-        els.uPlace.value = u.place || "";
-        els.uProfession.value = u.profession || "";
-        els.uEmotionalStyle.value = u.emotionalStyle || "";
-        els.uKeyPeople.value = u.keyPeople || "";
-        els.uLegacyRules.value = u.legacyRules || "";
-      }
-
-      els.btnEditIdentity.addEventListener("click",()=>{
-        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
-         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.removeAttribute("readonly"));
-        showToast("Identity fields unlocked for edit");
-      });
-
-      els.btnSaveUserIdentity.addEventListener("click",()=>{
-        state.userIdentity = {
-          name: els.uName.value.trim(),
-          nick: els.uNick.value.trim(),
-          origin: els.uOrigin.value.trim(),
-          place: els.uPlace.value.trim(),
-          profession: els.uProfession.value.trim(),
-          emotionalStyle: els.uEmotionalStyle.value.trim(),
-          keyPeople: els.uKeyPeople.value.trim(),
-          legacyRules: els.uLegacyRules.value.trim(),
-          ts: Date.now()
-        };
-        saveUserIdentity();
-        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
-         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.setAttribute("readonly","readonly"));
-        showToast("Identity saved locally");
-      });
-
-      els.btnDeleteUserIdentity.addEventListener("click",()=>{
-        if(!confirm("Delete stored identity data?")) return;
-        if(!confirm("Are you sure?")) return;
-        state.userIdentity = null;
-        localStorage.removeItem(KEY_USER);
-        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
-         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.value="");
-        showToast("Identity deleted");
-      });
-
-      /* LLM */
-      els.btnSaveLLM.addEventListener("click",()=>{
-        state.apiConfig = {
-          endpoint: els.apiEndpoint.value.trim(),
-          model: els.apiModel.value.trim(),
-          key: els.apiKey.value.trim()
-        };
-        saveCfg();
-        showToast("LLM config saved");
-      });
-
-      async function loadOfflineModel(){
-        if(!window.webllm){
-          els.offlineStatus.textContent = "WebLLM not available.";
-          return;
-        }
-        if(state.offlineReady || state.offlineLoading) return;
-        try{
-          state.offlineLoading = true;
-          els.offlineStatus.textContent = "loading…";
-          els.offlineBar.style.width = "25%";
-          const engine = await window.webllm.CreateMLCEngine(OFFLINE_MODEL_ID, {
-            initProgressCallback: (p)=>{
-              const pct = Math.round((p.progress||0)*100);
-              els.offlineBar.style.width = pct+"%";
-            }
-          });
-          state.offlineEngine = engine;
-          state.offlineReady = true;
-          state.offlineLoading = false;
-          els.offlineStatus.textContent = "ready";
-          els.offlineBar.style.width = "100%";
-          saveCfg();
-          showToast("Offline model ready");
-        }catch(e){
-          state.offlineLoading = false;
-          els.offlineStatus.textContent = "error";
-          showToast("Offline model error");
-        }
-      }
-
-      els.btnLoadOffline.addEventListener("click", loadOfflineModel);
-
-      async function callOfflineLLM(prompt){
-        if(!state.offlineReady || !state.offlineEngine) return null;
-        try{
-          const reply = await state.offlineEngine.chatCompletion({
-            messages:[{role:"user",content:prompt}],
-            stream:false
-          });
-          const text = reply?.choices?.[0]?.message?.content || "";
-          return text.trim() || null;
-        }catch{
-          return null;
-        }
-      }
-
-      async function callOnlineLLM(prompt){
-        const {endpoint,model,key} = state.apiConfig;
-        if(!endpoint || !model || !key) return null;
-        try{
-          const resp = await fetch(endpoint,{
-            method:"POST",
-            headers:{
-              "Content-Type":"application/json",
-              "Authorization":"Bearer "+key
-            },
-            body:JSON.stringify({
-              model,
-              messages:[{role:"user",content:prompt}],
-              temperature:0.7
-            })
-          });
-          if(!resp.ok) return null;
-          const data = await resp.json();
-          const text = data.choices?.[0]?.message?.content || "";
-          return text.trim() || null;
-        }catch{
-          return null;
-        }
-      }
-
-      /* Options */
-      els.btnOptions.addEventListener("click",()=>{
-        els.optionsMenu.classList.toggle("show");
-      });
-
-      els.miVoice.addEventListener("click",()=>{
-        state.voiceOn = !state.voiceOn;
-        els.voicePill.textContent = state.voiceOn ? "on" : "off";
-        els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
-        saveCfg();
-      });
-
-      els.miLearn.addEventListener("click",()=>{
-        state.learningOn = !state.learningOn;
-        els.learnPill.textContent = state.learningOn ? "on" : "off";
-        els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
-        saveCfg();
-      });
-
-      els.miFaith.addEventListener("click",()=>openModal(els.modalFaith));
-      els.miIntel.addEventListener("click",()=>openModal(els.modalIntel));
-      els.miSeed.addEventListener("click",()=>openModal(els.modalSeed));
-      els.miLLM.addEventListener("click",()=>openModal(els.modalLLM));
-      els.miBMRecall.addEventListener("click",()=>openModal(els.modalBM));
-      els.miHistory.addEventListener("click",()=>{renderHistory();openModal(els.modalHistory);});
-      els.miIdentity.addEventListener("click",()=>{loadIdentityIntoForm();openModal(els.modalIdentity);});
-
-      /* History buttons */
-      els.btnDeleteRecent.addEventListener("click",()=>{
-        const cutoff = Date.now() - 48*60*60*1000;
-        state.history = state.history.filter(h=>h.locked || h.ts < cutoff);
-        saveHistory();
-        renderHistory();
-      });
-      els.btnDeleteAllHist.addEventListener("click",()=>{
-        if(!confirm("Delete all history (except locked)?")) return;
-        state.history = state.history.filter(h=>h.locked);
-        saveHistory();
-        renderHistory();
-      });
-      els.btnCopyHistory.addEventListener("click",()=>{
-        const text = state.history.map(h=>{
-          const dt = new Date(h.ts).toLocaleString();
-          const label = h.role==="user" ? "You" : (h.role==="aura" ? "AURA" : h.role);
-          return `[${dt}] ${label}: ${h.text}`;
-        }).join("\n");
-        navigator.clipboard?.writeText(text);
-        showToast("History copied");
-      });
-
-      /* Main chat + self-learning pipeline */
-      async function handleSend(){
-        const raw = els.userInput.value;
-        const text = raw.trim();
-        if(!text) return;
-
-        els.userInput.value = "";
-        els.optionsMenu.classList.remove("show");
-
-        // "incorrect" flow
-        if(state.correcting){
-          const correctA = text;
-          if(state.lastUserQ && correctA){
-            const id = "intel_"+Date.now();
-            state.intelligence.push({
-              id,
-              q: state.lastUserQ,
-              a: correctA,
-              ts: Date.now()
-            });
-            saveIntelligence();
-            renderIntelligence(els.intelSearch.value);
-            logLine("sys","[Self-learning] Stored corrected answer into intelligence.");
-            showToast("Correct answer stored");
-          }
-          state.correcting = false;
-          return;
-        }
-
-        // normal user entry
-        logLine("user","You: "+text);
-
-        // abuse / cooldown hooks from logic packs (simple)
-        const now = Date.now();
-        if(state.cooldownUntil && now < state.cooldownUntil){
-          logLine("sys","[Cooldown] Please wait a moment before sending more messages.");
-          return;
-        }
-
-        state.metrics.TM = scoreTM(text);
-        recomputeBMMetric();
-        let intelBoost = 0, llmBoost = 0;
-        let answer = null;
-        let source = "none";
-
-        // 1) check intelligence first (exact / contains)
-        const tLower = text.toLowerCase();
-        let bestMatch = state.intelligence.find(p=>p.q.toLowerCase()===tLower);
-        if(!bestMatch){
-          bestMatch = state.intelligence.find(p=>tLower.includes(p.q.toLowerCase()) || p.q.toLowerCase().includes(tLower));
-        }
-        if(bestMatch){
-          answer = bestMatch.a;
-          source = "intelligence";
-          intelBoost = 0.35;
-        }
-
-        // 2) then seed
-        if(!answer && state.seedPairs.length){
-          let sMatch = state.seedPairs.find(p=>p.q.toLowerCase()===tLower);
-          if(!sMatch){
-            sMatch = state.seedPairs.find(p=>tLower.includes(p.q.toLowerCase()) || p.q.toLowerCase().includes(tLower));
-          }
-          if(sMatch){
-            answer = sMatch.a;
-            source = "seed";
-            intelBoost = 0.25;
-          }
-        }
-
-        // 3) then offline LLM
-        if(!answer && state.offlineReady){
-          answer = await callOfflineLLM(text);
-          if(answer){
-            source = "offline";
-            llmBoost = 0.25;
-          }
-        }
-
-        // 4) last fallback: online
-        if(!answer){
-          answer = await callOnlineLLM(text);
-          if(answer){
-            source = "online";
-            llmBoost = 0.30;
-          }
-        }
-
-        // fallback static reply
-        if(!answer){
-          answer = "I don't have a stored answer yet. You can teach me using the 👎 button or by adding LaTeX blocks under Feed the seed.";
-          source = "fallback";
-        }
-
-        state.lastUserQ = text;
-        state.lastAuraA = answer;
-        state.lastAnswerSource = source;
-
-        recomputeE0(intelBoost, llmBoost);
-        updateCapsule();
-
-        logLine("aura","AURA: "+answer+"  (source: "+source+")");
-
-        if(state.voiceOn){
-          try{
-            const u = new SpeechSynthesisUtterance(answer);
-            speechSynthesis.speak(u);
-          }catch{}
-        }
-
-        maybeShowFaithBubble();
-      }
-
-      els.sendBtn.addEventListener("click",handleSend);
-      els.userInput.addEventListener("keydown",e=>{
-        if(e.key==="Enter" && !e.shiftKey){
-          e.preventDefault();
-          handleSend();
-        }
-      });
-
-      /* "incorrect" keyword flow */
-      // اگر user chat میں "incorrect" لکھے تو اگلا جواب correction mode ہوگا
-      function interceptIncorrect(text){
-        return text.trim().toLowerCase()==="incorrect";
-      }
-
-      const origHandleSend = handleSend;
-      // override input listener for incorrect keyword
-      els.userInput.addEventListener("keydown",e=>{
-        if(e.key==="Enter" && !e.shiftKey){
-          const val = els.userInput.value.trim();
-          if(interceptIncorrect(val) && state.lastUserQ && state.lastAuraA){
-            e.preventDefault();
-            els.userInput.value = "";
-            logLine("user","You: incorrect");
-            logLine("sys","[Self-learning] Please type the correct answer for the last question.");
-            state.correcting = true;
-            return;
-          }
-        }
-      });
-
-      /* Reaction buttons */
-      els.btnLikeLast.addEventListener("click",()=>{
-        if(!state.lastUserQ || !state.lastAuraA){
-          showToast("No last answer to save");
-          return;
-        }
-        const already = state.intelligence.find(p=>p.q===state.lastUserQ && p.a===state.lastAuraA);
-        if(already){
-          showToast("Already in intelligence");
-          return;
-        }
-        const id = "intel_"+Date.now();
-        state.intelligence.push({id,q:state.lastUserQ,a:state.lastAuraA,ts:Date.now()});
-        saveIntelligence();
-        renderIntelligence(els.intelSearch.value);
-        showToast("Saved to intelligence");
-      });
-
-      els.btnDislikeLast.addEventListener("click",()=>{
-        if(!state.lastUserQ || !state.lastAuraA){
-          showToast("No last answer");
-          return;
-        }
-        logLine("sys","[Self-learning] Type the correct answer in chat. It will replace the last one.");
-        state.correcting = true;
-      });
-
-      els.btnSpeakLast.addEventListener("click",()=>{
-        if(!state.lastAuraA){
-          showToast("No last answer");
-          return;
-        }
-        try{
-          const u = new SpeechSynthesisUtterance(state.lastAuraA);
-          speechSynthesis.speak(u);
-        }catch{}
-      });
-
-      els.btnShareLast.addEventListener("click",()=>{
-        if(!state.lastUserQ || !state.lastAuraA){
-          showToast("No last pair");
-          return;
-        }
-        const text = `Q: ${state.lastUserQ}\nA: ${state.lastAuraA}`;
-        navigator.clipboard?.writeText(text);
-        showToast("Question + answer copied");
-      });
-
-      /* Load from localStorage on start */
-      function initFromStorage(){
-        const cfg = safeLoadJSON(KEY_CFG,null);
-        if(cfg){
-          state.voiceOn = !!cfg.voiceOn;
-          state.learningOn = cfg.learningOn!==false;
-          state.faithSelection = cfg.faithSelection||[];
-          state.apiConfig = cfg.apiConfig||state.apiConfig;
-          state.offlineReady = !!cfg.offlineReady;
-        }
-        els.voicePill.textContent = state.voiceOn ? "on" : "off";
-        els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
-        els.learnPill.textContent = state.learningOn ? "on" : "off";
-        els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
-        els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
-
-        state.intelligence = safeLoadJSON(KEY_INT,[]);
-        state.bmPrompts = safeLoadJSON(KEY_BM,[]);
-        state.history = safeLoadJSON(KEY_HIST,[]);
-        state.userIdentity = safeLoadJSON(KEY_USER,null);
-
-        const logicStored = safeLoadJSON(KEY_LOGIC,null);
-        if(logicStored){
-          state.logicPacks = logicStored.list||[];
-          state.logicActiveIndex = logicStored.activeIndex;
-          if(state.logicActiveIndex!=null) applyLogicPack(state.logicActiveIndex);
-        }
-
-        if(state.apiConfig.endpoint) els.apiEndpoint.value = state.apiConfig.endpoint;
-        if(state.apiConfig.model) els.apiModel.value = state.apiConfig.model;
-        if(state.apiConfig.key) els.apiKey.value = state.apiConfig.key;
-
-        renderFaithChips();
-        renderIntelligence("");
-        renderBMList();
-        renderHistory();
-        loadIdentityIntoForm();
-        recomputeBMMetric();
-        recomputeE0(0,0);
-        updateCapsule();
-      }
-
-      initFromStorage();
-
-      logLine("sys","AURA-X Ω ready. TM = your inputs only; everything else stays on this device.");
     });
+
+    btnWake.addEventListener("click", () => {
+      exitDreamMode();
+      registerActivity();
+    });
+
+    // any tap / key wakes and counts as activity
+    window.addEventListener("pointerdown", registerActivity, {passive:true});
+    window.addEventListener("keydown", registerActivity, {passive:true});
+
+    // ---------- BM snapshots ----------
+    const bmText  = $("bmText");
+    const bmList  = $("bmList");
+    $("btnSaveBM").addEventListener("click", () => {
+      const text = bmText.value.trim();
+      if(!text){
+        showToast("Write a story first.");
+        return;
+      }
+      const title = text.split("\n")[0].slice(0,80);
+      state.bmSnapshots.push({
+        id: "bm_"+Date.now(),
+        title,
+        text,
+        ts: Date.now()
+      });
+      bmText.value = "";
+      saveState();
+      renderBMList();
+      updateMetrics();
+      showToast("BM snapshot saved.");
+    });
+    $("btnClearBM").addEventListener("click", ()=> bmText.value="");
+
+    function renderBMList(){
+      if(!state.bmSnapshots.length){
+        bmList.textContent = "No BM snapshots yet.";
+        return;
+      }
+      bmList.innerHTML = "";
+      state.bmSnapshots.slice().reverse().forEach(snap=>{
+        const div = document.createElement("div");
+        div.className = "bmItem";
+        const left = document.createElement("div");
+        left.innerHTML = `<div class="bmItemTitle">${escapeHtml(snap.title || "Snapshot")}</div>
+                          <div class="bmItemMeta">${new Date(snap.ts).toLocaleString()}</div>`;
+        const right = document.createElement("div");
+        right.className = "bmItemMeta";
+        right.textContent = "view";
+        div.appendChild(left);
+        div.appendChild(right);
+        div.addEventListener("click", ()=>{
+          // load into textarea
+          bmText.value = snap.text;
+          showToast("Loaded snapshot into editor.");
+        });
+        bmList.appendChild(div);
+      });
+    }
+
+    // ---------- Identity ----------
+    const identityBox = $("identityText");
+    $("btnSaveIdentity").addEventListener("click", ()=>{
+      state.identity = identityBox.value || "";
+      saveState();
+      showToast("Identity saved locally.");
+    });
+
+    // ---------- History ----------
+    const historyBox = $("historyBox");
+    $("btnClearUnlocked").addEventListener("click", ()=>{
+      state.history = state.history.filter(h=>h.locked);
+      saveState();
+      renderHistory();
+      showToast("Cleared unlocked conversation lines.");
+    });
+
+    function renderHistory(){
+      historyBox.innerHTML = "";
+      if(!state.history.length){
+        historyBox.textContent = "No history yet.";
+        return;
+      }
+      state.history.slice().forEach((h,idx)=>{
+        const row = document.createElement("div");
+        row.className = "historyLine";
+        const text = document.createElement("div");
+        text.className = "historyText";
+        const prefix = h.role==="user" ? "You: " : h.role==="aura" ? "AURA-X Ω: " : "· ";
+        text.textContent = prefix + h.text;
+        const lock = document.createElement("button");
+        lock.className = "historyLock";
+        lock.textContent = h.locked ? "🔒" : "🔓";
+        lock.addEventListener("click", ()=>{
+          h.locked = !h.locked;
+          lock.textContent = h.locked ? "🔒" : "🔓";
+          saveState();
+        });
+        row.appendChild(text);
+        row.appendChild(lock);
+        historyBox.appendChild(row);
+      });
+    }
+
+    // ---------- Intelligence & Seed ----------
+    function allPairs(){
+      return [...state.seedPairs, ...state.intelPairs];
+    }
+
+    function renderIntelList(filter=""){
+      const list = $("intelList");
+      list.innerHTML = "";
+      const q = filter.toLowerCase();
+      const pairs = allPairs().filter(p =>
+        !q || p.q.toLowerCase().includes(q) || p.a.toLowerCase().includes(q)
+      );
+      if(!pairs.length){
+        list.textContent = "No pairs yet.";
+        return;
+      }
+      pairs.forEach((p,idx)=>{
+        const card = document.createElement("div");
+        card.className = "intelCard";
+        const top = document.createElement("div");
+        top.className = "intelTop";
+        top.innerHTML = `<div class="intelQ">Q: ${escapeHtml(p.q)}</div>
+                         <div class="intelMeta">${p.source || "local"}</div>`;
+        const ans = document.createElement("div");
+        ans.className = "intelA";
+        ans.textContent = "A: " + p.a;
+        const meta = document.createElement("div");
+        meta.className = "intelMeta";
+        meta.textContent = "Saved: " + (p.ts ? new Date(p.ts).toLocaleString() : "unknown");
+        card.appendChild(top);
+        card.appendChild(ans);
+        card.appendChild(meta);
+        list.appendChild(card);
+      });
+    }
+
+    $("intelSearch").addEventListener("input", e=>{
+      renderIntelList(e.target.value || "");
+    });
+
+    function parseSeedBlock(text){
+      const items = text.split(/\\item/g).map(s=>s.trim()).filter(Boolean);
+      const pairs = [];
+      for(const raw of items){
+        const qMatch = raw.match(/Q:\s*(.*?)(?=A:|$)/i);
+        const aMatch = raw.match(/A:\s*(.*)$/i);
+        if(!aMatch) continue;
+        const q = qMatch ? cleanupSeed(qMatch[1]) : "(unnamed question)";
+        const a = cleanupSeed(aMatch[1]);
+        pairs.push({q,a,source:"seed",ts:Date.now()});
+      }
+      return pairs;
+    }
+    function cleanupSeed(s){
+      return s.replace(/\\\\/g," ").replace(/\s+/g," ").replace(/\\textbf\{.*?\}/g,"").trim();
+    }
+
+    $("btnParseSeed").addEventListener("click", ()=>{
+      const txt = $("seedBox").value.trim();
+      if(!txt){
+        showToast("Paste LaTeX block first.");
+        return;
+      }
+      const pairs = parseSeedBlock(txt);
+      $("seedHint").textContent = "Parsed " + pairs.length + " Q→A pairs. Press Save to store.";
+    });
+
+    $("btnSaveSeed").addEventListener("click", ()=>{
+      const txt = $("seedBox").value.trim();
+      if(!txt){
+        showToast("Paste LaTeX block first.");
+        return;
+      }
+      const pairs = parseSeedBlock(txt);
+      state.seedPairs.push(...pairs);
+      $("seedBox").value = "";
+      $("seedHint").textContent = "Saved to seed ("+state.seedPairs.length+" total).";
+      saveState();
+      showToast("Seed updated.");
+    });
+
+    $("btnDiscardSeed").addEventListener("click", ()=>{
+      $("seedBox").value = "";
+      $("seedHint").textContent = "Waiting for block…";
+    });
+
+    // Logic pack (stored but not heavily used in this minimal version)
+    $("btnValidateLogic").addEventListener("click", ()=>{
+      try{
+        JSON.parse($("logicBox").value);
+        $("logicHint").textContent = "Valid JSON.";
+        showToast("Logic JSON looks valid.");
+      }catch(e){
+        $("logicHint").textContent = "Invalid JSON: "+e.message;
+        showToast("JSON error.");
+      }
+    });
+    $("btnSaveLogic").addEventListener("click", ()=>{
+      try{
+        const obj = JSON.parse($("logicBox").value);
+        const id = "L"+(Date.now());
+        state.logicPacks.push({id,obj});
+        state.logicSerial = id;
+        $("logicSerial").textContent = id;
+        $("logicHint").textContent = "Saved logic pack.";
+        saveState();
+        showToast("Logic pack saved.");
+      }catch(e){
+        showToast("Fix JSON before saving.");
+      }
+    });
+    $("btnCopyLogic").addEventListener("click", ()=>{
+      navigator.clipboard?.writeText($("logicBox").value||"");
+      showToast("Logic JSON copied.");
+    });
+    $("btnDeleteLogic").addEventListener("click", ()=>{
+      if(!state.logicPacks.length){ showToast("No logic packs yet."); return; }
+      if(!confirm("Delete ALL saved logic packs?")) return;
+      state.logicPacks = [];
+      state.logicSerial = null;
+      $("logicSerial").textContent = "none";
+      $("logicHint").textContent = "No logic pack loaded.";
+      saveState();
+      showToast("Logic packs cleared.");
+    });
+
+    // ---------- Faith lens ----------
+    const FAITH_OPTIONS = [
+      "Quran & Hadith",
+      "Seerah & Wisdom",
+      "General spirituality"
+    ];
+
+    function renderFaithChips(){
+      const wrap = $("faithChips");
+      wrap.innerHTML = "";
+      FAITH_OPTIONS.forEach(label=>{
+        const chip = document.createElement("div");
+        chip.className = "chip" + (state.faithTags.includes(label) ? " active" : "");
+        chip.textContent = label;
+        chip.addEventListener("click", ()=>{
+          if(state.faithTags.includes(label)){
+            state.faithTags = state.faithTags.filter(x=>x!==label);
+          }else{
+            state.faithTags.push(label);
+          }
+          saveState();
+          renderFaithChips();
+          updateFaithLabel();
+        });
+        wrap.appendChild(chip);
+      });
+    }
+
+    function updateFaithLabel(){
+      const lbl = $("faithLabel");
+      if(!state.faithTags.length){
+        lbl.className = "pillOff";
+        lbl.textContent = "none";
+      }else{
+        lbl.className = "pillOn";
+        lbl.textContent = "on";
+      }
+    }
+
+    $("faithBubble").addEventListener("click", ()=>{
+      openModal("modalFaithArticle");
+    });
+    $("faithBubbleClose").addEventListener("click", e=>{
+      e.stopPropagation();
+      faithBubble.style.display = "none";
+    });
+    $("btnCopyFaithArticle").addEventListener("click", ()=>{
+      navigator.clipboard?.writeText($("faithArticleText").value || "");
+      showToast("Faith reflection copied.");
+    });
+
+    function maybeShowFaithBubble(){
+      if(!state.faithTags.length) return;
+      state.faithCounter = (state.faithCounter || 0) + 1;
+      if(state.faithCounter % 3 !== 0) return; // every 3rd reply
+      $("faithArticleMeta").textContent =
+        "Lens: " + state.faithTags.join(", ") + " · This is a gentle, non-binding reflection.";
+      $("faithArticleTitle").textContent = "Faith coefficient λ_faith – soft encouragement";
+      $("faithArticleText").value =
+        "Think about whether this story is moving you closer to gratitude, patience, or justice. " +
+        "Small shifts in intention can increase long-term emotional continuity (E₀).";
+      $("faithBubbleTitle").textContent = "Faith reflection available";
+      $("faithBubbleMeta").textContent = "Tap to open a short suggestion tied to λ_faith.";
+      faithBubble.style.display = "flex";
+      faithBubble.classList.add("pulse");
+    }
+
+    // ---------- Voice ----------
+    function speak(text){
+      if(!state.voiceEnabled){
+        showToast("Voice is off.");
+        return;
+      }
+      if(!("speechSynthesis" in window)){
+        showToast("Voice not supported in this browser.");
+        return;
+      }
+      const u = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(u);
+    }
+
+    $("btnSpeakLast").addEventListener("click", ()=>{
+      if(!state.lastQA){ showToast("No answer yet."); return; }
+      speak(state.lastQA.a);
+    });
+
+    // ---------- Answering ----------
+    function handleSend(){
+      const q = input.value.trim();
+      if(!q){ return; }
+      input.value = "";
+      addLine(q, "user");
+      registerActivity();
+      const answer = answerQuestion(q);
+      state.lastQA = {q, a:answer};
+      addLine(answer, "aura");
+      maybeShowFaithBubble();
+    }
+
+    function answerQuestion(q){
+      // 1) check intelligence / seed
+      const pair = findBestPair(q);
+      if(pair){
+        return pair.a;
+      }
+      // 2) offline rule-based fallback
+      return "I’m holding this as a new moment in your timeline. Tell me more detail so I can turn it into a BM snapshot or a learned Q→A pair.";
+    }
+
+    function findBestPair(question){
+      const q = question.toLowerCase();
+      let best = null;
+      let bestScore = 0.0;
+      for(const p of allPairs()){
+        const words = p.q.toLowerCase().split(/\s+/).filter(w=>w.length>3);
+        if(!words.length) continue;
+        let matches = 0;
+        words.forEach(w=>{ if(q.includes(w)) matches++; });
+        const score = matches / words.length;
+        if(score > bestScore && score >= 0.4){
+          bestScore = score;
+          best = p;
+        }
+      }
+      return best;
+    }
+
+    sendBtn.addEventListener("click", handleSend);
+    input.addEventListener("keydown", e=>{
+      if(e.key==="Enter" && !e.shiftKey){
+        e.preventDefault();
+        handleSend();
+      }
+    });
+
+    // ---------- Like / Dislike / Copy ----------
+    $("btnLikeLast").addEventListener("click", ()=>{
+      if(!state.lastQA){ showToast("No answer yet."); return; }
+      state.intelPairs.push({
+        q: state.lastQA.q,
+        a: state.lastQA.a,
+        source: "learned",
+        ts: Date.now()
+      });
+      saveState();
+      showToast("Saved to Intelligence.");
+    });
+
+    $("btnDislikeLast").addEventListener("click", ()=>{
+      if(!state.lastQA){ showToast("No answer yet."); return; }
+      if(!state.learningEnabled){
+        showToast("Learning is off.");
+        return;
+      }
+      const correct = prompt("Answer marked incorrect. Please type the correct answer:");
+      if(!correct) return;
+      const confirmSave = confirm("Save this corrected answer to Intelligence?");
+      if(!confirmSave) return;
+      state.intelPairs.push({
+        q: state.lastQA.q,
+        a: correct,
+        source: "corrected",
+        ts: Date.now()
+      });
+      saveState();
+      showToast("Correct answer learned.");
+    });
+
+    $("btnShareLast").addEventListener("click", ()=>{
+      if(!state.lastQA){ showToast("No answer yet."); return; }
+      const text = "Q: " + state.lastQA.q + "\nAURA-X Ω: " + state.lastQA.a;
+      navigator.clipboard?.writeText(text);
+      showToast("Copied Q + A.");
+    });
+
+    // ---------- Options menu ----------
+    optionsBtn.addEventListener("click", ()=>{
+      optionsMenu.classList.toggle("show");
+    });
+    document.addEventListener("click", (e)=>{
+      if(!optionsMenu.contains(e.target) && e.target!==optionsBtn){
+        optionsMenu.classList.remove("show");
+      }
+    });
+
+    $("miVoice").addEventListener("click", ()=>{
+      state.voiceEnabled = !state.voiceEnabled;
+      $("voicePill").className = state.voiceEnabled ? "pillOn" : "pillOff";
+      $("voicePill").textContent = state.voiceEnabled ? "on" : "off";
+      saveState();
+      showToast("Voice " + (state.voiceEnabled ? "enabled" : "disabled") + ".");
+    });
+
+    $("miLearn").addEventListener("click", ()=>{
+      state.learningEnabled = !state.learningEnabled;
+      $("learnPill").className = state.learningEnabled ? "pillOn" : "pillOff";
+      $("learnPill").textContent = state.learningEnabled ? "on" : "off";
+      saveState();
+      showToast("Learning " + (state.learningEnabled ? "enabled" : "disabled") + ".");
+    });
+
+    $("miIntel").addEventListener("click", ()=>{
+      renderIntelList();
+      openModal("modalIntel");
+    });
+    $("miSeed").addEventListener("click", ()=> openModal("modalSeed"));
+    $("miFaith").addEventListener("click", ()=>{
+      renderFaithChips();
+      openModal("modalFaith");
+    });
+    $("miIdentity").addEventListener("click", ()=>{
+      identityBox.value = state.identity || "";
+      openModal("modalIdentity");
+    });
+    $("miLLM").addEventListener("click", ()=> openModal("modalLLM"));
+    $("miBMRecall").addEventListener("click", ()=>{
+      renderBMList();
+      applyDreamDelayToUI();
+      openModal("modalBM");
+    });
+    $("miHistory").addEventListener("click", ()=>{
+      renderHistory();
+      openModal("modalHistory");
+    });
+
+    // ---------- Modal helpers ----------
+    function openModal(id){
+      $(id).classList.add("show");
+    }
+    function closeModal(id){
+      $(id).classList.remove("show");
+    }
+    document.querySelectorAll(".closeX").forEach(btn=>{
+      const id = btn.getAttribute("data-close");
+      if(id){
+        btn.addEventListener("click", ()=>closeModal(id));
+      }
+    });
+    document.querySelectorAll(".modalOverlay").forEach(ov=>{
+      ov.addEventListener("click", e=>{
+        if(e.target===ov){
+          ov.classList.remove("show");
+        }
+      });
+    });
+    document.querySelectorAll("[data-close]").forEach(btn=>{
+      const id = btn.getAttribute("data-close");
+      btn.addEventListener("click", ()=> closeModal(id));
+    });
+
+    // ---------- Utilities ----------
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[s]));
+    }
+
+    // ---------- Init ----------
+    function initFromState(){
+      // history → console
+      consoleBox.innerHTML = "";
+      state.history.forEach(h=>{
+        const role = h.role || "sys";
+        const prefix = role==="user"?"You: ":role==="aura"?"AURA-X Ω: ":"· ";
+        const span = document.createElement("span");
+        span.className = "line "+role;
+        span.textContent = prefix + h.text;
+        consoleBox.appendChild(span);
+      });
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+
+      // learning + voice pills
+      $("learnPill").className = state.learningEnabled ? "pillOn" : "pillOff";
+      $("learnPill").textContent = state.learningEnabled ? "on" : "off";
+      $("voicePill").className = state.voiceEnabled ? "pillOn" : "pillOff";
+      $("voicePill").textContent = state.voiceEnabled ? "on" : "off";
+
+      updateFaithLabel();
+      applyDreamDelayToUI();
+      renderBMList();
+      updateMetrics();
+
+      if(state.dreamDelayMs){
+        scheduleDream();
+      }
+    }
+
+    initFromState();
+    addLine("AURA-X Ω ready. TM = your inputs only; everything else stays on this device.", "sys");
+  })();
   </script>
 </body>
 </html>
