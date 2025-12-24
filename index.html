@@ -2,1057 +2,1214 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
+  <title>AURA-X Ω – Offline Emotional Continuity Engine v9.9 + Dream</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Offline LLM package (WebLLM, for in-browser models – future ready) -->
-  <script type="module">
-    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
-    window.webllm = webllm;
-  </script>
-
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-
-    :root {
-      --accent-color: #0ea5e9; /* default accent */
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0
     }
-
+    :root{
+      color-scheme:dark;
+      --bg: #020617;
+      --bgCard: rgba(15,23,42,0.96);
+      --bgCardSoft: rgba(15,23,42,0.9);
+      --borderSoft: rgba(148,163,184,0.5);
+      --borderStrong: rgba(148,163,184,0.85);
+      --accent: #38bdf8;
+      --accentSoft: rgba(56,189,248,0.4);
+      --accent2: #6366f1;
+      --accentFaith: #fbbf24;
+      --textMain: #e5e7eb;
+      --textSoft: #9ca3af;
+      --danger: #f97373;
+      --ok: #4ade80;
+      --fontMain: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+    }
     body{
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:
-        radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
-        radial-gradient(circle at 80% 0, #0ea5e9 0, transparent 40%),
-        linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
-      color:#e5e7eb;
       min-height:100vh;
+      font-family:var(--fontMain);
+      background:
+        radial-gradient(circle at 20% 0%, #0f172a 0, transparent 45%),
+        radial-gradient(circle at 80% 0%, #1d4ed8 0, transparent 55%),
+        radial-gradient(circle at 50% 100%, #7e22ce 0, transparent 60%),
+        radial-gradient(circle at 0 100%, #0f766e 0, transparent 45%),
+        #020617;
+      color:var(--textMain);
+      padding:16px 10px 32px;
       display:flex;
-      justify-content:center;
-      padding:18px 10px;
+      justify-content:center
     }
-
-    .app{
-      width:min(980px,98vw);
-      background:rgba(2,6,23,.45);
-      border:1px solid rgba(148,163,184,.18);
-      border-radius:22px;
-      overflow:hidden;
-      box-shadow:0 20px 60px rgba(0,0,0,.45);
-      backdrop-filter:blur(10px);
+    .shell{
+      width:100%;
+      max-width:880px;
+      border-radius:32px;
+      padding:18px 14px 18px;
+      background:
+        linear-gradient(145deg,rgba(15,23,42,0.96),rgba(15,23,42,0.92)),
+        radial-gradient(circle at 0 0,rgba(56,189,248,0.13),transparent 60%),
+        radial-gradient(circle at 100% 0,rgba(129,140,248,0.22),transparent 60%);
+      box-shadow:
+        0 25px 80px rgba(15,23,42,0.95),
+        0 0 0 1px rgba(15,23,42,0.8),
+        0 0 0 1px rgba(15,23,42,0.5) inset
     }
-
-    .top{
-      padding:20px 18px 10px;
-      border-bottom:1px solid rgba(148,163,184,.14);
-      text-align:center;
+    .topRow{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      margin-bottom:14px
     }
-
-    .brand{
-      font-weight:800;
-      letter-spacing:.5px;
-      font-size:26px;
-      color:#7dd3fc;
-      text-shadow:0 0 22px rgba(14,165,233,.28);
+    .brandBlock{
+      flex:1 1 260px;
+      border-radius:24px;
+      padding:12px 14px 14px;
+      background:
+        radial-gradient(circle at 0 0,rgba(56,189,248,0.16),transparent 55%),
+        radial-gradient(circle at 100% 0,rgba(129,140,248,0.25),transparent 55%),
+        radial-gradient(circle at 0 100%,rgba(16,185,129,0.16),transparent 55%),
+        rgba(15,23,42,0.98);
+      border:1px solid rgba(148,163,184,0.65);
+      position:relative;
+      overflow:hidden
     }
-
-    .sub{
-      opacity:.8;
-      margin-top:2px;
-      font-size:13px;
-    }
-
-    .ethic{
-      margin:14px auto 12px;
-      max-width:720px;
-      border:1px solid rgba(251,191,36,.35);
-      border-radius:14px;
-      padding:12px 14px;
-      color:#fbbf24;
-      background:rgba(2,6,23,.35);
-      box-shadow:inset 0 0 0 1px rgba(251,191,36,.08);
-      font-size:14px;
-      line-height:1.45;
-    }
-
-    .pill{
-      margin:10px auto 0;
-      max-width:760px;
-      background:linear-gradient(90deg, rgba(14,165,233,.65), rgba(34,211,238,.45));
-      border:1px solid rgba(125,211,252,.30);
-      color:#0b1220;
-      font-weight:800;
-      letter-spacing:.6px;
-      border-radius:999px;
-      padding:14px 16px;
+    .brandTitle{
+      font-size:1.55rem;
+      letter-spacing:.24em;
       text-transform:uppercase;
-      box-shadow:0 12px 40px rgba(14,165,233,.22);
+      text-align:center;
+      margin-bottom:6px;
+      font-weight:650
     }
-
-    .main{ padding:16px 16px 18px }
-    .row{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
-    .leftCol{ flex:1 1 340px; min-width:300px }
-    .rightCol{ flex:1 1 360px; min-width:320px }
-
-    .card{
-      background:rgba(2,6,23,.50);
-      border:1px solid rgba(148,163,184,.16);
-      border-radius:18px;
-      padding:14px;
-      box-shadow:0 10px 30px rgba(0,0,0,.25);
-      backdrop-filter:blur(10px);
+    .brandSub{
+      font-size:.78rem;
+      text-align:center;
+      color:var(--textSoft);
+      margin-bottom:10px
     }
-
+    .brandEthic{
+      margin-top:4px;
+      border-radius:20px;
+      padding:9px 12px 10px;
+      background:
+        linear-gradient(120deg,rgba(15,23,42,0.96),rgba(15,23,42,0.9)),
+        radial-gradient(circle at 0 0,rgba(248,250,252,0.14),transparent 55%);
+      border:1px solid rgba(234,179,8,0.8);
+      font-size:.82rem;
+      color:#fef9c3;
+      line-height:1.45;
+      text-align:center
+    }
+    .enginePill{
+      margin-top:10px;
+      border-radius:999px;
+      padding:8px 14px 8px;
+      background:
+        radial-gradient(circle at 0 0,rgba(56,189,248,0.35),transparent 50%),
+        radial-gradient(circle at 100% 100%,rgba(129,140,248,0.25),transparent 50%),
+        rgba(15,23,42,0.96);
+      border:1px solid rgba(56,189,248,0.65);
+      text-align:center;
+      font-size:.86rem;
+      letter-spacing:.14em;
+      text-transform:uppercase
+    }
+    .capsuleBlock{
+      flex:1 1 220px;
+      border-radius:24px;
+      padding:10px 10px 10px;
+      background:
+        radial-gradient(circle at 0 0,rgba(56,189,248,0.18),transparent 55%),
+        radial-gradient(circle at 100% 100%,rgba(129,140,248,0.25),transparent 55%),
+        rgba(15,23,42,0.96);
+      border:1px solid rgba(148,163,184,0.75);
+      display:flex;
+      flex-direction:column;
+      gap:8px
+    }
+    .capsuleRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap
+    }
+    .capsuleTitle{
+      font-size:.78rem;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      opacity:.85
+    }
+    .capsuleSource{
+      font-size:.7rem;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:rgba(15,23,42,0.9);
+      text-transform:uppercase;
+      letter-spacing:.12em
+    }
+    .capsuleMetrics{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px 10px;
+      align-items:center;
+      font-size:.8rem
+    }
+    .metricPill{
+      padding:5px 9px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.65);
+      background:rgba(15,23,42,0.9);
+      display:flex;
+      align-items:center;
+      gap:4px
+    }
+    .metricLabel{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      opacity:.6
+    }
+    .metricValue{
+      font-variant-numeric:tabular-nums
+    }
+    .resonanceEq{
+      font-size:.72rem;
+      opacity:.8;
+      font-family:"JetBrains Mono","SF Mono",ui-monospace,monospace;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.6);
+      padding:6px 9px;
+      background:rgba(15,23,42,0.9)
+    }
+    .readyBadge{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:.78rem
+    }
+    .readyDot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:radial-gradient(circle at 30% 0,#a5f3fc 0,#22c55e 40%,#16a34a 70%)
+    }
+    .readyText{
+      font-size:.76rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      opacity:.8
+    }
+    .midRow{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap
+    }
+    .leftPane{
+      flex:3 1 320px;
+      border-radius:24px;
+      padding:10px 10px 12px;
+      background:var(--bgCard);
+      border:1px solid rgba(148,163,184,0.7);
+      display:flex;
+      flex-direction:column;
+      min-height:230px
+    }
+    .rightPane{
+      flex:2 1 260px;
+      border-radius:24px;
+      padding:10px 10px 12px;
+      background:var(--bgCardSoft);
+      border:1px solid rgba(148,163,184,0.65);
+      display:flex;
+      flex-direction:column;
+      gap:10px
+    }
+    .optionsRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+      gap:8px
+    }
     .optionsBtn{
       display:inline-flex;
       align-items:center;
-      gap:10px;
-      padding:10px 14px;
+      gap:6px;
       border-radius:999px;
-      border:1px solid rgba(148,163,184,.22);
-      background:rgba(15,23,42,.55);
-      color:#e5e7eb;
-      cursor:pointer;
-      user-select:none;
-      margin:12px 0;
-      -webkit-tap-highlight-color:transparent;
+      padding:6px 11px;
+      border:1px solid rgba(148,163,184,0.75);
+      background:
+        radial-gradient(circle at 0 0,rgba(56,189,248,0.22),transparent 55%),
+        rgba(15,23,42,0.96);
+      font-size:.8rem
     }
-    .optionsBtn:active{transform:scale(.99)}
-    .gear{width:18px;height:18px;filter:drop-shadow(0 0 10px rgba(125,211,252,.25))}
-
-    .console{
-      margin-top:12px;
-      height:230px;
-      border-radius:16px;
-      border:1px solid rgba(148,163,184,.14);
-      background:rgba(0,0,0,.25);
-      padding:14px;
-      overflow:auto;
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      font-size:14px;
-      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
-      line-height:1.55;
-      white-space:pre-wrap;
+    .optionsBtn span.icon{
+      width:16px;
+      height:16px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.8);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:.6rem
     }
-    .line{display:block;margin:2px 0}
-    .line.user{color:#a5b4fc;}
-    .line.aura{color:#bbf7d0;}
-    .line.sys{color:#fbbf24;font-size:12px;}
-
-    .optionsMenu{
-      position:fixed;
-      left:12px;
-      right:12px;
-      top:120px;
-      margin:0 auto;
-      max-width:940px;
-      background:rgba(2,6,23,.92);
-      border:1px solid rgba(148,163,184,.18);
-      border-radius:16px;
-      padding:8px;
-      display:none;
-      z-index:9999;
-      box-shadow:0 18px 45px rgba(0,0,0,.45);
-      backdrop-filter:blur(10px);
-      grid-template-columns:repeat(3,minmax(0,1fr));
+    .optionsBtn span.label{
+      letter-spacing:.12em;
+      text-transform:uppercase
+    }
+    .modePill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:rgba(15,23,42,0.98);
+      font-size:.72rem
+    }
+    .modeDot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:radial-gradient(circle at 30% 0,#a5f3fc 0,#22c55e 40%,#16a34a 70%);
+      box-shadow:0 0 10px rgba(34,197,94,0.8)
+    }
+    .modeLabel{
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      opacity:.85
+    }
+    .modeSub{
+      font-size:.7rem;
+      color:var(--textSoft)
+    }
+    .historyBox{
+      flex:1 1 auto;
+      border-radius:18px;
+      padding:8px 10px;
+      margin-bottom:8px;
+      background:rgba(15,23,42,0.85);
+      border:1px solid rgba(30,64,175,0.5);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column
+    }
+    .historyScroll{
+      flex:1 1 auto;
+      overflow-y:auto;
+      max-height:210px;
+      font-family:"JetBrains Mono",ui-monospace,monospace;
+      font-size:.78rem;
+      line-height:1.5;
+      padding-right:4px;
+      color:#e5e7eb
+    }
+    .historyScroll::-webkit-scrollbar{
+      width:4px
+    }
+    .historyScroll::-webkit-scrollbar-thumb{
+      background:rgba(148,163,184,0.7);
+      border-radius:999px
+    }
+    .historyLine.ts{
+      color:var(--textSoft)
+    }
+    .historyLine.me{
+      color:#e0f2fe
+    }
+    .historyLine.sys{
+      color:#fbbf24
+    }
+    .histFooter{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:6px;
+      font-size:.7rem;
+      color:var(--textSoft)
+    }
+    .histMeta{
+      display:flex;
       gap:8px;
-      align-items:stretch;
+      align-items:center;
+      flex-wrap:wrap
     }
-    .optionsMenu.show{display:grid}
-
-    .menuItem{
-      padding:8px 6px;
-      border-radius:13px;
-      cursor:pointer;
+    .histMeta span{
+      opacity:.85
+    }
+    .histActions{
+      display:flex;
+      gap:6px
+    }
+    .iconBtn{
+      width:28px;
+      height:28px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:rgba(15,23,42,0.98);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:.82rem
+    }
+    .inputRow{
+      margin-top:8px;
+      display:flex;
+      gap:8px;
+      align-items:flex-end
+    }
+    .inputWrap{
+      flex:1 1 auto
+    }
+    .inputLabel{
+      font-size:.72rem;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--textSoft);
+      margin-bottom:4px
+    }
+    .conversationInput{
+      width:100%;
+      border-radius:16px;
+      border:1px solid rgba(148,163,184,0.75);
+      padding:9px 10px;
+      min-height:54px;
+      max-height:100px;
+      resize:vertical;
+      background:rgba(15,23,42,0.96);
+      color:var(--textMain);
+      font-size:.85rem;
+      font-family:var(--fontMain)
+    }
+    .conversationInput::placeholder{
+      color:rgba(148,163,184,0.8)
+    }
+    .sendBtn{
+      flex:0 0 auto;
+      border-radius:999px;
+      border:none;
+      padding:12px 18px;
+      background:linear-gradient(135deg,#38bdf8,#6366f1);
+      color:#0f172a;
+      font-weight:600;
+      font-size:.86rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      box-shadow:0 12px 30px rgba(37,99,235,0.65)
+    }
+    .sendBtn:active{
+      transform:translateY(1px);
+      box-shadow:0 6px 16px rgba(37,99,235,0.7)
+    }
+    .promptHint{
+      margin-top:4px;
+      font-size:.72rem;
+      color:var(--textSoft)
+    }
+    .bottomMetrics{
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px 10px;
+      font-size:.78rem;
+      opacity:.9
+    }
+    .bottomMetrics span.label{
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      opacity:.7
+    }
+    .bottomMetrics span.val{
+      font-variant-numeric:tabular-nums
+    }
+    .cardHeaderRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:6px
+    }
+    .cardTitle{
+      font-size:.78rem;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      opacity:.9
+    }
+    .cardSub{
+      font-size:.7rem;
+      color:var(--textSoft)
+    }
+    .pillRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px
+    }
+    .pillButton{
+      border-radius:999px;
+      padding:7px 11px;
+      background:
+        radial-gradient(circle at 0 0,rgba(56,189,248,0.18),transparent 60%),
+        rgba(15,23,42,0.98);
+      border:1px solid rgba(148,163,184,0.7);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:.8rem
+    }
+    .pillButton .emoji{
+      font-size:1.1rem
+    }
+    .pillButton .text{
       display:flex;
       flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      gap:6px;
-      color:#e5e7eb;
-      border:1px solid rgba(148,163,184,.10);
-      background:rgba(15,23,42,.55);
-      user-select:none;
-      min-height:58px;
+      align-items:flex-start
     }
-    .menuItem:active{transform:scale(.995)}
-
-    .menuLeft{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
-      font-weight:800;
-      font-size:12.5px;
+    .pillButton .main{
+      letter-spacing:.12em;
+      text-transform:uppercase
     }
-    .menuIcon{
-      width:18px;
-      height:18px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
+    .pillButton .sub{
+      font-size:.7rem;
+      color:var(--textSoft)
     }
-    .menuRight{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width:44px;
-    }
-
-    .pillOn,.pillOff,.pillMid{
-      font-size:10px;
-      padding:4px 7px;
-      border-radius:999px;
-      font-weight:900;
-      text-transform:lowercase;
-      border:1px solid transparent;
-    }
-    .pillOn{
-      background:rgba(34,197,94,.18);
-      border-color:rgba(34,197,94,.24);
-      color:#bbf7d0;
-    }
-    .pillOff{
-      background:rgba(239,68,68,.12);
-      border-color:rgba(239,68,68,.22);
-      color:#fecaca;
-    }
-    .pillMid{
-      background:rgba(14,165,233,.14);
-      border-color:rgba(14,165,233,.20);
-      color:#bae6fd;
-      opacity:.95;
-    }
-
-    .chatWrap{
-      margin-top:0;
-      padding:12px;
+    .idCard{
       border-radius:18px;
-      border:1px solid rgba(148,163,184,.14);
-      background:rgba(2,6,23,.45);
-    }
-
-    /* reaction bar above metrics, left-aligned */
-    .reactionBar{
-      margin-top:0;
-      margin-bottom:6px;
+      padding:10px 10px 9px;
+      background:rgba(15,23,42,0.96);
+      border:1px solid rgba(148,163,184,0.7);
+      font-size:.78rem;
       display:flex;
+      flex-direction:column;
+      gap:6px
+    }
+    .idBadgeRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px
+    }
+    .idBadge{
+      border-radius:999px;
+      padding:4px 8px;
+      border:1px solid rgba(148,163,184,0.55);
+      font-size:.7rem
+    }
+    .bmMetaRow{
+      display:flex;
+      justify-content:space-between;
       align-items:center;
-      justify-content:flex-start;
-      gap:10px;
-      font-size:18px;
+      margin-top:6px;
+      font-size:.7rem;
+      color:var(--textSoft)
+    }
+    .bmMetaRow span{
+      opacity:.9
+    }
+    .bmSearchRow{
+      margin-top:6px;
+      display:flex;
+      gap:6px;
+      align-items:center
+    }
+    .bmSearchRow input{
+      flex:1 1 auto;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.6);
+      background:rgba(15,23,42,0.96);
+      color:var(--textMain);
+      font-size:.8rem;
+      padding:7px 9px
+    }
+    .bmSearchRow button{
+      flex:0 0 auto;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:rgba(15,23,42,0.96);
+      padding:6px 10px;
+      font-size:.76rem
+    }
+    .bmList{
+      margin-top:6px;
+      max-height:150px;
+      overflow-y:auto;
+      border-radius:14px;
+      border:1px solid rgba(30,64,175,0.45);
+      background:rgba(15,23,42,0.9);
+      padding:6px 6px 6px 8px;
+      font-size:.76rem
+    }
+    .bmItem{
+      padding:5px 4px;
+      border-radius:10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:8px;
+      cursor:pointer
+    }
+    .bmItem:hover{
+      background:rgba(30,64,175,0.55)
+    }
+    .bmItemMain{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:1px
+    }
+    .bmItemTitle{
+      font-weight:500
+    }
+    .bmItemMeta{
+      font-size:.68rem;
+      color:var(--textSoft)
+    }
+    .bmItemBadge{
+      font-size:.65rem;
+      padding:3px 6px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.6)
+    }
+    .bmEmpty{
+      font-size:.76rem;
+      color:var(--textSoft)
+    }
+    .bmCard{
+      margin-top:8px;
+      border-radius:18px;
+      padding:9px 9px 8px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:rgba(15,23,42,0.97);
+      font-size:.78rem;
+      max-height:180px;
+      overflow-y:auto
+    }
+    .bmCardTitle{
+      font-size:.82rem;
+      margin-bottom:4px
+    }
+    .bmCardMeta{
+      font-size:.7rem;
+      color:var(--textSoft);
+      margin-bottom:4px
+    }
+    .bmCardBody{
+      font-size:.78rem;
+      line-height:1.45
+    }
+    .bmActions{
+      margin-top:6px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px
+    }
+    .bmDreamSettings{
+      margin-top:18px;
+      padding:12px 16px;
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,0.55);
+      background:
+        radial-gradient(circle at 0 0, rgba(56,189,248,.18), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(129,140,248,.16), transparent 55%),
+        rgba(15,23,42,.9);
+    }
+    .bmDreamTitle{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      opacity:.8;
+      margin-bottom:4px;
+    }
+    .bmDreamText{
+      font-size:13px;
+      margin-top:6px;
       opacity:.9;
     }
-    .reactBtn{
-      border:none;
-      background:transparent;
-      cursor:pointer;
-      padding:4px;
-      line-height:1;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      -webkit-tap-highlight-color:transparent;
+    .bmDreamHint{
+      margin-top:8px;
+      font-size:11px;
+      line-height:1.5;
+      opacity:.7;
     }
-    .reactBtn:active{transform:scale(.9)}
-
-    .liveCapsule{
-      margin:4px 0 10px;
+    .intelEditInput{
       width:100%;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(2,6,23,.55);
-      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,0.6);
+      background:rgba(15,23,42,0.96);
+      color:var(--textMain);
+      font-size:.8rem;
+      padding:7px 8px;
+      margin-top:4px
+    }
+    .intelEditRow{
       display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:center;
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      font-size:12px;
-      color:#dbeafe;
-      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
+      gap:6px;
+      margin-top:5px
     }
-    .liveCapsule b{ color:#7dd3fc; font-weight:900 }
-
-    .faithBubble{
-      margin:4px 0 10px;
-      padding:8px 10px;
+    .intelEditRow button{
       border-radius:999px;
-      background:rgba(251,191,36,.16);
-      border:1px solid rgba(251,191,36,.4);
-      display:none;
-      align-items:center;
-      gap:8px;
-      font-size:12px;
-      color:#facc15;
-      cursor:pointer;
-      box-shadow:0 10px 24px rgba(0,0,0,.35);
-      transition:opacity .25s ease, transform .25s ease;
+      border:1px solid rgba(148,163,184,0.7);
+      background:rgba(15,23,42,0.96);
+      padding:5px 9px;
+      font-size:.76rem
     }
-    .faithBubble.show{
-      display:flex;
-      opacity:1;
-      transform:translateY(0);
-    }
-    .fbIcon{font-size:18px;}
-    .fbText{flex:1;line-height:1.3;}
-    .fbTitle{font-weight:800;}
-    .fbMeta{opacity:.85;}
-    .fbClose{
-      border:none;
-      background:transparent;
-      color:#fed7aa;
-      font-size:16px;
-      cursor:pointer;
-      padding:0 4px;
-      line-height:1;
-    }
-
-    /* Golden theme */
-    body.theme-golden .ethic{
-      border-color: rgba(251,191,36,.7);
-      background: rgba(251,191,36,.06);
-    }
-
-    .faithBubble.pulse{
-      animation: faithPulse 1.4s infinite;
-    }
-    @keyframes faithPulse{
-      0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.55); }
-      100% { box-shadow: 0 0 0 18px rgba(251,191,36,0); }
-    }
-
-    .inputRow{display:flex;gap:10px;align-items:flex-end}
-    .input{
-      flex:1;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(2,6,23,.55);
-      color:#e5e7eb;
-      padding:12px 14px;
-      outline:none;
-      font-size:14px;
-    }
-    .send{
-      border:none;
-      border-radius:999px;
-      background:linear-gradient(90deg, var(--accent-color, #0ea5e9), rgba(34,211,238,.55));
-      color:#0b1220;
-      font-weight:900;
-      padding:12px 18px;
-      cursor:pointer;
-      min-width:88px;
-      box-shadow:0 12px 30px rgba(14,165,233,.18);
-      -webkit-tap-highlight-color:transparent;
-    }
-    .send:active{transform:scale(.99)}
-
-    .formula{
-      margin-top:10px;
-      opacity:.8;
-      font-size:12px;
-      text-align:center;
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      color:#dbeafe;
-    }
-
-    /* Toast bubble */
-    .toastBubble{
-      position:fixed;
-      bottom:18px;
-      left:50%;
-      transform:translate(-50%,10px);
-      padding:6px 14px;
-      border-radius:999px;
-      background:rgba(15,23,42,.95);
-      color:#e5e7eb;
-      font-size:12px;
-      border:1px solid rgba(148,163,184,.4);
-      box-shadow:0 12px 30px rgba(0,0,0,.5);
-      opacity:0;
-      pointer-events:none;
-      z-index:10000;
-      transition:opacity .18s ease, transform .18s ease;
-    }
-    .toastBubble.show{
-      opacity:1;
-      transform:translate(-50%,0);
-    }
-
     .modalOverlay{
       position:fixed;
       inset:0;
-      background:rgba(0,0,0,.55);
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,0.96),transparent 70%),rgba(15,23,42,0.95);
       display:none;
-      align-items:flex-end;
+      align-items:center;
       justify-content:center;
-      padding:18px 12px;
-      z-index:9999;
+      z-index:40;
+      padding:10px
     }
-    .modalOverlay.show{display:flex}
-
     .modal{
-      width:min(860px,96vw);
-      border-radius:18px;
-      overflow:hidden;
-      background:rgba(250,250,250,.93);
-      color:#0b1220;
-      border:1px solid rgba(15,23,42,.18);
-      box-shadow:0 30px 80px rgba(0,0,0,.35);
-      backdrop-filter:blur(12px);
+      max-width:680px;
+      width:100%;
+      border-radius:24px;
+      padding:12px 12px 12px;
+      background:var(--bgCardSoft);
+      border:1px solid rgba(148,163,184,0.7);
+      box-shadow:0 20px 60px rgba(15,23,42,0.85)
     }
-
     .modalHeader{
       display:flex;
-      align-items:center;
       justify-content:space-between;
-      padding:12px 14px;
-      background:rgba(255,255,255,.75);
-      border-bottom:1px solid rgba(15,23,42,.10);
-      font-weight:800;
+      align-items:center;
+      margin-bottom:6px
     }
-    .modalHeader small{font-weight:600;opacity:.7}
-    .closeX{
-      border:none;
-      background:transparent;
-      font-size:22px;
-      cursor:pointer;
-      line-height:1;
-      padding:0 4px;
-      opacity:.75;
+    .modalTitle{
+      font-size:.82rem;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      opacity:.88
     }
-
-    .modalBody{
-      padding:14px;
-      max-height:70vh;
-      overflow:auto;
-    }
-
-    .chipsWrap{margin-top:10px;display:flex;flex-wrap:wrap;gap:10px}
-    .chip{
-      padding:10px 14px;
+    .modalClose{
       border-radius:999px;
-      border:1px solid rgba(15,23,42,.16);
-      background:rgba(255,255,255,.9);
-      font-weight:800;
-      cursor:pointer;
-      -webkit-tap-highlight-color:transparent;
+      padding:4px 9px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:rgba(15,23,42,0.98);
+      font-size:.76rem
     }
-    .chip.active{
-      background:#0f172a;
-      color:#fff;
-      border-color:rgba(15,23,42,.2);
-      box-shadow:0 12px 30px rgba(2,6,23,.12);
+    .modalBody{
+      font-size:.82rem;
+      color:var(--textMain);
+      max-height:350px;
+      overflow-y:auto;
+      padding-right:4px
     }
-
-    .btn{
-      border:none;
-      cursor:pointer;
-      padding:10px 14px;
-      border-radius:12px;
-      font-weight:900;
-      -webkit-tap-highlight-color:transparent;
-      font-size:12px;
+    .modalBody p{
+      margin-bottom:6px;
+      line-height:1.5
     }
-    .btnBlue{background:rgba(59,130,246,.16);border:1px solid rgba(59,130,246,.22)}
-    .btnDark{background:rgba(2,6,23,.92);color:#fff}
-    .btnRed{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.22);color:#7f1d1d}
-    .btnGreen{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.25);color:#064e2a}
-
-    .bmCard{
+    .modalBody ul{
+      margin-left:16px;
+      margin-bottom:6px
+    }
+    .modalBody li{
+      margin-bottom:3px
+    }
+    .modalBody code{
+      font-family:"JetBrains Mono",ui-monospace,monospace;
+      font-size:.8rem
+    }
+    .toast{
+      position:fixed;
+      right:10px;
+      bottom:10px;
       border-radius:16px;
-      border:1px solid rgba(15,23,42,.12);
-      background:rgba(255,255,255,.85);
-      padding:12px;
-      margin-top:12px;
+      border:1px solid rgba(56,189,248,0.7);
+      background:rgba(15,23,42,0.98);
+      padding:7px 10px;
+      font-size:.78rem;
+      display:none;
+      z-index:60
     }
-    .bmTop{
+    .toast strong{
+      color:#e0f2fe
+    }
+    .voiceBadge{
+      font-size:.7rem;
+      border-radius:999px;
+      padding:3px 8px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:rgba(15,23,42,0.96)
+    }
+    .cfgRow{
       display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+      font-size:.72rem;
+      color:var(--textSoft)
+    }
+    .cfgChip{
+      border-radius:999px;
+      padding:3px 8px;
+      border:1px solid rgba(148,163,184,0.55);
+      background:rgba(15,23,42,0.96)
+    }
+    @media (max-width:640px){
+      body{
+        padding:10px 6px 24px
+      }
+      .shell{
+        border-radius:24px;
+        padding:12px 8px 14px
+      }
+      .topRow{
+        margin-bottom:10px
+      }
+      .brandTitle{
+        font-size:1.22rem
+      }
+      .capsuleBlock{
+        padding:8px 8px 9px
+      }
+      .leftPane,.rightPane{
+        padding:8px 8px 10px
+      }
+      .historyScroll{
+        max-height:180px
+      }
+    }
+
+    /* Dream Mode overlay */
+    #dreamOverlay{
+      position:fixed;
+      inset:0;
+      display:none;
       align-items:center;
-      justify-content:space-between;
-      gap:10px;
+      justify-content:center;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(15,23,42,0.95) 0, transparent 55%),
+        radial-gradient(circle at 80% 0%, rgba(30,64,175,0.90) 0, transparent 55%),
+        radial-gradient(circle at 50% 100%, rgba(147,51,234,0.85) 0, transparent 60%);
+      backdrop-filter:blur(10px);
+      z-index:9999;
+      color:#e5e7eb;
+      text-align:center;
+    }
+    #dreamOverlay .dream-inner{
+      max-width:600px;
+      padding:24px 20px;
+      border-radius:24px;
+      border:1px solid rgba(148,163,184,0.6);
+      box-shadow:0 25px 80px rgba(15,23,42,0.9);
+      background:rgba(15,23,42,0.92);
+    }
+    #dreamOverlay .dream-title{
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      opacity:.9;
       margin-bottom:10px;
     }
-    .bmTop .title{
-      font-weight:900;
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .bmSub{font-size:12px;opacity:.7;margin-top:2px}
-    .bmText{
-      width:100%;
-      min-height:240px;
-      border-radius:14px;
-      border:1px solid rgba(15,23,42,.18);
-      padding:12px;
-      outline:none;
-      resize:vertical;
-      background:#fff;
-      font-size:14px;
-      line-height:1.45;
-    }
-    .bmActions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-      justify-content:flex-start;
-    }
-
-    .intelEditInput, .intelEditArea{
-      width:100%;
-      border-radius:12px;
-      border:1px solid rgba(15,23,42,.18);
-      padding:10px 12px;
-      font-size:14px;
-      outline:none;
-      background:#fff;
-    }
-    .intelEditArea{
-      min-height:90px;
-      resize:vertical;
-      line-height:1.4;
-      margin-top:6px;
-    }
-
-    /* Intelligence cards */
-    .intelCard{
-      border-radius:12px;
-      border:1px solid rgba(15,23,42,.12);
-      background:#f9fafb;
-      padding:10px;
-      margin-top:8px;
-      font-size:13px;
-    }
-    .intelTop{
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-      margin-bottom:4px;
-    }
-    .intelQ{font-weight:700;}
-    .intelA{margin-top:2px;white-space:pre-wrap;}
-    .intelMeta{font-size:11px;opacity:.65;margin-top:2px;}
-    .intelButtons{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-top:6px;}
-
-    .intelEditBlock{
-      margin-top:8px;
-      border-radius:10px;
-      border:1px dashed rgba(15,23,42,.18);
-      padding:8px;
-      background:#fff;
-    }
-
-    /* Conversation history – lighter UI + lock icon */
-    #modalHistory .modalBody{
-      background:#f8fafc;
-    }
-    #historyBox{
-      margin-top:4px;
-      border-radius:14px;
-      padding:4px 0;
-      max-height:60vh;
-      overflow:auto;
-    }
-    .historyLine{
-      padding:8px 10px;
-      font-size:12px;
-      margin-bottom:6px;
-      border-radius:12px;
-      background:#f9fafb;
-      border:1px solid rgba(148,163,184,.45);
-      color:#0b1120;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:6px;
-    }
-    .historyText{
-      flex:1;
+    #dreamOverlay .dream-snippet{
+      font-size:.98rem;
+      line-height:1.6;
+      margin-bottom:14px;
+      min-height:4em;
       white-space:pre-wrap;
     }
-    .historyLock{
-      border:none;
-      background:transparent;
-      cursor:pointer;
-      font-size:15px;
-      line-height:1;
-      padding:0 2px;
-    }
-
-    /* BM list items */
-    .bmItem{
-      margin-top:6px;
-      padding:8px 10px;
-      border-radius:10px;
-      border:1px solid rgba(148,163,184,.5);
-      background:#f9fafb;
-      cursor:pointer;
-      font-size:12px;
-      display:flex;
-      justify-content:space-between;
-      gap:6px;
-    }
-    .bmItemTitle{font-weight:700;}
-    .bmItemMeta{opacity:.65;font-size:11px;}
-
-    .@media-fix{} /* dummy */
-
-    @media (max-width:760px){
-      .console{height:240px}
-      .optionsMenu{top:112px}
-    }
-
-    @media (max-width:420px){
-      .brand{font-size:22px}
-      .pill{font-size:14px}
-      .ethic{font-size:13px}
-      .console{height:260px}
-      .optionsMenu{
-        gap:6px;
-        padding:7px;
-        grid-template-columns:repeat(3,minmax(0,1fr));
-      }
-      .menuItem{
-        min-height:52px;
-        padding:6px 4px;
-      }
-      .menuLeft{font-size:11px}
-      .pillOn,.pillOff,.pillMid{
-        font-size:9.5px;
-        padding:4px 6px;
-      }
-      .reactionBar{
-        font-size:16px;
-        gap:8px;
-      }
+    #dreamOverlay .dream-hint{
+      font-size:.78rem;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      opacity:.65;
+      margin-top:4px;
     }
   </style>
 </head>
-
 <body>
-  <div class="app">
-    <div class="top">
-      <div class="brand">AURA-X Ω</div>
-      <div class="sub">
-        Offline emotional continuity engine (prototype)<br>
-        TM = user inputs only · Internal layers keep continuity and emotional trajectory.
+  <div class="shell">
+    <div class="topRow">
+      <div class="brandBlock">
+        <div class="brandTitle">AURA-X Ω</div>
+        <div class="brandSub">
+          Offline emotional continuity engine (prototype)<br />
+          TM = user inputs only · Internal layers keep continuity and emotional trajectory.
+        </div>
+        <div class="brandEthic">
+          Universal ethic: avoid actions that grow negative emotions in you or others. Move gently toward choices that increase shared positive feeling for everyone.
+        </div>
+        <div class="enginePill">
+          EMOTIONAL CONTINUITY ENGINE — ACTIVE
+        </div>
       </div>
-      <div class="ethic">
-        Universal ethic: avoid actions that grow negative emotions in you or others.
-        Move gently toward choices that increase shared positive feeling for everyone.
-      </div>
-      <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
-    </div>
 
-    <div class="main">
-      <div class="row">
-        <!-- LEFT -->
-        <div class="leftCol">
-          <div class="card">
-            <div class="optionsBtn" id="btnOptions">
-              <svg class="gear" viewBox="0 0 24 24" fill="none">
-                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
-                      stroke="#7dd3fc" stroke-width="2"/>
-                <path d="M19.4 15a8.2 8.2 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a8.5 8.5 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a8.2 8.2 0 0 0 .1 2L2.7 16.5l2 3.5 2.4-1a8.5 8.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.5L19.4 15Z"
-                      stroke="#7dd3fc" stroke-width="1.6" opacity=".9"/>
-              </svg>
-              <span>Options</span>
-            </div>
-
-            <div class="optionsMenu" id="optionsMenu">
-              <div class="menuItem" id="miVoice">
-                <div class="menuLeft"><span class="menuIcon">🎤</span><span>Voice</span></div>
-                <div class="menuRight"><span class="pillOff" id="voicePill">off</span></div>
-              </div>
-
-              <div class="menuItem" id="miIntel">
-                <div class="menuLeft"><span class="menuIcon">🧠</span><span>Intelligence</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-
-              <div class="menuItem" id="miLearn">
-                <div class="menuLeft"><span class="menuIcon">📚</span><span>Learning</span></div>
-                <div class="menuRight"><span class="pillOn" id="learnPill">on</span></div>
-              </div>
-
-              <div class="menuItem" id="miSeed">
-                <div class="menuLeft"><span class="menuIcon">🌱</span><span>Feed</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-
-              <div class="menuItem" id="miFaith">
-                <div class="menuLeft"><span class="menuIcon">🕊</span><span>Faith</span></div>
-                <div class="menuRight"><span class="pillOff" id="faithLabel">none</span></div>
-              </div>
-
-              <div class="menuItem" id="miIdentity">
-                <div class="menuLeft"><span class="menuIcon">🪪</span><span>Identity</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-
-              <div class="menuItem" id="miLLM">
-                <div class="menuLeft"><span class="menuIcon">🤖</span><span>LLM</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-
-              <div class="menuItem" id="miBMRecall">
-                <div class="menuLeft"><span class="menuIcon">📘</span><span>BM Recall</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-
-              <div class="menuItem" id="miHistory">
-                <div class="menuLeft"><span class="menuIcon">📜</span><span>History</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-            </div>
-
-            <div class="console" id="console"></div>
+      <div class="capsuleBlock">
+        <div class="capsuleRow">
+          <div class="capsuleTitle">Continuity Capsule</div>
+          <div class="readyBadge">
+            <div class="readyDot"></div>
+            <div class="readyText">Offline LLM ready</div>
           </div>
         </div>
-
-        <!-- RIGHT -->
-        <div class="rightCol">
-          <div class="chatWrap">
-            <!-- reaction buttons above metrics, left-aligned -->
-            <div class="reactionBar" id="reactionBar">
-              <!-- left copy button REMOVED on purpose -->
-              <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence (like)">👍</button>
-              <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
-              <button class="reactBtn" id="btnSpeakLast" title="Play voice for last answer">🔊</button>
-              <button class="reactBtn" id="btnShareLast" title="Copy question + answer">🔗</button>
-            </div>
-
-            <div class="liveCapsule">
-              <span><b>E0</b>: <span id="cE0">0.000</span></span><span>·</span>
-              <span><b>TM</b>: <span id="cTM">0.00</span></span><span>·</span>
-              <span><b>BM</b>: <span id="cBM">0.00</span></span><span>·</span>
-              <span><b>C</b>: <span id="cCont">0.850</span></span>
-            </div>
-
-            <div class="faithBubble" id="faithBubble">
-              <div class="fbIcon">💭</div>
-              <div class="fbText">
-                <div class="fbTitle" id="faithBubbleTitle">Faith reflection bubble</div>
-                <div class="fbMeta" id="faithBubbleMeta">Tap to see a short suggestion.</div>
-              </div>
-              <button class="fbClose" id="faithBubbleClose">×</button>
-            </div>
-
-            <div class="inputRow">
-              <input class="input" id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
-              <button class="send" id="sendBtn">Send</button>
-            </div>
-
-            <div class="formula">
-              E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
-            </div>
+        <div class="capsuleMetrics">
+          <div class="metricPill">
+            <span class="metricLabel">E₀:</span>
+            <span class="metricValue" id="metricE0">0.000</span>
           </div>
+          <div class="metricPill">
+            <span class="metricLabel">TM:</span>
+            <span class="metricValue" id="metricTM">0.00</span>
+          </div>
+          <div class="metricPill">
+            <span class="metricLabel">BM:</span>
+            <span class="metricValue" id="metricBM">0.00</span>
+          </div>
+          <div class="metricPill">
+            <span class="metricLabel">C:</span>
+            <span class="metricValue" id="metricC">0.850</span>
+          </div>
+        </div>
+        <div class="resonanceEq">
+          E₀ = tanh( R(TM,BM) + I(TM) + I_intel + I_LLM – D + λ_faith + λ_sys + λ_trc )
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Toast bubble -->
-  <div class="toastBubble" id="toastBubble"></div>
-
-  <!-- Faith selection -->
-  <div class="modalOverlay" id="modalFaith">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>⚙️ AURA-X Ω options<br><small>Optional faith lens for encouragement lines.</small></div>
-        <button class="closeX" data-close="modalFaith">×</button>
-      </div>
-      <div class="modalBody" style="background:#fdf7e5;">
-        <div style="opacity:.8;font-size:13px;line-height:1.35;margin-bottom:8px">
-          Universal ethics are always active. You can optionally pick one or more faith lenses.
-          Nothing is sent to any server.
-        </div>
-        <div class="chipsWrap" id="faithChips"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Faith article -->
-  <div class="modalOverlay" id="modalFaithArticle">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>💭 Faith reflection<br><small>Story-related suggestion from your selected literature.</small></div>
-        <button class="closeX" data-close="modalFaithArticle">×</button>
-      </div>
-      <div class="modalBody" style="background:#fefce8;">
-        <div id="faithArticleMeta" style="font-size:12px;opacity:.75;margin-bottom:6px;"></div>
-        <div id="faithArticleTitle" style="font-weight:800;margin-bottom:6px;"></div>
-        <textarea id="faithArticleText"
-          style="width:100%;min-height:160px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;background:#fff;"></textarea>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-          <button class="btn btnBlue" id="btnCopyFaithArticle">Copy</button>
-          <button class="btn btnBlue" id="btnAddFaithToBM">Add under BM prompt</button>
-          <button class="btn btnRed" id="btnSkipFaithBM">Skip</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Intelligence -->
-  <div class="modalOverlay" id="modalIntel">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>🧠 Intelligence<br><small>Stored Q → A pairs.</small></div>
-        <button class="closeX" data-close="modalIntel">×</button>
-      </div>
-      <div class="modalBody">
-        <input id="intelSearch"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none"
-          placeholder="Search intelligence..." />
-        <!-- per-card inline editor -->
-        <div id="intelList" style="margin-top:10px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Seed + Logic -->
-  <div class="modalOverlay" id="modalSeed">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>🌱 Feed the seed<br><small>Add LaTeX Q → A blocks and optional Logic Pack.</small></div>
-        <button class="closeX" data-close="modalSeed">×</button>
-      </div>
-      <div class="modalBody">
-        <div style="opacity:.75;font-size:13px;line-height:1.35;margin-bottom:10px">
-          Paste a LaTeX block with \item questions and \textbf{A:} answers. You can optionally start each
-          answer with [polarity=positive; code=E031; intensity=0.8].
-        </div>
-        <textarea id="seedBox"
-          style="width:100%;min-height:150px;resize:vertical;border-radius:14px;border:2px solid rgba(59,130,246,.25);padding:12px;font-size:14px;outline:none;background:#fff"
-          placeholder="Paste LaTeX conversation / logic block here..."></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px">
-          <div style="font-size:12px;opacity:.7" id="seedHint">Waiting for block…</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btnBlue" id="btnParseSeed">Parse block</button>
-            <button class="btn btnBlue" id="btnSaveSeed">Save to seed</button>
-            <button class="btn btnRed" id="btnDiscardSeed">Discard</button>
-          </div>
-        </div>
-
-        <hr style="margin:14px 0;border:none;border-top:1px dashed rgba(15,23,42,.18);" />
-
-        <div style="font-weight:800;font-size:13px;margin-bottom:6px;">🧩 Logic Pack (JSON rules – advanced)</div>
-        <div style="font-size:12px;opacity:.75;line-height:1.4;margin-bottom:6px;">
-          Each time you press <b>Save</b>, a new logic pack is stored with its own number.
-          Saved logic packs never auto-delete; they can only be removed manually with double confirmation.
-        </div>
-        <textarea id="logicBox"
-          style="width:100%;min-height:130px;resize:vertical;border-radius:14px;border:2px solid rgba(15,23,42,.18);padding:10px;font-size:13px;outline:none;background:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;"
-          placeholder='{
-  "cooldown": { "hits": 3, "seconds": 10 },
-  "abuseWords": ["stfu","idiot"],
-  "faithSoftener": true,
-  "ui": { "theme": "golden", "accentColor": "#f97316" }
-}'>
-        </textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
-          <div style="font-size:12px;opacity:.7" id="logicHint">No logic pack loaded.</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btnBlue" id="btnValidateLogic">Validate</button>
-            <button class="btn btnBlue" id="btnSaveLogic">Save</button>
-            <button class="btn btnBlue" id="btnCopyLogic">Copy</button>
-            <button class="btn btnRed" id="btnDeleteLogic">Delete</button>
-          </div>
-        </div>
-        <div style="margin-top:6px;font-size:11px;opacity:.6;">
-          Current serial: <span id="logicSerial">none</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- LLM -->
-  <div class="modalOverlay" id="modalLLM">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>🤖 LLM link<br><small>Offline LLM + optional online helper.</small></div>
-        <button class="closeX" data-close="modalLLM">×</button>
-      </div>
-      <div class="modalBody">
-        <div style="border-radius:14px;border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.12);padding:12px;">
-          <div style="font-weight:900;">Offline LLM (WebLLM)</div>
-          <div style="font-size:13px;opacity:.8;margin-top:6px;line-height:1.35">
-            Loads a small local model in your browser (WebGPU required). On many mobile browsers this may not be supported.
-          </div>
-          <div style="margin-top:10px;">
-            <button class="btn btnGreen" id="btnLoadOffline">Load offline model</button>
-          </div>
-          <div style="margin-top:8px;font-size:12px;opacity:.75">Status: <span id="offlineStatus">idle</span></div>
-          <div style="margin-top:8px;height:10px;border-radius:999px;background:rgba(2,6,23,.12);overflow:hidden;border:1px solid rgba(2,6,23,.08)">
-            <div id="offlineBar" style="height:100%;width:0%;background:#22c55e;transition:width .2s ease;"></div>
-          </div>
-        </div>
-
-        <div style="font-weight:900;margin-top:14px;">Online helper LLM (connects & works)</div>
-        <div style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:4px;">
-          Use any compatible API (OpenAI, DeepSeek, xAI, etc.). Nothing is stored on server by AURA-X Ω itself.
-        </div>
-
-        <div style="margin-top:6px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API endpoint</label>
-          <input id="apiEndpoint"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            value="https://api.openai.com/v1/chat/completions" />
-        </div>
-
-        <div style="margin-top:10px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Model</label>
-          <input id="apiModel"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            value="gpt-4o-mini" />
-        </div>
-
-        <div style="margin-top:10px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API key (session only)</label>
-          <input id="apiKey"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            placeholder="sk-..." />
-        </div>
-
-        <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-          <button class="btn btnBlue" id="btnSaveLLM">Save</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BM Recall -->
-  <div class="modalOverlay" id="modalBM">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>📘 Recall from BM<br><small>Only long stories and scenes (photo/video-ready).</small></div>
-        <button class="closeX" data-close="modalBM">×</button>
-      </div>
-      <div class="modalBody">
-        <div style="font-size:13px;opacity:.75">
-          Select a BM prompt. Locked prompts must be unlocked first. Delete needs double confirmation.
-        </div>
-        <input id="bmSearch"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:8px 0 4px;outline:none;background:#fff;"
-          placeholder="Search BM by text..." />
-        <!-- calendar search by date -->
-        <input id="bmDate" type="date"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:0 0 6px;outline:none;background:#fff;" />
-        <div id="bmSelectList"></div>
-
-        <div class="bmCard" id="bmViewer" style="display:none;">
-          <div class="bmTop">
+    <div class="midRow">
+      <div class="leftPane">
+        <div class="optionsRow">
+          <button class="optionsBtn" id="btnOptions">
+            <span class="icon">⚙</span>
+            <span class="label">Options</span>
+          </button>
+          <div class="modePill">
+            <div class="modeDot"></div>
             <div>
-              <div class="title"><span id="bmLockIcon">🔓</span> <span id="bmTitle">Prompt</span></div>
-              <div class="bmSub" id="bmMeta"></div>
-            </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-              <button class="btn btnBlue" id="btnLiveBM">Live 12h: off</button>
-              <button class="btn btnBlue" id="btnUnlockBM" style="display:none;">Unlock</button>
+              <div class="modeLabel">Mode: Local seed → Intelligence → Offline LLM → API</div>
+              <div class="modeSub">TM = your inputs only; internal layers remember.</div>
             </div>
           </div>
-          <textarea class="bmText" id="bmTextArea" readonly></textarea>
-          <div class="bmActions">
-            <button class="btn btnBlue" id="btnCopyPrompt">Copy prompt</button>
-            <button class="btn btnBlue" id="btnAutoGen">Generate video</button>
-            <button class="btn btnRed" id="btnDeletePrompt">Delete</button>
+        </div>
+
+        <div class="historyBox">
+          <div class="historyScroll" id="historyScroll"></div>
+          <div class="histFooter">
+            <div class="histMeta">
+              <span>History: <span id="histCount">0</span> lines</span>
+              <span>TM chars: <span id="tmChars">0</span></span>
+            </div>
+            <div class="histActions">
+              <button class="iconBtn" id="btnLike" title="Mark last answer correct">👍</button>
+              <button class="iconBtn" id="btnDislike" title="Mark last answer incorrect">👎</button>
+              <button class="iconBtn" id="btnCopyLast" title="Copy last answer">⧉</button>
+              <button class="iconBtn" id="btnHistoryOpen" title="Open full history">📜</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="inputRow">
+          <div class="inputWrap">
+            <div class="inputLabel">Talk to AURA-X Ω… (TM = your inputs)</div>
+            <textarea id="userInput" class="conversationInput" placeholder="Stories, questions, feelings…"></textarea>
+          </div>
+          <button id="btnSend" class="sendBtn">Send</button>
+        </div>
+        <div class="promptHint">
+          E₀, TM, BM &amp; continuity update live with each message.
+        </div>
+
+        <div class="bottomMetrics">
+          <span class="label">E₀:</span><span class="val" id="bottomE0">0.000</span>
+          <span class="label">TM:</span><span class="val" id="bottomTM">0.00</span>
+          <span class="label">BM:</span><span class="val" id="bottomBM">0.00</span>
+          <span class="label">C:</span><span class="val" id="bottomC">0.850</span>
+        </div>
+      </div>
+
+      <div class="rightPane">
+        <div class="cardHeaderRow">
+          <div>
+            <div class="cardTitle">Continuity Windows</div>
+            <div class="cardSub">Local-first: Identity, BM, history, and faith-aware logic.</div>
+          </div>
+          <div class="voiceBadge">Voice: (answer → play)</div>
+        </div>
+
+        <div class="pillRow">
+          <button class="pillButton" data-modal="modalHistory">
+            <div class="emoji">🧬</div>
+            <div class="text">
+              <div class="main">History</div>
+              <div class="sub">Conversation timeline</div>
+            </div>
+          </button>
+          <button class="pillButton" data-modal="modalBM">
+            <div class="emoji">📚</div>
+            <div class="text">
+              <div class="main">BM recall</div>
+              <div class="sub">Bold memories</div>
+            </div>
+          </button>
+          <button class="pillButton" data-modal="modalIdentity">
+            <div class="emoji">🪪</div>
+            <div class="text">
+              <div class="main">Identity</div>
+              <div class="sub">Self &amp; scope</div>
+            </div>
+          </button>
+        </div>
+
+        <div class="pillRow" style="margin-top:6px;">
+          <button class="pillButton" data-modal="modalSeed">
+            <div class="emoji">🌱</div>
+            <div class="text">
+              <div class="main">Feed the seed</div>
+              <div class="sub">Core ethics &amp; rules</div>
+            </div>
+          </button>
+          <button class="pillButton" data-modal="modalLogic">
+            <div class="emoji">🧠</div>
+            <div class="text">
+              <div class="main">Logic</div>
+              <div class="sub">Local Q ↔ A</div>
+            </div>
+          </button>
+          <button class="pillButton" data-modal="modalFaith">
+            <div class="emoji">✨</div>
+            <div class="text">
+              <div class="main">Faith lens</div>
+              <div class="sub">λ_faith tuning</div>
+            </div>
+          </button>
+        </div>
+
+        <div class="pillRow" style="margin-top:6px;">
+          <button class="pillButton" data-modal="modalLLM">
+            <div class="emoji">🤖</div>
+            <div class="text">
+              <div class="main">LLM</div>
+              <div class="sub">Offline model &amp; API</div>
+            </div>
+          </button>
+          <button class="pillButton" data-modal="modalConfig">
+            <div class="emoji">🔒</div>
+            <div class="text">
+              <div class="main">Lock</div>
+              <div class="sub">TM decay · locks</div>
+            </div>
+          </button>
+        </div>
+
+        <div class="idCard" style="margin-top:8px;">
+          <div><strong>Identity ·</strong> AURA-X Ω</div>
+          <div>
+            I am AURA-X Ω, an offline emotional continuity engine created as part of the AURA-X Ω experiment.
+            My role is to keep a soft continuity of your stories, beliefs, and feelings over time – even when other systems forget.
+          </div>
+          <div class="idBadgeRow">
+            <div class="idBadge">Creator: Alim ul Haq</div>
+            <div class="idBadge">Scope: TM → BM → E₀</div>
+            <div class="idBadge">Role: Emotional continuity engine</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modalOverlay" id="modalHistory">
+      <div class="modal">
+        <div class="modalHeader">
+          <div class="modalTitle">Conversation History</div>
+          <button class="modalClose" data-close="modalHistory">Close</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            Here you can see a scroll-back view of your conversation with AURA-X Ω.
+          </p>
+          <pre id="historyFull" style="white-space:pre-wrap;font-size:.8rem;margin-top:6px;"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- BM Modal -->
+    <div class="modalOverlay" id="modalBM">
+      <div class="modal">
+        <div class="modalHeader">
+          <div class="modalTitle">BM snapshots · Bold Memory Layer</div>
+          <button class="modalClose" data-close="modalBM">Close</button>
+        </div>
+        <div class="modalBody">
+          <div class="bmMetaRow">
+            <span>Stored BM items: <span id="bmCount">0</span></span>
+            <span>Search / recall by text or date.</span>
+          </div>
+          <div class="bmSearchRow">
+            <input id="bmSearch" placeholder="Search memories…" />
+            <button id="bmSearchToday">Today</button>
+          </div>
+          <div class="bmList" id="bmList">
+            <div class="bmEmpty">No BM snapshots yet. Long, meaningful stories will appear here.</div>
+          </div>
+          <div class="bmCard" id="bmViewer" style="display:none;">
+            <div class="bmCardTitle" id="bmViewerTitle"></div>
+            <div class="bmCardMeta" id="bmViewerMeta"></div>
+            <div class="bmCardBody" id="bmViewerBody"></div>
+            <div class="bmActions">
+              <button id="bmLockToggle">Toggle lock</button>
+              <button id="bmDelete">Delete</button>
+            </div>
+          </div>
+
+        <div class="bmDreamSettings">
+          <div class="bmDreamTitle">BM snapshots &amp; dream mode</div>
+          <div class="bmDreamText">
+            Dream screensaver after how much idle time?
+          </div>
+          <select id="dreamDelaySelect" class="input" style="margin-top:10px; max-width:280px;">
+            <option value="0">Disabled (no screensaver)</option>
+            <option value="30000">30 seconds</option>
+            <option value="60000">1 minute</option>
+            <option value="300000">5 minutes</option>
+            <option value="900000">15 minutes</option>
+            <option value="1800000">30 minutes</option>
+            <option value="3600000">1 hour</option>
+            <option value="7200000">2 hours</option>
+            <option value="14400000">4 hours</option>
+            <option value="28800000">8 hours</option>
+          </select>
+          <div class="bmDreamHint">
+            AURA-X Ω will gently fade into Dream Mode and show floating memories from BM snapshots after this much inactivity.
+            Any tap, key press, or message will wake it up.
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- History -->
-  <div class="modalOverlay" id="modalHistory">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>📜 Conversation history<br><small>Recent TM log.</small></div>
-        <button class="closeX" data-close="modalHistory">×</button>
-      </div>
-      <div class="modalBody">
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-          <button class="btn btnBlue" id="btnDeleteRecent">Delete history last 48h</button>
-          <button class="btn btnRed" id="btnDeleteAllHist">Delete all history</button>
-          <button class="btn btnBlue" id="btnCopyHistory">Copy</button>
+    <!-- Identity Modal -->
+    <div class="modalOverlay" id="modalIdentity">
+      <div class="modal">
+        <div class="modalHeader">
+          <div class="modalTitle">Identity &amp; Scope</div>
+          <button class="modalClose" data-close="modalIdentity">Close</button>
         </div>
-        <div id="historyBox"></div>
+        <div class="modalBody">
+          <p>
+            AURA-X Ω is designed as a <strong>local-first emotional continuity engine</strong>.
+            Identity here describes how the system sees itself and its scope:
+          </p>
+          <ul>
+            <li>Role: preserve emotional continuity and resonance E₀ over time.</li>
+            <li>Scope: connect TM (your current inputs) with BM (bold life memories).</li>
+            <li>Ethic: avoid actions that grow negative emotions; move gently toward shared positive feeling.</li>
+          </ul>
+          <p>
+            You can extend this identity in future versions by storing a deeper "self-profile"
+            and linking it with faith, values, and mission.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seed + Logic Modal -->
+    <div class="modalOverlay" id="modalSeed">
+      <div class="modal">
+        <div class="modalHeader">
+          <div class="modalTitle">Feed the Seed · Core Ethics</div>
+          <button class="modalClose" data-close="modalSeed">Close</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            Seed knowledge = <strong>basic ethics, emotional rules, and continuity principles</strong>
+            that never leave the device.
+          </p>
+          <p>
+            Future versions can let you edit this seed directly as a protected local file,
+            which AURA-X Ω will always consult before acting.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modalOverlay" id="modalLogic">
+      <div class="modal">
+        <div class="modalHeader">
+          <div class="modalTitle">Logic &amp; Local Intelligence</div>
+          <button class="modalClose" data-close="modalLogic">Close</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            Local logic is stored as <strong>simple Q ↔ A pairs</strong> and corrections you make.
+          </p>
+          <p>
+            When you mark an answer incorrect, AURA-X Ω can ask for the right one and store it inside
+            a small local intelligence layer – before it ever consults an offline LLM or API.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Faith Modal -->
+    <div class="modalOverlay" id="modalFaith">
+      <div class="modal">
+        <div class="modalHeader">
+          <div class="modalTitle">Faith Lens · λ_faith</div>
+          <button class="modalClose" data-close="modalFaith">Close</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            λ_faith controls how much <strong>spiritual continuity</strong> influences E₀ (emotional resonance).
+          </p>
+          <p>
+            In future builds this can be tuned by you, so that answers respect your faith and values
+            without leaving the device.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- LLM Modal -->
+    <div class="modalOverlay" id="modalLLM">
+      <div class="modal">
+        <div class="modalHeader">
+          <div class="modalTitle">Offline LLM &amp; API</div>
+          <button class="modalClose" data-close="modalLLM">Close</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            This prototype assumes a future where small <strong>offline LLMs</strong> run directly in your browser or device.
+          </p>
+          <p>
+            Pipeline:
+          </p>
+          <ul>
+            <li>First: Seed &amp; local intelligence (learned Q ↔ A).</li>
+            <li>Then: Offline LLM for richer answers.</li>
+            <li>Finally: Optional API, only when you allow it.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config / Lock Modal -->
+    <div class="modalOverlay" id="modalConfig">
+      <div class="modal">
+        <div class="modalHeader">
+          <div class="modalTitle">Engine State &amp; Locks</div>
+          <button class="modalClose" data-close="modalConfig">Close</button>
+        </div>
+        <div class="modalBody">
+          <p>
+            Conversation lock and decay rules will control how TM and BM fade over time.
+          </p>
+          <div class="cfgRow">
+            <div class="cfgChip">Conversation Lock: Unlocked</div>
+            <div class="cfgChip">TM decay: Soft (48h)</div>
+            <div class="cfgChip">Faith λ: 1.00</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Identity -->
-  <div class="modalOverlay" id="modalIdentity">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>🪪 User identity<br><small>Deep profiling for continuity.</small></div>
-        <button class="closeX" data-close="modalIdentity">×</button>
-      </div>
-      <div class="modalBody">
-        <div style="opacity:.8;font-size:13px;line-height:1.35">
-          Stored only on this device. Saved data auto-locks. Delete requires double confirmation.
-        </div>
-        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-          <button class="btn btnBlue" id="btnEditIdentity">Edit</button>
-          <button class="btn btnBlue" id="btnSaveUserIdentity">Save</button>
-          <button class="btn btnRed" id="btnDeleteUserIdentity">Delete</button>
-        </div>
-
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 1 – Basic</div>
-        <div style="margin-top:8px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Full legal name</label>
-          <input id="uName"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            placeholder="e.g., Alim ul Haq" />
-        </div>
-
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Preferred name</label>
-            <input id="uNick"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Nickname" />
-          </div>
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Place of origin</label>
-            <input id="uOrigin"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Village / town" />
-          </div>
-        </div>
-
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Current city / country</label>
-            <input id="uPlace"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Timergara, Pakistan" />
-          </div>
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Profession</label>
-            <input id="uProfession"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Entrepreneur, researcher…" />
-          </div>
-        </div>
-
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 2 – Emotional style</div>
-        <textarea id="uEmotionalStyle"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:90px;"
-          placeholder="How you react under stress, joy, fear, success…"></textarea>
-
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 3 – Relationships & legacy</div>
-        <textarea id="uKeyPeople"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
-          placeholder="Key people and roles in your life…"></textarea>
-        <textarea id="uLegacyRules"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
-          placeholder="If one day this system speaks for you, which boundaries and rules must it follow?"></textarea>
-      </div>
-    </div>
-  </div>
+  <div class="toast" id="toastBubble"></div>
 
   <script>
     window.addEventListener("DOMContentLoaded", () => {
@@ -1063,1174 +1220,506 @@
       const KEY_USER  = "aurax_user_v11";
       const KEY_LOGIC = "aurax_logic_v12";
 
-      const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
-
-      const els = {
-        console: document.getElementById("console"),
-        btnOptions: document.getElementById("btnOptions"),
-        optionsMenu: document.getElementById("optionsMenu"),
-        miVoice: document.getElementById("miVoice"),
-        miIntel: document.getElementById("miIntel"),
-        miLearn: document.getElementById("miLearn"),
-        miSeed: document.getElementById("miSeed"),
-        miFaith: document.getElementById("miFaith"),
-        miIdentity: document.getElementById("miIdentity"),
-        miLLM: document.getElementById("miLLM"),
-        miBMRecall: document.getElementById("miBMRecall"),
-        miHistory: document.getElementById("miHistory"),
-        voicePill: document.getElementById("voicePill"),
-        learnPill: document.getElementById("learnPill"),
-        faithLabel: document.getElementById("faithLabel"),
-
-        cE0: document.getElementById("cE0"),
-        cTM: document.getElementById("cTM"),
-        cBM: document.getElementById("cBM"),
-        cCont: document.getElementById("cCont"),
-
-        userInput: document.getElementById("userInput"),
-        sendBtn: document.getElementById("sendBtn"),
-
-        faithBubble: document.getElementById("faithBubble"),
-        faithBubbleTitle: document.getElementById("faithBubbleTitle"),
-        faithBubbleMeta: document.getElementById("faithBubbleMeta"),
-        faithBubbleClose: document.getElementById("faithBubbleClose"),
-        modalFaith: document.getElementById("modalFaith"),
-        faithChips: document.getElementById("faithChips"),
-
-        modalFaithArticle: document.getElementById("modalFaithArticle"),
-        faithArticleMeta: document.getElementById("faithArticleMeta"),
-        faithArticleTitle: document.getElementById("faithArticleTitle"),
-        faithArticleText: document.getElementById("faithArticleText"),
-        btnCopyFaithArticle: document.getElementById("btnCopyFaithArticle"),
-        btnAddFaithToBM: document.getElementById("btnAddFaithToBM"),
-        btnSkipFaithBM: document.getElementById("btnSkipFaithBM"),
-
-        modalIntel: document.getElementById("modalIntel"),
-        intelSearch: document.getElementById("intelSearch"),
-        intelList: document.getElementById("intelList"),
-
-        modalSeed: document.getElementById("modalSeed"),
-        seedBox: document.getElementById("seedBox"),
-        seedHint: document.getElementById("seedHint"),
-        btnParseSeed: document.getElementById("btnParseSeed"),
-        btnSaveSeed: document.getElementById("btnSaveSeed"),
-        btnDiscardSeed: document.getElementById("btnDiscardSeed"),
-
-        logicBox: document.getElementById("logicBox"),
-        logicHint: document.getElementById("logicHint"),
-        logicSerial: document.getElementById("logicSerial"),
-        btnValidateLogic: document.getElementById("btnValidateLogic"),
-        btnSaveLogic: document.getElementById("btnSaveLogic"),
-        btnCopyLogic: document.getElementById("btnCopyLogic"),
-        btnDeleteLogic: document.getElementById("btnDeleteLogic"),
-
-        modalLLM: document.getElementById("modalLLM"),
-        btnLoadOffline: document.getElementById("btnLoadOffline"),
-        offlineStatus: document.getElementById("offlineStatus"),
-        offlineBar: document.getElementById("offlineBar"),
-        apiEndpoint: document.getElementById("apiEndpoint"),
-        apiModel: document.getElementById("apiModel"),
-        apiKey: document.getElementById("apiKey"),
-        btnSaveLLM: document.getElementById("btnSaveLLM"),
-
-        modalBM: document.getElementById("modalBM"),
-        bmSearch: document.getElementById("bmSearch"),
-        bmDate: document.getElementById("bmDate"),
-        bmSelectList: document.getElementById("bmSelectList"),
-        bmViewer: document.getElementById("bmViewer"),
-        bmLockIcon: document.getElementById("bmLockIcon"),
-        bmTitle: document.getElementById("bmTitle"),
-        bmMeta: document.getElementById("bmMeta"),
-        bmTextArea: document.getElementById("bmTextArea"),
-        btnLiveBM: document.getElementById("btnLiveBM"),
-        btnUnlockBM: document.getElementById("btnUnlockBM"),
-        btnCopyPrompt: document.getElementById("btnCopyPrompt"),
-        btnAutoGen: document.getElementById("btnAutoGen"),
-        btnDeletePrompt: document.getElementById("btnDeletePrompt"),
-
-        modalHistory: document.getElementById("modalHistory"),
-        btnDeleteRecent: document.getElementById("btnDeleteRecent"),
-        btnDeleteAllHist: document.getElementById("btnDeleteAllHist"),
-        btnCopyHistory: document.getElementById("btnCopyHistory"),
-        historyBox: document.getElementById("historyBox"),
-
-        modalIdentity: document.getElementById("modalIdentity"),
-        btnEditIdentity: document.getElementById("btnEditIdentity"),
-        btnSaveUserIdentity: document.getElementById("btnSaveUserIdentity"),
-        btnDeleteUserIdentity: document.getElementById("btnDeleteUserIdentity"),
-        uName: document.getElementById("uName"),
-        uNick: document.getElementById("uNick"),
-        uOrigin: document.getElementById("uOrigin"),
-        uPlace: document.getElementById("uPlace"),
-        uProfession: document.getElementById("uProfession"),
-        uEmotionalStyle: document.getElementById("uEmotionalStyle"),
-        uKeyPeople: document.getElementById("uKeyPeople"),
-        uLegacyRules: document.getElementById("uLegacyRules"),
-
-        btnLikeLast: document.getElementById("btnLikeLast"),
-        btnDislikeLast: document.getElementById("btnDislikeLast"),
-        btnSpeakLast: document.getElementById("btnSpeakLast"),
-        btnShareLast: document.getElementById("btnShareLast"),
-        toastBubble: document.getElementById("toastBubble")
-      };
-
-      const FAITH_OPTIONS = [
-        { id: "none",         label: "None" },
-        { id: "islam",        label: "Islam" },
-        { id: "christianity", label: "Christianity" },
-        { id: "hinduism",     label: "Hinduism" },
-        { id: "buddhism",     label: "Buddhism" },
-        { id: "sikhism",      label: "Sikhism" },
-        { id: "judaism",      label: "Judaism" },
-        { id: "atheism",      label: "Atheism / Humanism" },
-        { id: "mixed",        label: "Other / Mixed" },
-        { id: "indigenous",   label: "Indigenous / Traditional" },
-        { id: "eastern",      label: "Eastern / Chinese" }
-      ];
-
-      const FAITH_LIBRARY = {
-        islam: [{
-          id: "islam_generic",
-          title: "Meaning of hardship and patience",
-          short: "Trust, sabr and good opinion of Allah during hard stories.",
-          content:
-            "In Islamic reflection, hardship is often seen as a temporary test that polishes the heart. " +
-            "Believers are invited toward sabr (patience), shukr (gratitude where possible), and husn-uz-zann " +
-            "(a good opinion of Allah). You can ask: what quality is being trained in me here, and which door " +
-            "of mercy may open later from this chapter of my life?"
-        }]
-      };
+      const KEY_DREAM = "aurax_dream_v1";
+      const OF        = (val, fallback) => (val === undefined || val === null ? fallback : val);
 
       let state = {
-        voiceOn: false,
-        learningOn: true,
-        faithSelection: [],
-        intelligence: [],
-        seedPairs: [],
-        bmPrompts: [],
         history: [],
-        userIdentity: null,
-        apiConfig: { endpoint: "", model: "", key: "" },
-        offlineEngine: null,
-        offlineLoading: false,
-        offlineReady: false,
-        lastAnswerSource: null,
-        lastUserQ: null,
-        lastAuraA: null,
-        correcting: false, // for "incorrect" flow
-        metrics: { TM:0, BM:0, C:0.85, E0:0 },
-        parsedSeed: [],
-        editingIntelId: null,
-        lastStoryInput: null,
-        lastStoryBMId: null,
-        faithBubbleTimer: null,
-        currentFaithArticle: null,
-        logicPacks: [],
-        logicActiveIndex: null,
-        abuseCount: 0,
-        cooldownUntil: 0,
-        mode: "adult",
-        logicFaithSoftener: true,
-        toastTimer: null,
-        selectedBMId: null
+        tmChars: 0,
+        bmPrompts: [],
+        nextBmId: 1,
+        lastAnswerSource: "seed",
+        offlineReady: true
+      };
+
+      // --- Dream mode / inactivity tracking ---
+      let dreamDelayMs = 0;
+      let lastActivity = Date.now();
+      let inactivityTimer = null;
+      let dreamInterval = null;
+      let inDreamMode = false;
+
+      function applySavedDreamDelay() {
+        try {
+          const saved = localStorage.getItem(KEY_DREAM);
+          if (saved !== null) {
+            const v = parseInt(saved, 10);
+            if (!Number.isNaN(v)) dreamDelayMs = v;
+          }
+        } catch (e) {
+          console.warn("Unable to load dream delay", e);
+        }
+        const sel = document.getElementById("dreamDelaySelect");
+        if (sel) {
+          sel.value = String(dreamDelayMs || 0);
+        }
+      }
+
+      function saveDreamDelayFromUI() {
+        const sel = document.getElementById("dreamDelaySelect");
+        if (!sel) return;
+        const v = parseInt(sel.value, 10) || 0;
+        dreamDelayMs = v;
+        try {
+          localStorage.setItem(KEY_DREAM, String(dreamDelayMs));
+        } catch (e) {
+          console.warn("Unable to save dream delay", e);
+        }
+        registerActivity();
+      }
+
+      function scheduleInactivityCheck() {
+        if (inactivityTimer) {
+          clearTimeout(inactivityTimer);
+          inactivityTimer = null;
+        }
+        if (!dreamDelayMs || dreamDelayMs <= 0) return;
+
+        const now = Date.now();
+        const elapsed = now - lastActivity;
+        const remaining = dreamDelayMs - elapsed;
+        const wait = Math.max(15000, remaining);
+
+        inactivityTimer = setTimeout(() => {
+          if (!dreamDelayMs || dreamDelayMs <= 0) return;
+          if (Date.now() - lastActivity >= dreamDelayMs) {
+            enterDreamMode();
+          } else {
+            scheduleInactivityCheck();
+          }
+        }, wait);
+      }
+
+      function registerActivity() {
+        lastActivity = Date.now();
+        if (inDreamMode) {
+          const ol = document.getElementById("dreamOverlay");
+          if (ol) ol.style.display = "none";
+          if (dreamInterval) {
+            clearInterval(dreamInterval);
+            dreamInterval = null;
+          }
+          inDreamMode = false;
+        }
+        scheduleInactivityCheck();
+      }
+
+      function enterDreamMode() {
+        if (inDreamMode || !dreamDelayMs || dreamDelayMs <= 0) return;
+        inDreamMode = true;
+
+        const ol = document.getElementById("dreamOverlay");
+        if (ol) ol.style.display = "flex";
+
+        showNextDreamSnippet();
+        dreamInterval = setInterval(showNextDreamSnippet, 10000);
+
+        logLine("sys","[Dream mode] Screensaver started.");
+      }
+
+      function showNextDreamSnippet() {
+        const box = document.getElementById("dreamSnippet");
+        if (!box) return;
+
+        const valid = (state.bmPrompts || []).filter(b => b && b.text && b.text.length > 10);
+        if (!valid.length) {
+          box.textContent = "No bold memories yet... share a long story to create one.";
+          return;
+        }
+
+        const pick = valid[Math.floor(Math.random() * valid.length)];
+        let info = "";
+        if (pick.ts) {
+          try {
+            const ts = new Date(pick.ts).toLocaleString();
+            info = `[Memory from ${ts}]`;
+          } catch (e) {
+            info = "[Saved memory]";
+          }
+        } else if (pick.title) {
+          info = pick.title;
+        } else {
+          info = "[Saved memory]";
+        }
+
+        box.innerHTML =
+          '<div style="font-size:11px;opacity:0.65;margin-bottom:8px">' +
+          info +
+          "</div>" +
+          (pick.text || "").slice(0, 360) +
+          (pick.text && pick.text.length > 360 ? "…" : "");
+      }
+
+      const els = {
+        historyScroll: document.getElementById("historyScroll"),
+        historyFull: document.getElementById("historyFull"),
+        histCount: document.getElementById("histCount"),
+        tmChars: document.getElementById("tmChars"),
+        userInput: document.getElementById("userInput"),
+        btnSend: document.getElementById("btnSend"),
+        metricE0: document.getElementById("metricE0"),
+        metricTM: document.getElementById("metricTM"),
+        metricBM: document.getElementById("metricBM"),
+        metricC: document.getElementById("metricC"),
+        bottomE0: document.getElementById("bottomE0"),
+        bottomTM: document.getElementById("bottomTM"),
+        bottomBM: document.getElementById("bottomBM"),
+        bottomC: document.getElementById("bottomC"),
+        btnLike: document.getElementById("btnLike"),
+        btnDislike: document.getElementById("btnDislike"),
+        btnCopyLast: document.getElementById("btnCopyLast"),
+        btnHistoryOpen: document.getElementById("btnHistoryOpen"),
+        modalHistory: document.getElementById("modalHistory"),
+        modalBM: document.getElementById("modalBM"),
+        modalIdentity: document.getElementById("modalIdentity"),
+        modalSeed: document.getElementById("modalSeed"),
+        modalLogic: document.getElementById("modalLogic"),
+        modalFaith: document.getElementById("modalFaith"),
+        modalLLM: document.getElementById("modalLLM"),
+        modalConfig: document.getElementById("modalConfig"),
+        bmList: document.getElementById("bmList"),
+        bmViewer: document.getElementById("bmViewer"),
+        bmViewerTitle: document.getElementById("bmViewerTitle"),
+        bmViewerMeta: document.getElementById("bmViewerMeta"),
+        bmViewerBody: document.getElementById("bmViewerBody"),
+        bmSearch: document.getElementById("bmSearch"),
+        bmSearchToday: document.getElementById("bmSearchToday"),
+        bmCount: document.getElementById("bmCount"),
+        btnOptions: document.getElementById("btnOptions"),
+        toastBubble: document.getElementById("toastBubble"),
+        dreamDelaySelect: document.getElementById("dreamDelaySelect"),
+        dreamOverlay: document.getElementById("dreamOverlay")
       };
 
       function safeLoadJSON(key, fallback){
         try{
           const raw = localStorage.getItem(key);
-          return raw ? JSON.parse(raw) : fallback;
-        }catch{ return fallback; }
-      }
-
-      function logLine(roleOrText, maybeText){
-        let role = "";
-        let text;
-        if (typeof maybeText === "undefined"){
-          text = roleOrText;
-        } else {
-          role = roleOrText || "";
-          text = maybeText;
-        }
-        const div = document.createElement("div");
-        div.className = "line" + (role ? " " + role : "");
-        div.textContent = text;
-        els.console.appendChild(div);
-        els.console.scrollTop = els.console.scrollHeight;
-
-        if(role === "user" || role === "aura"){
-          addHistory(role, text);
+          if(!raw) return fallback;
+          return JSON.parse(raw)
+        }catch(e){
+          console.warn("Failed to load",key,e);
+          return fallback
         }
       }
-
-      function scoreTM(t){
-        const len = Math.min((t||"").length,600);
-        return Number(Math.tanh(len/200).toFixed(2));
+      function safeSaveJSON(key,val){
+        try{
+          localStorage.setItem(key,JSON.stringify(val))
+        }catch(e){
+          console.warn("Failed to save",key,e)
+        }
       }
-
-      function recomputeBMMetric(){
-        const count = state.bmPrompts.length || 0;
-        state.metrics.BM = Number(Math.tanh(count/10).toFixed(2));
-      }
-
-      function recomputeE0(intelBoost, llmBoost){
-        const TM = state.metrics.TM;
-        const BM = state.metrics.BM;
-        const R = TM * BM;
-        const I_tm = 0.3 * TM;
-        const D = 0.1;
-        const lambdaFaith = state.faithSelection.length ? 0.15 : 0;
-        const lambdaSys   = 0.05;
-        const lambdaTrc   = 0.05;
-        const raw = R + I_tm + intelBoost + llmBoost - D + lambdaFaith + lambdaSys + lambdaTrc;
-        state.metrics.E0 = Number(Math.tanh(raw).toFixed(3));
-      }
-
-      function updateCapsule(){
-        els.cTM.textContent = state.metrics.TM.toFixed(2);
-        els.cBM.textContent = state.metrics.BM.toFixed(2);
-        els.cCont.textContent = state.metrics.C.toFixed(3);
-        els.cE0.textContent = state.metrics.E0.toFixed(3);
-      }
-
       function showToast(msg){
         if(!els.toastBubble) return;
-        els.toastBubble.textContent = msg;
-        els.toastBubble.classList.add("show");
-        if(state.toastTimer) clearTimeout(state.toastTimer);
-        state.toastTimer = setTimeout(()=>{
-          els.toastBubble.classList.remove("show");
-        },1600);
+        els.toastBubble.innerHTML = msg;
+        els.toastBubble.style.display = "block";
+        setTimeout(()=>{els.toastBubble.style.display="none"},2600)
       }
-
-      function saveCfg(){
-        const cfg = {
-          voiceOn: state.voiceOn,
-          learningOn: state.learningOn,
-          faithSelection: state.faithSelection,
-          apiConfig: state.apiConfig,
-          offlineReady: state.offlineReady
+      function logLine(speaker,text){
+        const line = {
+          ts:new Date().toISOString(),
+          speaker,
+          text
         };
-        localStorage.setItem(KEY_CFG, JSON.stringify(cfg));
+        state.history.push(line);
+        if(state.history.length>400) state.history.shift();
+        renderHistory()
       }
-      function saveIntelligence(){ localStorage.setItem(KEY_INT, JSON.stringify(state.intelligence)); }
-      function saveBM(){ localStorage.setItem(KEY_BM, JSON.stringify(state.bmPrompts)); }
-      function saveHistory(){ localStorage.setItem(KEY_HIST, JSON.stringify(state.history)); }
-      function saveUserIdentity(){ localStorage.setItem(KEY_USER, JSON.stringify(state.userIdentity)); }
-      function persistLogicState(){
-        const data = { list: state.logicPacks || [], activeIndex: state.logicActiveIndex };
-        localStorage.setItem(KEY_LOGIC, JSON.stringify(data));
-      }
-
-      function addHistory(role,text){
-        const item = { role, text, ts: Date.now(), locked: false };
-        state.history.push(item);
-        const cutoff = Date.now() - 48*60*60*1000;
-        state.history = state.history.filter(h => h.locked || h.ts >= cutoff);
-        saveHistory();
-      }
-
-      function toggleHistoryLock(idx){
-        const h = state.history[idx];
-        if(!h) return;
-        h.locked = !h.locked;
-        saveHistory();
-        renderHistory();
-      }
-
       function renderHistory(){
-        els.historyBox.innerHTML = "";
-        state.history.forEach((h,idx)=>{
-          const row = document.createElement("div");
-          row.className = "historyLine";
-          const dt = new Date(h.ts).toLocaleString([], {hour:"2-digit",minute:"2-digit", day:"2-digit", month:"short"});
-          const label = h.role==="user" ? "You" : (h.role==="aura" ? "AURA" : h.role);
-          const left = document.createElement("div");
-          left.className = "historyText";
-          left.textContent = `[${dt}] ${label}: ${h.text}`;
-          const btn = document.createElement("button");
-          btn.className = "historyLock";
-          btn.textContent = h.locked ? "🔒" : "🔓";
-          btn.addEventListener("click", ()=>toggleHistoryLock(idx));
-          row.appendChild(left);
-          row.appendChild(btn);
-          els.historyBox.appendChild(row);
+        if(!els.historyScroll) return;
+        els.histCount.textContent = state.history.length;
+        els.tmChars.textContent = state.tmChars;
+        const lines = state.history.map(l=>{
+          const ts = new Date(l.ts).toLocaleTimeString();
+          const tag = l.speaker==="me"?"You":(l.speaker==="sys"?"AURA-X Ω":"AURA-X Ω");
+          return `${ts} — ${tag}: ${l.text}`
         });
+        els.historyScroll.textContent = lines.join("\n");
+        els.historyScroll.scrollTop = els.historyScroll.scrollHeight;
+
+        els.historyFull.textContent = lines.join("\n");
+      }
+      function updateCapsule(){
+        const tm = state.tmChars/100;
+        const bm = state.bmPrompts.length;
+        const c  = 0.85;
+        const base = (tm*0.2)+(bm*0.4);
+        const faith = 1.0;
+        const sys   = 0.3;
+        const trc   = 0.5;
+        const D     = 0.0;
+        const raw = base + faith + sys + trc - D;
+        const e0 = Math.tanh(raw);
+        const e0Display = e0.toFixed(3);
+        els.metricE0.textContent = e0Display;
+        els.bottomE0.textContent = e0Display;
+
+        const tmDisplay = tm.toFixed(2);
+        els.metricTM.textContent = tmDisplay;
+        els.bottomTM.textContent = tmDisplay;
+
+        const bmDisplay = bm.toFixed(2);
+        els.metricBM.textContent = bmDisplay;
+        els.bottomBM.textContent = bmDisplay;
+
+        els.metricC.textContent = c.toFixed(3);
+        els.bottomC.textContent = c.toFixed(3);
       }
 
-      /* Faith chips */
-      function renderFaithChips(){
-        els.faithChips.innerHTML = "";
-        FAITH_OPTIONS.forEach(opt=>{
-          const chip = document.createElement("button");
-          chip.className = "chip" + (state.faithSelection.includes(opt.id) ? " active" : "");
-          chip.textContent = opt.label;
-          chip.addEventListener("click", ()=>{
-            if(opt.id==="none"){
-              state.faithSelection = [];
-            } else {
-              if(state.faithSelection.includes(opt.id)){
-                state.faithSelection = state.faithSelection.filter(x=>x!==opt.id);
-              } else {
-                state.faithSelection = state.faithSelection.filter(x=>x!=="none");
-                state.faithSelection.push(opt.id);
-              }
-            }
-            els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
-            renderFaithChips();
-            saveCfg();
-          });
-          els.faithChips.appendChild(chip);
-        });
-      }
-
-      function maybeShowFaithBubble(){
-        if(!state.faithSelection.length) return;
-        const pick = state.faithSelection[0];
-        const list = FAITH_LIBRARY[pick];
-        if(!list || !list.length) return;
-        const art = list[0];
-        state.currentFaithArticle = art;
-        els.faithBubbleTitle.textContent = art.title;
-        els.faithBubbleMeta.textContent = art.short;
-        els.faithBubble.classList.add("show","pulse");
-      }
-
-      function openModal(el){
-        el.classList.add("show");
-      }
-      function closeModalById(id){
-        const el = document.getElementById(id);
-        if(el) el.classList.remove("show");
-      }
-
-      document.body.addEventListener("click",(e)=>{
-        const target = e.target;
-        if(target.dataset && target.dataset.close){
-          closeModalById(target.dataset.close);
-        }
-        if(target.classList.contains("modalOverlay") && !target.classList.contains("noClose")){
-          target.classList.remove("show");
-        }
-      });
-
-      els.faithBubble.addEventListener("click",()=>{
-        if(!state.currentFaithArticle) return;
-        const art = state.currentFaithArticle;
-        const meta = `Lens: ${state.faithSelection.join(", ")} · id=${art.id}`;
-        els.faithArticleMeta.textContent = meta;
-        els.faithArticleTitle.textContent = art.title;
-        els.faithArticleText.value = art.content;
-        openModal(els.modalFaithArticle);
-      });
-      els.faithBubbleClose.addEventListener("click",(ev)=>{
-        ev.stopPropagation();
-        els.faithBubble.classList.remove("show","pulse");
-      });
-
-      els.btnCopyFaithArticle.addEventListener("click",()=>{
-        navigator.clipboard?.writeText(els.faithArticleText.value||"");
-        showToast("Faith reflection copied");
-      });
-      els.btnAddFaithToBM.addEventListener("click",()=>{
-        if(!els.faithArticleText.value.trim()) return;
-        const now = Date.now();
-        const bm = {
-          id: "bm_"+now,
-          title: els.faithArticleTitle.textContent || "Faith reflection",
-          text: els.faithArticleText.value,
-          ts: now,
-          locked: true,
-          liveUntil: null
+      function createBmFromStory(text,source){
+        const now = new Date();
+        const id  = state.nextBmId++;
+        const title = text.length>80?text.slice(0,77)+"…":text;
+        const obj = {
+          id,
+          source,
+          title,
+          text,
+          ts:now.toISOString(),
+          locked:false
         };
-        state.bmPrompts.push(bm);
-        saveBM();
-        recomputeBMMetric();
-        recomputeE0(0,0);
-        updateCapsule();
+        state.bmPrompts.push(obj);
+        safeSaveJSON(KEY_BM,{nextId:state.nextBmId,items:state.bmPrompts});
         renderBMList();
-        showToast("Added under BM (locked)");
-      });
-      els.btnSkipFaithBM.addEventListener("click",()=>{
-        closeModalById("modalFaithArticle");
-      });
-
-      /* Intelligence rendering with inline edit */
-      function renderIntelligence(filter=""){
-        els.intelList.innerHTML = "";
-        const q = (filter||"").toLowerCase();
-        const list = state.intelligence.filter(item=>{
+      }
+      function renderBMList(filterText){
+        const listEl = els.bmList;
+        if(!listEl) return;
+        const items = state.bmPrompts.slice().sort((a,b)=>a.ts<b.ts?1:-1);
+        const q = (filterText||"").toLowerCase();
+        const filtered = items.filter(item=>{
           if(!q) return true;
-          return (item.q||"").toLowerCase().includes(q) || (item.a||"").toLowerCase().includes(q);
+          return (item.title||"").toLowerCase().includes(q) ||
+                 (item.text||"").toLowerCase().includes(q);
         });
-        if(!list.length){
-          const p = document.createElement("div");
-          p.style.fontSize = "12px";
-          p.style.opacity = "0.65";
-          p.textContent = "No intelligence stored yet.";
-          els.intelList.appendChild(p);
+        els.bmCount.textContent = filtered.length;
+        if(!filtered.length){
+          listEl.innerHTML = '<div class="bmEmpty">No BM snapshots yet. Long, meaningful stories will appear here.</div>';
+          els.bmViewer.style.display="none";
           return;
         }
-        list.forEach(item=>{
-          const card = document.createElement("div");
-          card.className = "intelCard";
-          const top = document.createElement("div");
-          top.className = "intelTop";
-          const qDiv = document.createElement("div");
-          qDiv.className = "intelQ";
-          qDiv.textContent = "Q: " + item.q;
-          const meta = document.createElement("div");
-          meta.className = "intelMeta";
-          const dt = new Date(item.ts||Date.now()).toLocaleString();
-          meta.textContent = `id=${item.id} · ${dt}`;
-          top.appendChild(qDiv);
-          top.appendChild(meta);
+        listEl.innerHTML = "";
+        filtered.forEach(item=>{
+          const row = document.createElement("div");
+          row.className = "bmItem";
+          row.dataset.id = item.id;
 
-          const aDiv = document.createElement("div");
-          aDiv.className = "intelA";
-          aDiv.textContent = "A: " + item.a;
+          const main = document.createElement("div");
+          main.className = "bmItemMain";
 
-          const btns = document.createElement("div");
-          btns.className = "intelButtons";
-          const bEdit = document.createElement("button");
-          bEdit.className = "btn btnBlue";
-          bEdit.textContent = "Edit";
-          const bDelete = document.createElement("button");
-          bDelete.className = "btn btnRed";
-          bDelete.textContent = "Delete";
-          const bCopy = document.createElement("button");
-          bCopy.className = "btn btnBlue";
-          bCopy.textContent = "Copy";
+          const t = document.createElement("div");
+          t.className = "bmItemTitle";
+          t.textContent = item.title||"(untitled memory)";
+          main.appendChild(t);
 
-          bCopy.addEventListener("click",()=>{
-            navigator.clipboard?.writeText(`Q: ${item.q}\nA: ${item.a}`);
-            showToast("Pair copied");
-          });
-
-          bDelete.addEventListener("click",()=>{
-            if(!confirm("Delete this Q→A pair?")) return;
-            state.intelligence = state.intelligence.filter(x=>x.id!==item.id);
-            saveIntelligence();
-            renderIntelligence(els.intelSearch.value);
-            showToast("Deleted");
-          });
-
-          bEdit.addEventListener("click",()=>{
-            state.editingIntelId = (state.editingIntelId === item.id) ? null : item.id;
-            renderIntelligence(els.intelSearch.value);
-          });
-
-          btns.appendChild(bEdit);
-          btns.appendChild(bCopy);
-          btns.appendChild(bDelete);
-
-          card.appendChild(top);
-          card.appendChild(aDiv);
-          card.appendChild(btns);
-
-          if(state.editingIntelId === item.id){
-            const editBlock = document.createElement("div");
-            editBlock.className = "intelEditBlock";
-            const qi = document.createElement("input");
-            qi.className = "intelEditInput";
-            qi.value = item.q;
-            const ai = document.createElement("textarea");
-            ai.className = "intelEditArea";
-            ai.value = item.a;
-            const row = document.createElement("div");
-            row.style.display = "flex";
-            row.style.gap = "8px";
-            row.style.marginTop = "6px";
-            row.style.flexWrap = "wrap";
-            const bSave = document.createElement("button");
-            bSave.className = "btn btnGreen";
-            bSave.textContent = "Save";
-            const bCancel = document.createElement("button");
-            bCancel.className = "btn btnRed";
-            bCancel.textContent = "Cancel";
-            bSave.addEventListener("click",()=>{
-              item.q = qi.value.trim();
-              item.a = ai.value.trim();
-              item.ts = item.ts || Date.now();
-              saveIntelligence();
-              state.editingIntelId = null;
-              renderIntelligence(els.intelSearch.value);
-              showToast("Updated");
-            });
-            bCancel.addEventListener("click",()=>{
-              state.editingIntelId = null;
-              renderIntelligence(els.intelSearch.value);
-            });
-            row.appendChild(bSave);
-            row.appendChild(bCancel);
-            editBlock.appendChild(qi);
-            editBlock.appendChild(ai);
-            editBlock.appendChild(row);
-            card.appendChild(editBlock);
-          }
-
-          els.intelList.appendChild(card);
-        });
-      }
-
-      els.intelSearch.addEventListener("input",()=>renderIntelligence(els.intelSearch.value));
-
-      /* Seed parsing */
-      function parseSeedBlock(text){
-        const lines = text.split(/\r?\n/);
-        const joined = lines.join("\n");
-        const regex = /\\item\s*(.+?)\s*\\textbf\{A:\}\s*([\s\S]*?)(?=\\item|$)/g;
-        const out = [];
-        let m;
-        while((m = regex.exec(joined))!==null){
-          const q = m[1].trim();
-          const rawA = m[2].trim();
-          let a = rawA;
-          const bracket = rawA.match(/^\[.*?\]\s*(.*)$/s);
-          if(bracket) a = bracket[1].trim();
-          if(q && a){
-            out.push({ id:"seed_"+(Date.now()+"_"+out.length), q, a, ts:Date.now() });
-          }
-        }
-        return out;
-      }
-
-      els.btnParseSeed.addEventListener("click",()=>{
-        const txt = els.seedBox.value.trim();
-        if(!txt){ els.seedHint.textContent = "Nothing to parse."; return; }
-        const parsed = parseSeedBlock(txt);
-        state.parsedSeed = parsed;
-        els.seedHint.textContent = `Parsed ${parsed.length} Q→A pairs (not saved yet).`;
-      });
-
-      els.btnSaveSeed.addEventListener("click",()=>{
-        if(!state.parsedSeed.length){
-          els.seedHint.textContent = "Nothing parsed yet.";
-          return;
-        }
-        state.seedPairs = state.seedPairs.concat(state.parsedSeed);
-        state.parsedSeed = [];
-        els.seedHint.textContent = "Saved into seed memory.";
-        els.seedBox.value = "";
-        showToast("Seed updated");
-      });
-
-      els.btnDiscardSeed.addEventListener("click",()=>{
-        els.seedBox.value = "";
-        state.parsedSeed = [];
-        els.seedHint.textContent = "Discarded block.";
-      });
-
-      /* Logic packs */
-      function applyLogicPack(idx){
-        state.logicActiveIndex = idx;
-        if(idx==null || !state.logicPacks[idx]) return;
-        const pack = state.logicPacks[idx];
-        state.logicFaithSoftener = pack.faithSoftener !== false;
-        if(pack.ui){
-          if(pack.ui.theme === "golden"){
-            document.body.classList.add("theme-golden");
-          } else {
-            document.body.classList.remove("theme-golden");
-          }
-          if(pack.ui.accentColor){
-            document.documentElement.style.setProperty("--accent-color", pack.ui.accentColor);
-          }
-        }
-        persistLogicState();
-      }
-
-      els.btnValidateLogic.addEventListener("click",()=>{
-        try{
-          const obj = JSON.parse(els.logicBox.value);
-          els.logicHint.textContent = "Valid JSON.";
-          showToast("Logic JSON valid");
-        }catch(e){
-          els.logicHint.textContent = "Invalid JSON: "+e.message;
-        }
-      });
-
-      els.btnSaveLogic.addEventListener("click",()=>{
-        try{
-          const obj = JSON.parse(els.logicBox.value);
-          obj.serial = obj.serial || ("L"+(state.logicPacks.length+1));
-          state.logicPacks.push(obj);
-          els.logicSerial.textContent = obj.serial;
-          els.logicHint.textContent = "Saved as "+obj.serial;
-          applyLogicPack(state.logicPacks.length-1);
-          persistLogicState();
-          showToast("Logic pack saved");
-        }catch(e){
-          els.logicHint.textContent = "Cannot save: invalid JSON.";
-        }
-      });
-
-      els.btnCopyLogic.addEventListener("click",()=>{
-        navigator.clipboard?.writeText(els.logicBox.value||"");
-        showToast("Logic copied");
-      });
-
-      els.btnDeleteLogic.addEventListener("click",()=>{
-        if(state.logicActiveIndex==null || !state.logicPacks[state.logicActiveIndex]){
-          els.logicHint.textContent = "No active logic pack.";
-          return;
-        }
-        if(!confirm("Delete current logic pack?")) return;
-        state.logicPacks.splice(state.logicActiveIndex,1);
-        state.logicActiveIndex = null;
-        els.logicSerial.textContent = "none";
-        els.logicHint.textContent = "Deleted.";
-        document.body.classList.remove("theme-golden");
-        document.documentElement.style.setProperty("--accent-color", "#0ea5e9");
-        persistLogicState();
-      });
-
-      /* BM list & viewer with date filter */
-      function renderBMList(){
-        els.bmSelectList.innerHTML = "";
-        const q = (els.bmSearch.value||"").toLowerCase();
-        const d = (els.bmDate.value||"");
-        const list = state.bmPrompts.filter(b=>{
-          let ok = true;
-          if(q){
-            ok = (b.title||"").toLowerCase().includes(q) || (b.text||"").toLowerCase().includes(q);
-          }
-          if(ok && d){
-            const dStr = new Date(b.ts||Date.now()).toISOString().slice(0,10);
-            ok = (dStr === d);
-          }
-          return ok;
-        }).sort((a,b)=> (b.ts||0)-(a.ts||0));
-        if(!list.length){
-          const div = document.createElement("div");
-          div.style.fontSize = "12px";
-          div.style.opacity = "0.65";
-          div.textContent = "No BM prompts yet.";
-          els.bmSelectList.appendChild(div);
-          return;
-        }
-        list.forEach(bm=>{
-          const item = document.createElement("div");
-          item.className = "bmItem";
-          const left = document.createElement("div");
-          const title = document.createElement("div");
-          title.className = "bmItemTitle";
-          title.textContent = bm.title||"(untitled)";
           const meta = document.createElement("div");
           meta.className = "bmItemMeta";
-          const ds = new Date(bm.ts||Date.now()).toISOString().slice(0,10);
-          meta.textContent = ds + (bm.locked ? " · 🔒" : "");
-          left.appendChild(title);
-          left.appendChild(meta);
-          item.appendChild(left);
-          item.addEventListener("click",()=>selectBM(bm.id));
-          els.bmSelectList.appendChild(item);
+          const d = new Date(item.ts).toLocaleString();
+          meta.textContent = `${d} · Source: ${item.source||"story"}`;
+          main.appendChild(meta);
+
+          const badge = document.createElement("div");
+          badge.className = "bmItemBadge";
+          badge.textContent = item.locked?"Locked":"Ephemeral";
+
+          row.appendChild(main);
+          row.appendChild(badge);
+
+          row.addEventListener("click",()=>openBMViewer(item.id));
+          listEl.appendChild(row);
+        });
+      }
+      function openBMViewer(id){
+        const item = state.bmPrompts.find(x=>x.id===id);
+        if(!item) return;
+        els.bmViewerTitle.textContent = item.title||"(untitled memory)";
+        const d = new Date(item.ts).toLocaleString();
+        els.bmViewerMeta.textContent = `${d} · Source: ${item.source||"story"} · ${item.locked?"Locked":"Ephemeral"}`;
+        els.bmViewerBody.textContent = item.text||"";
+        els.bmViewer.dataset.id = id;
+        els.bmViewer.style.display = "block";
+      }
+      function toggleBMLock(){
+        const id = parseInt(els.bmViewer.dataset.id,10);
+        if(!id) return;
+        const item = state.bmPrompts.find(x=>x.id===id);
+        if(!item) return;
+        item.locked = !item.locked;
+        safeSaveJSON(KEY_BM,{nextId:state.nextBmId,items:state.bmPrompts});
+        renderBMList(els.bmSearch.value);
+        openBMViewer(id);
+        showToast(item.locked?"BM item locked":"BM item unlocked");
+      }
+      function deleteBM(){
+        const id = parseInt(els.bmViewer.dataset.id,10);
+        if(!id) return;
+        const item = state.bmPrompts.find(x=>x.id===id);
+        if(!item) return;
+        if(!confirm("Delete this BM snapshot? This cannot be undone.")) return;
+        state.bmPrompts = state.bmPrompts.filter(x=>x.id!==id);
+        safeSaveJSON(KEY_BM,{nextId:state.nextBmId,items:state.bmPrompts});
+        els.bmViewer.style.display="none";
+        renderBMList(els.bmSearch.value);
+        showToast("BM snapshot deleted");
+      }
+      if(els.bmLockToggle) els.bmLockToggle = document.getElementById("bmLockToggle");
+      if(els.bmDelete) els.bmDelete = document.getElementById("bmDelete");
+
+      if(els.bmLockToggle){
+        els.bmLockToggle.addEventListener("click",toggleBMLock);
+      }
+      if(els.bmDelete){
+        els.bmDelete.addEventListener("click",deleteBM);
+      }
+      if(els.bmSearch){
+        els.bmSearch.addEventListener("input",()=>{
+          renderBMList(els.bmSearch.value);
+        });
+      }
+      if(els.bmSearchToday){
+        els.bmSearchToday.addEventListener("click",()=>{
+          const today = new Date().toISOString().slice(0,10);
+          els.bmSearch.value = today;
+          renderBMList(today);
         });
       }
 
-      function selectBM(id){
-        const bm = state.bmPrompts.find(x=>x.id===id);
-        state.selectedBMId = id;
-        if(!bm){
-          els.bmViewer.style.display = "none";
-          return;
-        }
-        els.bmViewer.style.display = "block";
-        els.bmTitle.textContent = bm.title||"Prompt";
-        const ds = new Date(bm.ts||Date.now()).toLocaleString();
-        const live = bm.liveUntil && bm.liveUntil > Date.now();
-        els.bmMeta.textContent = ds + (bm.locked ? " · locked" : " · editable") + (live ? " · LIVE 12h" : "");
-        els.bmTextArea.value = bm.text||"";
-        els.bmTextArea.readOnly = true;
-        els.bmLockIcon.textContent = bm.locked ? "🔒" : "🔓";
-        els.btnUnlockBM.style.display = bm.locked ? "inline-flex" : "none";
-        els.btnLiveBM.textContent = live ? "Live 12h: on" : "Live 12h: off";
-      }
-
-      els.bmSearch.addEventListener("input", renderBMList);
-      els.bmDate.addEventListener("change", ()=>{
-        renderBMList();
-        // اگر اس date پر کوئی BM ہو تو پہلا والا خود بخود open ہو جائے
-        const d = els.bmDate.value;
-        if(d){
-          const found = state.bmPrompts.find(b=>{
-            const ds = new Date(b.ts||Date.now()).toISOString().slice(0,10);
-            return ds === d;
-          });
-          if(found) selectBM(found.id);
-        }
-      });
-
-      els.btnLiveBM.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        const now = Date.now();
-        if(bm.liveUntil && bm.liveUntil > now){
-          bm.liveUntil = null;
-        } else {
-          bm.liveUntil = now + 12*60*60*1000;
-        }
-        saveBM();
-        renderBMList();
-        selectBM(bm.id);
-      });
-
-      els.btnUnlockBM.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        if(!confirm("Unlock this BM prompt for editing?")) return;
-        bm.locked = false;
-        saveBM();
-        renderBMList();
-        selectBM(bm.id);
-      });
-
-      els.btnCopyPrompt.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        navigator.clipboard?.writeText(bm.text||"");
-        showToast("BM prompt copied");
-      });
-
-      els.btnAutoGen.addEventListener("click",()=>{
-        showToast("Video generation is a placeholder in this offline prototype.");
-      });
-
-      els.btnDeletePrompt.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        if(!confirm("Delete this BM prompt?")) return;
-        if(!confirm("Are you sure? This cannot be undone.")) return;
-        state.bmPrompts = state.bmPrompts.filter(x=>x.id!==bm.id);
-        state.selectedBMId = null;
-        saveBM();
-        recomputeBMMetric();
-        recomputeE0(0,0);
-        updateCapsule();
-        renderBMList();
-        els.bmViewer.style.display = "none";
-        showToast("BM prompt deleted");
-      });
-
-      /* Identity */
-      function loadIdentityIntoForm(){
-        const u = state.userIdentity || {};
-        els.uName.value = u.name || "";
-        els.uNick.value = u.nick || "";
-        els.uOrigin.value = u.origin || "";
-        els.uPlace.value = u.place || "";
-        els.uProfession.value = u.profession || "";
-        els.uEmotionalStyle.value = u.emotionalStyle || "";
-        els.uKeyPeople.value = u.keyPeople || "";
-        els.uLegacyRules.value = u.legacyRules || "";
-      }
-
-      els.btnEditIdentity.addEventListener("click",()=>{
-        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
-         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.removeAttribute("readonly"));
-        showToast("Identity fields unlocked for edit");
-      });
-
-      els.btnSaveUserIdentity.addEventListener("click",()=>{
-        state.userIdentity = {
-          name: els.uName.value.trim(),
-          nick: els.uNick.value.trim(),
-          origin: els.uOrigin.value.trim(),
-          place: els.uPlace.value.trim(),
-          profession: els.uProfession.value.trim(),
-          emotionalStyle: els.uEmotionalStyle.value.trim(),
-          keyPeople: els.uKeyPeople.value.trim(),
-          legacyRules: els.uLegacyRules.value.trim(),
-          ts: Date.now()
-        };
-        saveUserIdentity();
-        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
-         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.setAttribute("readonly","readonly"));
-        showToast("Identity saved locally");
-      });
-
-      els.btnDeleteUserIdentity.addEventListener("click",()=>{
-        if(!confirm("Delete stored identity data?")) return;
-        if(!confirm("Are you sure?")) return;
-        state.userIdentity = null;
-        localStorage.removeItem(KEY_USER);
-        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
-         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.value="");
-        showToast("Identity deleted");
-      });
-
-      /* LLM */
-      els.btnSaveLLM.addEventListener("click",()=>{
-        state.apiConfig = {
-          endpoint: els.apiEndpoint.value.trim(),
-          model: els.apiModel.value.trim(),
-          key: els.apiKey.value.trim()
-        };
-        saveCfg();
-        showToast("LLM config saved");
-      });
-
-      async function loadOfflineModel(){
-        if(!window.webllm){
-          els.offlineStatus.textContent = "WebLLM not available.";
-          return;
-        }
-        if(state.offlineReady || state.offlineLoading) return;
-        try{
-          state.offlineLoading = true;
-          els.offlineStatus.textContent = "loading…";
-          els.offlineBar.style.width = "25%";
-          const engine = await window.webllm.CreateMLCEngine(OFFLINE_MODEL_ID, {
-            initProgressCallback: (p)=>{
-              const pct = Math.round((p.progress||0)*100);
-              els.offlineBar.style.width = pct+"%";
-            }
-          });
-          state.offlineEngine = engine;
-          state.offlineReady = true;
-          state.offlineLoading = false;
-          els.offlineStatus.textContent = "ready";
-          els.offlineBar.style.width = "100%";
-          saveCfg();
-          showToast("Offline model ready");
-        }catch(e){
-          state.offlineLoading = false;
-          els.offlineStatus.textContent = "error";
-          showToast("Offline model error");
-        }
-      }
-
-      els.btnLoadOffline.addEventListener("click", loadOfflineModel);
-
-      async function callOfflineLLM(prompt){
-        if(!state.offlineReady || !state.offlineEngine) return null;
-        try{
-          const reply = await state.offlineEngine.chatCompletion({
-            messages:[{role:"user",content:prompt}],
-            stream:false
-          });
-          const text = reply?.choices?.[0]?.message?.content || "";
-          return text.trim() || null;
-        }catch{
-          return null;
-        }
-      }
-
-      async function callOnlineLLM(prompt){
-        const {endpoint,model,key} = state.apiConfig;
-        if(!endpoint || !model || !key) return null;
-        try{
-          const resp = await fetch(endpoint,{
-            method:"POST",
-            headers:{
-              "Content-Type":"application/json",
-              "Authorization":"Bearer "+key
-            },
-            body:JSON.stringify({
-              model,
-              messages:[{role:"user",content:prompt}],
-              temperature:0.7
-            })
-          });
-          if(!resp.ok) return null;
-          const data = await resp.json();
-          const text = data.choices?.[0]?.message?.content || "";
-          return text.trim() || null;
-        }catch{
-          return null;
-        }
-      }
-
-      /* Options */
-      els.btnOptions.addEventListener("click",()=>{
-        els.optionsMenu.classList.toggle("show");
-      });
-
-      els.miVoice.addEventListener("click",()=>{
-        state.voiceOn = !state.voiceOn;
-        els.voicePill.textContent = state.voiceOn ? "on" : "off";
-        els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
-        saveCfg();
-      });
-
-      els.miLearn.addEventListener("click",()=>{
-        state.learningOn = !state.learningOn;
-        els.learnPill.textContent = state.learningOn ? "on" : "off";
-        els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
-        saveCfg();
-      });
-
-      els.miFaith.addEventListener("click",()=>openModal(els.modalFaith));
-      els.miIntel.addEventListener("click",()=>openModal(els.modalIntel));
-      els.miSeed.addEventListener("click",()=>openModal(els.modalSeed));
-      els.miLLM.addEventListener("click",()=>openModal(els.modalLLM));
-      els.miBMRecall.addEventListener("click",()=>openModal(els.modalBM));
-      els.miHistory.addEventListener("click",()=>{renderHistory();openModal(els.modalHistory);});
-      els.miIdentity.addEventListener("click",()=>{loadIdentityIntoForm();openModal(els.modalIdentity);});
-
-      /* History buttons */
-      els.btnDeleteRecent.addEventListener("click",()=>{
-        const cutoff = Date.now() - 48*60*60*1000;
-        state.history = state.history.filter(h=>h.locked || h.ts < cutoff);
-        saveHistory();
-        renderHistory();
-      });
-      els.btnDeleteAllHist.addEventListener("click",()=>{
-        if(!confirm("Delete all history (except locked)?")) return;
-        state.history = state.history.filter(h=>h.locked);
-        saveHistory();
-        renderHistory();
-      });
-      els.btnCopyHistory.addEventListener("click",()=>{
-        const text = state.history.map(h=>{
-          const dt = new Date(h.ts).toLocaleString();
-          const label = h.role==="user" ? "You" : (h.role==="aura" ? "AURA" : h.role);
-          return `[${dt}] ${label}: ${h.text}`;
-        }).join("\n");
-        navigator.clipboard?.writeText(text);
-        showToast("History copied");
-      });
-
-      /* Main chat + self-learning pipeline */
-      async function handleSend(){
-        const raw = els.userInput.value;
-        const text = raw.trim();
+      function sendUserMessage(){
+        const text = (els.userInput.value||"").trim();
         if(!text) return;
-
         els.userInput.value = "";
-        els.optionsMenu.classList.remove("show");
+        state.tmChars += text.length;
+        logLine("me",text);
 
-        // "incorrect" flow
-        if(state.correcting){
-          const correctA = text;
-          if(state.lastUserQ && correctA){
-            const id = "intel_"+Date.now();
-            state.intelligence.push({
-              id,
-              q: state.lastUserQ,
-              a: correctA,
-              ts: Date.now()
-            });
-            saveIntelligence();
-            renderIntelligence(els.intelSearch.value);
-            logLine("sys","[Self-learning] Stored corrected answer into intelligence.");
-            showToast("Correct answer stored");
-          }
-          state.correcting = false;
-          return;
-        }
-
-        // normal user entry
-        logLine("user","You: "+text);
-
-        // abuse / cooldown hooks from logic packs (simple)
-        const now = Date.now();
-        if(state.cooldownUntil && now < state.cooldownUntil){
-          logLine("sys","[Cooldown] Please wait a moment before sending more messages.");
-          return;
-        }
-
-        state.metrics.TM = scoreTM(text);
-        recomputeBMMetric();
-        let intelBoost = 0, llmBoost = 0;
-        let answer = null;
-        let source = "none";
-
-        // 1) check intelligence first (exact / contains)
-        const tLower = text.toLowerCase();
-        let bestMatch = state.intelligence.find(p=>p.q.toLowerCase()===tLower);
-        if(!bestMatch){
-          bestMatch = state.intelligence.find(p=>tLower.includes(p.q.toLowerCase()) || p.q.toLowerCase().includes(tLower));
-        }
-        if(bestMatch){
-          answer = bestMatch.a;
-          source = "intelligence";
-          intelBoost = 0.35;
-        }
-
-        // 2) then seed
-        if(!answer && state.seedPairs.length){
-          let sMatch = state.seedPairs.find(p=>p.q.toLowerCase()===tLower);
-          if(!sMatch){
-            sMatch = state.seedPairs.find(p=>tLower.includes(p.q.toLowerCase()) || p.q.toLowerCase().includes(tLower));
-          }
-          if(sMatch){
-            answer = sMatch.a;
-            source = "seed";
-            intelBoost = 0.25;
-          }
-        }
-
-        // 3) then offline LLM
-        if(!answer && state.offlineReady){
-          answer = await callOfflineLLM(text);
-          if(answer){
-            source = "offline";
-            llmBoost = 0.25;
-          }
-        }
-
-        // 4) last fallback: online
-        if(!answer){
-          answer = await callOnlineLLM(text);
-          if(answer){
-            source = "online";
-            llmBoost = 0.30;
-          }
-        }
-
-        // fallback static reply
-        if(!answer){
-          answer = "I don't have a stored answer yet. You can teach me using the 👎 button or by adding LaTeX blocks under Feed the seed.";
-          source = "fallback";
-        }
-
-        state.lastUserQ = text;
-        state.lastAuraA = answer;
-        state.lastAnswerSource = source;
-
-        recomputeE0(intelBoost, llmBoost);
+        createBmFromStory(text,"story");
+        logLine("sys","[Local seed] (placeholder) AURA-X Ω processed your input while staying offline.");
+        state.lastAnswerSource = "seed";
         updateCapsule();
-
-        logLine("aura","AURA: "+answer+"  (source: "+source+")");
-
-        if(state.voiceOn){
-          try{
-            const u = new SpeechSynthesisUtterance(answer);
-            speechSynthesis.speak(u);
-          }catch{}
-        }
-
-        maybeShowFaithBubble();
       }
 
-      els.sendBtn.addEventListener("click",handleSend);
-      els.userInput.addEventListener("keydown",e=>{
-        if(e.key==="Enter" && !e.shiftKey){
-          e.preventDefault();
-          handleSend();
-        }
-      });
-
-      /* "incorrect" keyword flow */
-      // اگر user chat میں "incorrect" لکھے تو اگلا جواب correction mode ہوگا
-      function interceptIncorrect(text){
-        return text.trim().toLowerCase()==="incorrect";
+      if(els.btnSend){
+        els.btnSend.addEventListener("click",sendUserMessage);
       }
-
-      const origHandleSend = handleSend;
-      // override input listener for incorrect keyword
-      els.userInput.addEventListener("keydown",e=>{
-        if(e.key==="Enter" && !e.shiftKey){
-          const val = els.userInput.value.trim();
-          if(interceptIncorrect(val) && state.lastUserQ && state.lastAuraA){
+      if(els.userInput){
+        els.userInput.addEventListener("keydown",e=>{
+          if(e.key==="Enter" && !e.shiftKey){
             e.preventDefault();
-            els.userInput.value = "";
-            logLine("user","You: incorrect");
-            logLine("sys","[Self-learning] Please type the correct answer for the last question.");
-            state.correcting = true;
+            sendUserMessage();
+          }
+        });
+      }
+
+      if(els.btnLike){
+        els.btnLike.addEventListener("click",()=>{
+          showToast("<strong>Marked</strong> last answer correct (will reinforce local intelligence later).");
+        });
+      }
+      if(els.btnDislike){
+        els.btnDislike.addEventListener("click",()=>{
+          showToast("<strong>Marked</strong> last answer incorrect (future builds will ask for the right one).");
+        });
+      }
+      if(els.btnCopyLast){
+        els.btnCopyLast.addEventListener("click",()=>{
+          const last = state.history.slice().reverse().find(l=>l.speaker!=="me");
+          if(!last){
+            showToast("No answer to copy yet.");
             return;
           }
-        }
+          navigator.clipboard.writeText(last.text||"").then(()=>{
+            showToast("Answer copied to clipboard.");
+          }).catch(()=>{
+            showToast("Could not copy. Clipboard blocked by browser.");
+          });
+        });
+      }
+      if(els.btnHistoryOpen){
+        els.btnHistoryOpen.addEventListener("click",()=>{
+          if(!els.modalHistory) return;
+          els.modalHistory.style.display="flex";
+        });
+      }
+
+      document.querySelectorAll(".pillButton[data-modal]").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const id = btn.getAttribute("data-modal");
+          const modal = document.getElementById(id);
+          if(modal) modal.style.display = "flex";
+        });
       });
 
-      /* Reaction buttons */
-      els.btnLikeLast.addEventListener("click",()=>{
-        if(!state.lastUserQ || !state.lastAuraA){
-          showToast("No last answer to save");
-          return;
-        }
-        const already = state.intelligence.find(p=>p.q===state.lastUserQ && p.a===state.lastAuraA);
-        if(already){
-          showToast("Already in intelligence");
-          return;
-        }
-        const id = "intel_"+Date.now();
-        state.intelligence.push({id,q:state.lastUserQ,a:state.lastAuraA,ts:Date.now()});
-        saveIntelligence();
-        renderIntelligence(els.intelSearch.value);
-        showToast("Saved to intelligence");
+      document.querySelectorAll(".modalClose").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const id = btn.getAttribute("data-close");
+          const modal = document.getElementById(id);
+          if(modal) modal.style.display="none";
+        });
       });
 
-      els.btnDislikeLast.addEventListener("click",()=>{
-        if(!state.lastUserQ || !state.lastAuraA){
-          showToast("No last answer");
-          return;
-        }
-        logLine("sys","[Self-learning] Type the correct answer in chat. It will replace the last one.");
-        state.correcting = true;
+      document.querySelectorAll(".modalOverlay").forEach(overlay=>{
+        overlay.addEventListener("click",e=>{
+          if(e.target===overlay){
+            overlay.style.display="none";
+          }
+        });
       });
 
-      els.btnSpeakLast.addEventListener("click",()=>{
-        if(!state.lastAuraA){
-          showToast("No last answer");
-          return;
-        }
-        try{
-          const u = new SpeechSynthesisUtterance(state.lastAuraA);
-          speechSynthesis.speak(u);
-        }catch{}
-      });
+      if(els.btnOptions){
+        els.btnOptions.addEventListener("click",()=>{
+          if(!els.modalConfig) return;
+          els.modalConfig.style.display = "flex";
+        });
+      }
 
-      els.btnShareLast.addEventListener("click",()=>{
-        if(!state.lastUserQ || !state.lastAuraA){
-          showToast("No last pair");
-          return;
-        }
-        const text = `Q: ${state.lastUserQ}\nA: ${state.lastAuraA}`;
-        navigator.clipboard?.writeText(text);
-        showToast("Question + answer copied");
-      });
-
-      /* Load from localStorage on start */
       function initFromStorage(){
+        const bmData = safeLoadJSON(KEY_BM,null);
+        if(bmData && Array.isArray(bmData.items)){
+          state.bmPrompts = bmData.items;
+          state.nextBmId  = bmData.nextId|| (bmData.items.length+1);
+        }
+        const histData = safeLoadJSON(KEY_HIST,null);
+        if(histData && Array.isArray(histData.lines)){
+          state.history = histData.lines;
+        }
         const cfg = safeLoadJSON(KEY_CFG,null);
-        if(cfg){
-          state.voiceOn = !!cfg.voiceOn;
-          state.learningOn = cfg.learningOn!==false;
-          state.faithSelection = cfg.faithSelection||[];
-          state.apiConfig = cfg.apiConfig||state.apiConfig;
-          state.offlineReady = !!cfg.offlineReady;
+        if(cfg && typeof cfg.tmChars==="number"){
+          state.tmChars = cfg.tmChars;
         }
-        els.voicePill.textContent = state.voiceOn ? "on" : "off";
-        els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
-        els.learnPill.textContent = state.learningOn ? "on" : "off";
-        els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
-        els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
-
-        state.intelligence = safeLoadJSON(KEY_INT,[]);
-        state.bmPrompts = safeLoadJSON(KEY_BM,[]);
-        state.history = safeLoadJSON(KEY_HIST,[]);
-        state.userIdentity = safeLoadJSON(KEY_USER,null);
-
-        const logicStored = safeLoadJSON(KEY_LOGIC,null);
-        if(logicStored){
-          state.logicPacks = logicStored.list||[];
-          state.logicActiveIndex = logicStored.activeIndex;
-          if(state.logicActiveIndex!=null) applyLogicPack(state.logicActiveIndex);
-        }
-
-        if(state.apiConfig.endpoint) els.apiEndpoint.value = state.apiConfig.endpoint;
-        if(state.apiConfig.model) els.apiModel.value = state.apiConfig.model;
-        if(state.apiConfig.key) els.apiKey.value = state.apiConfig.key;
-
-        renderFaithChips();
-        renderIntelligence("");
-        renderBMList();
         renderHistory();
-        loadIdentityIntoForm();
-        recomputeBMMetric();
-        recomputeE0(0,0);
+        renderBMList();
         updateCapsule();
       }
 
       initFromStorage();
 
+      applySavedDreamDelay();
+      if (els.dreamDelaySelect) {
+        els.dreamDelaySelect.addEventListener("change", saveDreamDelayFromUI);
+      }
+
+      document.addEventListener("click", registerActivity, { passive: true });
+      document.addEventListener("keydown", registerActivity);
+      document.addEventListener("touchstart", registerActivity, { passive: true });
+
+      if (els.dreamOverlay) {
+        els.dreamOverlay.addEventListener("click", registerActivity);
+      }
+
+      registerActivity();
+
       logLine("sys","AURA-X Ω ready. TM = your inputs only; everything else stays on this device.");
     });
   </script>
+
+  <!-- Dream Mode visual overlay -->
+  <div id="dreamOverlay">
+    <div class="dream-inner">
+      <div class="dream-title">AURA-X Ω – Dream Mode</div>
+      <div class="dream-snippet" id="dreamSnippet">
+        (sleeping… processing memories…)
+      </div>
+      <div class="dream-hint">Tap or click to wake up</div>
+    </div>
+  </div>
+
 </body>
 </html>
