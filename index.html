@@ -120,6 +120,9 @@
       white-space:pre-wrap;
     }
     .line{display:block;margin:2px 0}
+    .line.user{color:#a5b4fc;}
+    .line.aura{color:#bbf7d0;}
+    .line.sys{color:#fbbf24;font-size:12px;}
     .optionsMenu{
       position:fixed;
       left:12px;
@@ -209,6 +212,29 @@
       border:1px solid rgba(148,163,184,.14);
       background:rgba(2,6,23,.45);
     }
+    /* reaction bar now above metrics & left-aligned */
+    .reactionBar{
+      margin-top:0;
+      margin-bottom:6px;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:10px;
+      font-size:18px;
+      opacity:.9;
+    }
+    .reactBtn{
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      padding:4px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .reactBtn:active{transform:scale(.9)}
     .liveCapsule{
       margin:4px 0 10px;
       width:100%;
@@ -306,28 +332,28 @@
       color:#dbeafe;
     }
 
-    /* NEW: reaction bar for last answer (copy / like / dislike / voice / share) */
-    .reactionBar{
-      margin-top:8px;
-      display:flex;
-      align-items:center;
-      justify-content:flex-end;
-      gap:10px;
-      font-size:18px;
-      opacity:.9;
+    /* Toast bubble for copy / like etc */
+    .toastBubble{
+      position:fixed;
+      bottom:18px;
+      left:50%;
+      transform:translate(-50%,10px);
+      padding:6px 14px;
+      border-radius:999px;
+      background:rgba(15,23,42,.95);
+      color:#e5e7eb;
+      font-size:12px;
+      border:1px solid rgba(148,163,184,.4);
+      box-shadow:0 12px 30px rgba(0,0,0,.5);
+      opacity:0;
+      pointer-events:none;
+      z-index:10000;
+      transition:opacity .18s ease, transform .18s ease;
     }
-    .reactBtn{
-      border:none;
-      background:transparent;
-      cursor:pointer;
-      padding:4px;
-      line-height:1;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      -webkit-tap-highlight-color:transparent;
+    .toastBubble.show{
+      opacity:1;
+      transform:translate(-50%,0);
     }
-    .reactBtn:active{transform:scale(.9)}
 
     .modalOverlay{
       position:fixed;
@@ -600,12 +626,22 @@
         <!-- RIGHT -->
         <div class="rightCol">
           <div class="chatWrap">
+            <!-- reaction buttons above metrics, left-aligned -->
+            <div class="reactionBar" id="reactionBar">
+              <button class="reactBtn" id="btnCopyLast" title="Copy last answer">📄</button>
+              <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence (like)">👍</button>
+              <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
+              <button class="reactBtn" id="btnSpeakLast" title="Play voice for last answer">🔊</button>
+              <button class="reactBtn" id="btnShareLast" title="Copy question + answer">🔗</button>
+            </div>
+
             <div class="liveCapsule">
               <span><b>E0</b>: <span id="cE0">0.000</span></span><span>·</span>
               <span><b>TM</b>: <span id="cTM">0.00</span></span><span>·</span>
               <span><b>BM</b>: <span id="cBM">0.00</span></span><span>·</span>
               <span><b>C</b>: <span id="cCont">0.850</span></span>
             </div>
+
             <div class="faithBubble" id="faithBubble">
               <div class="fbIcon">💭</div>
               <div class="fbText">
@@ -621,19 +657,14 @@
             <div class="formula">
               E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
             </div>
-            <!-- NEW: reaction bar for last answer -->
-            <div class="reactionBar" id="reactionBar">
-              <!-- left copy button removed -->
-              <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence (like)">👍</button>
-              <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
-              <button class="reactBtn" id="btnSpeakLast" title="Play voice for last answer">🔊</button>
-              <button class="reactBtn" id="btnShareLast" title="Copy question + answer">🔗</button>
-            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Toast bubble -->
+  <div class="toastBubble" id="toastBubble"></div>
 
   <!-- Faith selection -->
   <div class="modalOverlay" id="modalFaith">
@@ -684,14 +715,7 @@
         <input id="intelSearch"
           style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none"
           placeholder="Search intelligence..." />
-        <div id="intelEditor" style="margin-top:10px;display:none;">
-          <input id="intelEditQ" class="intelEditInput" placeholder="Question" />
-          <textarea id="intelEditA" class="intelEditArea" placeholder="Answer"></textarea>
-          <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-            <button class="btn btnBlue" id="btnIntelSave">Save</button>
-            <button class="btn btnRed" id="btnIntelCancel">Cancel</button>
-          </div>
-        </div>
+        <!-- inline editor per-card; central editor نہیں use ہو رہا -->
         <div id="intelList" style="margin-top:10px;"></div>
       </div>
     </div>
@@ -805,7 +829,7 @@
   <div class="modalOverlay" id="modalBM">
     <div class="modal">
       <div class="modalHeader">
-        <div>📘 Recall from BM<br><small>Long stories / scenes only.</small></div>
+        <div>📘 Recall from BM<br><small>Only long stories and scenes (photo/video-ready).</small></div>
         <button class="closeX" data-close="modalBM">×</button>
       </div>
       <div class="modalBody">
@@ -813,8 +837,11 @@
           Select a BM prompt. Locked prompts must be unlocked first. Delete needs double confirmation.
         </div>
         <input id="bmSearch"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:8px 0 6px;outline:none;background:#fff;"
-          placeholder="Search BM by text or date (YYYY-MM-DD)..." />
+          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:8px 0 4px;outline:none;background:#fff;"
+          placeholder="Search BM by text..." />
+        <!-- calendar search by date -->
+        <input id="bmDate" type="date"
+          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:0 0 6px;outline:none;background:#fff;" />
         <div id="bmSelectList"></div>
         <div class="bmCard" id="bmViewer" style="display:none;">
           <div class="bmTop">
@@ -830,7 +857,7 @@
           <textarea class="bmText" id="bmTextArea" readonly></textarea>
           <div class="bmActions">
             <button class="btn btnBlue" id="btnCopyPrompt">Copy prompt</button>
-            <button class="btn btnBlue" id="btnAutoGen">Auto generate</button>
+            <button class="btn btnBlue" id="btnAutoGen">Generate video</button>
             <button class="btn btnRed" id="btnDeletePrompt">Delete</button>
           </div>
         </div>
@@ -970,11 +997,6 @@
         modalIntel: document.getElementById("modalIntel"),
         intelSearch: document.getElementById("intelSearch"),
         intelList: document.getElementById("intelList"),
-        intelEditor: document.getElementById("intelEditor"),
-        intelEditQ: document.getElementById("intelEditQ"),
-        intelEditA: document.getElementById("intelEditA"),
-        btnIntelSave: document.getElementById("btnIntelSave"),
-        btnIntelCancel: document.getElementById("btnIntelCancel"),
         modalSeed: document.getElementById("modalSeed"),
         seedBox: document.getElementById("seedBox"),
         seedHint: document.getElementById("seedHint"),
@@ -998,6 +1020,7 @@
         btnSaveLLM: document.getElementById("btnSaveLLM"),
         modalBM: document.getElementById("modalBM"),
         bmSearch: document.getElementById("bmSearch"),
+        bmDate: document.getElementById("bmDate"),
         bmSelectList: document.getElementById("bmSelectList"),
         bmViewer: document.getElementById("bmViewer"),
         bmLockIcon: document.getElementById("bmLockIcon"),
@@ -1026,12 +1049,13 @@
         uEmotionalStyle: document.getElementById("uEmotionalStyle"),
         uKeyPeople: document.getElementById("uKeyPeople"),
         uLegacyRules: document.getElementById("uLegacyRules"),
-        /* NEW reaction buttons */
-        btnCopyLast: document.getElementById("btnCopyLast"), // now null (button removed)
+        /* reaction buttons */
+        btnCopyLast: document.getElementById("btnCopyLast"),
         btnLikeLast: document.getElementById("btnLikeLast"),
         btnDislikeLast: document.getElementById("btnDislikeLast"),
         btnSpeakLast: document.getElementById("btnSpeakLast"),
-        btnShareLast: document.getElementById("btnShareLast")
+        btnShareLast: document.getElementById("btnShareLast"),
+        toastBubble: document.getElementById("toastBubble")
       };
 
       const FAITH_OPTIONS = [
@@ -1088,7 +1112,8 @@
         abuseCount: 0,
         cooldownUntil: 0,
         mode: "adult",
-        logicFaithSoftener: true
+        logicFaithSoftener: true,
+        toastTimer: null
       };
 
       function safeLoadJSON(key, fallback){
@@ -1097,13 +1122,24 @@
           return raw ? JSON.parse(raw) : fallback;
         }catch{ return fallback; }
       }
-      function logLine(text){
+
+      /* logLine with role + old single-arg compatibility */
+      function logLine(arg1,arg2){
+        let role = "";
+        let text;
+        if (typeof arg2 === "undefined"){
+          text = arg1;
+        } else {
+          role = arg1 || "";
+          text = arg2;
+        }
         const div = document.createElement("div");
-        div.className = "line";
+        div.className = "line" + (role ? " " + role : "");
         div.textContent = text;
         els.console.appendChild(div);
         els.console.scrollTop = els.console.scrollHeight;
       }
+
       function scoreTM(t){
         const len = Math.min((t||"").length,600);
         return Number(Math.tanh(len/200).toFixed(2));
@@ -1129,6 +1165,16 @@
         els.cBM.textContent = state.metrics.BM.toFixed(2);
         els.cCont.textContent = state.metrics.C.toFixed(3);
         els.cE0.textContent = state.metrics.E0.toFixed(3);
+      }
+
+      function showToast(msg){
+        if(!els.toastBubble) return;
+        els.toastBubble.textContent = msg;
+        els.toastBubble.classList.add("show");
+        if(state.toastTimer) clearTimeout(state.toastTimer);
+        state.toastTimer = setTimeout(()=>{
+          els.toastBubble.classList.remove("show");
+        },1600);
       }
 
       function saveCfg(){
@@ -1170,7 +1216,7 @@
           const row = document.createElement("div");
           row.className = "historyLine";
           const dt = new Date(h.ts).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
-          const label = h.role==="user" ? "user" : (h.role==="aura" ? "ai" : h.role);
+          const label = h.role==="user" ? "You" : (h.role==="aura" ? "AURA" : h.role);
           const txt = document.createElement("div");
           txt.className = "historyText";
           txt.textContent = label + "\n" + h.text;
@@ -1248,25 +1294,27 @@
           els.bmViewer.style.display = "none";
           return;
         }
-        const q = els.bmSearch ? (els.bmSearch.value || "").trim().toLowerCase() : "";
+        const q = (els.bmSearch ? (els.bmSearch.value || "") : "").trim().toLowerCase();
+        const dateVal = els.bmDate ? (els.bmDate.value || "") : "";
         let list = state.bmPrompts.slice();
-        if(q){
-          const isDate = /^\d{4}-\d{2}-\d{2}$/.test(q);
-          if(isDate){
-            const parts = q.split("-").map(Number);
+
+        if(dateVal){
+          const parts = dateVal.split("-").map(Number);
+          if(parts.length===3){
             const start = new Date(parts[0], parts[1]-1, parts[2]).getTime();
             const end   = start + 24*60*60*1000;
             list = list.filter(bm=>{
               const t = bm.createdAt || bm.ts || 0;
               return t>=start && t<end;
             });
-          }else{
-            list = list.filter(bm=>{
-              const hay = ((bm.title||"") + " " + (bm.summary||"") + " " + (bm.text||"")).toLowerCase();
-              return hay.includes(q);
-            });
           }
+        }else if(q){
+          list = list.filter(bm=>{
+            const hay = ((bm.title||"") + " " + (bm.summary||"") + " " + (bm.text||"")).toLowerCase();
+            return hay.includes(q);
+          });
         }
+
         if(!list.length){
           els.bmSelectList.innerHTML =
             '<div style="margin-top:8px;font-size:12px;opacity:.6;">No BM prompts match this search.</div>';
@@ -1345,7 +1393,7 @@
           live:false,
           liveUntil:null,
           repeatCount:0,
-          keep:false
+          keep:true
         };
         state.bmPrompts.push(obj);
         state.lastStoryBMId = id;
@@ -1376,7 +1424,7 @@
         if (bm.repeatCount >= 3) bm.locked = true;
 
         bm.text = (bm.text||"")+
-          "\n\n[Update @ "+stamp+"]\nYou: "+userText+"\nAURA-X Ω: "+answer;
+          "\n\n[Update @ "+stamp+"]\nYou: "+userText+"\nAURA: "+answer;
         bm.summary = bm.text.slice(0,180);
         bm.ts=Date.now();
         saveBM();
@@ -1384,6 +1432,7 @@
         if(currentBMId===bm.id) openBM(bm.id);
       }
 
+      /* Intelligence list with inline editor */
       function renderIntelList(){
         els.intelList.innerHTML="";
         const q=(els.intelSearch.value||"").toLowerCase();
@@ -1399,46 +1448,111 @@
         items.forEach(it=>{
           const card=document.createElement("div");
           card.className="bmCard";
-          const qEl=document.createElement("div");
-          qEl.style.fontWeight="800";
-          qEl.textContent="Q: "+it.q;
-          const aEl=document.createElement("div");
-          aEl.style.marginTop="4px";
-          aEl.style.fontSize="13px";
-          aEl.textContent="A: "+it.a;
-          const meta=document.createElement("div");
-          meta.style.fontSize="11px";
-          meta.style.opacity=".7";
-          meta.style.marginTop="4px";
-          meta.textContent=it.meta||"";
-          const row=document.createElement("div");
-          row.style.display="flex";
-          row.style.gap="8px";
-          row.style.marginTop="8px";
-          const btnE=document.createElement("button");
-          btnE.className="btn btnBlue";
-          btnE.textContent="Edit";
-          btnE.addEventListener("click",()=>openIntelEditor(it));
-          const btnD=document.createElement("button");
-          btnD.className="btn btnRed";
-          btnD.textContent="Delete";
-          btnD.addEventListener("click",()=>deleteIntel(it.id));
-          row.appendChild(btnE);row.appendChild(btnD);
-          card.appendChild(qEl);card.appendChild(aEl);card.appendChild(meta);card.appendChild(row);
+          card.dataset.intelId = it.id;
+
+          const isEditing = state.editingIntelId === it.id;
+
+          if(!isEditing){
+            const qEl=document.createElement("div");
+            qEl.style.fontWeight="800";
+            qEl.textContent="Q: "+it.q;
+
+            const aEl=document.createElement("div");
+            aEl.style.marginTop="4px";
+            aEl.style.fontSize="13px";
+            aEl.textContent="A: "+it.a;
+
+            const meta=document.createElement("div");
+            meta.style.fontSize="11px";
+            meta.style.opacity=".7";
+            meta.style.marginTop="4px";
+            meta.textContent=it.meta||"";
+
+            const row=document.createElement("div");
+            row.style.display="flex";
+            row.style.gap="8px";
+            row.style.marginTop="8px";
+
+            const btnE=document.createElement("button");
+            btnE.className="btn btnBlue";
+            btnE.textContent="Edit";
+            btnE.addEventListener("click",()=>openIntelEditor(it));
+
+            const btnD=document.createElement("button");
+            btnD.className="btn btnRed";
+            btnD.textContent="Delete";
+            btnD.addEventListener("click",()=>deleteIntel(it.id));
+
+            row.appendChild(btnE);
+            row.appendChild(btnD);
+
+            card.appendChild(qEl);
+            card.appendChild(aEl);
+            card.appendChild(meta);
+            card.appendChild(row);
+          }else{
+            const label=document.createElement("div");
+            label.style.fontWeight="800";
+            label.textContent="Edit Q → A";
+
+            const inputQ=document.createElement("input");
+            inputQ.className="intelEditInput";
+            inputQ.value=it.q;
+
+            const textareaA=document.createElement("textarea");
+            textareaA.className="intelEditArea";
+            textareaA.value=it.a;
+
+            const row=document.createElement("div");
+            row.style.display="flex";
+            row.style.gap="8px";
+            row.style.marginTop="8px";
+            row.style.flexWrap="wrap";
+            row.style.justifyContent="flex-end";
+
+            const btnSave=document.createElement("button");
+            btnSave.className="btn btnBlue";
+            btnSave.textContent="Save";
+            btnSave.addEventListener("click",()=>{
+              const newQ=(inputQ.value||"").trim();
+              const newA=(textareaA.value||"").trim();
+              if(!newQ||!newA){
+                alert("Question aur Answer dono required hain.");
+                return;
+              }
+              it.q=newQ;
+              it.a=newA;
+              saveIntelligence();
+              closeIntelEditor();
+            });
+
+            const btnCancel=document.createElement("button");
+            btnCancel.className="btn btnRed";
+            btnCancel.textContent="Cancel";
+            btnCancel.addEventListener("click",()=>closeIntelEditor());
+
+            row.appendChild(btnSave);
+            row.appendChild(btnCancel);
+
+            card.appendChild(label);
+            card.appendChild(inputQ);
+            card.appendChild(textareaA);
+            card.appendChild(row);
+          }
+
           els.intelList.appendChild(card);
         });
       }
 
       function openIntelEditor(it){
-        state.editingIntelId=it.id;
-        els.intelEditQ.value=it.q;
-        els.intelEditA.value=it.a;
-        els.intelEditor.style.display="block";
+        state.editingIntelId = it.id;
+        renderIntelList();
+        const card = document.querySelector('[data-intel-id="'+it.id+'"]');
+        if(card) card.scrollIntoView({behavior:"smooth",block:"center"});
       }
       function closeIntelEditor(){
-        state.editingIntelId=null;
-        els.intelEditQ.value="";els.intelEditA.value="";
-        els.intelEditor.style.display="none";
+        state.editingIntelId = null;
+        renderIntelList();
       }
       function deleteIntel(id){
         if(!confirm("Delete this intelligence pair?")) return;
@@ -1515,7 +1629,7 @@
           const msg=reply && reply.choices && reply.choices[0] && reply.choices[0].message && reply.choices[0].message.content;
           return msg?msg.trim():null;
         }catch(e){
-          logLine("[offline LLM error] "+e.message);return null;
+          logLine("sys","[offline LLM error] "+e.message);return null;
         }
       }
       async function initOfflineEngine(){
@@ -1544,7 +1658,7 @@
           els.offlineStatus.textContent="error";
           els.offlineBar.style.width="0%";
           state.offlineLoading=false;
-          logLine("[offline LLM] Failed to load model.");
+          logLine("sys","[offline LLM] Failed to load model.");
         }
       }
       async function callOnlineLLM(text){
@@ -1570,7 +1684,7 @@
           const msg=data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
           return msg?msg.trim():null;
         }catch(e){
-          logLine("[online LLM error] "+e.message);
+          logLine("sys","[online LLM error] "+e.message);
           return null;
         }
       }
@@ -1691,6 +1805,50 @@
         return {hit:hitBasic||hitHate||hitViolence,hate:hitHate,violence:hitViolence};
       }
 
+      /* Story detector for BM (no small talk) */
+      function looksLikeStory(text){
+        const t = (text||"").trim();
+        if(!t) return false;
+        const len = t.length;
+        const sentences = t.split(/[\.!\?؟\n]+/).filter(s=>s.trim().length>0).length;
+        const storyWords = ["story","kahani","qissa","dastan","episode","scene","dream","khwab","accident","jail","hospital"];
+        const lower = t.toLowerCase();
+        const hasStoryWord = storyWords.some(w=>lower.includes(w));
+        if(len>500 && sentences>=3) return true;
+        if(sentences>=4) return true;
+        if(len>350 && hasStoryWord) return true;
+        return false;
+      }
+      function maybeCreateBMStory(text){
+        if(!looksLikeStory(text)){
+          state.lastStoryInput=null;
+          state.lastStoryBMId=null;
+          return;
+        }
+        const now = Date.now();
+        const id = "bm_"+now;
+        const obj = {
+          id,
+          title:"Story @ "+new Date(now).toLocaleString(),
+          summary: text.slice(0,180),
+          text,
+          locked:true,
+          ts:now,
+          createdAt:now,
+          live:false,
+          liveUntil:null,
+          repeatCount:0,
+          keep:true
+        };
+        state.bmPrompts.push(obj);
+        state.lastStoryInput = text;
+        state.lastStoryBMId = id;
+        saveBM();
+        renderBMList();
+        recomputeBMMetric();
+        updateCapsule();
+      }
+
       async function generateAnswer(text){
         let intelBoost=0, llmBoost=0;
         const best=findBestIntelMatch(text);
@@ -1734,9 +1892,9 @@
         els.faithBubbleMeta.textContent="Tap to see "+(names||"selected")+" literature suggestion.";
         if(state.faithBubbleTimer) clearTimeout(state.faithBubbleTimer);
         els.faithBubble.classList.add("show");
-        state.lastStoryInput = userText || answer || "";
-        state.lastStoryBMId = null;
-        speakText("Faith suggestion available. Tap the golden bubble if you want a short reflection.",false);
+        if(!state.lastStoryInput){
+          state.lastStoryInput = userText || answer || "";
+        }
         state.faithBubbleTimer=setTimeout(()=>{
           els.faithBubble.classList.remove("show");
         },5000);
@@ -1793,15 +1951,18 @@
         const runtime=getRuntimeConfig();
         if(state.cooldownUntil && now<state.cooldownUntil){
           const sec=Math.ceil((state.cooldownUntil-now)/1000);
-          logLine("AURA-X Ω: Please wait "+sec+"s. Let’s restart calmly.");
+          logLine("aura","AURA: Please wait "+sec+"s. Let’s restart calmly.");
           speakText("Please wait. Let's restart calmly.",false);
           return;
         }
         els.userInput.value="";
         addHistory("user",text);renderHistory();
-        logLine("You: "+text);
+        logLine("user","You: "+text);
         state.metrics.TM = scoreTM(text);
         recomputeBMMetric();updateCapsule();
+
+        // small-talk filter: only meaningful stories go BM
+        maybeCreateBMStory(text);
 
         const abuse=detectAbuse(text);
         if(abuse.hit){
@@ -1809,7 +1970,7 @@
           if(state.abuseCount>=runtime.cooldownHits){
             state.cooldownUntil=Date.now()+runtime.cooldownSeconds*1000;
             state.abuseCount=0;
-            logLine("AURA-X Ω: Cooldown activated for "+runtime.cooldownSeconds+" seconds. I’ll help when we stay respectful.");
+            logLine("aura","AURA: Cooldown activated for "+runtime.cooldownSeconds+" seconds. I’ll help when we stay respectful.");
             speakText("Cooldown activated. I will help when we stay respectful.",false);
             return;
           }
@@ -1823,7 +1984,7 @@
         state.lastAuraA = answer;
         recomputeE0(intelBoost,llmBoost);updateCapsule();
         addHistory("aura",answer);renderHistory();
-        logLine("AURA-X Ω ("+source+"): "+answer);
+        logLine("aura","AURA: "+answer);
         speakText(answer,false);
         maybeTriggerFaithBubble(text,answer);
         maybeUpdateLiveBM(text,answer);
@@ -1983,20 +2144,6 @@
       });
 
       els.intelSearch.addEventListener("input",renderIntelList);
-      els.btnIntelSave.addEventListener("click",()=>{
-        if(!state.editingIntelId) return;
-        const q=(els.intelEditQ.value||"").trim();
-        const a=(els.intelEditA.value||"").trim();
-        if(!q||!a){ alert("Question and answer required."); return; }
-        const idx=state.intelligence.findIndex(x=>x.id===state.editingIntelId);
-        if(idx>=0){
-          state.intelligence[idx].q=q;
-          state.intelligence[idx].a=a;
-          saveIntelligence();renderIntelList();
-        }
-        closeIntelEditor();
-      });
-      els.btnIntelCancel.addEventListener("click",closeIntelEditor);
 
       els.btnParseSeed.addEventListener("click",parseSeedBlock);
       els.btnSaveSeed.addEventListener("click",saveParsedSeed);
@@ -2088,7 +2235,7 @@
           key:els.apiKey.value.trim()
         };
         saveCfg();
-        logLine("[LLM] Online helper settings saved.");
+        logLine("sys","[LLM] Online helper settings saved.");
       });
 
       if(els.btnUnlockBM){
@@ -2117,6 +2264,7 @@
 
       els.btnCopyPrompt.addEventListener("click",()=>{
         const txt=els.bmTextArea.value||""; if(!txt) return; copyText(txt);
+        showToast("Prompt copied");
         if(currentBMId){
           const bm=state.bmPrompts.find(x=>x.id===currentBMId);
           if(bm){
@@ -2131,7 +2279,7 @@
         }
       });
       els.btnAutoGen.addEventListener("click",()=>{
-        logLine("[BM] Auto generation can be wired later.");
+        logLine("sys","[BM] Auto generation can be wired later.");
       });
       els.btnDeletePrompt.addEventListener("click",()=>{
         if(!currentBMId) return;
@@ -2143,6 +2291,9 @@
       });
       if(els.bmSearch){
         els.bmSearch.addEventListener("input",renderBMList);
+      }
+      if(els.bmDate){
+        els.bmDate.addEventListener("change",renderBMList);
       }
 
       els.btnDeleteRecent.addEventListener("click",()=>{
@@ -2160,15 +2311,16 @@
       els.btnCopyHistory.addEventListener("click",()=>{
         const lines=state.history.map(h=>{
           const dt=new Date(h.ts).toISOString();
-          const label=h.role==="user"?"You":(h.role==="aura"?"AURA-X Ω":h.role);
+          const label=h.role==="user"?"You":(h.role==="aura"?"AURA":h.role);
           return `[${dt}] ${label}: ${h.text}${h.locked ? " [locked]" : ""}`;
         }).join("\n");
         if(!lines) return; copyText(lines);
+        showToast("History copied");
       });
 
       els.btnEditIdentity.addEventListener("click",()=>setIdentityEditable(true));
       els.btnSaveUserIdentity.addEventListener("click",()=>{
-        readIdentityForm();setIdentityEditable(false);logLine("[identity] Saved on this device.");
+        readIdentityForm();setIdentityEditable(false);logLine("sys","[identity] Saved on this device.");
       });
       els.btnDeleteUserIdentity.addEventListener("click",()=>{
         if(!confirm("Delete stored identity?")) return;
@@ -2185,25 +2337,26 @@
       });
       els.btnCopyFaithArticle.addEventListener("click",()=>{
         const txt=els.faithArticleText.value||""; if(!txt) return; copyText(txt);
+        showToast("Faith note copied");
       });
       els.btnAddFaithToBM.addEventListener("click",linkFaithArticleToBM);
       els.btnSkipFaithBM.addEventListener("click",()=>{
         hideModal("modalFaithArticle");els.faithBubble.classList.remove("show");
       });
 
-      /* Reaction icons behaviour (copy-last button already removed from UI) */
+      /* reaction icons behaviour with silent toasts */
       if(els.btnCopyLast){
         els.btnCopyLast.addEventListener("click",()=>{
-          if(!hasLastPair()){ logLine("[learn] No recent answer to copy."); return; }
+          if(!hasLastPair()){ showToast("No recent answer"); return; }
           copyText(state.lastAuraA);
-          logLine("[learn] Last answer copied.");
+          showToast("Copied");
         });
       }
       if(els.btnLikeLast){
         els.btnLikeLast.addEventListener("click",()=>{
-          if(!hasLastPair()){ logLine("[learn] No recent answer to like."); return; }
+          if(!hasLastPair()){ showToast("No recent answer"); return; }
           if(!state.learningOn){
-            logLine("[learn] Learning is OFF. Turn Learning → ON in Options to save liked answers.");
+            showToast("Turn Learning ON in Options");
             return;
           }
           const id="intel_"+Date.now()+"_"+Math.random().toString(16).slice(2);
@@ -2211,19 +2364,19 @@
           state.intelligence.push({id,q:state.lastUserQ,a:state.lastAuraA,meta});
           saveIntelligence();
           renderIntelList();
-          logLine("[learn] Liked answer saved into Intelligence.");
+          showToast("Liked & saved");
         });
       }
       if(els.btnDislikeLast){
         els.btnDislikeLast.addEventListener("click",()=>{
-          if(!hasLastPair()){ logLine("[learn] No recent answer to mark incorrect."); return; }
+          if(!hasLastPair()){ showToast("No recent answer"); return; }
           if(!state.learningOn){
-            logLine("[learn] Learning is OFF. Turn Learning → ON in Options to correct answers.");
+            showToast("Turn Learning ON in Options");
             return;
           }
           const replacement = prompt("Answer was incorrect. Type the correct answer I should learn for this question:", "");
           if(!replacement || !replacement.trim()){
-            logLine("[learn] Dislike noted. No replacement provided.");
+            // silent
             return;
           }
           const id="intel_"+Date.now()+"_"+Math.random().toString(16).slice(2);
@@ -2231,26 +2384,27 @@
           state.intelligence.push({id,q:state.lastUserQ,a:replacement.trim(),meta});
           saveIntelligence();
           renderIntelList();
-          logLine("[learn] Corrected answer saved into Intelligence.");
+          showToast("Corrected & saved");
         });
       }
       if(els.btnSpeakLast){
         els.btnSpeakLast.addEventListener("click",()=>{
-          if(!hasLastPair()){ logLine("[learn] No recent answer to speak."); return; }
+          if(!hasLastPair()){ showToast("No recent answer"); return; }
           speakText(state.lastAuraA,true);
+          showToast("Speaking…");
         });
       }
       if(els.btnShareLast){
         els.btnShareLast.addEventListener("click",()=>{
-          if(!hasLastPair()){ logLine("[learn] No recent pair to share."); return; }
+          if(!hasLastPair()){ showToast("No recent pair"); return; }
           const block="Q: "+state.lastUserQ+"\nA: "+state.lastAuraA;
           copyText(block);
-          logLine("[learn] Question + answer copied (share).");
+          showToast("Q + A copied");
         });
       }
 
       initFromStorage();
-      // clean console; no auto welcome
+      // console blank start – no auto message
     });
   </script>
 </body>
