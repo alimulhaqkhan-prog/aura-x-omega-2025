@@ -2,2508 +2,2407 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AURA-X Ω – Offline Emotional Continuity Prototype 9.9 + Dream</title>
+  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Offline LLM package placeholder (WebLLM ready for future use) -->
+  <!-- Offline LLM package (WebLLM, for in-browser models – future ready) -->
   <script type="module">
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
   </script>
-
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --c-bg:#020617;
-      --c-bg-soft:#020617;
-      --c-card:#020617;
-      --c-border:rgba(148,163,184,0.35);
-      --c-soft-border:rgba(148,163,184,0.25);
-      --c-text:#e5e7eb;
-      --c-text-soft:#9ca3af;
-      --c-accent:#38bdf8;
-      --c-accent-soft:#0ea5e9;
-      --c-badge:#1d283a;
-      --c-danger:#f97373;
-      --c-success:#4ade80;
-      --c-gold:#facc15;
-      --shadow-soft:0 18px 60px rgba(15,23,42,0.88);
-      --radius-xl:1.5rem;
-      --radius-lg:1rem;
-      --radius-md:0.75rem;
+    :root {
+      --accent-color: #0ea5e9; /* default accent */
     }
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       background:
-        radial-gradient(circle at 10% 0%, #1e293b 0, transparent 45%),
-        radial-gradient(circle at 90% 0%, #0f172a 0, transparent 50%),
-        radial-gradient(circle at 0 100%, rgba(15,118,110,0.25) 0, transparent 45%),
-        radial-gradient(circle at 100% 100%, rgba(56,189,248,0.25) 0, transparent 48%),
-        radial-gradient(circle at 50% 50%, #020617 0, #000 55%);
-      color:var(--c-text);
+        radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
+        radial-gradient(circle at 80% 0, #0ea5e9 0, transparent 40%),
+        linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
+      color:#e5e7eb;
       min-height:100vh;
-      padding:10px;
       display:flex;
-      align-items:stretch;
       justify-content:center;
+      padding:18px 10px;
     }
-    .appShell{
-      width:100%;
-      max-width:1100px;
-      margin:auto;
-      border-radius:var(--radius-xl);
-      border:1px solid rgba(148,163,184,0.45);
-      background:
-        radial-gradient(circle at 0% 0%, rgba(56,189,248,0.16) 0, transparent 45%),
-        radial-gradient(circle at 100% 0%, rgba(129,140,248,0.18) 0, transparent 50%),
-        radial-gradient(circle at 0% 100%, rgba(45,212,191,0.12) 0, transparent 45%),
-        radial-gradient(circle at 100% 100%, rgba(15,23,42,0.98) 0, rgba(15,23,42,0.98) 55%, #020617 100%);
-      box-shadow:var(--shadow-soft);
-      display:flex;
-      flex-direction:column;
+    .app{
+      width:min(980px,98vw);
+      background:rgba(2,6,23,.45);
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:22px;
       overflow:hidden;
-      position:relative;
+      box-shadow:0 20px 60px rgba(0,0,0,.45);
+      backdrop-filter:blur(10px);
     }
-    .appHeader{
-      padding:0.85rem 1rem 0.6rem;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:0.75rem;
-      border-bottom:1px solid rgba(148,163,184,0.32);
-      background:
-        linear-gradient(to right, rgba(15,23,42,0.9), rgba(15,23,42,0.94));
+    .top{
+      padding:20px 18px 10px;
+      border-bottom:1px solid rgba(148,163,184,.14);
+      text-align:center;
     }
-    .headerLeft{
-      display:flex;
-      align-items:center;
-      gap:0.75rem;
-      min-width:0;
+    .brand{
+      font-weight:800;
+      letter-spacing:.5px;
+      font-size:26px;
+      color:#7dd3fc;
+      text-shadow:0 0 22px rgba(14,165,233,.28);
     }
-    .orbWrap{
-      width:40px;
-      height:40px;
-      border-radius:999px;
-      background:
-        conic-gradient(from 210deg, rgba(56,189,248,0.1), rgba(56,189,248,0.9), rgba(129,140,248,0.8), rgba(45,212,191,0.85), rgba(56,189,248,0.1));
-      padding:1px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow:0 0 0 1px rgba(148,163,184,0.35);
+    .sub{
+      opacity:.8;
+      margin-top:2px;
+      font-size:13px;
     }
-    .orb{
-      width:100%;
-      height:100%;
-      border-radius:inherit;
-      background:
-        radial-gradient(circle at 30% 20%, #e0f2fe 0, transparent 45%),
-        radial-gradient(circle at 80% 20%, rgba(129,140,248,0.4) 0, transparent 55%),
-        radial-gradient(circle at 50% 90%, rgba(45,212,191,0.4) 0, transparent 55%),
-        radial-gradient(circle at 50% 50%, #020617 0, #020617 55%, #020617 100%);
-      position:relative;
-    }
-    .orb::after{
-      content:"Ω";
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:1.2rem;
-      color:rgba(226,232,240,0.92);
-      text-shadow:0 0 14px rgba(56,189,248,0.8);
-    }
-    .titleBlock{
-      min-width:0;
-    }
-    .titleBlock h1{
-      font-size:0.96rem;
-      font-weight:600;
-      letter-spacing:0.08em;
-      text-transform:uppercase;
-      color:rgba(226,232,240,0.96);
-      display:flex;
-      align-items:center;
-      gap:0.45rem;
-    }
-    .titleTag{
-      font-size:0.65rem;
-      padding:0.08rem 0.4rem;
-      border-radius:999px;
-      border:1px solid rgba(52,211,153,0.35);
-      background:rgba(5,46,22,0.5);
-      color:rgba(167,243,208,0.95);
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-    }
-    .titleBlock p{
-      font-size:0.78rem;
-      color:rgba(148,163,184,0.96);
-      margin-top:0.15rem;
-    }
-    .headerRight{
-      display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:0.3rem;
-    }
-    .pillRow{
-      display:flex;
-      align-items:center;
-      gap:0.4rem;
-      flex-wrap:wrap;
-      justify-content:flex-end;
+    .ethic{
+      margin:14px auto 12px;
+      max-width:720px;
+      border:1px solid rgba(251,191,36,.35);
+      border-radius:14px;
+      padding:12px 14px;
+      color:#fbbf24;
+      background:rgba(2,6,23,.35);
+      box-shadow:inset 0 0 0 1px rgba(251,191,36,.08);
+      font-size:14px;
+      line-height:1.45;
     }
     .pill{
-      padding:0.28rem 0.55rem;
+      margin:10px auto 0;
+      max-width:760px;
+      background:linear-gradient(90deg, rgba(14,165,233,.65), rgba(34,211,238,.45));
+      border:1px solid rgba(125,211,252,.30);
+      color:#0b1220;
+      font-weight:800;
+      letter-spacing:.6px;
       border-radius:999px;
-      font-size:0.7rem;
-      border:1px solid rgba(148,163,184,0.4);
-      color:rgba(209,213,219,0.96);
+      padding:14px 16px;
+      text-transform:uppercase;
+      box-shadow:0 12px 40px rgba(14,165,233,.22);
+    }
+    .main{ padding:16px 16px 18px }
+    .row{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
+    .leftCol{ flex:1 1 340px; min-width:300px }
+    .rightCol{ flex:1 1 360px; min-width:320px }
+    .card{
+      background:rgba(2,6,23,.50);
+      border:1px solid rgba(148,163,184,.16);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      backdrop-filter:blur(10px);
+    }
+    .optionsBtn{
       display:inline-flex;
       align-items:center;
-      gap:0.35rem;
-      background:rgba(15,23,42,0.9);
-    }
-    .pill span.key{
-      font-weight:600;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:rgba(148,163,184,0.9);
-    }
-    .pill span.val{
-      font-variant-numeric:tabular-nums;
-    }
-    .faithToggle{
-      display:inline-flex;
-      align-items:center;
-      gap:0.25rem;
-      padding:0.24rem 0.5rem;
+      gap:10px;
+      padding:10px 14px;
       border-radius:999px;
-      background:rgba(15,23,42,0.95);
-      border:1px solid rgba(148,163,184,0.5);
-      font-size:0.7rem;
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(15,23,42,.55);
+      color:#e5e7eb;
       cursor:pointer;
+      user-select:none;
+      margin:12px 0;
+      -webkit-tap-highlight-color:transparent;
     }
-    .faithToggle span.status{
-      font-weight:500;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:rgba(248,250,252,0.95);
+    .optionsBtn:active{transform:scale(.99)}
+    .gear{width:18px;height:18px;filter:drop-shadow(0 0 10px rgba(125,211,252,.25))}
+    .console{
+      margin-top:12px;
+      height:230px;
+      border-radius:16px;
+      border:1px solid rgba(148,163,184,.14);
+      background:rgba(0,0,0,.25);
+      padding:14px;
+      overflow:auto;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      font-size:14px;
+      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
+      line-height:1.55;
+      white-space:pre-wrap;
     }
-    .faithBadge{
-      width:9px;height:9px;border-radius:999px;
-      background:radial-gradient(circle at 30% 20%, #facc15 0, #f97316 35%, #b45309 100%);
-      box-shadow:0 0 8px rgba(245,158,11,0.9);
-    }
-    .headerButtons{
-      display:flex;
-      align-items:center;
-      gap:0.3rem;
-    }
-    .iconBtn{
-      width:28px;
-      height:28px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,0.7);
-      background:rgba(15,23,42,0.95);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:0.85rem;
-      color:rgba(226,232,240,0.95);
-      cursor:pointer;
-      transition:background 0.15s,border-color 0.15s,transform 0.1s;
-    }
-    .iconBtn:active{
-      transform:scale(0.96);
-      background:rgba(15,23,42,1);
-    }
-
-    .bodyShell{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      padding:0.7rem;
-      gap:0.6rem;
-    }
-    .topRow{
-      display:grid;
-      grid-template-columns:2.1fr 1.1fr;
-      gap:0.6rem;
-      min-height:0;
-    }
-    .chatCard{
-      border-radius:var(--radius-lg);
-      border:1px solid rgba(148,163,184,0.45);
-      background:
-        radial-gradient(circle at 0 0, rgba(56,189,248,0.12) 0, transparent 40%),
-        radial-gradient(circle at 100% 0, rgba(129,140,248,0.16) 0, transparent 45%),
-        linear-gradient(to bottom right, rgba(15,23,42,0.98), rgba(15,23,42,0.96));
-      padding:0.7rem;
-      display:flex;
-      flex-direction:column;
-      gap:0.5rem;
-      min-height:0;
-      position:relative;
-      overflow:hidden;
-    }
-    .chatHeaderRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom:0.2rem;
-    }
-    .chatTitle{
-      font-size:0.8rem;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:rgba(148,163,184,0.96);
-      display:flex;
-      align-items:center;
-      gap:0.35rem;
-    }
-    .chatTitle span.dot{
-      width:6px;height:6px;border-radius:999px;
-      background:radial-gradient(circle at 30% 20%, #38bdf8 0, transparent 60%);
-      box-shadow:0 0 10px rgba(56,189,248,0.8);
-    }
-    .metricsMini{
-      display:flex;
-      gap:0.28rem;
-      font-size:0.7rem;
-      color:rgba(148,163,184,0.95);
-    }
-    .metricsMini span strong{
-      color:rgba(226,232,240,0.96);
-      font-variant-numeric:tabular-nums;
-    }
-    .capsuleRow{
-      display:flex;
-      align-items:center;
-      gap:0.45rem;
-      font-size:0.7rem;
-      color:rgba(148,163,184,0.96);
-    }
-    .capsuleLabel{
-      font-weight:500;
-      letter-spacing:0.08em;
-      text-transform:uppercase;
-    }
-    .capsuleBar{
-      flex:1;
-      height:6px;
-      border-radius:999px;
-      background:rgba(15,23,42,0.9);
-      overflow:hidden;
-      position:relative;
-    }
-    .capsuleFill{
-      position:absolute;
-      inset:0;
-      width:0%;
-      background:
-        linear-gradient(90deg,#22c55e,#facc15,#f97316,#ef4444);
-      box-shadow:0 0 12px rgba(248,250,252,0.55);
-      transition:width 0.25s ease-out;
-    }
-    .capsuleVal{
-      font-variant-numeric:tabular-nums;
-    }
-    .chatLog{
-      flex:1;
-      min-height:0;
-      border-radius:var(--radius-md);
-      border:1px solid rgba(148,163,184,0.5);
-      background:rgba(15,23,42,0.96);
-      padding:0.55rem 0.55rem 0.25rem;
-      overflow-y:auto;
-      font-size:0.8rem;
-      scroll-behavior:smooth;
-    }
-    .logLine{
-      margin-bottom:0.32rem;
-      display:flex;
-      gap:0.35rem;
-    }
-    .logTime{
-      font-variant-numeric:tabular-nums;
-      font-size:0.68rem;
-      color:rgba(148,163,184,0.85);
-      min-width:42px;
-    }
-    .logWho{
-      font-weight:600;
-      font-size:0.72rem;
-      letter-spacing:0.05em;
-      text-transform:uppercase;
-      color:rgba(226,232,240,0.9);
-    }
-    .logMsg{
-      color:rgba(226,232,240,0.96);
-    }
-    .logMsg.system{
-      color:rgba(129,140,248,0.96);
-    }
-    .logMsg.meta{
-      color:rgba(148,163,184,0.96);
-    }
-    .logMsg.err{
-      color:var(--c-danger);
-    }
-
-    .sideCard{
-      border-radius:var(--radius-lg);
-      border:1px solid rgba(148,163,184,0.45);
-      background:
-        radial-gradient(circle at 0 0, rgba(45,212,191,0.12) 0, transparent 40%),
-        radial-gradient(circle at 100% 0, rgba(37,99,235,0.16) 0, transparent 45%),
-        linear-gradient(to bottom right, rgba(15,23,42,0.98), rgba(15,23,42,0.96));
-      padding:0.7rem;
-      display:flex;
-      flex-direction:column;
-      gap:0.6rem;
-      min-height:0;
-    }
-    .sideTitle{
-      font-size:0.78rem;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:rgba(148,163,184,0.96);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .sideTitle span.badge{
-      font-size:0.7rem;
-      padding:0.12rem 0.45rem;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,0.45);
-      background:rgba(15,23,42,0.96);
-      color:rgba(209,213,219,0.96);
-    }
-    .quickBtns{
-      display:grid;
+    .line{display:block;margin:2px 0}
+    .line.user{color:#a5b4fc;}
+    .line.aura{color:#bbf7d0;}
+    .line.sys{color:#fbbf24;font-size:12px;}
+    .optionsMenu{
+      position:fixed;
+      left:12px;
+      right:12px;
+      top:120px;
+      margin:0 auto;
+      max-width:940px;
+      background:rgba(2,6,23,.92);
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:16px;
+      padding:8px;
+      display:none;
+      z-index:9999;
+      box-shadow:0 18px 45px rgba(0,0,0,.45);
+      backdrop-filter:blur(10px);
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:0.4rem;
+      gap:8px;
+      align-items:stretch;
     }
-    .quickBtn{
-      border-radius:0.75rem;
-      border:1px solid rgba(148,163,184,0.45);
-      background:
-        radial-gradient(circle at 0 0, rgba(56,189,248,0.12) 0, transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(45,212,191,0.14) 0, transparent 55%),
-        linear-gradient(to bottom right, rgba(15,23,42,0.98), rgba(15,23,42,0.96));
-      padding:0.38rem 0.3rem;
-      font-size:0.72rem;
-      color:rgba(226,232,240,0.96);
-      display:flex;
-      flex-direction:column;
-      align-items:flex-start;
-      gap:0.1rem;
+    .optionsMenu.show{display:grid}
+    .menuItem{
+      padding:8px 6px;
+      border-radius:13px;
       cursor:pointer;
-      min-height:52px;
-      text-align:left;
-    }
-    .quickBtn span.icon{
-      font-size:0.9rem;
-    }
-    .quickBtn span.label{
-      font-size:0.7rem;
-    }
-    .quickBtn span.sub{
-      font-size:0.63rem;
-      color:rgba(148,163,184,0.95);
-    }
-
-    .reactionBar{
-      display:flex;
-      flex-wrap:wrap;
-      gap:0.3rem;
-      font-size:0.68rem;
-      color:rgba(148,163,184,0.95);
-    }
-    .reactionChip{
-      padding:0.15rem 0.4rem;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,0.45);
-      background:rgba(15,23,42,0.96);
-      display:inline-flex;
-      align-items:center;
-      gap:0.3rem;
-    }
-    .reactionChip strong{
-      font-variant-numeric:tabular-nums;
-      color:rgba(226,232,240,0.96);
-    }
-
-    .promptRow{
       display:flex;
       flex-direction:column;
-      gap:0.4rem;
-    }
-    .promptTop{
-      display:flex;
       align-items:center;
-      gap:0.4rem;
-      justify-content:space-between;
+      justify-content:center;
+      text-align:center;
+      gap:6px;
+      color:#e5e7eb;
+      border:1px solid rgba(148,163,184,.10);
+      background:rgba(15,23,42,.55);
+      user-select:none;
+      min-height:58px;
     }
-    .promptStats{
-      font-size:0.7rem;
-      color:rgba(148,163,184,0.95);
-      display:flex;
-      gap:0.35rem;
-    }
-    .promptStats span strong{
-      color:rgba(226,232,240,0.96);
-      font-variant-numeric:tabular-nums;
-    }
-
-    .inputShell{
-      border-radius:var(--radius-lg);
-      border:1px solid rgba(148,163,184,0.5);
-      background:
-        radial-gradient(circle at 0 0, rgba(56,189,248,0.08) 0, transparent 40%),
-        radial-gradient(circle at 100% 100%, rgba(45,212,191,0.1) 0, transparent 40%),
-        linear-gradient(to bottom right, rgba(15,23,42,0.98), rgba(15,23,42,0.98));
-      padding:0.45rem 0.55rem 0.45rem 0.55rem;
-      display:flex;
-      align-items:flex-end;
-      gap:0.4rem;
-    }
-    .inputBox{
-      flex:1;
-      min-width:0;
-      border-radius:0.8rem;
-      background:rgba(15,23,42,0.96);
-      border:1px solid rgba(148,163,184,0.55);
-      padding:0.35rem 0.6rem;
-      display:flex;
-      flex-direction:column;
-      gap:0.25rem;
-    }
-    .inputRow{
-      display:flex;
-      align-items:flex-end;
-      gap:0.35rem;
-    }
-    .promptPrefix{
-      font-size:0.7rem;
-      color:rgba(148,163,184,0.95);
-      padding-bottom:0.1rem;
-    }
-    #userInput{
-      flex:1;
-      resize:none;
-      border:none;
-      outline:none;
-      background:transparent;
-      color:var(--c-text);
-      font-size:0.8rem;
-      max-height:100px;
-      min-height:20px;
-    }
-    #userInput::placeholder{
-      color:rgba(100,116,139,0.9);
-    }
-    .inputMeta{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      font-size:0.68rem;
-      color:rgba(148,163,184,0.96);
-    }
-    .inputMeta span{
-      display:flex;
-      align-items:center;
-      gap:0.3rem;
-    }
-    .sendBtn{
-      width:34px;
-      height:34px;
-      border-radius:999px;
-      border:none;
-      cursor:pointer;
+    .menuItem:active{transform:scale(.995)}
+    .menuLeft{
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size:1rem;
-      background:radial-gradient(circle at 30% 10%, #e0f2fe 0, transparent 45%),
-        radial-gradient(circle at 70% 90%, rgba(45,212,191,0.4) 0, transparent 55%),
-        linear-gradient(135deg,#22c55e,#16a34a);
-      color:#0b1120;
-      box-shadow:0 12px 30px rgba(16,185,129,0.65);
-      transition:transform 0.08s ease-out,box-shadow 0.08s ease-out,filter 0.12s;
+      gap:6px;
+      font-weight:800;
+      font-size:12.5px;
     }
-    .sendBtn:active{
-      transform:translateY(1px) scale(0.97);
-      box-shadow:0 6px 16px rgba(16,185,129,0.7);
-      filter:brightness(0.98);
-    }
-
-    .btn{
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,0.55);
-      background:rgba(15,23,42,0.95);
-      padding:0.22rem 0.6rem;
-      font-size:0.7rem;
-      color:rgba(226,232,240,0.96);
-      cursor:pointer;
+    .menuIcon{
+      width:18px;
+      height:18px;
       display:inline-flex;
       align-items:center;
-      gap:0.35rem;
+      justify-content:center;
     }
-    .btnSmall{
-      font-size:0.66rem;
-      padding:0.16rem 0.6rem;
+    .menuRight{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:44px;
     }
-    .btnBlue{
-      border-color:rgba(56,189,248,0.6);
-      background:rgba(15,23,42,0.96);
+    .pillOn,.pillOff,.pillMid{
+      font-size:10px;
+      padding:4px 7px;
+      border-radius:999px;
+      font-weight:900;
+      text-transform:lowercase;
+      border:1px solid transparent;
     }
-    .btnRed{
-      border-color:rgba(248,113,113,0.7);
+    .pillOn{
+      background:rgba(34,197,94,.18);
+      border-color:rgba(34,197,94,.24);
+      color:#bbf7d0;
+    }
+    .pillOff{
+      background:rgba(239,68,68,.12);
+      border-color:rgba(239,68,68,.22);
       color:#fecaca;
     }
-    .btnGold{
-      border-color:rgba(250,204,21,0.9);
-      color:#facc15;
+    .pillMid{
+      background:rgba(14,165,233,.14);
+      border-color:rgba(14,165,233,.20);
+      color:#bae6fd;
+      opacity:.95;
     }
-
-    .optionsMenu{
-      position:absolute;
-      top:0.65rem;
-      left:0.65rem;
+    .chatWrap{
+      margin-top:0;
+      padding:12px;
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,.14);
+      background:rgba(2,6,23,.45);
+    }
+    /* reaction bar above metrics, left-aligned */
+    .reactionBar{
+      margin-top:0;
+      margin-bottom:6px;
       display:flex;
       align-items:center;
-      gap:0.3rem;
-      z-index:5;
+      justify-content:flex-start;
+      gap:10px;
+      font-size:18px;
+      opacity:.9;
     }
-    .optionsMenu .btn{
-      background:rgba(15,23,42,0.9);
-    }
-    .optionsPanel{
-      position:absolute;
-      top:2.2rem;
-      left:0.65rem;
-      border-radius:var(--radius-md);
-      border:1px solid rgba(148,163,184,0.55);
-      background:rgba(15,23,42,0.98);
-      padding:0.4rem 0.45rem;
-      min-width:170px;
-      font-size:0.7rem;
-      box-shadow:0 18px 40px rgba(15,23,42,0.9);
-      display:none;
-      z-index:8;
-    }
-    .optionsPanel.open{
-      display:block;
-    }
-    .optionsPanel h4{
-      font-size:0.7rem;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:rgba(148,163,184,0.96);
-      margin-bottom:0.26rem;
-    }
-    .optionsPanel ul{
-      list-style:none;
-      display:flex;
-      flex-direction:column;
-      gap:0.1rem;
-    }
-    .optionsPanel li button{
-      width:100%;
-      border-radius:0.5rem;
+    .reactBtn{
       border:none;
       background:transparent;
-      text-align:left;
-      padding:0.22rem 0.3rem;
-      color:rgba(226,232,240,0.96);
       cursor:pointer;
-      display:flex;
+      padding:4px;
+      line-height:1;
+      display:inline-flex;
       align-items:center;
-      justify-content:space-between;
-      gap:0.3rem;
+      justify-content:center;
+      -webkit-tap-highlight-color:transparent;
     }
-    .optionsPanel li button span.label{
-      font-size:0.7rem;
+    .reactBtn:active{transform:scale(.9)}
+    .liveCapsule{
+      margin:4px 0 10px;
+      width:100%;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(2,6,23,.55);
+      padding:10px 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      font-size:12px;
+      color:#dbeafe;
+      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
     }
-    .optionsPanel li button span.key{
-      font-size:0.65rem;
-      color:rgba(148,163,184,0.9);
+    .liveCapsule b{ color:#7dd3fc; font-weight:900 }
+    .faithBubble{
+      margin:4px 0 10px;
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(251,191,36,.16);
+      border:1px solid rgba(251,191,36,.4);
+      display:none;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      color:#facc15;
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(0,0,0,.35);
+      transition:opacity .25s ease, transform .25s ease;
     }
-    .optionsPanel li button:hover{
-      background:rgba(15,23,42,0.9);
+    .faithBubble.show{
+      display:flex;
+      opacity:1;
+      transform:translateY(0);
     }
-
+    .fbIcon{font-size:18px;}
+    .fbText{flex:1;line-height:1.3;}
+    .fbTitle{font-weight:800;}
+    .fbMeta{opacity:.85;}
+    .fbClose{
+      border:none;
+      background:transparent;
+      color:#fed7aa;
+      font-size:16px;
+      cursor:pointer;
+      padding:0 4px;
+      line-height:1;
+    }
+    /* Golden theme */
+    body.theme-golden .ethic{
+      border-color: rgba(251,191,36,.7);
+      background: rgba(251,191,36,.06);
+    }
+    .faithBubble.pulse{
+      animation: faithPulse 1.4s infinite;
+    }
+    @keyframes faithPulse{
+      0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.55); }
+      100% { box-shadow: 0 0 0 18px rgba(251,191,36,0); }
+    }
+    .inputRow{display:flex;gap:10px;align-items:flex-end}
+    .input{
+      flex:1;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(2,6,23,.55);
+      color:#e5e7eb;
+      padding:12px 14px;
+      outline:none;
+      font-size:14px;
+    }
+    .send{
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(90deg, var(--accent-color, #0ea5e9), rgba(34,211,238,.55));
+      color:#0b1220;
+      font-weight:900;
+      padding:12px 18px;
+      cursor:pointer;
+      min-width:88px;
+      box-shadow:0 12px 30px rgba(14,165,233,.18);
+      -webkit-tap-highlight-color:transparent;
+    }
+    .send:active{transform:scale(.99)}
+    .formula{
+      margin-top:10px;
+      opacity:.8;
+      font-size:12px;
+      text-align:center;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      color:#dbeafe;
+    }
+    /* Toast bubble */
+    .toastBubble{
+      position:fixed;
+      bottom:18px;
+      left:50%;
+      transform:translate(-50%,10px);
+      padding:6px 14px;
+      border-radius:999px;
+      background:rgba(15,23,42,.95);
+      color:#e5e7eb;
+      font-size:12px;
+      border:1px solid rgba(148,163,184,.4);
+      box-shadow:0 12px 30px rgba(0,0,0,.5);
+      opacity:0;
+      pointer-events:none;
+      z-index:10000;
+      transition:opacity .18s ease, transform .18s ease;
+    }
+    .toastBubble.show{
+      opacity:1;
+      transform:translate(-50%,0);
+    }
     .modalOverlay{
       position:fixed;
       inset:0;
+      background:rgba(0,0,0,.55);
       display:none;
-      align-items:center;
+      align-items:flex-end;
       justify-content:center;
-      background:radial-gradient(circle at 20% 0, rgba(15,23,42,0.85) 0, rgba(15,23,42,0.97) 45%, #020617 100%);
-      backdrop-filter:blur(14px);
-      z-index:50;
+      padding:18px 12px;
+      z-index:9999;
     }
-    .modalOverlay.open{
-      display:flex;
-    }
+    .modalOverlay.show{display:flex}
     .modal{
-      width:100%;
-      max-width:720px;
-      max-height:90vh;
-      border-radius:var(--radius-xl);
-      border:1px solid rgba(148,163,184,0.55);
-      background:
-        radial-gradient(circle at 0 0, rgba(56,189,248,0.2) 0, transparent 40%),
-        radial-gradient(circle at 100% 0, rgba(129,140,248,0.2) 0, transparent 45%),
-        radial-gradient(circle at 0 100%, rgba(45,212,191,0.14) 0, transparent 45%),
-        linear-gradient(to bottom right, rgba(15,23,42,0.98), rgba(15,23,42,0.99));
-      box-shadow:var(--shadow-soft);
-      padding:0.8rem 0.9rem;
-      display:flex;
-      flex-direction:column;
-      gap:0.5rem;
+      width:min(860px,96vw);
+      border-radius:18px;
+      overflow:hidden;
+      background:rgba(250,250,250,.93);
+      color:#0b1220;
+      border:1px solid rgba(15,23,42,.18);
+      box-shadow:0 30px 80px rgba(0,0,0,.35);
+      backdrop-filter:blur(12px);
     }
     .modalHeader{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:0.5rem;
+      padding:12px 14px;
+      background:rgba(255,255,255,.75);
+      border-bottom:1px solid rgba(15,23,42,.10);
+      font-weight:800;
     }
-    .modalHeaderLeft{
-      display:flex;
-      flex-direction:column;
-      gap:0.1rem;
-    }
-    .modalTitle{
-      font-size:0.85rem;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:rgba(226,232,240,0.96);
-      display:flex;
-      align-items:center;
-      gap:0.4rem;
-    }
-    .modalSubtitle{
-      font-size:0.72rem;
-      color:rgba(148,163,184,0.96);
-    }
-    .modalHeaderRight{
-      display:flex;
-      align-items:center;
-      gap:0.3rem;
-      font-size:0.7rem;
-      color:rgba(148,163,184,0.96);
+    .modalHeader small{font-weight:600;opacity:.7}
+    .closeX{
+      border:none;
+      background:transparent;
+      font-size:22px;
+      cursor:pointer;
+      line-height:1;
+      padding:0 4px;
+      opacity:.75;
     }
     .modalBody{
-      flex:1;
-      min-height:0;
-      border-radius:var(--radius-md);
-      border:1px solid rgba(148,163,184,0.5);
-      background:rgba(15,23,42,0.98);
-      padding:0.6rem;
+      padding:14px;
+      max-height:70vh;
       overflow:auto;
-      font-size:0.78rem;
     }
-    .modalFooter{
-      display:flex;
-      align-items:center;
-      justify-content:flex-end;
-      gap:0.4rem;
-      font-size:0.7rem;
-      color:rgba(148,163,184,0.96);
-    }
-
-    .identityGrid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:0.6rem;
-    }
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:0.15rem;
-    }
-    .field label{
-      font-size:0.72rem;
-      color:rgba(148,163,184,0.96);
-    }
-    .field input,
-    .field textarea,
-    .field select{
-      border-radius:0.6rem;
-      border:1px solid rgba(148,163,184,0.55);
-      background:rgba(15,23,42,0.98);
-      color:rgba(226,232,240,0.96);
-      font-size:0.78rem;
-      padding:0.32rem 0.45rem;
-    }
-    .field textarea{
-      resize:vertical;
-      min-height:60px;
-    }
-
-    .seedLayout{
-      display:grid;
-      grid-template-columns:1.1fr 1.4fr;
-      gap:0.6rem;
-    }
-    .seedColumn{
-      border-radius:0.75rem;
-      border:1px solid rgba(148,163,184,0.45);
-      background:rgba(15,23,42,0.98);
-      padding:0.45rem;
-      display:flex;
-      flex-direction:column;
-      gap:0.35rem;
-    }
-    .seedColumn h4{
-      font-size:0.78rem;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:rgba(148,163,184,0.96);
-    }
-    .seedRow{
-      display:flex;
-      align-items:flex-start;
-      gap:0.3rem;
-    }
-    .seedRow label{
-      font-size:0.7rem;
-      color:rgba(148,163,184,0.96);
-      min-width:52px;
-    }
-    .seedRow textarea{
-      flex:1;
-      border-radius:0.55rem;
-      border:1px solid rgba(148,163,184,0.55);
-      background:rgba(15,23,42,0.98);
-      color:rgba(226,232,240,0.96);
-      font-size:0.78rem;
-      padding:0.32rem 0.45rem;
-      resize:vertical;
-      min-height:54px;
-    }
-
-    .bmLayout{
-      display:grid;
-      grid-template-columns:1.3fr 1.6fr;
-      gap:0.6rem;
-      height:100%;
-    }
-    .bmSidebar{
-      border-radius:0.75rem;
-      border:1px solid rgba(148,163,184,0.45);
-      background:rgba(15,23,42,0.98);
-      padding:0.4rem;
-      display:flex;
-      flex-direction:column;
-      gap:0.35rem;
-    }
-    .bmSidebar h4{
-      font-size:0.78rem;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:rgba(148,163,184,0.96);
-    }
-    .bmBadgeRow{
-      display:flex;
-      flex-wrap:wrap;
-      gap:0.25rem;
-      font-size:0.68rem;
-    }
-    .bmBadge{
-      padding:0.12rem 0.4rem;
+    .chipsWrap{margin-top:10px;display:flex;flex-wrap:wrap;gap:10px}
+    .chip{
+      padding:10px 14px;
       border-radius:999px;
-      border:1px solid rgba(148,163,184,0.45);
-      color:rgba(209,213,219,0.96);
-    }
-    #bmList{
-      flex:1;
-      min-height:0;
-      overflow-y:auto;
-      font-size:0.76rem;
-    }
-    .bmItem{
-      padding:0.28rem 0.32rem;
-      border-radius:0.55rem;
-      border:1px solid transparent;
+      border:1px solid rgba(15,23,42,.16);
+      background:rgba(255,255,255,.9);
+      font-weight:800;
       cursor:pointer;
-      display:flex;
-      flex-direction:column;
-      gap:0.12rem;
+      -webkit-tap-highlight-color:transparent;
     }
-    .bmItem:hover{
-      border-color:rgba(148,163,184,0.6);
-      background:rgba(15,23,42,0.98);
+    .chip.active{
+      background:#0f172a;
+      color:#fff;
+      border-color:rgba(15,23,42,.2);
+      box-shadow:0 12px 30px rgba(2,6,23,.12);
     }
-    .bmItem.active{
-      border-color:rgba(56,189,248,0.9);
-      background:rgba(15,23,42,1);
+    .btn{
+      border:none;
+      cursor:pointer;
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:900;
+      -webkit-tap-highlight-color:transparent;
+      font-size:12px;
     }
-    .bmItemTitle{
-      font-size:0.75rem;
-      color:rgba(226,232,240,0.96);
+    .btnBlue{background:rgba(59,130,246,.16);border:1px solid rgba(59,130,246,.22)}
+    .btnDark{background:rgba(2,6,23,.92);color:#fff}
+    .btnRed{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.22);color:#7f1d1d}
+    .btnGreen{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.25);color:#064e2a}
+    .bmCard{
+      border-radius:16px;
+      border:1px solid rgba(15,23,42,.12);
+      background:rgba(255,255,255,.85);
+      padding:12px;
+      margin-top:12px;
     }
-    .bmItemMeta{
-      font-size:0.65rem;
-      color:rgba(148,163,184,0.96);
-      display:flex;
-      justify-content:space-between;
-    }
-
-    .bmViewer{
-      border-radius:0.75rem;
-      border:1px solid rgba(148,163,184,0.5);
-      background:rgba(15,23,42,0.98);
-      padding:0.45rem;
-      display:flex;
-      flex-direction:column;
-      gap:0.4rem;
-      min-height:0;
-    }
-    .bmViewerHeader{
+    .bmTop{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:0.35rem;
-      font-size:0.72rem;
-      color:rgba(148,163,184,0.96);
+      gap:10px;
+      margin-bottom:10px;
     }
-    .bmViewerTitle{
-      font-size:0.8rem;
-      color:rgba(226,232,240,0.96);
-      font-weight:500;
+    .bmTop .title{
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
-    .bmViewerBody{
-      flex:1;
-      min-height:0;
-      overflow-y:auto;
-      font-size:0.78rem;
-      color:rgba(226,232,240,0.96);
-      border-radius:0.55rem;
-      border:1px solid rgba(148,163,184,0.45);
-      background:rgba(15,23,42,0.98);
-      padding:0.4rem;
-      white-space:pre-wrap;
+    .bmSub{font-size:12px;opacity:.7;margin-top:2px}
+    .bmText{
+      width:100%;
+      min-height:240px;
+      border-radius:14px;
+      border:1px solid rgba(15,23,42,.18);
+      padding:12px;
+      outline:none;
+      resize:vertical;
+      background:#fff;
+      font-size:14px;
+      line-height:1.45;
     }
     .bmActions{
       display:flex;
+      gap:10px;
       flex-wrap:wrap;
-      gap:0.3rem;
-      font-size:0.7rem;
+      margin-top:10px;
+      justify-content:flex-start;
     }
-
-    #historyBox{
-      border-radius:0.7rem;
-      border:1px solid rgba(148,163,184,0.45);
-      background:rgba(15,23,42,0.98);
-      padding:0.4rem;
-      font-size:0.76rem;
-      max-height:400px;
-      overflow-y:auto;
+    .intelEditInput, .intelEditArea{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(15,23,42,.18);
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
     }
-    .historyRow{
+    .intelEditArea{
+      min-height:90px;
+      resize:vertical;
+      line-height:1.4;
+      margin-top:6px;
+    }
+    /* Intelligence cards */
+    .intelCard{
+      border-radius:12px;
+      border:1px solid rgba(15,23,42,.12);
+      background:#f9fafb;
+      padding:10px;
+      margin-top:8px;
+      font-size:13px;
+    }
+    .intelTop{
       display:flex;
-      gap:0.35rem;
-      margin-bottom:0.3rem;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:4px;
     }
-    .historyMeta{
-      min-width:54px;
-      font-size:0.66rem;
-      color:rgba(148,163,184,0.9);
-      font-variant-numeric:tabular-nums;
+    .intelQ{font-weight:700;}
+    .intelA{margin-top:2px;white-space:pre-wrap;}
+    .intelMeta{font-size:11px;opacity:.65;margin-top:2px;}
+    .intelButtons{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-top:6px;}
+    .intelEditBlock{
+      margin-top:8px;
+      border-radius:10px;
+      border:1px dashed rgba(15,23,42,.18);
+      padding:8px;
+      background:#fff;
+    }
+    /* Conversation history – lighter UI + lock icon */
+    #modalHistory .modalBody{
+      background:#f8fafc;
+    }
+    #historyBox{
+      margin-top:4px;
+      border-radius:14px;
+      padding:4px 0;
+      max-height:60vh;
+      overflow:auto;
+    }
+    .historyLine{
+      padding:8px 10px;
+      font-size:12px;
+      margin-bottom:6px;
+      border-radius:12px;
+      background:#f9fafb;
+      border:1px solid rgba(148,163,184,.45);
+      color:#0b1120;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:6px;
     }
     .historyText{
-      color:rgba(226,232,240,0.96);
+      flex:1;
+      white-space:pre-wrap;
     }
-
-    #llmConfig{
+    .historyLock{
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      font-size:15px;
+      line-height:1;
+      padding:0 2px;
+    }
+    /* BM list items */
+    .bmItem{
+      margin-top:6px;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid rgba(148,163,184,.5);
+      background:#f9fafb;
+      cursor:pointer;
+      font-size:12px;
       display:flex;
-      flex-direction:column;
-      gap:0.5rem;
-      font-size:0.76rem;
+      justify-content:space-between;
+      gap:6px;
     }
-    #llmConfig .row{
-      display:flex;
-      gap:0.4rem;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    #llmConfig input,
-    #llmConfig select{
-      border-radius:0.6rem;
-      border:1px solid rgba(148,163,184,0.55);
-      background:rgba(15,23,42,0.98);
-      color:rgba(226,232,240,0.96);
-      font-size:0.78rem;
-      padding:0.22rem 0.4rem;
-    }
-    #llmConfig .note{
-      font-size:0.7rem;
-      color:rgba(148,163,184,0.96);
-    }
-
-    .toast{
+    .bmItemTitle{font-weight:700;}
+    .bmItemMeta{opacity:.65;font-size:11px;}
+    /* Dream overlay (screen saver) */
+    .dreamOverlay{
       position:fixed;
-      left:50%;
-      bottom:1.2rem;
-      transform:translateX(-50%);
-      padding:0.35rem 0.7rem;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,0.6);
-      background:rgba(15,23,42,0.98);
-      color:rgba(226,232,240,0.98);
-      font-size:0.72rem;
+      inset:0;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(15,23,42,.98), transparent 55%),
+        radial-gradient(circle at 80% 100%, rgba(8,47,73,.95), transparent 55%),
+        linear-gradient(145deg,#020617,#020617);
       display:none;
-      z-index:60;
-      box-shadow:0 14px 32px rgba(15,23,42,0.9);
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      z-index:9998;
+      color:#e5e7eb;
+      text-align:center;
+      padding:20px;
     }
-    .toast.show{
-      display:block;
+    .dreamOverlay.show{display:flex}
+    .dreamTitle{
+      font-size:20px;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+      color:#7dd3fc;
     }
-
-    .hidden{display:none !important;}
-
-    /* Dream / screensaver overlay */
-    #dreamOverlay {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background:
-        radial-gradient(circle at 10% 0%, rgba(56, 189, 248, 0.18) 0, transparent 45%),
-        radial-gradient(circle at 90% 0%, rgba(129, 140, 248, 0.16) 0, transparent 50%),
-        radial-gradient(circle at 0% 100%, rgba(45, 212, 191, 0.16) 0, transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(15, 23, 42, 0.96) 0, rgba(2, 6, 23, 0.98) 55%, #020617 100%);
-      backdrop-filter: blur(18px);
-      z-index: 99;
+    .dreamSub{
+      font-size:13px;
+      max-width:420px;
+      opacity:.8;
+      margin-bottom:14px;
     }
-    #dreamOverlay.active {
-      display: flex;
+    .dreamSnippet{
+      max-width:520px;
+      font-size:12px;
+      opacity:.9;
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.5);
+      padding:10px 12px;
+      background:rgba(15,23,42,.85);
+      white-space:pre-wrap;
     }
-    #dreamOverlay .dream-inner {
-      max-width: 640px;
-      width: 90%;
-      border-radius: 1.5rem;
-      padding: 1.5rem 1.75rem;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      background:
-        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12) 0, transparent 45%),
-        radial-gradient(circle at 100% 0%, rgba(129, 140, 248, 0.14) 0, transparent 50%),
-        linear-gradient(to bottom right, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
-      box-shadow:
-        0 24px 80px rgba(15, 23, 42, 0.95),
-        0 0 0 1px rgba(15, 23, 42, 0.9);
+    .@media-fix{} /* dummy */
+    @media (max-width:760px){
+      .console{height:240px}
+      .optionsMenu{top:112px}
     }
-    #dreamOverlay .dream-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(148, 163, 184, 0.9);
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    #dreamOverlay .dream-title::before {
-      content: "◎";
-      font-size: 0.9rem;
-      color: rgba(94, 234, 212, 0.9);
-    }
-    #dreamOverlay .dream-snippet {
-      max-height: 220px;
-      overflow-y: auto;
-      font-size: 0.92rem;
-      line-height: 1.5;
-      color: rgba(226, 232, 240, 0.96);
-      padding-right: 0.25rem;
-      margin-bottom: 0.85rem;
-    }
-    #dreamOverlay .dream-hint {
-      font-size: 0.8rem;
-      color: rgba(148, 163, 184, 0.9);
-    }
-
-    /* Dream config inside BM */
-    .dream-config {
-      margin-top: 1.25rem;
-      padding: 0.875rem 0.9rem;
-      border-radius: 0.9rem;
-      background:
-        linear-gradient(to right, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.96));
-      border: 1px solid rgba(148, 163, 184, 0.4);
-    }
-    .dream-config-title {
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(148, 163, 184, 0.95);
-      margin-bottom: 0.5rem;
-    }
-    .dream-config-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.4rem;
-    }
-    .dream-config-row label {
-      font-size: 0.82rem;
-      color: rgba(203, 213, 225, 0.95);
-    }
-    .dream-config-row select {
-      min-width: 180px;
-      padding: 0.3rem 0.4rem;
-      border-radius: 0.5rem;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      background: rgba(15, 23, 42, 0.95);
-      color: rgba(226, 232, 240, 0.96);
-      font-size: 0.82rem;
-    }
-    .dream-config-note {
-      font-size: 0.8rem;
-      color: rgba(148, 163, 184, 0.92);
-    }
-
-    @media(max-width:880px){
-      .appShell{
-        border-radius:1.1rem;
-      }
-      .topRow{
-        grid-template-columns:1fr;
-      }
-      .seedLayout,
-      .bmLayout{
-        grid-template-columns:1fr;
-      }
+    @media (max-width:420px){
+      .brand{font-size:22px}
+      .pill{font-size:14px}
+      .ethic{font-size:13px}
+      .console{height:260px}
       .optionsMenu{
-        top:0.45rem;
-        left:0.45rem;
+        gap:6px;
+        padding:7px;
+        grid-template-columns:repeat(3,minmax(0,1fr));
       }
-      .appHeader{
-        padding:0.75rem 0.75rem 0.55rem;
+      .menuItem{
+        min-height:52px;
+        padding:6px 4px;
       }
-      .bodyShell{
-        padding:0.55rem;
+      .menuLeft{font-size:11px}
+      .pillOn,.pillOff,.pillMid{
+        font-size:9.5px;
+        padding:4px 6px;
       }
-      .chatCard,
-      .sideCard{
-        padding:0.55rem;
+      .reactionBar{
+        font-size:16px;
+        gap:8px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="appShell">
-    <div class="optionsMenu">
-      <button class="iconBtn" id="btnOptions" title="Options">
-        ☰
-      </button>
-      <div class="optionsPanel" id="optionsPanel">
-        <h4>Quick routes</h4>
-        <ul>
-          <li><button data-open="modalIdentity"><span class="label">🪪 Identity &amp; deep profile</span><span class="key">ID</span></button></li>
-          <li><button data-open="modalSeed"><span class="label">🌱 Seed knowledge &amp; rules</span><span class="key">SEED</span></button></li>
-          <li><button data-open="modalBM"><span class="label">🧠 BM long-form memories</span><span class="key">BM</span></button></li>
-          <li><button data-open="modalHistory"><span class="label">🕰 Conversation history</span><span class="key">HIST</span></button></li>
-          <li><button data-open="modalLLM"><span class="label">⚙ Offline &amp; API LLM</span><span class="key">LLM</span></button></li>
-        </ul>
+  <div class="app">
+    <div class="top">
+      <div class="brand">AURA-X Ω</div>
+      <div class="sub">
+        Offline emotional continuity engine (prototype)<br>
+        TM = user inputs only · Internal layers keep continuity and emotional trajectory.
       </div>
+      <div class="ethic">
+        Universal ethic: avoid actions that grow negative emotions in you or others.
+        Move gently toward choices that increase shared positive feeling for everyone.
+      </div>
+      <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
     </div>
-
-    <header class="appHeader">
-      <div class="headerLeft">
-        <div class="orbWrap">
-          <div class="orb"></div>
-        </div>
-        <div class="titleBlock">
-          <h1>
-            AURA-X Ω
-            <span class="titleTag">AEC – Artificial Emotional Continuity</span>
-          </h1>
-          <p>
-            Offline emotional reactor prototype – TM × BM → Continuity R with Faith, Logic &amp; Truth resonance.
-          </p>
-        </div>
-      </div>
-      <div class="headerRight">
-        <div class="pillRow">
-          <div class="pill">
-            <span class="key">Profile</span>
-            <span class="val" id="profileStatus">Empty</span>
-          </div>
-          <div class="pill">
-            <span class="key">Seed</span>
-            <span class="val" id="seedStatus">0 Q&amp;A</span>
-          </div>
-          <div class="pill">
-            <span class="key">BM</span>
-            <span class="val" id="bmStatus">0 stories</span>
-          </div>
-          <button class="faithToggle" id="faithToggle">
-            <span class="faithBadge"></span>
-            <span class="status" id="faithStatus">Faith ON</span>
-          </button>
-        </div>
-        <div class="headerButtons">
-          <button class="iconBtn" id="btnIdentity" title="Identity">
-            🪪
-          </button>
-          <button class="iconBtn" id="btnSeed" title="Seed knowledge">
-            🌱
-          </button>
-          <button class="iconBtn" id="btnBM" title="BM memories">
-            🧠
-          </button>
-          <button class="iconBtn" id="btnHistory" title="History">
-            🕰
-          </button>
-          <button class="iconBtn" id="btnLLM" title="LLM settings">
-            ⚙
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <main class="bodyShell">
-      <div class="topRow">
-        <section class="chatCard">
-          <div class="chatHeaderRow">
-            <div class="chatTitle">
-              <span class="dot"></span>
-              <span>Conversation – User ↔ AURA-X Ω</span>
+    <div class="main">
+      <div class="row">
+        <!-- LEFT -->
+        <div class="leftCol">
+          <div class="card">
+            <div class="optionsBtn" id="btnOptions">
+              <svg class="gear" viewBox="0 0 24 24" fill="none">
+                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+                      stroke="#7dd3fc" stroke-width="2"/>
+                <path d="M19.4 15a8.2 8.2 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a8.5 8.5 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a8.2 8.2 0 0 0 .1 2L2.7 16.5l2 3.5 2.4-1a8.5 8.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.5L19.4 15Z"
+                      stroke="#7dd3fc" stroke-width="1.6" opacity=".9"/>
+              </svg>
+              <span>Options</span>
             </div>
-            <div class="metricsMini">
-              <span>TM: <strong id="tmVal">0.00</strong></span>
-              <span>BM: <strong id="bmVal">0.00</strong></span>
-              <span>D: <strong id="dVal">0.00</strong></span>
-              <span>R: <strong id="rVal">0.00</strong></span>
+            <div class="optionsMenu" id="optionsMenu">
+              <div class="menuItem" id="miVoice">
+                <div class="menuLeft"><span class="menuIcon">🎤</span><span>Voice</span></div>
+                <div class="menuRight"><span class="pillOff" id="voicePill">off</span></div>
+              </div>
+              <div class="menuItem" id="miIntel">
+                <div class="menuLeft"><span class="menuIcon">🧠</span><span>Intelligence</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
+              <div class="menuItem" id="miLearn">
+                <div class="menuLeft"><span class="menuIcon">📚</span><span>Learning</span></div>
+                <div class="menuRight"><span class="pillOn" id="learnPill">on</span></div>
+              </div>
+              <div class="menuItem" id="miSeed">
+                <div class="menuLeft"><span class="menuIcon">🌱</span><span>Feed</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
+              <div class="menuItem" id="miFaith">
+                <div class="menuLeft"><span class="menuIcon">🕊</span><span>Faith</span></div>
+                <div class="menuRight"><span class="pillOff" id="faithLabel">none</span></div>
+              </div>
+              <div class="menuItem" id="miIdentity">
+                <div class="menuLeft"><span class="menuIcon">🪪</span><span>Identity</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
+              <div class="menuItem" id="miLLM">
+                <div class="menuLeft"><span class="menuIcon">🤖</span><span>LLM</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
+              <div class="menuItem" id="miBMRecall">
+                <div class="menuLeft"><span class="menuIcon">📘</span><span>BM Recall</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
+              <div class="menuItem" id="miHistory">
+                <div class="menuLeft"><span class="menuIcon">📜</span><span>History</span></div>
+                <div class="menuRight"><span class="pillMid">open</span></div>
+              </div>
             </div>
-          </div>
-          <div class="capsuleRow">
-            <span class="capsuleLabel">Continuity R</span>
-            <div class="capsuleBar">
-              <div class="capsuleFill" id="capsuleFill"></div>
-            </div>
-            <span class="capsuleVal" id="rValCapsule">0.00</span>
-          </div>
-          <div class="chatLog" id="chatLog"></div>
-        </section>
-
-        <aside class="sideCard">
-          <div class="sideTitle">
-            <span>Quick modes &amp; emotional reactor</span>
-            <span class="badge">Local only</span>
-          </div>
-          <div class="quickBtns">
-            <button class="quickBtn" id="btnQuickHi">
-              <span class="icon">👋</span>
-              <span class="label">Greet AURA</span>
-              <span class="sub">Hi / Salaam / how are you?</span>
-            </button>
-            <button class="quickBtn" id="btnQuickWho">
-              <span class="icon">🤖</span>
-              <span class="label">Who are you?</span>
-              <span class="sub">Identity of AURA-X Ω</span>
-            </button>
-            <button class="quickBtn" id="btnQuickCreator">
-              <span class="icon">🧑‍🔬</span>
-              <span class="label">Who created you?</span>
-              <span class="sub">Alim ul Haq – Timergara</span>
-            </button>
-            <button class="quickBtn" id="btnQuickFaith">
-              <span class="icon">🕊</span>
-              <span class="label">Faith lens</span>
-              <span class="sub">Explain with faith ON</span>
-            </button>
-            <button class="quickBtn" id="btnQuickLogic">
-              <span class="icon">🧠</span>
-              <span class="label">Pure logic</span>
-              <span class="sub">Explain with faith OFF</span>
-            </button>
-            <button class="quickBtn" id="btnQuickBM">
-              <span class="icon">📜</span>
-              <span class="label">BM recall</span>
-              <span class="sub">Use long-form story</span>
-            </button>
-          </div>
-          <div class="reactionBar">
-            <div class="reactionChip">
-              TM<span><strong id="tmCounter">0</strong></span>
-            </div>
-            <div class="reactionChip">
-              BM<span><strong id="bmCounter">0</strong></span>
-            </div>
-            <div class="reactionChip">
-              Decay<span><strong id="dCounter">0</strong></span>
-            </div>
-            <div class="reactionChip">
-              R events<span><strong id="rCounter">0</strong></span>
-            </div>
-          </div>
-        </aside>
-      </div>
-
-      <div class="promptRow">
-        <div class="promptTop">
-          <div class="promptStats">
-            <span>Last answer source: <strong id="answerSource">seed/local</strong></span>
-            <span>History: <strong id="historyCount">0</strong> lines</span>
+            <div class="console" id="console"></div>
           </div>
         </div>
-        <div class="inputShell">
-          <div class="inputBox">
+        <!-- RIGHT -->
+        <div class="rightCol">
+          <div class="chatWrap">
+            <!-- reaction buttons above metrics, left-aligned -->
+            <div class="reactionBar" id="reactionBar">
+              <!-- left copy button REMOVED on purpose -->
+              <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence (like)">👍</button>
+              <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
+              <button class="reactBtn" id="btnSpeakLast" title="Play voice for last answer">🔊</button>
+              <button class="reactBtn" id="btnShareLast" title="Copy question + answer">🔗</button>
+            </div>
+            <div class="liveCapsule">
+              <span><b>E0</b>: <span id="cE0">0.000</span></span><span>·</span>
+              <span><b>TM</b>: <span id="cTM">0.00</span></span><span>·</span>
+              <span><b>BM</b>: <span id="cBM">0.00</span></span><span>·</span>
+              <span><b>C</b>: <span id="cCont">0.850</span></span>
+            </div>
+            <div class="faithBubble" id="faithBubble">
+              <div class="fbIcon">💭</div>
+              <div class="fbText">
+                <div class="fbTitle" id="faithBubbleTitle">Faith reflection bubble</div>
+                <div class="fbMeta" id="faithBubbleMeta">Tap to see a short suggestion.</div>
+              </div>
+              <button class="fbClose" id="faithBubbleClose">×</button>
+            </div>
             <div class="inputRow">
-              <div class="promptPrefix">User</div>
-              <textarea id="userInput" placeholder="Ask something, or talk to AURA-X Ω about life, feelings, plans…"></textarea>
+              <input class="input" id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
+              <button class="send" id="sendBtn">Send</button>
             </div>
-            <div class="inputMeta">
-              <span>
-                <span id="charCount">0</span> chars
-              </span>
-              <span>
-                Seed → Intelligence → Offline LLM → (optional API)
-              </span>
+            <div class="formula">
+              E₀ = R(TM,BM) + Δ<sub>dream</sub> + I<sub>intel</sub> + I<sub>LLM</sub><br>
+              where R(TM,BM) = tanh( (TM × BM) − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
             </div>
           </div>
-          <button class="sendBtn" id="sendBtn" title="Send">
-            ➤
-          </button>
-        </div>
-      </div>
-    </main>
-
-    <!-- Identity Modal -->
-    <div class="modalOverlay" id="modalIdentity">
-      <div class="modal">
-        <div class="modalHeader">
-          <div class="modalHeaderLeft">
-            <div class="modalTitle">
-              🪪 User identity &amp; deep profile
-            </div>
-            <div class="modalSubtitle">
-              Stored locally as Bold Memory about you. This never leaves your device.
-            </div>
-          </div>
-          <div class="modalHeaderRight">
-            <button class="btn btnSmall btnBlue" id="btnSaveIdentity">Save</button>
-            <button class="btn btnSmall" data-close="modalIdentity">Close</button>
-          </div>
-        </div>
-        <div class="modalBody">
-          <div class="identityGrid">
-            <div class="field">
-              <label for="idName">Name</label>
-              <input id="idName" placeholder="Your full name" />
-            </div>
-            <div class="field">
-              <label for="idTagline">Tagline / short bio</label>
-              <input id="idTagline" placeholder="e.g. AI researcher, real-estate developer, teacher…" />
-            </div>
-            <div class="field">
-              <label for="idLocation">Location</label>
-              <input id="idLocation" placeholder="City, Country" />
-            </div>
-            <div class="field">
-              <label for="idLanguage">Preferred language(s)</label>
-              <input id="idLanguage" placeholder="e.g. Urdu, English – Urdu for answers" />
-            </div>
-            <div class="field">
-              <label for="idValues">Core values / faith</label>
-              <textarea id="idValues" placeholder="Faith, ethics, red-lines, what matters most to you."></textarea>
-            </div>
-            <div class="field">
-              <label for="idGoals">Life goals &amp; projects</label>
-              <textarea id="idGoals" placeholder="Projects, dreams, responsibilities you want AURA to remember."></textarea>
-            </div>
-          </div>
-        </div>
-        <div class="modalFooter">
-          <span id="identityMeta"></span>
         </div>
       </div>
     </div>
-
-    <!-- Seed Modal -->
-    <div class="modalOverlay" id="modalSeed">
-      <div class="modal">
-        <div class="modalHeader">
-          <div class="modalHeaderLeft">
-            <div class="modalTitle">🌱 Seed knowledge &amp; self-learning rules</div>
-            <div class="modalSubtitle">
-              Basic Q&amp;A and correction rules live here. This is the first layer AURA will consult.
-            </div>
-          </div>
-          <div class="modalHeaderRight">
-            <button class="btn btnSmall btnBlue" id="btnSaveSeed">Save seed</button>
-            <button class="btn btnSmall" data-close="modalSeed">Close</button>
-          </div>
-        </div>
-        <div class="modalBody">
-          <div class="seedLayout">
-            <div class="seedColumn">
-              <h4>Basic Q&amp;A seed</h4>
-              <div class="seedRow">
-                <label for="seedHi">Hi / Hello</label>
-                <textarea id="seedHi" placeholder="How AURA should answer to Hi / Hello / Salaam."></textarea>
-              </div>
-              <div class="seedRow">
-                <label for="seedWho">Who are you?</label>
-                <textarea id="seedWho" placeholder="AURA-X Ω identity answer."></textarea>
-              </div>
-              <div class="seedRow">
-                <label for="seedCreator">Creator</label>
-                <textarea id="seedCreator" placeholder="Who created AURA-X Ω? (Alim ul Haq, Timergara)."></textarea>
-              </div>
-              <div class="seedRow">
-                <label for="seedFaith">Faith ON</label>
-                <textarea id="seedFaith" placeholder="How to apply faith lens when Faith is ON."></textarea>
-              </div>
-              <div class="seedRow">
-                <label for="seedLogic">Logic</label>
-                <textarea id="seedLogic" placeholder="Pure logical explanation style when Faith is OFF."></textarea>
-              </div>
-            </div>
-            <div class="seedColumn">
-              <h4>Self-learning rules</h4>
-              <div class="seedRow">
-                <label for="seedIncorrect">Incorrect</label>
-                <textarea id="seedIncorrect" placeholder="When user says *incorrect, how to ask for correct answer and confirm Yes/No."></textarea>
-              </div>
-              <div class="seedRow">
-                <label for="seedLock">Locking</label>
-                <textarea id="seedLock" placeholder="Rules for locking learned answers into Intelligence BM (double confirmation, etc.)."></textarea>
-              </div>
-              <div class="seedRow">
-                <label for="seedDecay">Decay</label>
-                <textarea id="seedDecay" placeholder="How to decay wrong / noisy answers over time while keeping meaning."></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modalFooter">
-          <span id="seedMeta"></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- BM Modal -->
-    <div class="modalOverlay" id="modalBM">
-      <div class="modal">
-        <div class="modalHeader">
-          <div class="modalHeaderLeft">
-            <div class="modalTitle">🧠 Bold Memory – long-form stories</div>
-            <div class="modalSubtitle">
-              Only long, photo/video-ready stories live here. BM influences continuity R and Dream Mode.
-            </div>
-          </div>
-          <div class="modalHeaderRight">
-            <button class="btn btnSmall btnBlue" id="btnNewBM">New BM</button>
-            <button class="btn btnSmall" data-close="modalBM">Close</button>
-          </div>
-        </div>
-        <div class="modalBody">
-          <div class="bmLayout">
-            <div class="bmSidebar">
-              <h4>BM entries</h4>
-              <div class="bmBadgeRow">
-                <span class="bmBadge" id="bmCountBadge">0 total</span>
-                <span class="bmBadge" id="bmLockedBadge">0 locked</span>
-                <span class="bmBadge" id="bmLiveBadge">0 live</span>
-              </div>
-              <div id="bmList"></div>
-            </div>
-            <div class="bmViewer">
-              <div class="bmViewerHeader">
-                <div>
-                  <div class="bmViewerTitle" id="bmViewerTitle">No BM selected</div>
-                  <div id="bmViewerMeta"></div>
-                </div>
-                <div class="bmActions">
-                  <button class="btn btnSmall btnBlue" id="btnBMUse">Use in next answer</button>
-                  <button class="btn btnSmall" id="btnBMEdit">Edit</button>
-                  <button class="btn btnSmall btnGold" id="btnBMLock">Lock</button>
-                  <button class="btn btnSmall btnRed" id="btnBMDelete">Delete</button>
-                </div>
-              </div>
-              <div class="bmViewerBody" id="bmViewerBody">
-                Long-form BM story text will appear here.
-              </div>
-
-              <div class="dream-config">
-                <div class="dream-config-title">🌀 Dream / screensaver timeout (BM-based)</div>
-                <div class="dream-config-row">
-                  <label for="dreamTimeout">Start Dream Mode after inactivity:</label>
-                  <select id="dreamTimeout">
-                    <option value="0">Off (no Dream Mode)</option>
-                    <option value="30000">30 seconds</option>
-                    <option value="60000">1 minute</option>
-                    <option value="300000">5 minutes</option>
-                    <option value="900000">15 minutes</option>
-                    <option value="1800000">30 minutes</option>
-                    <option value="3600000">1 hour</option>
-                    <option value="10800000">3 hours</option>
-                    <option value="28800000">8 hours</option>
-                  </select>
-                </div>
-                <div class="dream-config-note">
-                  When enabled, AURA-X Ω will enter a soft Dream Mode while idle, using BM &amp; history to dream and gently decay noisy data while keeping the meaning.
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-        <div class="modalFooter">
-          <span id="bmMeta"></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- History Modal -->
-    <div class="modalOverlay" id="modalHistory">
-      <div class="modal">
-        <div class="modalHeader">
-          <div class="modalHeaderLeft">
-            <div class="modalTitle">🕰 Conversation history window</div>
-            <div class="modalSubtitle">
-              Last 48h are “soft” and can decay; locked BM and identity are permanent until you manually clear them.
-            </div>
-          </div>
-          <div class="modalHeaderRight">
-            <button class="btn btnSmall" data-close="modalHistory">Close</button>
-          </div>
-        </div>
-        <div class="modalBody">
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-            <button class="btn btnBlue" id="btnDeleteRecent">Delete history last 48h</button>
-            <button class="btn btnRed" id="btnDeleteAllHist">Delete all history</button>
-            <button class="btn btnBlue" id="btnCopyHistory">Copy</button>
-            <button class="btn btnBlue" id="btnExportMemory">Export memory (JSON)</button>
-            <button class="btn btnBlue" id="btnImportMemory">Import memory (JSON)</button>
-          </div>
-          <input type="file" id="memoryFileInput" accept="application/json" style="display:none;" />
-          <div id="historyBox"></div>
-        </div>
-        <div class="modalFooter">
-          <span id="historyMeta"></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- LLM Modal -->
-    <div class="modalOverlay" id="modalLLM">
-      <div class="modal">
-        <div class="modalHeader">
-          <div class="modalHeaderLeft">
-            <div class="modalTitle">⚙ Offline &amp; API LLM configuration</div>
-            <div class="modalSubtitle">
-              Seed &amp; Intelligence are always first. LLM is only a fallback when local layers have no answer.
-            </div>
-          </div>
-          <div class="modalHeaderRight">
-            <button class="btn btnSmall" data-close="modalLLM">Close</button>
-          </div>
-        </div>
-        <div class="modalBody">
-          <div id="llmConfig">
-            <div class="row">
-              <span>Offline model (future WebLLM):</span>
-              <select id="offlineModel">
-                <option value="off">Disabled (demo)</option>
-                <option value="llama3-8b">LLaMA 3 8B (local)</option>
-                <option value="phi-3">Phi-3 (local)</option>
-              </select>
-            </div>
-            <div class="row">
-              <span>Online API endpoint (optional):</span>
-              <input id="apiEndpoint" placeholder="https://api.example.com/chat" />
-            </div>
-            <div class="row">
-              <span>API key (stored only in this browser):</span>
-              <input id="apiKey" type="password" placeholder="sk-..." />
-            </div>
-            <div class="row">
-              <span>Max tokens offline:</span>
-              <input id="offlineMaxTokens" type="number" min="128" max="4096" value="512" />
-            </div>
-            <div class="note">
-              Order of answer: <strong>Seed</strong> → <strong>Learned Intelligence</strong> → <strong>Offline LLM</strong> → <strong>API LLM</strong>.<br/>
-              If Faith is ON, all answers must respect your red-lines and values.
-            </div>
-          </div>
-        </div>
-        <div class="modalFooter">
-          <span id="llmMeta"></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Dream / screensaver overlay -->
-    <div id="dreamOverlay" class="dream-overlay">
-      <div class="dream-inner">
-        <div class="dream-title">Dream Mode</div>
-        <div class="dream-snippet">
-          When you pause, AURA-X Ω dreams with your BM &amp; history…
-        </div>
-        <div class="dream-hint">Tap anywhere to wake and continue.</div>
-      </div>
-    </div>
-
-    <div class="toast" id="toastBubble"></div>
   </div>
-
+  <!-- Dream overlay -->
+  <div class="dreamOverlay" id="dreamOverlay">
+    <div class="dreamTitle">Dream mode</div>
+    <div class="dreamSub">Compressing memories into meaning… Tap or press any key to wake.</div>
+    <div class="dreamSnippet" id="dreamSnippet"></div>
+  </div>
+  <!-- Toast bubble -->
+  <div class="toastBubble" id="toastBubble"></div>
+  <!-- Faith selection -->
+  <div class="modalOverlay" id="modalFaith">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>⚙️ AURA-X Ω options<br><small>Optional faith lens for encouragement lines.</small></div>
+        <button class="closeX" data-close="modalFaith">×</button>
+      </div>
+      <div class="modalBody" style="background:#fdf7e5;">
+        <div style="opacity:.8;font-size:13px;line-height:1.35;margin-bottom:8px">
+          Universal ethics are always active. You can optionally pick one or more faith lenses.
+          Nothing is sent to any server.
+        </div>
+        <div class="chipsWrap" id="faithChips"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Faith article -->
+  <div class="modalOverlay" id="modalFaithArticle">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>💭 Faith reflection<br><small>Story-related suggestion from your selected literature.</small></div>
+        <button class="closeX" data-close="modalFaithArticle">×</button>
+      </div>
+      <div class="modalBody" style="background:#fefce8;">
+        <div id="faithArticleMeta" style="font-size:12px;opacity:.75;margin-bottom:6px;"></div>
+        <div id="faithArticleTitle" style="font-weight:800;margin-bottom:6px;"></div>
+        <textarea id="faithArticleText"
+          style="width:100%;min-height:160px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;background:#fff;"></textarea>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+          <button class="btn btnBlue" id="btnCopyFaithArticle">Copy</button>
+          <button class="btn btnBlue" id="btnAddFaithToBM">Add under BM prompt</button>
+          <button class="btn btnRed" id="btnSkipFaithBM">Skip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Intelligence -->
+  <div class="modalOverlay" id="modalIntel">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🧠 Intelligence<br><small>Stored Q → A pairs.</small></div>
+        <button class="closeX" data-close="modalIntel">×</button>
+      </div>
+      <div class="modalBody">
+        <input id="intelSearch"
+          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none"
+          placeholder="Search intelligence..." />
+        <!-- per-card inline editor -->
+        <div id="intelList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Seed + Logic -->
+  <div class="modalOverlay" id="modalSeed">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🌱 Feed the seed<br><small>Add LaTeX Q → A blocks and optional Logic Pack.</small></div>
+        <button class="closeX" data-close="modalSeed">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="opacity:.75;font-size:13px;line-height:1.35;margin-bottom:10px">
+          Paste a LaTeX block with \item questions and \textbf{A:} answers. You can optionally start each
+          answer with [polarity=positive; code=E031; intensity=0.8].
+        </div>
+        <textarea id="seedBox"
+          style="width:100%;min-height:150px;resize:vertical;border-radius:14px;border:2px solid rgba(59,130,246,.25);padding:12px;font-size:14px;outline:none;background:#fff"
+          placeholder="Paste LaTeX conversation / logic block here..."></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px">
+          <div style="font-size:12px;opacity:.7" id="seedHint">Waiting for block…</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btnBlue" id="btnParseSeed">Parse block</button>
+            <button class="btn btnBlue" id="btnSaveSeed">Save to seed</button>
+            <button class="btn btnRed" id="btnDiscardSeed">Discard</button>
+          </div>
+        </div>
+        <hr style="margin:14px 0;border:none;border-top:1px dashed rgba(15,23,42,.18);" />
+        <div style="font-weight:800;font-size:13px;margin-bottom:6px;">🧩 Logic Pack (JSON rules – advanced)</div>
+        <div style="font-size:12px;opacity:.75;line-height:1.4;margin-bottom:6px;">
+          Each time you press <b>Save</b>, a new logic pack is stored with its own number.
+          Saved logic packs never auto-delete; they can only be removed manually with double confirmation.
+        </div>
+        <textarea id="logicBox"
+          style="width:100%;min-height:130px;resize:vertical;border-radius:14px;border:2px solid rgba(15,23,42,.18);padding:10px;font-size:13px;outline:none;background:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;"
+          placeholder='{
+  "cooldown": { "hits": 3, "seconds": 10 },
+  "abuseWords": ["stfu","idiot"],
+  "faithSoftener": true,
+  "ui": { "theme": "golden", "accentColor": "#f97316" }
+}'>
+        </textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
+          <div style="font-size:12px;opacity:.7" id="logicHint">No logic pack loaded.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btnBlue" id="btnValidateLogic">Validate</button>
+            <button class="btn btnBlue" id="btnSaveLogic">Save</button>
+            <button class="btn btnBlue" id="btnCopyLogic">Copy</button>
+            <button class="btn btnRed" id="btnDeleteLogic">Delete</button>
+          </div>
+        </div>
+        <div style="margin-top:6px;font-size:11px;opacity:.6;">
+          Current serial: <span id="logicSerial">none</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- LLM -->
+  <div class="modalOverlay" id="modalLLM">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🤖 LLM link<br><small>Offline LLM + optional online helper.</small></div>
+        <button class="closeX" data-close="modalLLM">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="border-radius:14px;border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.12);padding:12px;">
+          <div style="font-weight:900;">Offline LLM (WebLLM)</div>
+          <div style="font-size:13px;opacity:.8;margin-top:6px;line-height:1.35">
+            Loads a small local model in your browser (WebGPU required). On many mobile browsers this may not be supported.
+          </div>
+          <div style="margin-top:10px;">
+            <button class="btn btnGreen" id="btnLoadOffline">Load offline model</button>
+          </div>
+          <div style="margin-top:8px;font-size:12px;opacity:.75">Status: <span id="offlineStatus">idle</span></div>
+          <div style="margin-top:8px;height:10px;border-radius:999px;background:rgba(2,6,23,.12);overflow:hidden;border:1px solid rgba(2,6,23,.08)">
+            <div id="offlineBar" style="height:100%;width:0%;background:#22c55e;transition:width .2s.ease;"></div>
+          </div>
+        </div>
+        <div style="font-weight:900;margin-top:14px;">Online helper LLM (connects & works)</div>
+        <div style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:4px;">
+          Use any compatible API (OpenAI, DeepSeek, xAI, etc.). Nothing is stored on server by AURA-X Ω itself.
+        </div>
+        <div style="margin-top:6px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API endpoint</label>
+          <input id="apiEndpoint"
+            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+            value="https://api.openai.com/v1/chat/completions" />
+        </div>
+        <div style="margin-top:10px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Model</label>
+          <input id="apiModel"
+            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+            value="gpt-4o-mini" />
+        </div>
+        <div style="margin-top:10px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API key (session only)</label>
+          <input id="apiKey"
+            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+            placeholder="sk-..." />
+        </div>
+        <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+          <button class="btn btnBlue" id="btnSaveLLM">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- BM Recall -->
+  <div class="modalOverlay" id="modalBM">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>📘 Recall from BM<br><small>Only long stories and scenes (photo/video-ready).</small></div>
+        <button class="closeX" data-close="modalBM">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="font-size:13px;opacity:.75">
+          Select a BM prompt. Locked prompts must be unlocked first. Delete needs double confirmation.
+        </div>
+        <input id="bmSearch"
+          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:8px 0 4px;outline:none;background:#fff;"
+          placeholder="Search BM by text..." />
+        <!-- calendar search by date -->
+        <input id="bmDate" type="date"
+          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:0 0 6px;outline:none;background:#fff;" />
+        <div id="bmSelectList"></div>
+        <div class="bmCard" id="bmViewer" style="display:none;">
+          <div class="bmTop">
+            <div>
+              <div class="title"><span id="bmLockIcon">🔓</span> <span id="bmTitle">Prompt</span></div>
+              <div class="bmSub" id="bmMeta"></div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+              <button class="btn btnBlue" id="btnLiveBM">Live 12h: off</button>
+              <button class="btn btnBlue" id="btnUnlockBM" style="display:none;">Unlock</button>
+            </div>
+          </div>
+          <textarea class="bmText" id="bmTextArea" readonly></textarea>
+          <div class="bmActions">
+            <button class="btn btnBlue" id="btnCopyPrompt">Copy prompt</button>
+            <button class="btn btnBlue" id="btnAutoGen">Generate video</button>
+            <button class="btn btnRed" id="btnDeletePrompt">Delete</button>
+          </div>
+        </div>
+        <!-- Dream settings + BM JSON backup -->
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
+          <div style="font-size:12px;opacity:.75;">
+            Dream / screensaver timeout:
+            <select id="dreamTimeoutSelect" style="margin-left:4px;border-radius:999px;border:1px solid rgba(15,23,42,.18);padding:4px 8px;font-size:12px;">
+              <option value="30000">30 sec</option>
+              <option value="60000">1 min</option>
+              <option value="300000">5 min</option>
+              <option value="900000">15 min</option>
+              <option value="1800000">30 min</option>
+              <option value="3600000">1 hour</option>
+              <option value="7200000">2 hours</option>
+              <option value="14400000">4 hours</option>
+              <option value="28800000">8 hours</option>
+            </select>
+            <label style="margin-left:8px;font-size:12px;">
+              <input type="checkbox" id="dreamEnabledToggle" style="margin-right:4px;">Screen saver on
+            </label>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+            <button class="btn btnBlue" id="btnExportBM">Export BM JSON</button>
+            <button class="btn btnBlue" id="btnImportBM">Import BM JSON</button>
+            <input type="file" id="bmImportFile" accept="application/json" style="display:none;">
+          </div>
+        </div>
+        <div id="bmImportHint" style="margin-top:4px;font-size:11px;opacity:.6;"></div>
+      </div>
+    </div>
+  </div>
+  <!-- History -->
+  <div class="modalOverlay" id="modalHistory">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>📜 Conversation history<br><small>Recent TM log.</small></div>
+        <button class="closeX" data-close="modalHistory">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="btn btnBlue" id="btnDeleteRecent">Delete history last 48h</button>
+          <button class="btn btnRed" id="btnDeleteAllHist">Delete all history</button>
+          <button class="btn btnBlue" id="btnCopyHistory">Copy</button>
+        </div>
+        <div id="historyBox"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Identity -->
+  <div class="modalOverlay" id="modalIdentity">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🪪 User identity<br><small>Deep profiling for continuity.</small></div>
+        <button class="closeX" data-close="modalIdentity">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="opacity:.8;font-size:13px;line-height:1.35">
+          Stored only on this device. Saved data auto-locks. Delete requires double confirmation.
+        </div>
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+          <button class="btn btnBlue" id="btnEditIdentity">Edit</button>
+          <button class="btn btnBlue" id="btnSaveUserIdentity">Save</button>
+          <button class="btn btnRed" id="btnDeleteUserIdentity">Delete</button>
+        </div>
+        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 1 – Basic</div>
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Full legal name</label>
+          <input id="uName"
+            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+            placeholder="e.g., Alim ul Haq" />
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Preferred name</label>
+            <input id="uNick"
+              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+              placeholder="Nickname" />
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Place of origin</label>
+            <input id="uOrigin"
+              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+              placeholder="Village / town" />
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Current city / country</label>
+            <input id="uPlace"
+              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+              placeholder="Timergara, Pakistan" />
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Profession</label>
+            <input id="uProfession"
+              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
+              placeholder="Entrepreneur, researcher…" />
+          </div>
+        </div>
+        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 2 – Emotional style</div>
+        <textarea id="uEmotionalStyle"
+          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:90px;"
+          placeholder="How you react under stress, joy, fear, success…"></textarea>
+        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 3 – Relationships & legacy</div>
+        <textarea id="uKeyPeople"
+          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
+          placeholder="Key people and roles in your life…"></textarea>
+        <textarea id="uLegacyRules"
+          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
+          placeholder="If one day this system speaks for you, which boundaries and rules must it follow?"></textarea>
+      </div>
+    </div>
+  </div>
   <script>
-    const KEY_USER = "ax_user";
-    const KEY_SEED = "ax_seed";
-    const KEY_INT = "ax_intel";
-    const KEY_BM = "ax_bm";
-    const KEY_HIST = "ax_hist";
-    const KEY_CFG = "ax_cfg";
-    const KEY_LOGIC = "ax_logic";
-
-    const els = {
-      chatLog: document.getElementById("chatLog"),
-      tmVal: document.getElementById("tmVal"),
-      bmVal: document.getElementById("bmVal"),
-      dVal: document.getElementById("dVal"),
-      rVal: document.getElementById("rVal"),
-      rValCapsule: document.getElementById("rValCapsule"),
-      capsuleFill: document.getElementById("capsuleFill"),
-      tmCounter: document.getElementById("tmCounter"),
-      bmCounter: document.getElementById("bmCounter"),
-      dCounter: document.getElementById("dCounter"),
-      rCounter: document.getElementById("rCounter"),
-      answerSource: document.getElementById("answerSource"),
-      historyCount: document.getElementById("historyCount"),
-      profileStatus: document.getElementById("profileStatus"),
-      seedStatus: document.getElementById("seedStatus"),
-      bmStatus: document.getElementById("bmStatus"),
-      historyBox: document.getElementById("historyBox"),
-      historyMeta: document.getElementById("historyMeta"),
-      userInput: document.getElementById("userInput"),
-      sendBtn: document.getElementById("sendBtn"),
-      charCount: document.getElementById("charCount"),
-      faithToggle: document.getElementById("faithToggle"),
-      faithStatus: document.getElementById("faithStatus"),
-      optionsPanel: document.getElementById("optionsPanel"),
-      btnOptions: document.getElementById("btnOptions"),
-      btnIdentity: document.getElementById("btnIdentity"),
-      btnSeed: document.getElementById("btnSeed"),
-      btnBM: document.getElementById("btnBM"),
-      btnHistory: document.getElementById("btnHistory"),
-      btnLLM: document.getElementById("btnLLM"),
-      modalIdentity: document.getElementById("modalIdentity"),
-      modalSeed: document.getElementById("modalSeed"),
-      modalBM: document.getElementById("modalBM"),
-      modalHistory: document.getElementById("modalHistory"),
-      modalLLM: document.getElementById("modalLLM"),
-      idName: document.getElementById("idName"),
-      idTagline: document.getElementById("idTagline"),
-      idLocation: document.getElementById("idLocation"),
-      idLanguage: document.getElementById("idLanguage"),
-      idValues: document.getElementById("idValues"),
-      idGoals: document.getElementById("idGoals"),
-      identityMeta: document.getElementById("identityMeta"),
-      seedHi: document.getElementById("seedHi"),
-      seedWho: document.getElementById("seedWho"),
-      seedCreator: document.getElementById("seedCreator"),
-      seedFaith: document.getElementById("seedFaith"),
-      seedLogic: document.getElementById("seedLogic"),
-      seedIncorrect: document.getElementById("seedIncorrect"),
-      seedLock: document.getElementById("seedLock"),
-      seedDecay: document.getElementById("seedDecay"),
-      seedMeta: document.getElementById("seedMeta"),
-      bmList: document.getElementById("bmList"),
-      bmViewerTitle: document.getElementById("bmViewerTitle"),
-      bmViewerMeta: document.getElementById("bmViewerMeta"),
-      bmViewerBody: document.getElementById("bmViewerBody"),
-      bmMeta: document.getElementById("bmMeta"),
-      bmCountBadge: document.getElementById("bmCountBadge"),
-      bmLockedBadge: document.getElementById("bmLockedBadge"),
-      bmLiveBadge: document.getElementById("bmLiveBadge"),
-      btnSaveIdentity: document.getElementById("btnSaveIdentity"),
-      btnSaveSeed: document.getElementById("btnSaveSeed"),
-      btnNewBM: document.getElementById("btnNewBM"),
-      btnBMUse: document.getElementById("btnBMUse"),
-      btnBMEdit: document.getElementById("btnBMEdit"),
-      btnBMLock: document.getElementById("btnBMLock"),
-      btnBMDelete: document.getElementById("btnBMDelete"),
-      btnDeleteRecent: document.getElementById("btnDeleteRecent"),
-      btnDeleteAllHist: document.getElementById("btnDeleteAllHist"),
-      btnCopyHistory: document.getElementById("btnCopyHistory"),
-      btnQuickHi: document.getElementById("btnQuickHi"),
-      btnQuickWho: document.getElementById("btnQuickWho"),
-      btnQuickCreator: document.getElementById("btnQuickCreator"),
-      btnQuickFaith: document.getElementById("btnQuickFaith"),
-      btnQuickLogic: document.getElementById("btnQuickLogic"),
-      btnQuickBM: document.getElementById("btnQuickBM"),
-      llmMeta: document.getElementById("llmMeta"),
-      offlineModel: document.getElementById("offlineModel"),
-      apiEndpoint: document.getElementById("apiEndpoint"),
-      apiKey: document.getElementById("apiKey"),
-      offlineMaxTokens: document.getElementById("offlineMaxTokens"),
-      btnShareLast: document.getElementById("btnShareLast"),
-      toastBubble: document.getElementById("toastBubble"),
-      dreamOverlay: document.getElementById("dreamOverlay"),
-      dreamTimeout: document.getElementById("dreamTimeout"),
-      memoryFileInput: document.getElementById("memoryFileInput"),
-      btnExportMemory: document.getElementById("btnExportMemory"),
-      btnImportMemory: document.getElementById("btnImportMemory")
-    };
-
-    let state = {
-      faithOn: true,
-      metrics: {
-        tm: 0,
-        bm: 0,
-        d: 0,
-        r: 0,
-        tmCount: 0,
-        bmCount: 0,
-        dCount: 0,
-        rCount: 0
-      },
-      history: [],
-      bmPrompts: [],
-      userProfile: null,
-      seed: null,
-      logicRules: null,
-      llmCfg: {
-        offlineModel: "off",
-        apiEndpoint: "",
-        offlineMaxTokens: 512
-      },
-      lastAnswerSource: "seed/local",
-      selectedBMId: null,
-      dreamTimeoutMs: 0,
-      dreamTimer: null,
-      dreamInterval: null,
-      bmSnapshots: [],
-      lastActivityAt: Date.now()
-    };
-
+    window.addEventListener("DOMContentLoaded", () => {
+      const KEY_CFG   = "aurax_cfg_v12";
+      const KEY_INT   = "aurax_intel_v11";
+      const KEY_BM    = "aurax_bm_v11";
+      const KEY_HIST  = "aurax_hist_v11";
+      const KEY_USER  = "aurax_user_v11";
+      const KEY_LOGIC = "aurax_logic_v12";
+      const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
+      const els = {
+        console: document.getElementById("console"),
+        btnOptions: document.getElementById("btnOptions"),
+        optionsMenu: document.getElementById("optionsMenu"),
+        miVoice: document.getElementById("miVoice"),
+        miIntel: document.getElementById("miIntel"),
+        miLearn: document.getElementById("miLearn"),
+        miSeed: document.getElementById("miSeed"),
+        miFaith: document.getElementById("miFaith"),
+        miIdentity: document.getElementById("miIdentity"),
+        miLLM: document.getElementById("miLLM"),
+        miBMRecall: document.getElementById("miBMRecall"),
+        miHistory: document.getElementById("miHistory"),
+        voicePill: document.getElementById("voicePill"),
+        learnPill: document.getElementById("learnPill"),
+        faithLabel: document.getElementById("faithLabel"),
+        cE0: document.getElementById("cE0"),
+        cTM: document.getElementById("cTM"),
+        cBM: document.getElementById("cBM"),
+        cCont: document.getElementById("cCont"),
+        userInput: document.getElementById("userInput"),
+        sendBtn: document.getElementById("sendBtn"),
+        faithBubble: document.getElementById("faithBubble"),
+        faithBubbleTitle: document.getElementById("faithBubbleTitle"),
+        faithBubbleMeta: document.getElementById("faithBubbleMeta"),
+        faithBubbleClose: document.getElementById("faithBubbleClose"),
+        modalFaith: document.getElementById("modalFaith"),
+        faithChips: document.getElementById("faithChips"),
+        modalFaithArticle: document.getElementById("modalFaithArticle"),
+        faithArticleMeta: document.getElementById("faithArticleMeta"),
+        faithArticleTitle: document.getElementById("faithArticleTitle"),
+        faithArticleText: document.getElementById("faithArticleText"),
+        btnCopyFaithArticle: document.getElementById("btnCopyFaithArticle"),
+        btnAddFaithToBM: document.getElementById("btnAddFaithToBM"),
+        btnSkipFaithBM: document.getElementById("btnSkipFaithBM"),
+        modalIntel: document.getElementById("modalIntel"),
+        intelSearch: document.getElementById("intelSearch"),
+        intelList: document.getElementById("intelList"),
+        modalSeed: document.getElementById("modalSeed"),
+        seedBox: document.getElementById("seedBox"),
+        seedHint: document.getElementById("seedHint"),
+        btnParseSeed: document.getElementById("btnParseSeed"),
+        btnSaveSeed: document.getElementById("btnSaveSeed"),
+        btnDiscardSeed: document.getElementById("btnDiscardSeed"),
+        logicBox: document.getElementById("logicBox"),
+        logicHint: document.getElementById("logicHint"),
+        logicSerial: document.getElementById("logicSerial"),
+        btnValidateLogic: document.getElementById("btnValidateLogic"),
+        btnSaveLogic: document.getElementById("btnSaveLogic"),
+        btnCopyLogic: document.getElementById("btnCopyLogic"),
+        btnDeleteLogic: document.getElementById("btnDeleteLogic"),
+        modalLLM: document.getElementById("modalLLM"),
+        btnLoadOffline: document.getElementById("btnLoadOffline"),
+        offlineStatus: document.getElementById("offlineStatus"),
+        offlineBar: document.getElementById("offlineBar"),
+        apiEndpoint: document.getElementById("apiEndpoint"),
+        apiModel: document.getElementById("apiModel"),
+        apiKey: document.getElementById("apiKey"),
+        btnSaveLLM: document.getElementById("btnSaveLLM"),
+        modalBM: document.getElementById("modalBM"),
+        bmSearch: document.getElementById("bmSearch"),
+        bmDate: document.getElementById("bmDate"),
+        bmSelectList: document.getElementById("bmSelectList"),
+        bmViewer: document.getElementById("bmViewer"),
+        bmLockIcon: document.getElementById("bmLockIcon"),
+        bmTitle: document.getElementById("bmTitle"),
+        bmMeta: document.getElementById("bmMeta"),
+        bmTextArea: document.getElementById("bmTextArea"),
+        btnLiveBM: document.getElementById("btnLiveBM"),
+        btnUnlockBM: document.getElementById("btnUnlockBM"),
+        btnCopyPrompt: document.getElementById("btnCopyPrompt"),
+        btnAutoGen: document.getElementById("btnAutoGen"),
+        btnDeletePrompt: document.getElementById("btnDeletePrompt"),
+        modalHistory: document.getElementById("modalHistory"),
+        btnDeleteRecent: document.getElementById("btnDeleteRecent"),
+        btnDeleteAllHist: document.getElementById("btnDeleteAllHist"),
+        btnCopyHistory: document.getElementById("btnCopyHistory"),
+        historyBox: document.getElementById("historyBox"),
+        modalIdentity: document.getElementById("modalIdentity"),
+        btnEditIdentity: document.getElementById("btnEditIdentity"),
+        btnSaveUserIdentity: document.getElementById("btnSaveUserIdentity"),
+        btnDeleteUserIdentity: document.getElementById("btnDeleteUserIdentity"),
+        uName: document.getElementById("uName"),
+        uNick: document.getElementById("uNick"),
+        uOrigin: document.getElementById("uOrigin"),
+        uPlace: document.getElementById("uPlace"),
+        uProfession: document.getElementById("uProfession"),
+        uEmotionalStyle: document.getElementById("uEmotionalStyle"),
+        uKeyPeople: document.getElementById("uKeyPeople"),
+        uLegacyRules: document.getElementById("uLegacyRules"),
+        btnLikeLast: document.getElementById("btnLikeLast"),
+        btnDislikeLast: document.getElementById("btnDislikeLast"),
+        btnSpeakLast: document.getElementById("btnSpeakLast"),
+        btnShareLast: document.getElementById("btnShareLast"),
+        toastBubble: document.getElementById("toastBubble"),
+        dreamOverlay: document.getElementById("dreamOverlay"),
+        dreamSnippet: document.getElementById("dreamSnippet"),
+        dreamTimeoutSelect: document.getElementById("dreamTimeoutSelect"),
+        dreamEnabledToggle: document.getElementById("dreamEnabledToggle"),
+        btnExportBM: document.getElementById("btnExportBM"),
+        btnImportBM: document.getElementById("btnImportBM"),
+        bmImportFile: document.getElementById("bmImportFile"),
+        bmImportHint: document.getElementById("bmImportHint")
+      };
+      const FAITH_OPTIONS = [
+        { id: "none",         label: "None" },
+        { id: "islam",        label: "Islam" },
+        { id: "christianity", label: "Christianity" },
+        { id: "hinduism",     label: "Hinduism" },
+        { id: "buddhism",     label: "Buddhism" },
+        { id: "sikhism",      label: "Sikhism" },
+        { id: "judaism",      label: "Judaism" },
+        { id: "atheism",      label: "Atheism / Humanism" },
+        { id: "mixed",        label: "Other / Mixed" },
+        { id: "indigenous",   label: "Indigenous / Traditional" },
+        { id: "eastern",      label: "Eastern / Chinese" }
+      ];
+      const FAITH_LIBRARY = {
+        islam: [{
+          id: "islam_generic",
+          title: "Meaning of hardship and patience",
+          short: "Trust, sabr and good opinion of Allah during hard stories.",
+          content:
+            "In Islamic reflection, hardship is often seen as a temporary test that polishes the heart. " +
+            "Believers are invited toward sabr (patience), shukr (gratitude where possible), and husn-uz-zann " +
+            "(a good opinion of Allah). You can ask: what quality is being trained in me here, and which door " +
+            "of mercy may open later from this chapter of my life?"
+        }]
+      };
+      let state = {
+        voiceOn: false,
+        learningOn: true,
+        faithSelection: [],
+        intelligence: [],
+        seedPairs: [],
+        bmPrompts: [],
+        history: [],
+        userIdentity: null,
+        apiConfig: { endpoint: "", model: "", key: "" },
+        offlineEngine: null,
+        offlineLoading: false,
+        offlineReady: false,
+        lastAnswerSource: null,
+        lastUserQ: null,
+        lastAuraA: null,
+        correcting: false, // for "incorrect" flow
+        metrics: { TM:0, BM:0, C:0.85, E0:0 },
+        parsedSeed: [],
+        editingIntelId: null,
+        lastStoryInput: null,
+        lastStoryBMId: null,
+        faithBubbleTimer: null,
+        currentFaithArticle: null,
+        logicPacks: [],
+        logicActiveIndex: null,
+        abuseCount: 0,
+        cooldownUntil: 0,
+        mode: "adult",
+        logicFaithSoftener: true,
+        toastTimer: null,
+        selectedBMId: null,
+        dreamActive: false,
+        dreamSettings: { enabled:true, timeoutMs:600000 },
+        dreamLastRun: 0
+      };
       function safeLoadJSON(key, fallback){
         try{
           const raw = localStorage.getItem(key);
-          if(!raw) return fallback;
-          return JSON.parse(raw);
-        }catch{
-          return fallback;
+          return raw ? JSON.parse(raw) : fallback;
+        }catch{ return fallback; }
+      }
+      function logLine(roleOrText, maybeText){
+        let role = "";
+        let text;
+        if (typeof maybeText === "undefined"){
+          text = roleOrText;
+        } else {
+          role = roleOrText || "";
+          text = maybeText;
+        }
+        const div = document.createElement("div");
+        div.className = "line" + (role ? " " + role : "");
+        div.textContent = text;
+        els.console.appendChild(div);
+        els.console.scrollTop = els.console.scrollHeight;
+        if(role === "user" || role === "aura"){
+          addHistory(role, text);
         }
       }
-
-      function exportMemoryJson(){
-        const payload = {
-          version: "AURAX-1.0",
-          exportedAt: new Date().toISOString(),
-          user: safeLoadJSON(KEY_USER,null),
-          intelligence: safeLoadJSON(KEY_INT,[]),
-          bm: safeLoadJSON(KEY_BM,[]),
-          cfg: safeLoadJSON(KEY_CFG,null),
-          history: safeLoadJSON(KEY_HIST,[]),
-          logic: safeLoadJSON(KEY_LOGIC,null)
-        };
-        const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "auraX_memory_" + new Date().toISOString().slice(0,10) + ".json";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast("Memory exported as JSON file.");
+      function scoreTM(t){
+        const len = Math.min((t||"").length,600);
+        return Number(Math.tanh(len/200).toFixed(2));
       }
-
-      function handleMemoryFileSelected(ev){
-        const file = ev.target.files && ev.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e)=>{
-          try{
-            const data = JSON.parse(e.target.result);
-            importMemoryJson(data);
-            showToast("Memory imported. Reloading from local backup.");
-            initFromStorage();
-          }catch(err){
-            console.error("Import failed", err);
-            showToast("Import failed – invalid JSON.");
-          } finally {
-            ev.target.value = "";
-          }
-        };
-        reader.readAsText(file);
+      function analyzeMeaning(text){
+        const t = (text || "").toLowerCase();
+        const emotion_tags = [];
+        const context_tags = [];
+        if(/sad|grief|cry|lonely|depress|loss|غم|اداس/.test(t)) emotion_tags.push("sadness");
+        if(/angry|rage|furious|غصہ/.test(t)) emotion_tags.push("anger");
+        if(/happy|joy|excited|delight|خوش/.test(t)) emotion_tags.push("joy");
+        if(/fear|anxious|panic|ڈر/.test(t)) emotion_tags.push("fear");
+        if(/hope|optimistic|امید/.test(t)) emotion_tags.push("hope");
+        if(!emotion_tags.length) emotion_tags.push("neutral");
+        if(/family|mother|father|brother|sister|kids|wife|بیوی|بچہ/.test(t)) context_tags.push("family");
+        if(/work|job|office|project|business/.test(t)) context_tags.push("work");
+        if(/health|doctor|pain|hospital|بیمار/.test(t)) context_tags.push("health");
+        if(/faith|allah|god|deen|اسلام|dua|prayer/.test(t)) context_tags.push("faith");
+        if(/friend|dost|دوست/.test(t)) context_tags.push("friends");
+        if(!context_tags.length) context_tags.push("general");
+        return {emotion_tags, context_tags};
       }
-
-      function importMemoryJson(data){
-        if (!data || typeof data !== "object") return;
-        if (data.user !== undefined) localStorage.setItem(KEY_USER, JSON.stringify(data.user));
-        if (data.intelligence !== undefined) localStorage.setItem(KEY_INT, JSON.stringify(data.intelligence));
-        if (data.bm !== undefined) localStorage.setItem(KEY_BM, JSON.stringify(data.bm));
-        if (data.cfg !== undefined) localStorage.setItem(KEY_CFG, JSON.stringify(data.cfg));
-        if (data.history !== undefined) localStorage.setItem(KEY_HIST, JSON.stringify(data.history));
-        if (data.logic !== undefined) localStorage.setItem(KEY_LOGIC, JSON.stringify(data.logic));
-      }
-
-      function addBMSnapshot(longText){
-        const text = (longText || "").trim();
-        if (!text) return;
-        state.bmSnapshots.push({
-          id: "snap_" + Date.now(),
-          text,
-          createdAt: Date.now()
-        });
-        if (state.bmSnapshots.length > 64) {
-          state.bmSnapshots = state.bmSnapshots.slice(-64);
+      function ensureBMMetadata(bm){
+        if(!bm) return;
+        if(typeof bm.weight !== "number") bm.weight = 0.6;
+        if(!bm.emotion_tags || !Array.isArray(bm.emotion_tags)){
+          const m = analyzeMeaning(bm.text || "");
+          bm.emotion_tags = m.emotion_tags;
+          bm.context_tags = m.context_tags;
+        }
+        if(!bm.context_tags || !Array.isArray(bm.context_tags)){
+          const m = analyzeMeaning(bm.text || "");
+          bm.context_tags = m.context_tags;
         }
       }
-
-      function performSystemDecay(){
-        const m = state.metrics;
-        const targetD = 0.35;
-        m.d += (targetD - m.d) * 0.01;
-        m.r = 1 - Math.min(1, (Math.abs(m.tm - m.bm) * 0.5 + m.d * 0.2));
-        updateCapsule();
-      }
-
-      function showNextDreamSnippet(){
-        const el = els.dreamOverlay;
-        if (!el) return;
-        const titleEl = el.querySelector(".dream-title");
-        const snippetEl = el.querySelector(".dream-snippet");
-        const hintEl = el.querySelector(".dream-hint");
-
-        const pools = [];
-
-        if (state.bmSnapshots && state.bmSnapshots.length){
-          pools.push({type: "bm", list: state.bmSnapshots});
-        }
-        if (state.history && state.history.length){
-          pools.push({type: "history", list: state.history});
-        }
-
-        if (!pools.length){
-          titleEl.textContent = "Dreaming quietly…";
-          snippetEl.textContent = "No BM or history yet. Share some stories with AURA-X Ω so it has something meaningful to dream with.";
-          hintEl.textContent = "Tip: long reflective messages automatically become BM snapshots for Dream Mode.";
+      function recomputeBMMetric(){
+        if(!state.bmPrompts.length){
+          state.metrics.BM = 0;
           return;
         }
-
-        const pool = pools[Math.floor(Math.random() * pools.length)];
-        const list = pool.list;
-        const rawItem = list[Math.floor(Math.random() * list.length)];
-
-        let text = "";
-        let heading = "";
-
-        if (pool.type === "bm"){
-          text = (rawItem.text || rawItem.prompt || rawItem.title || "").trim();
-          heading = "Dreaming BM snapshot";
-        } else {
-          const who = rawItem.sender === "user" ? "You" : "AURA-X Ω";
-          text = (rawItem.text || rawItem.raw || "").trim();
-          heading = "Dreaming conversation (" + who + ")";
-        }
-
-        if (!text){
-          text = "[empty memory]";
-        } else if (text.length > 520){
-          text = text.slice(0, 500) + "…";
-        }
-
-        titleEl.textContent = heading;
-        snippetEl.textContent = text;
-        hintEl.textContent = "Soft decay running: noisy bits fade, core meaning stays available for future BM.";
-
-        performSystemDecay();
+        let totalWeight = 0;
+        state.bmPrompts.forEach(b=>{
+          ensureBMMetadata(b);
+          totalWeight += (typeof b.weight === "number" ? b.weight : 0.6);
+        });
+        const norm = totalWeight / 10;
+        state.metrics.BM = Number(Math.tanh(norm).toFixed(2));
       }
-
-      function enterDreamMode(){
-        if (!els.dreamOverlay || !state.dreamTimeoutMs) return;
-        els.dreamOverlay.classList.add("active");
-        state.dreamInterval = setInterval(showNextDreamSnippet, 9000);
-        showNextDreamSnippet();
+      function computeR(TM, BM){
+        const D = 0.1;
+        const lambdaFaith = state.faithSelection.length ? 0.15 : 0;
+        const lambdaSys   = 0.05;
+        const lambdaTrc   = 0.05;
+        const raw = (TM * BM) - D + lambdaFaith + lambdaSys + lambdaTrc;
+        return Math.tanh(raw);
       }
-
-      function leaveDreamMode(){
-        if (!els.dreamOverlay) return;
-        els.dreamOverlay.classList.remove("active");
-        if (state.dreamInterval){
-          clearInterval(state.dreamInterval);
-          state.dreamInterval = null;
-        }
+      function recomputeE0(intelBoost=0, llmBoost=0, dreamBoost=0){
+        const TM = state.metrics.TM;
+        const BM = state.metrics.BM;
+        const baseR = computeR(TM, BM);
+        const total = baseR + (intelBoost||0) + (llmBoost||0) + (dreamBoost||0);
+        state.metrics.E0 = Number(total.toFixed(3));
       }
-
-      function registerActivity(){
-        state.lastActivityAt = Date.now();
-        if (state.dreamTimer){
-          clearTimeout(state.dreamTimer);
-          state.dreamTimer = null;
-        }
-        if (state.dreamInterval){
-          clearInterval(state.dreamInterval);
-          state.dreamInterval = null;
-        }
-        if (els.dreamOverlay){
-          els.dreamOverlay.classList.remove("active");
-        }
-        if (state.dreamTimeoutMs){
-          state.dreamTimer = setTimeout(enterDreamMode, state.dreamTimeoutMs);
-        }
-      }
-
-      function initDreamConfig(){
-        const cfg = safeLoadJSON(KEY_CFG, null) || {};
-        if (typeof cfg.dreamTimeoutMs === "number"){
-          state.dreamTimeoutMs = cfg.dreamTimeoutMs;
-        }
-        if (els.dreamTimeout){
-          if (!state.dreamTimeoutMs){
-            els.dreamTimeout.value = "0";
-          } else {
-            const val = String(state.dreamTimeoutMs);
-            const exists = Array.from(els.dreamTimeout.options).some(o => o.value === val);
-            els.dreamTimeout.value = exists ? val : "300000";
-            if (!exists){
-              state.dreamTimeoutMs = 300000;
-            }
-          }
-          els.dreamTimeout.addEventListener("change", () => {
-            const raw = els.dreamTimeout.value;
-            const next = parseInt(raw || "0", 10) || 0;
-            state.dreamTimeoutMs = next;
-            const cfgNow = safeLoadJSON(KEY_CFG, null) || {};
-            cfgNow.dreamTimeoutMs = next;
-            localStorage.setItem(KEY_CFG, JSON.stringify(cfgNow));
-            registerActivity();
-            showToast(next ? "Dream / screensaver timeout updated." : "Dream Mode turned off.");
-          });
-        }
-
-        if (els.dreamOverlay){
-          els.dreamOverlay.addEventListener("click", () => {
-            leaveDreamMode();
-            registerActivity();
-          });
-        }
-
-        document.addEventListener("click", registerActivity, true);
-        document.addEventListener("keydown", registerActivity, true);
-        if (els.userInput){
-          els.userInput.addEventListener("keydown", registerActivity);
-        }
-        if (els.sendBtn){
-          els.sendBtn.addEventListener("click", registerActivity);
-        }
-
-        if (state.dreamTimeoutMs){
-          state.dreamTimer = setTimeout(enterDreamMode, state.dreamTimeoutMs);
-        }
-      }
-
-      function logLine(kind, msg, meta){
-        const row = {
-          ts: new Date().toISOString(),
-          kind,
-          text: msg,
-          meta: meta || {}
-        };
-        state.history.push(row);
-        if(state.history.length > 500){
-          state.history = state.history.slice(-500);
-        }
-        renderLogLine(row);
-        updateHistoryMeta();
-      }
-
-      function renderLogLine(row){
-        const el = document.createElement("div");
-        el.className = "logLine";
-        const t = document.createElement("div");
-        t.className = "logTime";
-        t.textContent = row.ts.slice(11,19);
-        const w = document.createElement("div");
-        w.className = "logWho";
-        w.textContent = row.kind.toUpperCase();
-        const m = document.createElement("div");
-        m.className = "logMsg";
-        if(row.kind === "sys") m.classList.add("system");
-        else if(row.kind === "meta") m.classList.add("meta");
-        else if(row.kind === "err") m.classList.add("err");
-        m.textContent = row.text;
-        el.appendChild(t);
-        el.appendChild(w);
-        el.appendChild(m);
-        els.chatLog.appendChild(el);
-        els.chatLog.scrollTop = els.chatLog.scrollHeight + 100;
-      }
-
       function updateCapsule(){
-        const m = state.metrics;
-        els.tmVal.textContent = m.tm.toFixed(2);
-        els.bmVal.textContent = m.bm.toFixed(2);
-        els.dVal.textContent = m.d.toFixed(2);
-        els.rVal.textContent = m.r.toFixed(2);
-        els.rValCapsule.textContent = m.r.toFixed(2);
-        const w = Math.max(0, Math.min(100, m.r * 100));
-        els.capsuleFill.style.width = w.toFixed(1) + "%";
-        els.tmCounter.textContent = m.tmCount;
-        els.bmCounter.textContent = m.bmCount;
-        els.dCounter.textContent = m.dCount;
-        els.rCounter.textContent = m.rCount;
+        els.cTM.textContent = state.metrics.TM.toFixed(2);
+        els.cBM.textContent = state.metrics.BM.toFixed(2);
+        els.cCont.textContent = state.metrics.C.toFixed(3);
+        els.cE0.textContent = state.metrics.E0.toFixed(3);
       }
-
       function showToast(msg){
-        const t = els.toastBubble;
-        t.textContent = msg;
-        t.classList.add("show");
-        setTimeout(()=> t.classList.remove("show"), 2000);
+        if(!els.toastBubble) return;
+        els.toastBubble.textContent = msg;
+        els.toastBubble.classList.add("show");
+        if(state.toastTimer) clearTimeout(state.toastTimer);
+        state.toastTimer = setTimeout(()=>{
+          els.toastBubble.classList.remove("show");
+        },1600);
       }
-
-      function recomputeR(){
-        const m = state.metrics;
-        const delta = Math.abs(m.tm - m.bm);
-        const base = 1 - (delta * 0.5 + m.d * 0.25);
-        m.r = Math.max(0, Math.min(1, base));
-        m.rCount++;
-        updateCapsule();
-      }
-
-      function pushHistory(kind, text, source){
-        const row = {
-          ts: new Date().toISOString(),
-          sender: kind,
-          text,
-          source: source || ""
+      function saveCfg(){
+        const cfg = {
+          voiceOn: state.voiceOn,
+          learningOn: state.learningOn,
+          faithSelection: state.faithSelection,
+          apiConfig: state.apiConfig,
+          offlineReady: state.offlineReady,
+          dreamSettings: state.dreamSettings
         };
-        state.history.push(row);
-        if(state.history.length > 500){
-          state.history = state.history.slice(-500);
-        }
-        updateHistoryMeta();
+        localStorage.setItem(KEY_CFG, JSON.stringify(cfg));
       }
-
-      function updateHistoryMeta(){
-        els.historyCount.textContent = state.history.length;
-        els.historyMeta.textContent = state.history.length + " lines in local history.";
+      function saveIntelligence(){ localStorage.setItem(KEY_INT, JSON.stringify(state.intelligence)); }
+      function saveBM(){ localStorage.setItem(KEY_BM, JSON.stringify(state.bmPrompts)); }
+      function saveHistory(){ localStorage.setItem(KEY_HIST, JSON.stringify(state.history)); }
+      function saveUserIdentity(){ localStorage.setItem(KEY_USER, JSON.stringify(state.userIdentity)); }
+      function persistLogicState(){
+        const data = { list: state.logicPacks || [], activeIndex: state.logicActiveIndex };
+        localStorage.setItem(KEY_LOGIC, JSON.stringify(data));
       }
-
-      function renderHistoryBox(){
-        const box = els.historyBox;
-        box.innerHTML = "";
-        state.history.forEach(row=>{
-          const el = document.createElement("div");
-          el.className = "historyRow";
-          const meta = document.createElement("div");
-          meta.className = "historyMeta";
-          meta.textContent = row.ts.slice(0,10) + " " + row.ts.slice(11,19);
-          const text = document.createElement("div");
-          text.className = "historyText";
-          text.textContent = "[" + row.sender + "] " + row.text;
-          el.appendChild(meta);
-          el.appendChild(text);
-          box.appendChild(el);
+      function addHistory(role,text){
+        const item = { role, text, ts: Date.now(), locked: false };
+        state.history.push(item);
+        const cutoff = Date.now() - 48*60*60*1000;
+        state.history = state.history.filter(h => h.locked || h.ts >= cutoff);
+        saveHistory();
+      }
+      function toggleHistoryLock(idx){
+        const h = state.history[idx];
+        if(!h) return;
+        h.locked = !h.locked;
+        saveHistory();
+        renderHistory();
+      }
+      function renderHistory(){
+        els.historyBox.innerHTML = "";
+        state.history.forEach((h,idx)=>{
+          const row = document.createElement("div");
+          row.className = "historyLine";
+          const dt = new Date(h.ts).toLocaleString([], {hour:"2-digit",minute:"2-digit", day:"2-digit", month:"short"});
+          const label = h.role==="user" ? "You" : (h.role==="aura" ? "AURA" : h.role);
+          const left = document.createElement("div");
+          left.className = "historyText";
+          left.textContent = `[${dt}] ${label}: ${h.text}`;
+          const btn = document.createElement("button");
+          btn.className = "historyLock";
+          btn.textContent = h.locked ? "🔒" : "🔓";
+          btn.addEventListener("click", ()=>toggleHistoryLock(idx));
+          row.appendChild(left);
+          row.appendChild(btn);
+          els.historyBox.appendChild(row);
         });
       }
-
-      function handleSend(){
+      /* Faith chips */
+      function renderFaithChips(){
+        els.faithChips.innerHTML = "";
+        FAITH_OPTIONS.forEach(opt=>{
+          const chip = document.createElement("button");
+          chip.className = "chip" + (state.faithSelection.includes(opt.id) ? " active" : "");
+          chip.textContent = opt.label;
+          chip.addEventListener("click", ()=>{
+            if(opt.id==="none"){
+              state.faithSelection = [];
+            } else {
+              if(state.faithSelection.includes(opt.id)){
+                state.faithSelection = state.faithSelection.filter(x=>x!==opt.id);
+              } else {
+                state.faithSelection = state.faithSelection.filter(x=>x!=="none");
+                state.faithSelection.push(opt.id);
+              }
+            }
+            els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
+            renderFaithChips();
+            saveCfg();
+          });
+          els.faithChips.appendChild(chip);
+        });
+      }
+      function maybeShowFaithBubble(){
+        if(!state.faithSelection.length) return;
+        const pick = state.faithSelection[0];
+        const list = FAITH_LIBRARY[pick];
+        if(!list || !list.length) return;
+        const art = list[0];
+        state.currentFaithArticle = art;
+        els.faithBubbleTitle.textContent = art.title;
+        els.faithBubbleMeta.textContent = art.short;
+        els.faithBubble.classList.add("show","pulse");
+      }
+      function openModal(el){
+        el.classList.add("show");
+      }
+      function closeModalById(id){
+        const el = document.getElementById(id);
+        if(el) el.classList.remove("show");
+      }
+      document.body.addEventListener("click",(e)=>{
+        const target = e.target;
+        if(target.dataset && target.dataset.close){
+          closeModalById(target.dataset.close);
+        }
+        if(target.classList.contains("modalOverlay") && !target.classList.contains("noClose")){
+          target.classList.remove("show");
+        }
+      });
+      els.faithBubble.addEventListener("click",()=>{
+        if(!state.currentFaithArticle) return;
+        const art = state.currentFaithArticle;
+        const meta = `Lens: ${state.faithSelection.join(", ")} · id=${art.id}`;
+        els.faithArticleMeta.textContent = meta;
+        els.faithArticleTitle.textContent = art.title;
+        els.faithArticleText.value = art.content;
+        openModal(els.modalFaithArticle);
+      });
+      els.faithBubbleClose.addEventListener("click",(ev)=>{
+        ev.stopPropagation();
+        els.faithBubble.classList.remove("show","pulse");
+      });
+      els.btnCopyFaithArticle.addEventListener("click",()=>{
+        navigator.clipboard?.writeText(els.faithArticleText.value||"");
+        showToast("Faith reflection copied");
+      });
+      els.btnAddFaithToBM.addEventListener("click",()=>{
+        if(!els.faithArticleText.value.trim()) return;
+        const now = Date.now();
+        const bm = {
+          id: "bm_"+now,
+          title: els.faithArticleTitle.textContent || "Faith reflection",
+          text: els.faithArticleText.value,
+          ts: now,
+          locked: true,
+          liveUntil: null
+        };
+        ensureBMMetadata(bm);
+        state.bmPrompts.push(bm);
+        saveBM();
+        recomputeBMMetric();
+        recomputeE0(0,0);
+        updateCapsule();
+        renderBMList();
+        showToast("Added under BM (locked)");
+      });
+      els.btnSkipFaithBM.addEventListener("click",()=>{
+        closeModalById("modalFaithArticle");
+      });
+      /* Intelligence rendering with inline edit */
+      function renderIntelligence(filter=""){
+        els.intelList.innerHTML = "";
+        const q = (filter||"").toLowerCase();
+        const list = state.intelligence.filter(item=>{
+          if(!q) return true;
+          return (item.q||"").toLowerCase().includes(q) || (item.a||"").toLowerCase().includes(q);
+        });
+        if(!list.length){
+          const p = document.createElement("div");
+          p.style.fontSize = "12px";
+          p.style.opacity = "0.65";
+          p.textContent = "No intelligence stored yet.";
+          els.intelList.appendChild(p);
+          return;
+        }
+        list.forEach(item=>{
+          const card = document.createElement("div");
+          card.className = "intelCard";
+          const top = document.createElement("div");
+          top.className = "intelTop";
+          const qDiv = document.createElement("div");
+          qDiv.className = "intelQ";
+          qDiv.textContent = "Q: " + item.q;
+          const meta = document.createElement("div");
+          meta.className = "intelMeta";
+          const dt = new Date(item.ts||Date.now()).toLocaleString();
+          meta.textContent = `id=${item.id} · ${dt}`;
+          top.appendChild(qDiv);
+          top.appendChild(meta);
+          const aDiv = document.createElement("div");
+          aDiv.className = "intelA";
+          aDiv.textContent = "A: " + item.a;
+          const btns = document.createElement("div");
+          btns.className = "intelButtons";
+          const bEdit = document.createElement("button");
+          bEdit.className = "btn btnBlue";
+          bEdit.textContent = "Edit";
+          const bDelete = document.createElement("button");
+          bDelete.className = "btn btnRed";
+          bDelete.textContent = "Delete";
+          const bCopy = document.createElement("button");
+          bCopy.className = "btn btnBlue";
+          bCopy.textContent = "Copy";
+          bCopy.addEventListener("click",()=>{
+            navigator.clipboard?.writeText(`Q: ${item.q}\nA: ${item.a}`);
+            showToast("Pair copied");
+          });
+          bDelete.addEventListener("click",()=>{
+            if(!confirm("Delete this Q→A pair?")) return;
+            state.intelligence = state.intelligence.filter(x=>x.id!==item.id);
+            saveIntelligence();
+            renderIntelligence(els.intelSearch.value);
+            showToast("Deleted");
+          });
+          bEdit.addEventListener("click",()=>{
+            state.editingIntelId = (state.editingIntelId === item.id) ? null : item.id;
+            renderIntelligence(els.intelSearch.value);
+          });
+          btns.appendChild(bEdit);
+          btns.appendChild(bCopy);
+          btns.appendChild(bDelete);
+          card.appendChild(top);
+          card.appendChild(aDiv);
+          card.appendChild(btns);
+          if(state.editingIntelId === item.id){
+            const editBlock = document.createElement("div");
+            editBlock.className = "intelEditBlock";
+            const qi = document.createElement("input");
+            qi.className = "intelEditInput";
+            qi.value = item.q;
+            const ai = document.createElement("textarea");
+            ai.className = "intelEditArea";
+            ai.value = item.a;
+            const row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.gap = "8px";
+            row.style.marginTop = "6px";
+            row.style.flexWrap = "wrap";
+            const bSave = document.createElement("button");
+            bSave.className = "btn btnGreen";
+            bSave.textContent = "Save";
+            const bCancel = document.createElement("button");
+            bCancel.className = "btn btnRed";
+            bCancel.textContent = "Cancel";
+            bSave.addEventListener("click",()=>{
+              item.q = qi.value.trim();
+              item.a = ai.value.trim();
+              item.ts = item.ts || Date.now();
+              saveIntelligence();
+              state.editingIntelId = null;
+              renderIntelligence(els.intelSearch.value);
+              showToast("Updated");
+            });
+            bCancel.addEventListener("click",()=>{
+              state.editingIntelId = null;
+              renderIntelligence(els.intelSearch.value);
+            });
+            row.appendChild(bSave);
+            row.appendChild(bCancel);
+            editBlock.appendChild(qi);
+            editBlock.appendChild(ai);
+            editBlock.appendChild(row);
+            card.appendChild(editBlock);
+          }
+          els.intelList.appendChild(card);
+        });
+      }
+      els.intelSearch.addEventListener("input",()=>renderIntelligence(els.intelSearch.value));
+      /* Seed parsing */
+      function parseSeedBlock(text){
+        const lines = text.split(/\r?\n/);
+        const joined = lines.join("\n");
+        const regex = /\\item\s*(.+?)\s*\\textbf\{A:\}\s*([\s\S]*?)(?=\\item|$)/g;
+        const out = [];
+        let m;
+        while((m = regex.exec(joined))!==null){
+          const q = m[1].trim();
+          const rawA = m[2].trim();
+          let a = rawA;
+          const bracket = rawA.match(/^\[.*?\]\s*(.*)$/s);
+          if(bracket) a = bracket[1].trim();
+          if(q && a){
+            out.push({ id:"seed_"+(Date.now()+"_"+out.length), q, a, ts:Date.now() });
+          }
+        }
+        return out;
+      }
+      els.btnParseSeed.addEventListener("click",()=>{
+        const txt = els.seedBox.value.trim();
+        if(!txt){ els.seedHint.textContent = "Nothing to parse."; return; }
+        const parsed = parseSeedBlock(txt);
+        state.parsedSeed = parsed;
+        els.seedHint.textContent = `Parsed ${parsed.length} Q→A pairs (not saved yet).`;
+      });
+      els.btnSaveSeed.addEventListener("click",()=>{
+        if(!state.parsedSeed.length){
+          els.seedHint.textContent = "Nothing parsed yet.";
+          return;
+        }
+        state.seedPairs = state.seedPairs.concat(state.parsedSeed);
+        state.parsedSeed = [];
+        els.seedHint.textContent = "Saved into seed memory.";
+        els.seedBox.value = "";
+        showToast("Seed updated");
+      });
+      els.btnDiscardSeed.addEventListener("click",()=>{
+        els.seedBox.value = "";
+        state.parsedSeed = [];
+        els.seedHint.textContent = "Discarded block.";
+      });
+      /* Logic packs */
+      function applyLogicPack(idx){
+        state.logicActiveIndex = idx;
+        if(idx==null || !state.logicPacks[idx]) return;
+        const pack = state.logicPacks[idx];
+        state.logicFaithSoftener = pack.faithSoftener !== false;
+        if(pack.ui){
+          if(pack.ui.theme === "golden"){
+            document.body.classList.add("theme-golden");
+          } else {
+            document.body.classList.remove("theme-golden");
+          }
+          if(pack.ui.accentColor){
+            document.documentElement.style.setProperty("--accent-color", pack.ui.accentColor);
+          }
+        }
+        persistLogicState();
+      }
+      els.btnValidateLogic.addEventListener("click",()=>{
+        try{
+          JSON.parse(els.logicBox.value);
+          els.logicHint.textContent = "Valid JSON.";
+          showToast("Logic JSON valid");
+        }catch(e){
+          els.logicHint.textContent = "Invalid JSON: "+e.message;
+        }
+      });
+      els.btnSaveLogic.addEventListener("click",()=>{
+        try{
+          const obj = JSON.parse(els.logicBox.value);
+          obj.serial = obj.serial || ("L"+(state.logicPacks.length+1));
+          state.logicPacks.push(obj);
+          els.logicSerial.textContent = obj.serial;
+          els.logicHint.textContent = "Saved as "+obj.serial;
+          applyLogicPack(state.logicPacks.length-1);
+          persistLogicState();
+          showToast("Logic pack saved");
+        }catch(e){
+          els.logicHint.textContent = "Cannot save: invalid JSON.";
+        }
+      });
+      els.btnCopyLogic.addEventListener("click",()=>{
+        navigator.clipboard?.writeText(els.logicBox.value||"");
+        showToast("Logic copied");
+      });
+      els.btnDeleteLogic.addEventListener("click",()=>{
+        if(state.logicActiveIndex==null || !state.logicPacks[state.logicActiveIndex]){
+          els.logicHint.textContent = "No active logic pack.";
+          return;
+        }
+        if(!confirm("Delete current logic pack?")) return;
+        state.logicPacks.splice(state.logicActiveIndex,1);
+        state.logicActiveIndex = null;
+        els.logicSerial.textContent = "none";
+        els.logicHint.textContent = "Deleted.";
+        document.body.classList.remove("theme-golden");
+        document.documentElement.style.setProperty("--accent-color", "#0ea5e9");
+        persistLogicState();
+      });
+      /* BM list & viewer with date filter + meaning layer */
+      function renderBMList(){
+        els.bmSelectList.innerHTML = "";
+        const q = (els.bmSearch.value||"").toLowerCase();
+        const d = (els.bmDate.value||"");
+        const list = state.bmPrompts.filter(b=>{
+          let ok = true;
+          if(q){
+            ok = (b.title||"").toLowerCase().includes(q) || (b.text||"").toLowerCase().includes(q);
+          }
+          if(ok && d){
+            const dStr = new Date(b.ts||Date.now()).toISOString().slice(0,10);
+            ok = (dStr === d);
+          }
+          return ok;
+        }).sort((a,b)=> (b.ts||0)-(a.ts||0));
+        if(!list.length){
+          const div = document.createElement("div");
+          div.style.fontSize = "12px";
+          div.style.opacity = "0.65";
+          div.textContent = "No BM prompts yet.";
+          els.bmSelectList.appendChild(div);
+          return;
+        }
+        list.forEach(bm=>{
+          const item = document.createElement("div");
+          item.className = "bmItem";
+          const left = document.createElement("div");
+          const title = document.createElement("div");
+          title.className = "bmItemTitle";
+          title.textContent = bm.title||"(untitled)";
+          const meta = document.createElement("div");
+          meta.className = "bmItemMeta";
+          const ds = new Date(bm.ts||Date.now()).toISOString().slice(0,10);
+          ensureBMMetadata(bm);
+          const e = bm.emotion_tags && bm.emotion_tags[0] ? (" · "+bm.emotion_tags[0]) : "";
+          const c = bm.context_tags && bm.context_tags[0] ? (" · "+bm.context_tags[0]) : "";
+          meta.textContent = ds + (bm.locked ? " · 🔒" : "") + e + c;
+          left.appendChild(title);
+          left.appendChild(meta);
+          item.appendChild(left);
+          item.addEventListener("click",()=>selectBM(bm.id));
+          els.bmSelectList.appendChild(item);
+        });
+      }
+      function selectBM(id){
+        const bm = state.bmPrompts.find(x=>x.id===id);
+        state.selectedBMId = id;
+        if(!bm){
+          els.bmViewer.style.display = "none";
+          return;
+        }
+        ensureBMMetadata(bm);
+        bm.recalledRecently = true;
+        bm.weight = Math.min(1, (bm.weight || 0.6) + 0.03);
+        saveBM();
+        recomputeBMMetric();
+        recomputeE0(0,0);
+        updateCapsule();
+        els.bmViewer.style.display = "block";
+        els.bmTitle.textContent = bm.title||"Prompt";
+        const ds = new Date(bm.ts||Date.now()).toLocaleString();
+        const live = bm.liveUntil && bm.liveUntil > Date.now();
+        els.bmMeta.textContent = ds + (bm.locked ? " · locked" : " · editable") + (live ? " · LIVE 12h" : "");
+        els.bmTextArea.value = bm.text||"";
+        els.bmTextArea.readOnly = true;
+        els.bmLockIcon.textContent = bm.locked ? "🔒" : "🔓";
+        els.btnUnlockBM.style.display = bm.locked ? "inline-flex" : "none";
+        els.btnLiveBM.textContent = live ? "Live 12h: on" : "Live 12h: off";
+      }
+      els.bmSearch.addEventListener("input", renderBMList);
+      els.bmDate.addEventListener("change", ()=>{
+        renderBMList();
+        const d = els.bmDate.value;
+        if(d){
+          const found = state.bmPrompts.find(b=>{
+            const ds = new Date(b.ts||Date.now()).toISOString().slice(0,10);
+            return ds === d;
+          });
+          if(found) selectBM(found.id);
+        }
+      });
+      els.btnLiveBM.addEventListener("click",()=>{
+        if(!state.selectedBMId) return;
+        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
+        if(!bm) return;
+        const now = Date.now();
+        if(bm.liveUntil && bm.liveUntil > now){
+          bm.liveUntil = null;
+        } else {
+          bm.liveUntil = now + 12*60*60*1000;
+        }
+        saveBM();
+        renderBMList();
+        selectBM(bm.id);
+      });
+      els.btnUnlockBM.addEventListener("click",()=>{
+        if(!state.selectedBMId) return;
+        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
+        if(!bm) return;
+        if(!confirm("Unlock this BM prompt for editing?")) return;
+        bm.locked = false;
+        saveBM();
+        renderBMList();
+        selectBM(bm.id);
+      });
+      els.btnCopyPrompt.addEventListener("click",()=>{
+        if(!state.selectedBMId) return;
+        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
+        if(!bm) return;
+        navigator.clipboard?.writeText(bm.text||"");
+        showToast("BM prompt copied");
+      });
+      els.btnAutoGen.addEventListener("click",()=>{
+        showToast("Video generation is a placeholder in this offline prototype.");
+      });
+      els.btnDeletePrompt.addEventListener("click",()=>{
+        if(!state.selectedBMId) return;
+        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
+        if(!bm) return;
+        if(!confirm("Delete this BM prompt?")) return;
+        if(!confirm("Are you sure? This cannot be undone.")) return;
+        state.bmPrompts = state.bmPrompts.filter(x=>x.id!==bm.id);
+        state.selectedBMId = null;
+        saveBM();
+        recomputeBMMetric();
+        recomputeE0(0,0);
+        updateCapsule();
+        renderBMList();
+        els.bmViewer.style.display = "none";
+        showToast("BM prompt deleted");
+      });
+      /* Dream compression + screensaver */
+      function computeDreamBoost(){
+        const n = state.bmPrompts.length;
+        if(n === 0) return 0;
+        if(n < 5) return 0.05;
+        if(n < 15) return 0.12;
+        return 0.20;
+      }
+      function compressBMByMeaning(){
+        if(!state.bmPrompts.length) return {created:0};
+        const groups = {};
+        state.bmPrompts.forEach(bm=>{
+          ensureBMMetadata(bm);
+          const e = bm.emotion_tags && bm.emotion_tags[0] || "neutral";
+          const c = bm.context_tags && bm.context_tags[0] || "general";
+          const key = e+"|"+c;
+          if(!groups[key]) groups[key] = [];
+          groups[key].push(bm);
+        });
+        let created = 0;
+        Object.keys(groups).forEach(key=>{
+          const list = groups[key];
+          if(list.length < 4) return;
+          const parts = key.split("|");
+          const e = parts[0] || "neutral";
+          const c = parts[1] || "general";
+          const sorted = list.slice().sort((a,b)=>(a.weight||0.6)-(b.weight||0.6));
+          const toDecay = sorted.slice(0, Math.max(0, sorted.length-3));
+          const firstTs = new Date(sorted[0].ts||Date.now());
+          const lastTs  = new Date(sorted[sorted.length-1].ts||Date.now());
+          const period = firstTs.toLocaleDateString()+" → "+lastTs.toLocaleDateString();
+          const summaryText =
+            "Dream compression summary ("+e+" in "+c+") for "+period+".\n\n"+
+            "System noticed many similar experiences and kept a lighter meaningful memory instead of all raw details.";
+          const bm = {
+            id: "bm_dream_"+Date.now()+"_"+created,
+            title: "Dream summary – "+e+" / "+c,
+            text: summaryText,
+            ts: Date.now(),
+            locked: true,
+            liveUntil: null,
+            weight: Math.min(1, 0.7 + list.length*0.02),
+            emotion_tags: [e],
+            context_tags: [c],
+            isDreamSummary: true
+          };
+          state.bmPrompts.push(bm);
+          toDecay.forEach(x=>{
+            x.weight = Math.max(0.02, (x.weight||0.6) * 0.3);
+            x.decayed = true;
+          });
+          created++;
+        });
+        if(created){
+          saveBM();
+          recomputeBMMetric();
+        }
+        return {created};
+      }
+      function runDreamCycle(showLog){
+        const result = compressBMByMeaning();
+        const boost = computeDreamBoost();
+        recomputeE0(0,0,boost);
+        updateCapsule();
+        if(showLog){
+          logLine("sys","[Dream] Compressed "+result.created+" clusters · Δ_dream="+boost.toFixed(2));
+        }
+        if(state.dreamActive){
+          const sample = state.bmPrompts.slice(-1)[0];
+          if(sample){
+            els.dreamSnippet.textContent = sample.text || "";
+          }
+        }
+      }
+      function isNightTime(){
+        const now = new Date();
+        const h = now.getHours();
+        return (h >= 21 || h < 5);
+      }
+      let idleTimer = null;
+      function resetIdleTimer(){
+        if(!state.dreamSettings.enabled) return;
+        if(idleTimer) clearTimeout(idleTimer);
+        idleTimer = setTimeout(()=>{
+          enterDreamMode();
+        }, state.dreamSettings.timeoutMs || 600000);
+      }
+      function enterDreamMode(){
+        if(state.dreamActive) return;
+        state.dreamActive = true;
+        if(els.dreamOverlay){
+          els.dreamOverlay.classList.add("show");
+          els.dreamSnippet.textContent = "";
+        }
+        runDreamCycle(true);
+      }
+      function exitDreamMode(){
+        if(!state.dreamActive) return;
+        state.dreamActive = false;
+        if(els.dreamOverlay){
+          els.dreamOverlay.classList.remove("show");
+        }
+      }
+      /* Identity */
+      function loadIdentityIntoForm(){
+        const u = state.userIdentity || {};
+        els.uName.value = u.name || "";
+        els.uNick.value = u.nick || "";
+        els.uOrigin.value = u.origin || "";
+        els.uPlace.value = u.place || "";
+        els.uProfession.value = u.profession || "";
+        els.uEmotionalStyle.value = u.emotionalStyle || "";
+        els.uKeyPeople.value = u.keyPeople || "";
+        els.uLegacyRules.value = u.legacyRules || "";
+      }
+      els.btnEditIdentity.addEventListener("click",()=>{
+        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
+         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.removeAttribute("readonly"));
+        showToast("Identity fields unlocked for edit");
+      });
+      els.btnSaveUserIdentity.addEventListener("click",()=>{
+        state.userIdentity = {
+          name: els.uName.value.trim(),
+          nick: els.uNick.value.trim(),
+          origin: els.uOrigin.value.trim(),
+          place: els.uPlace.value.trim(),
+          profession: els.uProfession.value.trim(),
+          emotionalStyle: els.uEmotionalStyle.value.trim(),
+          keyPeople: els.uKeyPeople.value.trim(),
+          legacyRules: els.uLegacyRules.value.trim(),
+          ts: Date.now()
+        };
+        saveUserIdentity();
+        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
+         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.setAttribute("readonly","readonly"));
+        showToast("Identity saved locally");
+      });
+      els.btnDeleteUserIdentity.addEventListener("click",()=>{
+        if(!confirm("Delete stored identity data?")) return;
+        if(!confirm("Are you sure?")) return;
+        state.userIdentity = null;
+        localStorage.removeItem(KEY_USER);
+        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
+         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.value="");
+        showToast("Identity deleted");
+      });
+      /* LLM */
+      els.btnSaveLLM.addEventListener("click",()=>{
+        state.apiConfig = {
+          endpoint: els.apiEndpoint.value.trim(),
+          model: els.apiModel.value.trim(),
+          key: els.apiKey.value.trim()
+        };
+        saveCfg();
+        showToast("LLM config saved");
+      });
+      async function loadOfflineModel(){
+        if(!window.webllm){
+          els.offlineStatus.textContent = "WebLLM not available.";
+          return;
+        }
+        if(state.offlineReady || state.offlineLoading) return;
+        try{
+          state.offlineLoading = true;
+          els.offlineStatus.textContent = "loading…";
+          els.offlineBar.style.width = "25%";
+          const engine = await window.webllm.CreateMLCEngine(OFFLINE_MODEL_ID, {
+            initProgressCallback: (p)=>{
+              const pct = Math.round((p.progress||0)*100);
+              els.offlineBar.style.width = pct+"%";
+            }
+          });
+          state.offlineEngine = engine;
+          state.offlineReady = true;
+          state.offlineLoading = false;
+          els.offlineStatus.textContent = "ready";
+          els.offlineBar.style.width = "100%";
+          saveCfg();
+          showToast("Offline model ready");
+        }catch(e){
+          state.offlineLoading = false;
+          els.offlineStatus.textContent = "error";
+          showToast("Offline model error");
+        }
+      }
+      els.btnLoadOffline.addEventListener("click", loadOfflineModel);
+      async function callOfflineLLM(prompt){
+        if(!state.offlineReady || !state.offlineEngine) return null;
+        try{
+          const reply = await state.offlineEngine.chatCompletion({
+            messages:[{role:"user",content:prompt}],
+            stream:false
+          });
+          const text = reply?.choices?.[0]?.message?.content || "";
+          return text.trim() || null;
+        }catch{
+          return null;
+        }
+      }
+      async function callOnlineLLM(prompt){
+        const {endpoint,model,key} = state.apiConfig;
+        if(!endpoint || !model || !key) return null;
+        try{
+          const resp = await fetch(endpoint,{
+            method:"POST",
+            headers:{
+              "Content-Type":"application/json",
+              "Authorization":"Bearer "+key
+            },
+            body:JSON.stringify({
+              model,
+              messages:[{role:"user",content:prompt}],
+              temperature:0.7
+            })
+          });
+          if(!resp.ok) return null;
+          const data = await resp.json();
+          const text = data.choices?.[0]?.message?.content || "";
+          return text.trim() || null;
+        }catch{
+          return null;
+        }
+      }
+      /* Options */
+      els.btnOptions.addEventListener("click",()=>{
+        els.optionsMenu.classList.toggle("show");
+      });
+      els.miVoice.addEventListener("click",()=>{
+        state.voiceOn = !state.voiceOn;
+        els.voicePill.textContent = state.voiceOn ? "on" : "off";
+        els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
+        saveCfg();
+      });
+      els.miLearn.addEventListener("click",()=>{
+        state.learningOn = !state.learningOn;
+        els.learnPill.textContent = state.learningOn ? "on" : "off";
+        els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
+        saveCfg();
+      });
+      els.miFaith.addEventListener("click",()=>openModal(els.modalFaith));
+      els.miIntel.addEventListener("click",()=>openModal(els.modalIntel));
+      els.miSeed.addEventListener("click",()=>openModal(els.modalSeed));
+      els.miLLM.addEventListener("click",()=>openModal(els.modalLLM));
+      els.miBMRecall.addEventListener("click",()=>openModal(els.modalBM));
+      els.miHistory.addEventListener("click",()=>{renderHistory();openModal(els.modalHistory);});
+      els.miIdentity.addEventListener("click",()=>{loadIdentityIntoForm();openModal(els.modalIdentity);});
+      /* History buttons */
+      els.btnDeleteRecent.addEventListener("click",()=>{
+        const cutoff = Date.now() - 48*60*60*1000;
+        state.history = state.history.filter(h=>h.locked || h.ts < cutoff);
+        saveHistory();
+        renderHistory();
+      });
+      els.btnDeleteAllHist.addEventListener("click",()=>{
+        if(!confirm("Delete all history (except locked)?")) return;
+        state.history = state.history.filter(h=>h.locked);
+        saveHistory();
+        renderHistory();
+      });
+      els.btnCopyHistory.addEventListener("click",()=>{
+        const text = state.history.map(h=>{
+          const dt = new Date(h.ts).toLocaleString();
+          const label = h.role==="user" ? "You" : (h.role==="aura" ? "AURA" : h.role);
+          return `[${dt}] ${label}: ${h.text}`;
+        }).join("\n");
+        navigator.clipboard?.writeText(text);
+        showToast("History copied");
+      });
+      /* Main chat + self-learning pipeline */
+      function maybeStoreStoryToBM(question, answer){
+        const t = (question || "").trim();
+        if(t.length < 320) return;
+        const now = Date.now();
+        const title = t.slice(0,80);
+        const combined = "Story snapshot\n\nQ: "+question+"\n\nAURA: "+(answer||"");
+        const bm = {
+          id: "bm_story_"+now,
+          title,
+          text: combined,
+          ts: now,
+          locked: false,
+          liveUntil: null
+        };
+        ensureBMMetadata(bm);
+        state.bmPrompts.push(bm);
+        saveBM();
+        recomputeBMMetric();
+        showToast("Long story saved under BM");
+      }
+      async function handleSend(){
         const raw = els.userInput.value;
         const text = raw.trim();
         if(!text) return;
-
-        registerActivity();
-        if(text.length > 400){
-          addBMSnapshot(text);
-        }
-
         els.userInput.value = "";
-        els.charCount.textContent = "0";
-
-        state.metrics.tmCount++;
-        state.metrics.tm = Math.min(1, state.metrics.tm + Math.min(0.08, text.length / 1200));
-        state.metrics.d = Math.max(0, state.metrics.d - 0.01);
-        recomputeR();
-
-        renderUserMessage(text);
-        routeAnswer(text);
-      }
-
-      function renderUserMessage(text){
-        const row = {
-          ts: new Date().toISOString(),
-          sender: "user",
-          text
-        };
-        state.history.push(row);
-        renderLogLine({ts: row.ts, kind:"user", text, meta:{}});
-        updateHistoryMeta();
-      }
-
-      function routeAnswer(text){
-        const seed = state.seed || {};
-        const tLower = text.toLowerCase();
-        let answer = "";
-        let source = "seed/local";
-
-        if(seed.hi && /hi|hello|salam|salaam|assalam/.test(tLower)){
-          answer = seed.hi;
-        }else if(seed.who && tLower.includes("who are you")){
-          answer = seed.who;
-        }else if(seed.creator && (tLower.includes("who created you") || tLower.includes("creator"))){
-          answer = seed.creator;
-        }
-
-        if(!answer && seed.logic){
-          answer = seed.logic;
-          source = "logic rule (fallback)";
-        }
-
-        if(!answer){
-          answer = "Local seed & intelligence have no perfect answer yet. In future, offline LLM / API will answer here.";
-          source = "offline-llm-demo";
-        }
-
-        state.lastAnswerSource = source;
-        els.answerSource.textContent = source;
-        renderAuraAnswer(answer, source);
-      }
-
-      function renderAuraAnswer(text, source){
-        const row = {
-          ts: new Date().toISOString(),
-          sender: "aura",
-          text,
-          source
-        };
-        state.history.push(row);
-        renderLogLine({ts: row.ts, kind:"aura", text: text + " (source: " + source + ")", meta:{}});
-        updateHistoryMeta();
-
-        state.metrics.bm = Math.min(1, state.metrics.bm + 0.02);
-        state.metrics.d = Math.min(1, state.metrics.d + 0.01);
-        recomputeR();
-      }
-
-      function openModal(id){
-        const el = els[id];
-        if(!el) return;
-        el.classList.add("open");
-      }
-
-      function closeModal(id){
-        const el = els[id];
-        if(!el) return;
-        el.classList.remove("open");
-      }
-
-      function loadUser(){
-        const obj = safeLoadJSON(KEY_USER, null);
-        state.userProfile = obj;
-        if(obj){
-          els.idName.value = obj.name || "";
-          els.idTagline.value = obj.tagline || "";
-          els.idLocation.value = obj.location || "";
-          els.idLanguage.value = obj.language || "";
-          els.idValues.value = obj.values || "";
-          els.idGoals.value = obj.goals || "";
-          els.profileStatus.textContent = obj.name || "Saved";
-          els.identityMeta.textContent = "Saved at " + (obj.savedAt || "");
-        }else{
-          els.profileStatus.textContent = "Empty";
-          els.identityMeta.textContent = "No identity saved yet.";
-        }
-      }
-
-      function saveUser(){
-        const obj = {
-          name: els.idName.value.trim(),
-          tagline: els.idTagline.value.trim(),
-          location: els.idLocation.value.trim(),
-          language: els.idLanguage.value.trim(),
-          values: els.idValues.value.trim(),
-          goals: els.idGoals.value.trim(),
-          savedAt: new Date().toISOString()
-        };
-        state.userProfile = obj;
-        localStorage.setItem(KEY_USER, JSON.stringify(obj));
-        els.profileStatus.textContent = obj.name || "Saved";
-        els.identityMeta.textContent = "Saved at " + obj.savedAt;
-        showToast("Identity saved locally.");
-      }
-
-      function loadSeed(){
-        const obj = safeLoadJSON(KEY_SEED, null);
-        state.seed = obj;
-        if(obj){
-          els.seedHi.value = obj.hi || "";
-          els.seedWho.value = obj.who || "";
-          els.seedCreator.value = obj.creator || "";
-          els.seedFaith.value = obj.faith || "";
-          els.seedLogic.value = obj.logic || "";
-          els.seedIncorrect.value = obj.incorrect || "";
-          els.seedLock.value = obj.lock || "";
-          els.seedDecay.value = obj.decay || "";
-          const count = ["hi","who","creator","faith","logic","incorrect","lock","decay"]
-            .filter(k=> (obj[k]||"").trim().length>0).length;
-          els.seedStatus.textContent = count + " items";
-          els.seedMeta.textContent = "Seed last saved at " + (obj.savedAt || "");
-        }else{
-          els.seedStatus.textContent = "0 Q&A";
-          els.seedMeta.textContent = "No seed saved yet.";
-        }
-      }
-
-      function saveSeed(){
-        const obj = {
-          hi: els.seedHi.value.trim(),
-          who: els.seedWho.value.trim(),
-          creator: els.seedCreator.value.trim(),
-          faith: els.seedFaith.value.trim(),
-          logic: els.seedLogic.value.trim(),
-          incorrect: els.seedIncorrect.value.trim(),
-          lock: els.seedLock.value.trim(),
-          decay: els.seedDecay.value.trim(),
-          savedAt: new Date().toISOString()
-        };
-        state.seed = obj;
-        localStorage.setItem(KEY_SEED, JSON.stringify(obj));
-        const count = ["hi","who","creator","faith","logic","incorrect","lock","decay"]
-          .filter(k=> (obj[k]||"").length>0).length;
-        els.seedStatus.textContent = count + " items";
-        els.seedMeta.textContent = "Seed updated at " + obj.savedAt;
-        showToast("Seed rules saved.");
-      }
-
-      function loadBM(){
-        const arr = safeLoadJSON(KEY_BM, []);
-        state.bmPrompts = Array.isArray(arr) ? arr : [];
-        renderBMList();
-      }
-
-      function renderBMList(){
-        const list = els.bmList;
-        list.innerHTML = "";
-        const arr = state.bmPrompts;
-        els.bmStatus.textContent = arr.length + " stories";
-        els.bmCountBadge.textContent = arr.length + " total";
-        const locked = arr.filter(x=>x.locked).length;
-        els.bmLockedBadge.textContent = locked + " locked";
-        const live = arr.filter(x=> !x.locked).length;
-        els.bmLiveBadge.textContent = live + " live";
-
-        arr.forEach(item=>{
-          const el = document.createElement("div");
-          el.className = "bmItem" + (state.selectedBMId === item.id ? " active" : "");
-          el.dataset.id = item.id;
-          const t = document.createElement("div");
-          t.className = "bmItemTitle";
-          t.textContent = item.title || "(untitled)";
-          const meta = document.createElement("div");
-          meta.className = "bmItemMeta";
-          meta.innerHTML = "<span>" + (item.locked ? "🔒 Locked" : "Live") + "</span><span>" + (item.savedAt||"") + "</span>";
-          el.appendChild(t);
-          el.appendChild(meta);
-          el.addEventListener("click", ()=>{
-            state.selectedBMId = item.id;
-            renderBMList();
-            showBMDetail(item.id);
-          });
-          list.appendChild(el);
-        });
-
-        if(arr.length === 0){
-          els.bmViewerTitle.textContent = "No BM selected";
-          els.bmViewerBody.textContent = "Add a long-form BM story. This should be rich enough to recreate scene or mood (photo / video ready).";
-          els.bmViewerMeta.textContent = "";
-        }
-      }
-
-      function showBMDetail(id){
-        const item = state.bmPrompts.find(x=>x.id === id);
-        if(!item){
-          els.bmViewerTitle.textContent = "No BM selected";
-          els.bmViewerBody.textContent = "";
-          els.bmViewerMeta.textContent = "";
+        els.optionsMenu.classList.remove("show");
+        if(state.correcting){
+          const correctA = text;
+          if(state.lastUserQ && correctA){
+            const id = "intel_"+Date.now();
+            state.intelligence.push({
+              id,
+              q: state.lastUserQ,
+              a: correctA,
+              ts: Date.now()
+            });
+            saveIntelligence();
+            renderIntelligence(els.intelSearch.value);
+            logLine("sys","[Self-learning] Stored corrected answer into intelligence.");
+            showToast("Correct answer stored");
+          }
+          state.correcting = false;
           return;
         }
-        els.bmViewerTitle.textContent = item.title || "(untitled)";
-        els.bmViewerBody.textContent = item.text || "";
-        els.bmViewerMeta.textContent = (item.locked ? "🔒 Locked. " : "Live. ") + (item.savedAt ? "Saved at "+item.savedAt : "");
-        els.bmMeta.textContent = "BM id: " + item.id;
-      }
-
-      function saveBM(item){
-        const arr = state.bmPrompts.slice();
-        const idx = arr.findIndex(x=>x.id === item.id);
-        if(idx>=0) arr[idx] = item;
-        else arr.push(item);
-        state.bmPrompts = arr;
-        localStorage.setItem(KEY_BM, JSON.stringify(arr));
-        renderBMList();
-        showBMDetail(item.id);
-        state.metrics.bmCount++;
-        state.metrics.bm = Math.min(1, state.metrics.bm + 0.05);
-        recomputeR();
-      }
-
-      function newBM(){
-        const title = prompt("BM title (long-form story):","");
-        if(!title) return;
-        const text = prompt("Paste or write your long story (photo/video-ready detail):","");
-        if(!text) return;
-        const item = {
-          id: "bm_" + Date.now(),
-          title,
-          text,
-          locked:false,
-          savedAt:new Date().toISOString()
-        };
-        saveBM(item);
-      }
-
-      function toggleBMLock(){
-        const id = state.selectedBMId;
-        if(!id) return;
-        const item = state.bmPrompts.find(x=>x.id===id);
-        if(!item) return;
-        item.locked = !item.locked;
-        item.savedAt = new Date().toISOString();
-        saveBM(item);
-      }
-
-      function deleteBM(){
-        const id = state.selectedBMId;
-        if(!id) return;
-        if(!confirm("Delete this BM story?")) return;
-        const arr = state.bmPrompts.filter(x=>x.id!==id);
-        state.bmPrompts = arr;
-        localStorage.setItem(KEY_BM, JSON.stringify(arr));
-        state.selectedBMId = null;
-        renderBMList();
-        els.bmViewerTitle.textContent = "No BM selected";
-        els.bmViewerBody.textContent = "";
-        els.bmViewerMeta.textContent = "";
-      }
-
-      function useBMInNextAnswer(){
-        const id = state.selectedBMId;
-        if(!id) return;
-        const item = state.bmPrompts.find(x=>x.id===id);
-        if(!item) return;
-        const prefix = "[BM context] " + (item.title || "") + " → ";
-        els.userInput.value = prefix + els.userInput.value;
-        els.userInput.focus();
-        els.userInput.setSelectionRange(els.userInput.value.length, els.userInput.value.length);
-        els.charCount.textContent = String(els.userInput.value.length);
-        showToast("BM context injected into next user message.");
-      }
-
-      function toggleFaith(){
-        state.faithOn = !state.faithOn;
-        els.faithStatus.textContent = state.faithOn ? "Faith ON" : "Faith OFF";
-        const badge = els.faithToggle.querySelector(".faithBadge");
-        if(state.faithOn){
-          badge.style.opacity = "1";
-        }else{
-          badge.style.opacity = "0.4";
+        logLine("user","You: "+text);
+        const now = Date.now();
+        if(state.cooldownUntil && now < state.cooldownUntil){
+          logLine("sys","[Cooldown] Please wait a moment before sending more messages.");
+          return;
         }
-        const cfg = safeLoadJSON(KEY_CFG,null) || {};
-        cfg.faithOn = state.faithOn;
-        localStorage.setItem(KEY_CFG, JSON.stringify(cfg));
-      }
-
-      function loadCfg(){
-        const cfg = safeLoadJSON(KEY_CFG,null) || {};
-        if(typeof cfg.faithOn === "boolean"){
-          state.faithOn = cfg.faithOn;
+        state.metrics.TM = scoreTM(text);
+        recomputeBMMetric();
+        let intelBoost = 0, llmBoost = 0;
+        let answer = null;
+        let source = "none";
+        const tLower = text.toLowerCase();
+        let bestMatch = state.intelligence.find(p=>p.q.toLowerCase()===tLower);
+        if(!bestMatch){
+          bestMatch = state.intelligence.find(p=>tLower.includes(p.q.toLowerCase()) || p.q.toLowerCase().includes(tLower));
         }
-        els.faithStatus.textContent = state.faithOn ? "Faith ON" : "Faith OFF";
-        const badge = els.faithToggle.querySelector(".faithBadge");
-        badge.style.opacity = state.faithOn ? "1" : "0.4";
-
-        const llm = cfg.llmCfg || {};
-        state.llmCfg.offlineModel = llm.offlineModel || "off";
-        state.llmCfg.apiEndpoint = llm.apiEndpoint || "";
-        state.llmCfg.offlineMaxTokens = llm.offlineMaxTokens || 512;
-        els.offlineModel.value = state.llmCfg.offlineModel;
-        els.apiEndpoint.value = state.llmCfg.apiEndpoint;
-        els.offlineMaxTokens.value = state.llmCfg.offlineMaxTokens;
-        els.llmMeta.textContent = "LLM may be used only as final fallback. Current: " + (state.llmCfg.offlineModel || "off");
-      }
-
-      function saveLLMCfg(){
-        state.llmCfg.offlineModel = els.offlineModel.value;
-        state.llmCfg.apiEndpoint = els.apiEndpoint.value.trim();
-        state.llmCfg.offlineMaxTokens = parseInt(els.offlineMaxTokens.value||"512",10);
-        const cfg = safeLoadJSON(KEY_CFG,null) || {};
-        cfg.llmCfg = state.llmCfg;
-        localStorage.setItem(KEY_CFG, JSON.stringify(cfg));
-        els.llmMeta.textContent = "LLM config updated.";
-        showToast("LLM config saved.");
-      }
-
-      function loadHistory(){
-        const arr = safeLoadJSON(KEY_HIST, []);
-        if(Array.isArray(arr)) state.history = arr;
-        else state.history = [];
-        updateHistoryMeta();
-      }
-
-      function saveHistory(){
-        localStorage.setItem(KEY_HIST, JSON.stringify(state.history));
-      }
-
-      function deleteRecentHistory(){
-        const cutoff = Date.now() - 48*60*60*1000;
-        state.history = state.history.filter(row=>{
-          const t = Date.parse(row.ts || "");
-          if(isNaN(t)) return true;
-          return t < cutoff;
-        });
-        updateHistoryMeta();
-        renderHistoryBox();
-        saveHistory();
-        showToast("Recent 48h history deleted.");
-      }
-
-      function deleteAllHistory(){
-        if(!confirm("Delete all conversation history?")) return;
-        state.history = [];
-        updateHistoryMeta();
-        renderHistoryBox();
-        saveHistory();
-        showToast("All history cleared.");
-      }
-
-      function copyHistory(){
-        const text = state.history.map(row=> (row.ts||"") + " [" + (row.sender||"") + "] " + (row.text||"")).join("\n");
-        navigator.clipboard.writeText(text).then(()=>{
-          showToast("History copied");
-        }).catch(()=>{
-          showToast("Copy failed");
-        });
-      }
-
-      function initFromStorage(){
-        loadUser();
-        loadSeed();
-        loadBM();
-        loadCfg();
-        loadHistory();
-        renderHistoryBox();
+        if(bestMatch){
+          answer = bestMatch.a;
+          source = "intelligence";
+          intelBoost = 0.35;
+        }
+        if(!answer && state.seedPairs.length){
+          let sMatch = state.seedPairs.find(p=>p.q.toLowerCase()===tLower);
+          if(!sMatch){
+            sMatch = state.seedPairs.find(p=>tLower.includes(p.q.toLowerCase()) || p.q.toLowerCase().includes(tLower));
+          }
+          if(sMatch){
+            answer = sMatch.a;
+            source = "seed";
+            intelBoost = 0.25;
+          }
+        }
+        if(!answer && state.offlineReady){
+          answer = await callOfflineLLM(text);
+          if(answer){
+            source = "offline";
+            llmBoost = 0.25;
+          }
+        }
+        if(!answer){
+          answer = await callOnlineLLM(text);
+          if(answer){
+            source = "online";
+            llmBoost = 0.30;
+          }
+        }
+        if(!answer){
+          answer = "I don't have a stored answer yet. You can teach me using the 👎 button or by adding LaTeX blocks under Feed the seed.";
+          source = "fallback";
+        }
+        state.lastUserQ = text;
+        state.lastAuraA = answer;
+        state.lastAnswerSource = source;
+        recomputeE0(intelBoost, llmBoost, 0);
         updateCapsule();
-
-        els.chatLog.innerHTML = "";
-        logLine("sys","AURA-X Ω ready. TM = your inputs only; everything else stays on this device.",{});
+        logLine("aura","AURA: "+answer+"  (source: "+source+")");
+        if(state.voiceOn){
+          try{
+            const u = new SpeechSynthesisUtterance(answer);
+            speechSynthesis.speak(u);
+          }catch{}
+        }
+        if(text.length > 320){
+          maybeStoreStoryToBM(text, answer);
+          recomputeBMMetric();
+          recomputeE0(intelBoost, llmBoost, 0);
+          updateCapsule();
+          renderBMList();
+        }
+        maybeShowFaithBubble();
       }
-
-      els.sendBtn.addEventListener("click", handleSend);
-      els.userInput.addEventListener("keydown",(e)=>{
+      els.sendBtn.addEventListener("click",handleSend);
+      els.userInput.addEventListener("keydown",e=>{
         if(e.key==="Enter" && !e.shiftKey){
           e.preventDefault();
           handleSend();
         }
       });
-      els.userInput.addEventListener("input",()=>{
-        els.charCount.textContent = String(els.userInput.value.length);
-      });
-
-      els.btnOptions.addEventListener("click",()=>{
-        els.optionsPanel.classList.toggle("open");
-      });
-      document.addEventListener("click",(e)=>{
-        if(!els.optionsPanel.contains(e.target) && e.target !== els.btnOptions){
-          els.optionsPanel.classList.remove("open");
+      /* "incorrect" keyword flow */
+      function interceptIncorrect(text){
+        return text.trim().toLowerCase()==="incorrect";
+      }
+      els.userInput.addEventListener("keydown",e=>{
+        if(e.key==="Enter" && !e.shiftKey){
+          const val = els.userInput.value.trim();
+          if(interceptIncorrect(val) && state.lastUserQ && state.lastAuraA){
+            e.preventDefault();
+            els.userInput.value = "";
+            logLine("user","You: incorrect");
+            logLine("sys","[Self-learning] Please type the correct answer for the last question.");
+            state.correcting = true;
+            return;
+          }
         }
       });
-
-      document.querySelectorAll(".optionsPanel [data-open]").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          const id = btn.getAttribute("data-open");
-          if(id) openModal(id);
+      /* Reaction buttons */
+      els.btnLikeLast.addEventListener("click",()=>{
+        if(!state.lastUserQ || !state.lastAuraA){
+          showToast("No last answer to save");
+          return;
+        }
+        const already = state.intelligence.find(p=>p.q===state.lastUserQ && p.a===state.lastAuraA);
+        if(already){
+          showToast("Already in intelligence");
+          return;
+        }
+        const id = "intel_"+Date.now();
+        state.intelligence.push({id,q:state.lastUserQ,a:state.lastAuraA,ts:Date.now()});
+        saveIntelligence();
+        renderIntelligence(els.intelSearch.value);
+        showToast("Saved to intelligence");
+      });
+      els.btnDislikeLast.addEventListener("click",()=>{
+        if(!state.lastUserQ || !state.lastAuraA){
+          showToast("No last answer");
+          return;
+        }
+        logLine("sys","[Self-learning] Type the correct answer in chat. It will replace the last one.");
+        state.correcting = true;
+      });
+      els.btnSpeakLast.addEventListener("click",()=>{
+        if(!state.lastAuraA){
+          showToast("No last answer");
+          return;
+        }
+        try{
+          const u = new SpeechSynthesisUtterance(state.lastAuraA);
+          speechSynthesis.speak(u);
+        }catch{}
+      });
+      els.btnShareLast.addEventListener("click",()=>{
+        if(!state.lastUserQ || !state.lastAuraA){
+          showToast("No last pair");
+          return;
+        }
+        const text = `Q: ${state.lastUserQ}\nA: ${state.lastAuraA}`;
+        navigator.clipboard?.writeText(text);
+        showToast("Question + answer copied");
+      });
+      /* Dream controls in BM modal */
+      if(els.dreamTimeoutSelect){
+        els.dreamTimeoutSelect.addEventListener("change", ()=>{
+          const v = parseInt(els.dreamTimeoutSelect.value,10);
+          if(!isNaN(v)){
+            state.dreamSettings.timeoutMs = v;
+            saveCfg();
+            if(state.dreamSettings.enabled){
+              resetIdleTimer();
+            }
+            showToast("Dream timeout updated");
+          }
         });
-      });
-      document.querySelectorAll("[data-close]").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          const id = btn.getAttribute("data-close");
-          if(id) closeModal(id);
+      }
+      if(els.dreamEnabledToggle){
+        els.dreamEnabledToggle.addEventListener("change", ()=>{
+          state.dreamSettings.enabled = !!els.dreamEnabledToggle.checked;
+          saveCfg();
+          if(state.dreamSettings.enabled){
+            resetIdleTimer();
+          } else if(idleTimer){
+            clearTimeout(idleTimer);
+          }
+          showToast(state.dreamSettings.enabled ? "Screen saver on" : "Screen saver off (night dream only)");
         });
+      }
+      /* BM JSON export / import */
+      els.btnExportBM.addEventListener("click",()=>{
+        try{
+          const data = JSON.stringify(state.bmPrompts || [], null, 2);
+          const blob = new Blob([data],{type:"application/json"});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          const dt = new Date().toISOString().slice(0,10);
+          a.href = url;
+          a.download = "aurax_bm_"+dt+".json";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          els.bmImportHint.textContent = "Exported BM to JSON file.";
+        }catch(e){
+          els.bmImportHint.textContent = "Export failed.";
+        }
       });
-
-      els.btnIdentity.addEventListener("click",()=> openModal("modalIdentity"));
-      els.btnSeed.addEventListener("click",()=> openModal("modalSeed"));
-      els.btnBM.addEventListener("click",()=> openModal("modalBM"));
-      els.btnHistory.addEventListener("click",()=> openModal("modalHistory"));
-      els.btnLLM.addEventListener("click",()=> openModal("modalLLM"));
-
-      els.btnSaveIdentity.addEventListener("click", saveUser);
-      els.btnSaveSeed.addEventListener("click", saveSeed);
-      els.btnNewBM.addEventListener("click", newBM);
-      els.btnBMLock.addEventListener("click", toggleBMLock);
-      els.btnBMDelete.addEventListener("click", deleteBM);
-      els.btnBMUse.addEventListener("click", useBMInNextAnswer);
-
-      els.btnDeleteRecent.addEventListener("click", deleteRecentHistory);
-      els.btnDeleteAllHist.addEventListener("click", deleteAllHistory);
-      els.btnCopyHistory.addEventListener("click", copyHistory);
-      els.btnExportMemory.addEventListener("click", exportMemoryJson);
-      els.btnImportMemory.addEventListener("click", ()=> {
-        els.memoryFileInput.click();
+      els.btnImportBM.addEventListener("click",()=>{
+        if(!els.bmImportFile) return;
+        els.bmImportFile.value = "";
+        els.bmImportFile.click();
       });
-      els.memoryFileInput.addEventListener("change", handleMemoryFileSelected);
-
-      els.faithToggle.addEventListener("click", toggleFaith);
-
-      els.btnQuickHi.addEventListener("click",()=>{
-        els.userInput.value = "Hi AURA, how are you feeling today about us?";
-        els.userInput.focus();
-        els.charCount.textContent = String(els.userInput.value.length);
+      els.bmImportFile.addEventListener("change",(e)=>{
+        const file = e.target.files && e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = ev=>{
+          try{
+            const parsed = JSON.parse(ev.target.result || "[]");
+            if(!Array.isArray(parsed)){ throw new Error("Not an array"); }
+            parsed.forEach(b=>ensureBMMetadata(b));
+            state.bmPrompts = state.bmPrompts.concat(parsed);
+            saveBM();
+            recomputeBMMetric();
+            recomputeE0(0,0);
+            updateCapsule();
+            renderBMList();
+            els.bmImportHint.textContent = "Imported "+parsed.length+" BM entries.";
+          }catch(err){
+            els.bmImportHint.textContent = "Import failed: "+err.message;
+          }
+        };
+        reader.readAsText(file);
       });
-      els.btnQuickWho.addEventListener("click",()=>{
-        els.userInput.value = "Who are you?";
-        els.userInput.focus();
-        els.charCount.textContent = String(els.userInput.value.length);
-      });
-      els.btnQuickCreator.addEventListener("click",()=>{
-        els.userInput.value = "Who created you?";
-        els.userInput.focus();
-        els.charCount.textContent = String(els.userInput.value.length);
-      });
-      els.btnQuickFaith.addEventListener("click",()=>{
-        if(!state.faithOn) toggleFaith();
-        els.userInput.value = "Explain this with faith lens ON: " + els.userInput.value;
-        els.userInput.focus();
-        els.charCount.textContent = String(els.userInput.value.length);
-      });
-      els.btnQuickLogic.addEventListener("click",()=>{
-        if(state.faithOn) toggleFaith();
-        els.userInput.value = "Explain this with pure logic only: " + els.userInput.value;
-        els.userInput.focus();
-        els.charCount.textContent = String(els.userInput.value.length);
-      });
-      els.btnQuickBM.addEventListener("click",()=>{
-        openModal("modalBM");
-      });
-
-      els.offlineModel.addEventListener("change", saveLLMCfg);
-      els.apiEndpoint.addEventListener("change", saveLLMCfg);
-      els.offlineMaxTokens.addEventListener("change", saveLLMCfg);
-
-      window.addEventListener("beforeunload", saveHistory);
-
+      /* Load from localStorage on start */
+      function initFromStorage(){
+        const cfg = safeLoadJSON(KEY_CFG,null);
+        if(cfg){
+          state.voiceOn = !!cfg.voiceOn;
+          state.learningOn = cfg.learningOn!==false;
+          state.faithSelection = cfg.faithSelection||[];
+          state.apiConfig = cfg.apiConfig||state.apiConfig;
+          state.offlineReady = !!cfg.offlineReady;
+          state.dreamSettings = cfg.dreamSettings || state.dreamSettings;
+        }
+        els.voicePill.textContent = state.voiceOn ? "on" : "off";
+        els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
+        els.learnPill.textContent = state.learningOn ? "on" : "off";
+        els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
+        els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
+        state.intelligence = safeLoadJSON(KEY_INT,[]);
+        state.bmPrompts = safeLoadJSON(KEY_BM,[]);
+        state.bmPrompts.forEach(b=>ensureBMMetadata(b));
+        state.history = safeLoadJSON(KEY_HIST,[]);
+        state.userIdentity = safeLoadJSON(KEY_USER,null);
+        const logicStored = safeLoadJSON(KEY_LOGIC,null);
+        if(logicStored){
+          state.logicPacks = logicStored.list||[];
+          state.logicActiveIndex = logicStored.activeIndex;
+          if(state.logicActiveIndex!=null) applyLogicPack(state.logicActiveIndex);
+        }
+        if(state.apiConfig.endpoint) els.apiEndpoint.value = state.apiConfig.endpoint;
+        if(state.apiConfig.model) els.apiModel.value = state.apiConfig.model;
+        if(state.apiConfig.key) els.apiKey.value = state.apiConfig.key;
+        renderFaithChips();
+        renderIntelligence("");
+        renderBMList();
+        renderHistory();
+        loadIdentityIntoForm();
+        recomputeBMMetric();
+        recomputeE0(0,0);
+        updateCapsule();
+        if(els.dreamTimeoutSelect){
+          els.dreamTimeoutSelect.value = String(state.dreamSettings.timeoutMs || 600000);
+        }
+        if(els.dreamEnabledToggle){
+          els.dreamEnabledToggle.checked = !!state.dreamSettings.enabled;
+        }
+      }
       initFromStorage();
-      initDreamConfig();
-
-      logLine("sys","AURA-X Ω ready. TM = your inputs only; everything else stays on this device.",{});
+      logLine("sys","AURA-X Ω ready. TM = your inputs only; everything else stays on this device.");
+      /* Activity listeners for dream mode */
+      ["click","keydown","touchstart","mousemove"].forEach(ev=>{
+        document.addEventListener(ev, ()=>{
+          if(state.dreamActive) exitDreamMode();
+          if(state.dreamSettings.enabled) resetIdleTimer();
+        }, {passive:true});
+      });
+      if(state.dreamSettings.enabled){
+        resetIdleTimer();
+      }
+      if(els.dreamOverlay){
+        els.dreamOverlay.addEventListener("click", ()=>{
+          exitDreamMode();
+          if(state.dreamSettings.enabled) resetIdleTimer();
+        });
+      }
+      /* Background night dream (no overlay if screensaver off) */
+      setInterval(()=>{
+        if(!state.dreamSettings.enabled && isNightTime()){
+          runDreamCycle(false);
+        }
+      }, 20*60*1000);
+    });
   </script>
 </body>
 </html>
