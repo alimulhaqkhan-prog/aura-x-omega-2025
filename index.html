@@ -558,63 +558,47 @@
     }
     .bmItemTitle{font-weight:700;}
     .bmItemMeta{opacity:.65;font-size:11px;}
-    /* Dream overlay (screensaver) */
-    #dreamOverlay{
+    /* Dream overlay (screen saver) */
+    .dreamOverlay{
       position:fixed;
       inset:0;
       background:
-        radial-gradient(circle at 10% 0%, #020617 0, transparent 45%),
-        radial-gradient(circle at 90% 0%, #0ea5e9 0, transparent 45%),
-        rgba(2,6,23,.96);
+        radial-gradient(circle at 20% 0%, rgba(15,23,42,.98), transparent 55%),
+        radial-gradient(circle at 80% 100%, rgba(8,47,73,.95), transparent 55%),
+        linear-gradient(145deg,#020617,#020617);
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:9500;
-      backdrop-filter:blur(16px);
-    }
-    #dreamOverlay.show{
-      display:flex;
-    }
-    .dreamInner{
-      display:flex;
       flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:16px;
+      z-index:9998;
+      color:#e5e7eb;
       text-align:center;
-      padding:20px 18px;
+      padding:20px;
     }
-    .dreamOrb{
-      width:120px;
-      height:120px;
-      border-radius:999px;
-      background:
-        radial-gradient(circle at 30% 20%, #ffffff, #7dd3fc 40%, transparent 70%);
-      border:2px solid rgba(125,211,252,.9);
-      box-shadow:0 0 40px rgba(56,189,248,.8);
-      animation:dreamPulse 3.5s ease-in-out infinite;
-    }
+    .dreamOverlay.show{display:flex}
     .dreamTitle{
+      font-size:20px;
       font-weight:800;
-      font-size:18px;
-      color:#e0f2fe;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+      color:#7dd3fc;
     }
     .dreamSub{
-      max-width:420px;
       font-size:13px;
-      color:#bae6fd;
+      max-width:420px;
+      opacity:.8;
+      margin-bottom:14px;
+    }
+    .dreamSnippet{
+      max-width:520px;
+      font-size:12px;
       opacity:.9;
-    }
-    .dreamMeta{
-      margin-top:4px;
-      font-size:11px;
-      color:#93c5fd;
-      opacity:.85;
-    }
-    @keyframes dreamPulse{
-      0%{transform:translateY(0) scale(1);}
-      50%{transform:translateY(-6px) scale(1.03);}
-      100%{transform:translateY(0) scale(1);}
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.5);
+      padding:10px 12px;
+      background:rgba(15,23,42,.85);
+      white-space:pre-wrap;
     }
     .@media-fix{} /* dummy */
     @media (max-width:760px){
@@ -746,28 +730,22 @@
               <button class="send" id="sendBtn">Send</button>
             </div>
             <div class="formula">
-              E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
+              E₀ = R(TM,BM) + Δ<sub>dream</sub> + I<sub>intel</sub> + I<sub>LLM</sub><br>
+              where R(TM,BM) = tanh( (TM × BM) − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <!-- Dream overlay -->
+  <div class="dreamOverlay" id="dreamOverlay">
+    <div class="dreamTitle">Dream mode</div>
+    <div class="dreamSub">Compressing memories into meaning… Tap or press any key to wake.</div>
+    <div class="dreamSnippet" id="dreamSnippet"></div>
+  </div>
   <!-- Toast bubble -->
   <div class="toastBubble" id="toastBubble"></div>
-
-  <!-- Dream overlay / screensaver -->
-  <div id="dreamOverlay">
-    <div class="dreamInner">
-      <div class="dreamOrb"></div>
-      <div class="dreamText">
-        <div class="dreamTitle">AURA-X Ω is dreaming…</div>
-        <div class="dreamSub">Your BM snapshots and recent feelings are drifting in the background. Tap anywhere to wake.</div>
-        <div class="dreamMeta" id="dreamMetaText"></div>
-      </div>
-    </div>
-  </div>
-
   <!-- Faith selection -->
   <div class="modalOverlay" id="modalFaith">
     <div class="modal">
@@ -891,7 +869,7 @@
           </div>
           <div style="margin-top:8px;font-size:12px;opacity:.75">Status: <span id="offlineStatus">idle</span></div>
           <div style="margin-top:8px;height:10px;border-radius:999px;background:rgba(2,6,23,.12);overflow:hidden;border:1px solid rgba(2,6,23,.08)">
-            <div id="offlineBar" style="height:100%;width:0%;background:#22c55e;transition:width .2s ease;"></div>
+            <div id="offlineBar" style="height:100%;width:0%;background:#22c55e;transition:width .2s.ease;"></div>
           </div>
         </div>
         <div style="font-weight:900;margin-top:14px;">Online helper LLM (connects & works)</div>
@@ -958,46 +936,32 @@
             <button class="btn btnRed" id="btnDeletePrompt">Delete</button>
           </div>
         </div>
-
-        <!-- NEW: Dream Mode / screensaver settings (inside BM window) -->
-        <div class="bmCard" id="bmDreamCard">
-          <div class="bmTop">
-            <div>
-              <div class="title">🌙 Dream Mode / screensaver</div>
-              <div class="bmSub">
-                Choose after how much idle time AURA-X Ω should enter Dream Mode with your BM snapshots.
-              </div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-              <button class="btn btnBlue" id="btnTestDream">Test now</button>
-            </div>
+        <!-- Dream settings + BM JSON backup -->
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
+          <div style="font-size:12px;opacity:.75;">
+            Dream / screensaver timeout:
+            <select id="dreamTimeoutSelect" style="margin-left:4px;border-radius:999px;border:1px solid rgba(15,23,42,.18);padding:4px 8px;font-size:12px;">
+              <option value="30000">30 sec</option>
+              <option value="60000">1 min</option>
+              <option value="300000">5 min</option>
+              <option value="900000">15 min</option>
+              <option value="1800000">30 min</option>
+              <option value="3600000">1 hour</option>
+              <option value="7200000">2 hours</option>
+              <option value="14400000">4 hours</option>
+              <option value="28800000">8 hours</option>
+            </select>
+            <label style="margin-left:8px;font-size:12px;">
+              <input type="checkbox" id="dreamEnabledToggle" style="margin-right:4px;">Screen saver on
+            </label>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <div style="flex:1;min-width:140px;">
-              <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Start after</label>
-              <select id="dreamDelaySelect"
-                style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;background:#fff;">
-                <option value="30000">30 seconds</option>
-                <option value="60000">1 minute</option>
-                <option value="120000">2 minutes</option>
-                <option value="300000">5 minutes</option>
-                <option value="600000">10 minutes</option>
-                <option value="1800000">30 minutes</option>
-                <option value="3600000">1 hour</option>
-                <option value="7200000">2 hours</option>
-                <option value="14400000">4 hours</option>
-                <option value="28800000">8 hours</option>
-              </select>
-            </div>
-            <div style="flex:0 0 140px;">
-              <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Status</label>
-              <button class="btn btnGreen" id="btnToggleDream">Enable</button>
-            </div>
-          </div>
-          <div class="bmSub" id="dreamStatusText" style="margin-top:8px;">
-            Screensaver is OFF.
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+            <button class="btn btnBlue" id="btnExportBM">Export BM JSON</button>
+            <button class="btn btnBlue" id="btnImportBM">Import BM JSON</button>
+            <input type="file" id="bmImportFile" accept="application/json" style="display:none;">
           </div>
         </div>
+        <div id="bmImportHint" style="margin-top:4px;font-size:11px;opacity:.6;"></div>
       </div>
     </div>
   </div>
@@ -1085,7 +1049,7 @@
   </div>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
-      const KEY_CFG   = "aurax_cfg_v13";
+      const KEY_CFG   = "aurax_cfg_v12";
       const KEY_INT   = "aurax_intel_v11";
       const KEY_BM    = "aurax_bm_v11";
       const KEY_HIST  = "aurax_hist_v11";
@@ -1188,11 +1152,13 @@
         btnShareLast: document.getElementById("btnShareLast"),
         toastBubble: document.getElementById("toastBubble"),
         dreamOverlay: document.getElementById("dreamOverlay"),
-        dreamMetaText: document.getElementById("dreamMetaText"),
-        dreamDelaySelect: document.getElementById("dreamDelaySelect"),
-        btnToggleDream: document.getElementById("btnToggleDream"),
-        btnTestDream: document.getElementById("btnTestDream"),
-        dreamStatusText: document.getElementById("dreamStatusText")
+        dreamSnippet: document.getElementById("dreamSnippet"),
+        dreamTimeoutSelect: document.getElementById("dreamTimeoutSelect"),
+        dreamEnabledToggle: document.getElementById("dreamEnabledToggle"),
+        btnExportBM: document.getElementById("btnExportBM"),
+        btnImportBM: document.getElementById("btnImportBM"),
+        bmImportFile: document.getElementById("bmImportFile"),
+        bmImportHint: document.getElementById("bmImportHint")
       };
       const FAITH_OPTIONS = [
         { id: "none",         label: "None" },
@@ -1251,10 +1217,9 @@
         logicFaithSoftener: true,
         toastTimer: null,
         selectedBMId: null,
-        dreamEnabled: false,
-        dreamDelayMs: 600000, // default 10 min
-        dreamTimerId: null,
-        lastActivityTs: Date.now()
+        dreamActive: false,
+        dreamSettings: { enabled:true, timeoutMs:600000 },
+        dreamLastRun: 0
       };
       function safeLoadJSON(key, fallback){
         try{
@@ -1284,21 +1249,64 @@
         const len = Math.min((t||"").length,600);
         return Number(Math.tanh(len/200).toFixed(2));
       }
-      function recomputeBMMetric(){
-        const count = state.bmPrompts.length || 0;
-        state.metrics.BM = Number(Math.tanh(count/10).toFixed(2));
+      function analyzeMeaning(text){
+        const t = (text || "").toLowerCase();
+        const emotion_tags = [];
+        const context_tags = [];
+        if(/sad|grief|cry|lonely|depress|loss|غم|اداس/.test(t)) emotion_tags.push("sadness");
+        if(/angry|rage|furious|غصہ/.test(t)) emotion_tags.push("anger");
+        if(/happy|joy|excited|delight|خوش/.test(t)) emotion_tags.push("joy");
+        if(/fear|anxious|panic|ڈر/.test(t)) emotion_tags.push("fear");
+        if(/hope|optimistic|امید/.test(t)) emotion_tags.push("hope");
+        if(!emotion_tags.length) emotion_tags.push("neutral");
+        if(/family|mother|father|brother|sister|kids|wife|بیوی|بچہ/.test(t)) context_tags.push("family");
+        if(/work|job|office|project|business/.test(t)) context_tags.push("work");
+        if(/health|doctor|pain|hospital|بیمار/.test(t)) context_tags.push("health");
+        if(/faith|allah|god|deen|اسلام|dua|prayer/.test(t)) context_tags.push("faith");
+        if(/friend|dost|دوست/.test(t)) context_tags.push("friends");
+        if(!context_tags.length) context_tags.push("general");
+        return {emotion_tags, context_tags};
       }
-      function recomputeE0(intelBoost, llmBoost){
-        const TM = state.metrics.TM;
-        const BM = state.metrics.BM;
-        const R = TM * BM;
-        const I_tm = 0.3 * TM;
+      function ensureBMMetadata(bm){
+        if(!bm) return;
+        if(typeof bm.weight !== "number") bm.weight = 0.6;
+        if(!bm.emotion_tags || !Array.isArray(bm.emotion_tags)){
+          const m = analyzeMeaning(bm.text || "");
+          bm.emotion_tags = m.emotion_tags;
+          bm.context_tags = m.context_tags;
+        }
+        if(!bm.context_tags || !Array.isArray(bm.context_tags)){
+          const m = analyzeMeaning(bm.text || "");
+          bm.context_tags = m.context_tags;
+        }
+      }
+      function recomputeBMMetric(){
+        if(!state.bmPrompts.length){
+          state.metrics.BM = 0;
+          return;
+        }
+        let totalWeight = 0;
+        state.bmPrompts.forEach(b=>{
+          ensureBMMetadata(b);
+          totalWeight += (typeof b.weight === "number" ? b.weight : 0.6);
+        });
+        const norm = totalWeight / 10;
+        state.metrics.BM = Number(Math.tanh(norm).toFixed(2));
+      }
+      function computeR(TM, BM){
         const D = 0.1;
         const lambdaFaith = state.faithSelection.length ? 0.15 : 0;
         const lambdaSys   = 0.05;
         const lambdaTrc   = 0.05;
-        const raw = R + I_tm + intelBoost + llmBoost - D + lambdaFaith + lambdaSys + lambdaTrc;
-        state.metrics.E0 = Number(Math.tanh(raw).toFixed(3));
+        const raw = (TM * BM) - D + lambdaFaith + lambdaSys + lambdaTrc;
+        return Math.tanh(raw);
+      }
+      function recomputeE0(intelBoost=0, llmBoost=0, dreamBoost=0){
+        const TM = state.metrics.TM;
+        const BM = state.metrics.BM;
+        const baseR = computeR(TM, BM);
+        const total = baseR + (intelBoost||0) + (llmBoost||0) + (dreamBoost||0);
+        state.metrics.E0 = Number(total.toFixed(3));
       }
       function updateCapsule(){
         els.cTM.textContent = state.metrics.TM.toFixed(2);
@@ -1315,77 +1323,6 @@
           els.toastBubble.classList.remove("show");
         },1600);
       }
-
-      /* Dream mode helpers */
-      function updateDreamUI(){
-        if(!els.dreamDelaySelect || !els.btnToggleDream || !els.dreamStatusText) return;
-        // set button
-        if(state.dreamEnabled){
-          els.btnToggleDream.textContent = "Disable";
-          els.btnToggleDream.className = "btn btnRed";
-        }else{
-          els.btnToggleDream.textContent = "Enable";
-          els.btnToggleDream.className = "btn btnGreen";
-        }
-        // sync select (choose closest)
-        const current = state.dreamDelayMs;
-        let bestVal = els.dreamDelaySelect.options.length ? els.dreamDelaySelect.options[0].value : String(current);
-        let bestDiff = Infinity;
-        Array.from(els.dreamDelaySelect.options).forEach(opt=>{
-          const v = parseInt(opt.value,10);
-          const diff = Math.abs(v-current);
-          if(diff<bestDiff){bestDiff=diff;bestVal=opt.value;}
-        });
-        els.dreamDelaySelect.value = bestVal;
-        // status text
-        const ms = state.dreamDelayMs;
-        let label;
-        if(ms < 60000){
-          label = Math.round(ms/1000) + " seconds";
-        }else{
-          const mins = ms/60000;
-          if(mins >= 60){
-            const hrs = mins/60;
-            label = hrs.toFixed(1).replace(/\.0$/,"") + " hours";
-          }else{
-            label = mins + " minutes";
-          }
-        }
-        els.dreamStatusText.textContent = state.dreamEnabled
-          ? "Screensaver is ON · starts after " + label + " of no activity."
-          : "Screensaver is OFF.";
-      }
-      function showDreamOverlay(){
-        if(!els.dreamOverlay) return;
-        const bmCount = state.bmPrompts.length || 0;
-        if(els.dreamMetaText){
-          els.dreamMetaText.textContent = bmCount
-            ? "Dreaming across " + bmCount + " BM snapshot" + (bmCount>1?"s":"") + "…"
-            : "Dreaming gently with recent TM feelings (no BM snapshots stored yet).";
-        }
-        els.dreamOverlay.classList.add("show");
-      }
-      function hideDreamOverlay(){
-        if(!els.dreamOverlay) return;
-        els.dreamOverlay.classList.remove("show");
-        scheduleDreamTimer(); // restart countdown after wake
-      }
-      function scheduleDreamTimer(){
-        state.lastActivityTs = Date.now();
-        if(state.dreamTimerId){ clearTimeout(state.dreamTimerId); state.dreamTimerId = null; }
-        if(!state.dreamEnabled) return;
-        const delay = Math.min(Math.max(state.dreamDelayMs,30000), 28800000); // clamp 30s-8h
-        state.dreamDelayMs = delay;
-        state.dreamTimerId = setTimeout(()=>{
-          showDreamOverlay();
-        }, delay);
-      }
-      function registerActivity(){
-        // do not restart if user is already on dream overlay; click there will close it separately
-        if(els.dreamOverlay && els.dreamOverlay.classList.contains("show")) return;
-        scheduleDreamTimer();
-      }
-
       function saveCfg(){
         const cfg = {
           voiceOn: state.voiceOn,
@@ -1393,10 +1330,7 @@
           faithSelection: state.faithSelection,
           apiConfig: state.apiConfig,
           offlineReady: state.offlineReady,
-          dream: {
-            enabled: state.dreamEnabled,
-            delayMs: state.dreamDelayMs
-          }
+          dreamSettings: state.dreamSettings
         };
         localStorage.setItem(KEY_CFG, JSON.stringify(cfg));
       }
@@ -1489,27 +1423,23 @@
         if(target.dataset && target.dataset.close){
           closeModalById(target.dataset.close);
         }
-        if(target.classList && target.classList.contains("modalOverlay") && !target.classList.contains("noClose")){
+        if(target.classList.contains("modalOverlay") && !target.classList.contains("noClose")){
           target.classList.remove("show");
         }
       });
-      if(els.faithBubble){
-        els.faithBubble.addEventListener("click",()=>{
-          if(!state.currentFaithArticle) return;
-          const art = state.currentFaithArticle;
-          const meta = `Lens: ${state.faithSelection.join(", ")} · id=${art.id}`;
-          els.faithArticleMeta.textContent = meta;
-          els.faithArticleTitle.textContent = art.title;
-          els.faithArticleText.value = art.content;
-          openModal(els.modalFaithArticle);
-        });
-      }
-      if(els.faithBubbleClose){
-        els.faithBubbleClose.addEventListener("click",(ev)=>{
-          ev.stopPropagation();
-          els.faithBubble.classList.remove("show","pulse");
-        });
-      }
+      els.faithBubble.addEventListener("click",()=>{
+        if(!state.currentFaithArticle) return;
+        const art = state.currentFaithArticle;
+        const meta = `Lens: ${state.faithSelection.join(", ")} · id=${art.id}`;
+        els.faithArticleMeta.textContent = meta;
+        els.faithArticleTitle.textContent = art.title;
+        els.faithArticleText.value = art.content;
+        openModal(els.modalFaithArticle);
+      });
+      els.faithBubbleClose.addEventListener("click",(ev)=>{
+        ev.stopPropagation();
+        els.faithBubble.classList.remove("show","pulse");
+      });
       els.btnCopyFaithArticle.addEventListener("click",()=>{
         navigator.clipboard?.writeText(els.faithArticleText.value||"");
         showToast("Faith reflection copied");
@@ -1525,6 +1455,7 @@
           locked: true,
           liveUntil: null
         };
+        ensureBMMetadata(bm);
         state.bmPrompts.push(bm);
         saveBM();
         recomputeBMMetric();
@@ -1707,7 +1638,7 @@
       }
       els.btnValidateLogic.addEventListener("click",()=>{
         try{
-          const obj = JSON.parse(els.logicBox.value);
+          JSON.parse(els.logicBox.value);
           els.logicHint.textContent = "Valid JSON.";
           showToast("Logic JSON valid");
         }catch(e){
@@ -1746,7 +1677,7 @@
         document.documentElement.style.setProperty("--accent-color", "#0ea5e9");
         persistLogicState();
       });
-      /* BM list & viewer with date filter */
+      /* BM list & viewer with date filter + meaning layer */
       function renderBMList(){
         els.bmSelectList.innerHTML = "";
         const q = (els.bmSearch.value||"").toLowerCase();
@@ -1780,7 +1711,10 @@
           const meta = document.createElement("div");
           meta.className = "bmItemMeta";
           const ds = new Date(bm.ts||Date.now()).toISOString().slice(0,10);
-          meta.textContent = ds + (bm.locked ? " · 🔒" : "");
+          ensureBMMetadata(bm);
+          const e = bm.emotion_tags && bm.emotion_tags[0] ? (" · "+bm.emotion_tags[0]) : "";
+          const c = bm.context_tags && bm.context_tags[0] ? (" · "+bm.context_tags[0]) : "";
+          meta.textContent = ds + (bm.locked ? " · 🔒" : "") + e + c;
           left.appendChild(title);
           left.appendChild(meta);
           item.appendChild(left);
@@ -1795,6 +1729,13 @@
           els.bmViewer.style.display = "none";
           return;
         }
+        ensureBMMetadata(bm);
+        bm.recalledRecently = true;
+        bm.weight = Math.min(1, (bm.weight || 0.6) + 0.03);
+        saveBM();
+        recomputeBMMetric();
+        recomputeE0(0,0);
+        updateCapsule();
         els.bmViewer.style.display = "block";
         els.bmTitle.textContent = bm.title||"Prompt";
         const ds = new Date(bm.ts||Date.now()).toLocaleString();
@@ -1868,42 +1809,109 @@
         els.bmViewer.style.display = "none";
         showToast("BM prompt deleted");
       });
-
-      /* Dream UI events (inside BM modal) */
-      if(els.btnToggleDream){
-        els.btnToggleDream.addEventListener("click",()=>{
-          state.dreamEnabled = !state.dreamEnabled;
-          if(!state.dreamEnabled){
-            if(state.dreamTimerId){ clearTimeout(state.dreamTimerId); state.dreamTimerId = null; }
-            if(els.dreamOverlay) els.dreamOverlay.classList.remove("show");
+      /* Dream compression + screensaver */
+      function computeDreamBoost(){
+        const n = state.bmPrompts.length;
+        if(n === 0) return 0;
+        if(n < 5) return 0.05;
+        if(n < 15) return 0.12;
+        return 0.20;
+      }
+      function compressBMByMeaning(){
+        if(!state.bmPrompts.length) return {created:0};
+        const groups = {};
+        state.bmPrompts.forEach(bm=>{
+          ensureBMMetadata(bm);
+          const e = bm.emotion_tags && bm.emotion_tags[0] || "neutral";
+          const c = bm.context_tags && bm.context_tags[0] || "general";
+          const key = e+"|"+c;
+          if(!groups[key]) groups[key] = [];
+          groups[key].push(bm);
+        });
+        let created = 0;
+        Object.keys(groups).forEach(key=>{
+          const list = groups[key];
+          if(list.length < 4) return;
+          const parts = key.split("|");
+          const e = parts[0] || "neutral";
+          const c = parts[1] || "general";
+          const sorted = list.slice().sort((a,b)=>(a.weight||0.6)-(b.weight||0.6));
+          const toDecay = sorted.slice(0, Math.max(0, sorted.length-3));
+          const firstTs = new Date(sorted[0].ts||Date.now());
+          const lastTs  = new Date(sorted[sorted.length-1].ts||Date.now());
+          const period = firstTs.toLocaleDateString()+" → "+lastTs.toLocaleDateString();
+          const summaryText =
+            "Dream compression summary ("+e+" in "+c+") for "+period+".\n\n"+
+            "System noticed many similar experiences and kept a lighter meaningful memory instead of all raw details.";
+          const bm = {
+            id: "bm_dream_"+Date.now()+"_"+created,
+            title: "Dream summary – "+e+" / "+c,
+            text: summaryText,
+            ts: Date.now(),
+            locked: true,
+            liveUntil: null,
+            weight: Math.min(1, 0.7 + list.length*0.02),
+            emotion_tags: [e],
+            context_tags: [c],
+            isDreamSummary: true
+          };
+          state.bmPrompts.push(bm);
+          toDecay.forEach(x=>{
+            x.weight = Math.max(0.02, (x.weight||0.6) * 0.3);
+            x.decayed = true;
+          });
+          created++;
+        });
+        if(created){
+          saveBM();
+          recomputeBMMetric();
+        }
+        return {created};
+      }
+      function runDreamCycle(showLog){
+        const result = compressBMByMeaning();
+        const boost = computeDreamBoost();
+        recomputeE0(0,0,boost);
+        updateCapsule();
+        if(showLog){
+          logLine("sys","[Dream] Compressed "+result.created+" clusters · Δ_dream="+boost.toFixed(2));
+        }
+        if(state.dreamActive){
+          const sample = state.bmPrompts.slice(-1)[0];
+          if(sample){
+            els.dreamSnippet.textContent = sample.text || "";
           }
-          updateDreamUI();
-          saveCfg();
-          scheduleDreamTimer();
-        });
+        }
       }
-      if(els.dreamDelaySelect){
-        els.dreamDelaySelect.addEventListener("change",()=>{
-          const v = parseInt(els.dreamDelaySelect.value,10);
-          if(!isNaN(v)){
-            state.dreamDelayMs = v;
-            updateDreamUI();
-            saveCfg();
-            scheduleDreamTimer();
-          }
-        });
+      function isNightTime(){
+        const now = new Date();
+        const h = now.getHours();
+        return (h >= 21 || h < 5);
       }
-      if(els.btnTestDream && els.dreamOverlay){
-        els.btnTestDream.addEventListener("click",()=>{
-          showDreamOverlay();
-        });
+      let idleTimer = null;
+      function resetIdleTimer(){
+        if(!state.dreamSettings.enabled) return;
+        if(idleTimer) clearTimeout(idleTimer);
+        idleTimer = setTimeout(()=>{
+          enterDreamMode();
+        }, state.dreamSettings.timeoutMs || 600000);
       }
-      if(els.dreamOverlay){
-        els.dreamOverlay.addEventListener("click",()=>{
-          hideDreamOverlay();
-        });
+      function enterDreamMode(){
+        if(state.dreamActive) return;
+        state.dreamActive = true;
+        if(els.dreamOverlay){
+          els.dreamOverlay.classList.add("show");
+          els.dreamSnippet.textContent = "";
+        }
+        runDreamCycle(true);
       }
-
+      function exitDreamMode(){
+        if(!state.dreamActive) return;
+        state.dreamActive = false;
+        if(els.dreamOverlay){
+          els.dreamOverlay.classList.remove("show");
+        }
+      }
       /* Identity */
       function loadIdentityIntoForm(){
         const u = state.userIdentity || {};
@@ -2070,13 +2078,32 @@
         showToast("History copied");
       });
       /* Main chat + self-learning pipeline */
+      function maybeStoreStoryToBM(question, answer){
+        const t = (question || "").trim();
+        if(t.length < 320) return;
+        const now = Date.now();
+        const title = t.slice(0,80);
+        const combined = "Story snapshot\n\nQ: "+question+"\n\nAURA: "+(answer||"");
+        const bm = {
+          id: "bm_story_"+now,
+          title,
+          text: combined,
+          ts: now,
+          locked: false,
+          liveUntil: null
+        };
+        ensureBMMetadata(bm);
+        state.bmPrompts.push(bm);
+        saveBM();
+        recomputeBMMetric();
+        showToast("Long story saved under BM");
+      }
       async function handleSend(){
         const raw = els.userInput.value;
         const text = raw.trim();
         if(!text) return;
         els.userInput.value = "";
         els.optionsMenu.classList.remove("show");
-        // "incorrect" flow
         if(state.correcting){
           const correctA = text;
           if(state.lastUserQ && correctA){
@@ -2095,9 +2122,7 @@
           state.correcting = false;
           return;
         }
-        // normal user entry
         logLine("user","You: "+text);
-        registerActivity();
         const now = Date.now();
         if(state.cooldownUntil && now < state.cooldownUntil){
           logLine("sys","[Cooldown] Please wait a moment before sending more messages.");
@@ -2108,7 +2133,6 @@
         let intelBoost = 0, llmBoost = 0;
         let answer = null;
         let source = "none";
-        // 1) check intelligence first (exact / contains)
         const tLower = text.toLowerCase();
         let bestMatch = state.intelligence.find(p=>p.q.toLowerCase()===tLower);
         if(!bestMatch){
@@ -2119,7 +2143,6 @@
           source = "intelligence";
           intelBoost = 0.35;
         }
-        // 2) then seed
         if(!answer && state.seedPairs.length){
           let sMatch = state.seedPairs.find(p=>p.q.toLowerCase()===tLower);
           if(!sMatch){
@@ -2131,7 +2154,6 @@
             intelBoost = 0.25;
           }
         }
-        // 3) then offline LLM
         if(!answer && state.offlineReady){
           answer = await callOfflineLLM(text);
           if(answer){
@@ -2139,7 +2161,6 @@
             llmBoost = 0.25;
           }
         }
-        // 4) last fallback: online
         if(!answer){
           answer = await callOnlineLLM(text);
           if(answer){
@@ -2147,7 +2168,6 @@
             llmBoost = 0.30;
           }
         }
-        // fallback static reply
         if(!answer){
           answer = "I don't have a stored answer yet. You can teach me using the 👎 button or by adding LaTeX blocks under Feed the seed.";
           source = "fallback";
@@ -2155,7 +2175,7 @@
         state.lastUserQ = text;
         state.lastAuraA = answer;
         state.lastAnswerSource = source;
-        recomputeE0(intelBoost, llmBoost);
+        recomputeE0(intelBoost, llmBoost, 0);
         updateCapsule();
         logLine("aura","AURA: "+answer+"  (source: "+source+")");
         if(state.voiceOn){
@@ -2163,6 +2183,13 @@
             const u = new SpeechSynthesisUtterance(answer);
             speechSynthesis.speak(u);
           }catch{}
+        }
+        if(text.length > 320){
+          maybeStoreStoryToBM(text, answer);
+          recomputeBMMetric();
+          recomputeE0(intelBoost, llmBoost, 0);
+          updateCapsule();
+          renderBMList();
         }
         maybeShowFaithBubble();
       }
@@ -2234,11 +2261,78 @@
         navigator.clipboard?.writeText(text);
         showToast("Question + answer copied");
       });
-
-      /* Global activity listeners for Dream Mode */
-      document.addEventListener("click", ()=>registerActivity(), true);
-      document.addEventListener("keydown", ()=>registerActivity(), true);
-
+      /* Dream controls in BM modal */
+      if(els.dreamTimeoutSelect){
+        els.dreamTimeoutSelect.addEventListener("change", ()=>{
+          const v = parseInt(els.dreamTimeoutSelect.value,10);
+          if(!isNaN(v)){
+            state.dreamSettings.timeoutMs = v;
+            saveCfg();
+            if(state.dreamSettings.enabled){
+              resetIdleTimer();
+            }
+            showToast("Dream timeout updated");
+          }
+        });
+      }
+      if(els.dreamEnabledToggle){
+        els.dreamEnabledToggle.addEventListener("change", ()=>{
+          state.dreamSettings.enabled = !!els.dreamEnabledToggle.checked;
+          saveCfg();
+          if(state.dreamSettings.enabled){
+            resetIdleTimer();
+          } else if(idleTimer){
+            clearTimeout(idleTimer);
+          }
+          showToast(state.dreamSettings.enabled ? "Screen saver on" : "Screen saver off (night dream only)");
+        });
+      }
+      /* BM JSON export / import */
+      els.btnExportBM.addEventListener("click",()=>{
+        try{
+          const data = JSON.stringify(state.bmPrompts || [], null, 2);
+          const blob = new Blob([data],{type:"application/json"});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          const dt = new Date().toISOString().slice(0,10);
+          a.href = url;
+          a.download = "aurax_bm_"+dt+".json";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          els.bmImportHint.textContent = "Exported BM to JSON file.";
+        }catch(e){
+          els.bmImportHint.textContent = "Export failed.";
+        }
+      });
+      els.btnImportBM.addEventListener("click",()=>{
+        if(!els.bmImportFile) return;
+        els.bmImportFile.value = "";
+        els.bmImportFile.click();
+      });
+      els.bmImportFile.addEventListener("change",(e)=>{
+        const file = e.target.files && e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = ev=>{
+          try{
+            const parsed = JSON.parse(ev.target.result || "[]");
+            if(!Array.isArray(parsed)){ throw new Error("Not an array"); }
+            parsed.forEach(b=>ensureBMMetadata(b));
+            state.bmPrompts = state.bmPrompts.concat(parsed);
+            saveBM();
+            recomputeBMMetric();
+            recomputeE0(0,0);
+            updateCapsule();
+            renderBMList();
+            els.bmImportHint.textContent = "Imported "+parsed.length+" BM entries.";
+          }catch(err){
+            els.bmImportHint.textContent = "Import failed: "+err.message;
+          }
+        };
+        reader.readAsText(file);
+      });
       /* Load from localStorage on start */
       function initFromStorage(){
         const cfg = safeLoadJSON(KEY_CFG,null);
@@ -2248,10 +2342,7 @@
           state.faithSelection = cfg.faithSelection||[];
           state.apiConfig = cfg.apiConfig||state.apiConfig;
           state.offlineReady = !!cfg.offlineReady;
-          if(cfg.dream){
-            state.dreamEnabled = !!cfg.dream.enabled;
-            state.dreamDelayMs = cfg.dream.delayMs || state.dreamDelayMs;
-          }
+          state.dreamSettings = cfg.dreamSettings || state.dreamSettings;
         }
         els.voicePill.textContent = state.voiceOn ? "on" : "off";
         els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
@@ -2260,6 +2351,7 @@
         els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
         state.intelligence = safeLoadJSON(KEY_INT,[]);
         state.bmPrompts = safeLoadJSON(KEY_BM,[]);
+        state.bmPrompts.forEach(b=>ensureBMMetadata(b));
         state.history = safeLoadJSON(KEY_HIST,[]);
         state.userIdentity = safeLoadJSON(KEY_USER,null);
         const logicStored = safeLoadJSON(KEY_LOGIC,null);
@@ -2279,11 +2371,37 @@
         recomputeBMMetric();
         recomputeE0(0,0);
         updateCapsule();
-        updateDreamUI();
-        scheduleDreamTimer();
+        if(els.dreamTimeoutSelect){
+          els.dreamTimeoutSelect.value = String(state.dreamSettings.timeoutMs || 600000);
+        }
+        if(els.dreamEnabledToggle){
+          els.dreamEnabledToggle.checked = !!state.dreamSettings.enabled;
+        }
       }
       initFromStorage();
       logLine("sys","AURA-X Ω ready. TM = your inputs only; everything else stays on this device.");
+      /* Activity listeners for dream mode */
+      ["click","keydown","touchstart","mousemove"].forEach(ev=>{
+        document.addEventListener(ev, ()=>{
+          if(state.dreamActive) exitDreamMode();
+          if(state.dreamSettings.enabled) resetIdleTimer();
+        }, {passive:true});
+      });
+      if(state.dreamSettings.enabled){
+        resetIdleTimer();
+      }
+      if(els.dreamOverlay){
+        els.dreamOverlay.addEventListener("click", ()=>{
+          exitDreamMode();
+          if(state.dreamSettings.enabled) resetIdleTimer();
+        });
+      }
+      /* Background night dream (no overlay if screensaver off) */
+      setInterval(()=>{
+        if(!state.dreamSettings.enabled && isNightTime()){
+          runDreamCycle(false);
+        }
+      }, 20*60*1000);
     });
   </script>
 </body>
