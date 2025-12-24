@@ -212,7 +212,7 @@
       border:1px solid rgba(148,163,184,.14);
       background:rgba(2,6,23,.45);
     }
-    /* reaction bar above metrics, left-aligned */
+    /* reaction buttons above metrics, left-aligned */
     .reactionBar{
       margin-top:0;
       margin-bottom:6px;
@@ -507,7 +507,7 @@
       padding:8px;
       background:#fff;
     }
-    /* Conversation history – lighter UI + lock icon */
+    /* Conversation history */
     #modalHistory .modalBody{
       background:#f8fafc;
     }
@@ -558,6 +558,44 @@
     }
     .bmItemTitle{font-weight:700;}
     .bmItemMeta{opacity:.65;font-size:11px;}
+
+    /* Dream Mode Overlay */
+    #dreamOverlay {
+      position: fixed; inset: 0; display: none;
+      align-items: center; justify-content: center;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(15,23,42,0.95) 0, transparent 55%),
+        radial-gradient(circle at 80% 0%, rgba(30,64,175,0.90) 0, transparent 55%),
+        radial-gradient(circle at 50% 100%, rgba(147,51,234,0.85) 0, transparent 60%);
+      backdrop-filter: blur(10px);
+      z-index: 9999;
+      color: #e5e7eb;
+      text-align: center;
+    }
+    #dreamOverlay .dream-inner {
+      max-width: 600px;
+      padding: 24px 20px;
+      border-radius: 24px;
+      border: 1px solid rgba(148,163,184,0.6);
+      box-shadow: 0 25px 80px rgba(15,23,42,0.9);
+    }
+    #dreamOverlay .dream-title {
+      font-weight: 800;
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+    }
+    #dreamOverlay .dream-snippet {
+      font-size: 0.98rem;
+      line-height: 1.6;
+      margin-bottom: 14px;
+      min-height: 4em;
+      white-space: pre-wrap;
+    }
+    #dreamOverlay .dream-hint {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
     .@media-fix{} /* dummy */
     @media (max-width:760px){
       .console{height:240px}
@@ -661,9 +699,8 @@
         <!-- RIGHT -->
         <div class="rightCol">
           <div class="chatWrap">
-            <!-- reaction buttons above metrics, left-aligned -->
             <div class="reactionBar" id="reactionBar">
-              <!-- left copy button REMOVED on purpose -->
+              <!-- left copy button already removed -->
               <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence (like)">👍</button>
               <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
               <button class="reactBtn" id="btnSpeakLast" title="Play voice for last answer">🔊</button>
@@ -695,8 +732,21 @@
       </div>
     </div>
   </div>
+
   <!-- Toast bubble -->
   <div class="toastBubble" id="toastBubble"></div>
+
+  <!-- Dream mode overlay -->
+  <div id="dreamOverlay">
+    <div class="dream-inner">
+      <div class="dream-title">AURA-X Ω – Dream Mode</div>
+      <div class="dream-snippet" id="dreamSnippet">
+        (sleeping… processing memories…)
+      </div>
+      <div class="dream-hint">Tap / Click to wake up</div>
+    </div>
+  </div>
+
   <!-- Faith selection -->
   <div class="modalOverlay" id="modalFaith">
     <div class="modal">
@@ -744,7 +794,6 @@
         <input id="intelSearch"
           style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none"
           placeholder="Search intelligence..." />
-        <!-- per-card inline editor -->
         <div id="intelList" style="margin-top:10px;"></div>
       </div>
     </div>
@@ -865,7 +914,6 @@
         <input id="bmSearch"
           style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:8px 0 4px;outline:none;background:#fff;"
           placeholder="Search BM by text..." />
-        <!-- calendar search by date -->
         <input id="bmDate" type="date"
           style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:0 0 6px;outline:none;background:#fff;" />
         <div id="bmSelectList"></div>
@@ -972,6 +1020,7 @@
       </div>
     </div>
   </div>
+
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       const KEY_CFG   = "aurax_cfg_v12";
@@ -1076,7 +1125,9 @@
         btnDislikeLast: document.getElementById("btnDislikeLast"),
         btnSpeakLast: document.getElementById("btnSpeakLast"),
         btnShareLast: document.getElementById("btnShareLast"),
-        toastBubble: document.getElementById("toastBubble")
+        toastBubble: document.getElementById("toastBubble"),
+        dreamOverlay: document.getElementById("dreamOverlay"),
+        dreamSnippet: document.getElementById("dreamSnippet")
       };
 
       const FAITH_OPTIONS = [
@@ -1122,7 +1173,7 @@
         lastAnswerSource: null,
         lastUserQ: null,
         lastAuraA: null,
-        correcting: false, // for "incorrect" flow
+        correcting: false,
         metrics: { TM: 0, BM: 0, C: 0.85, E0: 0 },
         parsedSeed: [],
         editingIntelId: null,
@@ -1138,17 +1189,15 @@
         logicFaithSoftener: true,
         toastTimer: null,
         selectedBMId: null,
-
-        // Dream / inactivity tracking
         dreamMode: false,
         lastActivity: Date.now(),
         inactivityTimer: null,
         decayTimer: null
       };
 
-      // dream timing (can be tuned)
-      const DREAM_IDLE_MS = 4 * 60 * 1000;  // 4 minutes idle → dream mode
-      const DREAM_TICK_MS = 5 * 60 * 1000;  // every 5 minutes while dreaming → prune
+      const DREAM_IDLE_MS = 4 * 60 * 1000;
+      const DREAM_TICK_MS = 5 * 60 * 1000;
+      let dreamInterval = null;
 
       function safeLoadJSON(key, fallback){
         try{
@@ -1235,15 +1284,13 @@
         localStorage.setItem(KEY_LOGIC, JSON.stringify(data));
       }
 
-      // ---------- Story / weather / dream helpers (NEW) ----------
-
+      // ---------- Story / weather / dream helpers ----------
       function looksLikeStory(text) {
         if (!text) return false;
         const t = text.trim();
         if (t.length < 220) return false;
         const sentenceMarks = (t.match(/[.!?]/g) || []).length;
         if (sentenceMarks < 2) return false;
-
         const lower = t.toLowerCase();
         const hints = [
           " today ", " yesterday ", " years ", " months ",
@@ -1252,7 +1299,6 @@
         return hints.some(h => lower.includes(h));
       }
 
-      // Offline-friendly weather snapshot (time-based)
       function getWeatherSnapshot() {
         const now = new Date();
         const h = now.getHours();
@@ -1260,7 +1306,6 @@
         if (h >= 5 && h < 12) phase = "morning light";
         else if (h >= 12 && h < 17) phase = "afternoon heat";
         else if (h >= 17 && h < 21) phase = "evening breeze";
-
         const tempGuess = 22 + Math.round(6 * Math.sin((h / 24) * Math.PI * 2));
         return (
           now.toDateString() +
@@ -1274,7 +1319,6 @@
         const now = Date.now();
         const locked = [];
         const free = [];
-
         for (const bm of state.bmPrompts) {
           if (bm.locked || (bm.liveUntil && bm.liveUntil > now)) {
             locked.push(bm);
@@ -1282,13 +1326,10 @@
             free.push(bm);
           }
         }
-
         free.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-
         const allowedFree = Math.max(0, maxCount - locked.length);
         const kept = locked.concat(free.slice(0, allowedFree));
         const removed = state.bmPrompts.length - kept.length;
-
         if (removed > 0) {
           state.bmPrompts = kept;
           saveBM();
@@ -1308,10 +1349,32 @@
         }
       }
 
+      function showNextDreamSnippet() {
+        const box = els.dreamSnippet;
+        if (!box || !state.bmPrompts.length) return;
+        const valid = state.bmPrompts.filter(b => b.text && b.text.length > 10);
+        if (!valid.length) return;
+        const pick = valid[Math.floor(Math.random() * valid.length)];
+        const ts = new Date(pick.ts || Date.now()).toLocaleString();
+        let info = `[Memory from ${ts}]`;
+        if (pick.weather) info += ` [${pick.weather}]`;
+        box.innerHTML =
+          `<div style="font-size:11px;opacity:0.6;margin-bottom:8px">${info}</div>` +
+          pick.text.slice(0, 300) +
+          "...";
+      }
+
       function registerActivity() {
+        const wasDream = state.dreamMode;
         state.lastActivity = Date.now();
-        if (state.dreamMode) {
+
+        if (wasDream) {
           state.dreamMode = false;
+          if (els.dreamOverlay) els.dreamOverlay.style.display = "none";
+          if (dreamInterval) {
+            clearInterval(dreamInterval);
+            dreamInterval = null;
+          }
           if (state.decayTimer) {
             clearInterval(state.decayTimer);
             state.decayTimer = null;
@@ -1334,9 +1397,18 @@
       function enterDreamMode() {
         if (state.dreamMode) return;
         state.dreamMode = true;
-        logLine("sys", "[Dream mode] System is quietly compressing BM and rebalancing E₀.");
+
+        if (els.dreamOverlay) els.dreamOverlay.style.display = "flex";
+        showNextDreamSnippet();
+        dreamInterval = setInterval(showNextDreamSnippet, 10000);
+
+        logLine("sys", "[Dream mode] Started visual screensaver & cleaning.");
         performSystemDecay();
-        if (state.decayTimer) clearInterval(state.decayTimer);
+
+        if (state.decayTimer) {
+          clearInterval(state.decayTimer);
+          state.decayTimer = null;
+        }
         state.decayTimer = setInterval(() => {
           if (!state.dreamMode) {
             clearInterval(state.decayTimer);
@@ -1377,7 +1449,8 @@
           text: combined,
           ts: now,
           locked: false,
-          liveUntil: null
+          liveUntil: null,
+          weather: weatherLine || null
         };
 
         state.bmPrompts.push(bm);
@@ -1391,8 +1464,7 @@
         logLine("sys", "[Story] Saved this as a BM story (with offline weather snapshot).");
       }
 
-      // ---------- history, faith, intelligence, etc (original code) ----------
-
+      // ---------- history, faith, intelligence ----------
       function addHistory(role,text){
         const item = { role, text, ts: Date.now(), locked: false };
         state.history.push(item);
@@ -2031,13 +2103,11 @@
         showToast("History copied");
       });
 
-      // Main chat + self-learning pipeline (UPDATED with "incorrect" + story/BM)
       async function handleSend(){
         const raw = els.userInput.value;
         const text = raw.trim();
         if(!text) return;
 
-        // "incorrect" keyword -> enter correction mode
         if (text.toLowerCase() === "incorrect" && state.lastUserQ && state.lastAuraA && !state.correcting) {
           els.userInput.value = "";
           registerActivity();
@@ -2051,7 +2121,6 @@
         els.optionsMenu.classList.remove("show");
         registerActivity();
 
-        // correction flow: store new answer instead of asking new question
         if(state.correcting){
           const correctA = text;
           if(state.lastUserQ && correctA){
@@ -2071,7 +2140,6 @@
           return;
         }
 
-        // normal user entry
         logLine("user","You: "+text);
 
         const now = Date.now();
@@ -2087,7 +2155,6 @@
         let answer = null;
         let source = "none";
 
-        // 1) Intelligence
         const tLower = text.toLowerCase();
         let bestMatch = state.intelligence.find(p=>p.q.toLowerCase()===tLower);
         if(!bestMatch){
@@ -2099,7 +2166,6 @@
           intelBoost = 0.35;
         }
 
-        // 2) Seed pairs
         if(!answer && state.seedPairs.length){
           let sMatch = state.seedPairs.find(p=>p.q.toLowerCase()===tLower);
           if(!sMatch){
@@ -2112,7 +2178,6 @@
           }
         }
 
-        // 3) Offline LLM
         if(!answer && state.offlineReady){
           answer = await callOfflineLLM(text);
           if(answer){
@@ -2121,7 +2186,6 @@
           }
         }
 
-        // 4) Online LLM
         if(!answer){
           answer = await callOnlineLLM(text);
           if(answer){
@@ -2245,6 +2309,13 @@
       }
 
       initFromStorage();
+
+      // Dream overlay click → wake
+      if (els.dreamOverlay) {
+        els.dreamOverlay.addEventListener("click", () => {
+          registerActivity();
+        });
+      }
 
       // Dream-mode wiring
       state.lastActivity = Date.now();
