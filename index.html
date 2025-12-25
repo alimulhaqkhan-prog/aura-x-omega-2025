@@ -9,2724 +9,1496 @@
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
   </script>
+
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root { --accent-color:#0ea5e9; }
     body{
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:
-        radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
-        radial-gradient(circle at 80% 0, #0ea5e9 0, transparent 40%),
-        linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:#0b1220;
       color:#e5e7eb;
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      padding:18px 10px;
+      height:100vh;
+      overflow:hidden;
     }
     .app{
-      width:min(980px,98vw);
-      background:rgba(2,6,23,.45);
-      border:1px solid rgba(148,163,184,.18);
-      border-radius:22px;
-      overflow:hidden;
-      box-shadow:0 20px 60px rgba(0,0,0,.45);
-      backdrop-filter:blur(10px);
+      max-width:1080px;
+      margin:0 auto;
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      padding:10px;
+      gap:10px;
     }
-    .top{
-      padding:20px 18px 10px;
-      border-bottom:1px solid rgba(148,163,184,.14);
-      text-align:center;
-      position:relative;
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:10px;
     }
     .brand{
-      font-weight:800;
-      letter-spacing:.5px;
-      font-size:26px;
-      color:#7dd3fc;
-      text-shadow:0 0 22px rgba(14,165,233,.28);
+      display:flex;align-items:center;gap:10px;
     }
-    .sub{
-      opacity:.8;
-      margin-top:2px;
-      font-size:13px;
+    .logo{
+      width:34px;height:34px;border-radius:10px;
+      background:linear-gradient(135deg,#0ea5e9,#a78bfa);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;
+      box-shadow:0 10px 20px rgba(0,0,0,.35);
     }
-    .ethic{
-      margin:14px auto 12px;
-      max-width:720px;
-      border:1px solid rgba(251,191,36,.35);
-      border-radius:14px;
-      padding:10px 36px 9px 14px;
-      color:#fbbf24;
-      background:rgba(2,6,23,.35);
-      box-shadow:inset 0 0 0 1px rgba(251,191,36,.08);
-      font-size:14px;
-      line-height:1.4;
-      position:relative;
-      overflow:hidden;
-      transition:background .4s ease,border-color .4s ease,transform .4s ease,box-shadow .4s ease;
+    .title{
+      display:flex;flex-direction:column;line-height:1.1;
     }
-    .ethicMain{font-weight:600;}
-    .ethicMeta{
-      font-size:11px;
-      opacity:.8;
-      margin-top:2px;
-      display:none; /* ✅ meta line default hidden */
+    .title b{font-size:14px}
+    .title span{font-size:12px;opacity:.75}
+    .capsuleRow{
+      display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;
     }
-    .ethic.ethicPulse{
-      animation:ethicPulse 1.1s ease;
-    }
-    @keyframes ethicPulse{
-      0%{box-shadow:0 0 0 0 rgba(251,191,36,.55);transform:translateY(0);}
-      45%{box-shadow:0 0 0 16px rgba(251,191,36,0);transform:translateY(-1px);}
-      100%{box-shadow:0 0 0 0 rgba(251,191,36,0);transform:translateY(0);}
-    }
-    .faithCfgBtn{
-      position:absolute;
-      right:6px;
-      top:4px;
-      border:none;
-      background:transparent;
-      color:#fde68a;
-      cursor:pointer;
-      font-size:16px;
-      line-height:1;
-      display:none;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .faithCfgBtn.show{display:inline-flex;}
-    .pill{
-      margin:10px auto 0;
-      max-width:760px;
-      background:linear-gradient(90deg, rgba(14,165,233,.65), rgba(34,211,238,.45));
-      border:1px solid rgba(125,211,252,.30);
-      color:#0b1220;
-      font-weight:800;
-      letter-spacing:.6px;
-      border-radius:999px;
-      padding:14px 16px;
-      text-transform:uppercase;
-      box-shadow:0 12px 40px rgba(14,165,233,.22);
-      position:relative;
-    }
-    .pill.faithGlow{
-      border-color:rgba(251,191,36,.9);
-      box-shadow:0 0 26px rgba(251,191,36,.75);
-      background:linear-gradient(90deg, rgba(14,165,233,.6), rgba(251,191,36,.9));
-    }
-    .main{ padding:16px 16px 18px }
-    .row{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
-    .leftCol{ flex:1 1 340px; min-width:300px }
-    .rightCol{ flex:1 1 360px; min-width:320px }
-    .card{
-      background:rgba(2,6,23,.50);
-      border:1px solid rgba(148,163,184,.16);
-      border-radius:18px;
-      padding:14px;
-      box-shadow:0 10px 30px rgba(0,0,0,.25);
-      backdrop-filter:blur(10px);
-    }
-    .optionsBtn{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding:10px 14px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.22);
-      background:rgba(15,23,42,.55);
-      color:#e5e7eb;
-      cursor:pointer;
-      user-select:none;
-      margin:12px 0;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .optionsBtn:active{transform:scale(.99)}
-    .gear{width:18px;height:18px;filter:drop-shadow(0 0 10px rgba(125,211,252,.25))}
-    .console{
-      margin-top:12px;
-      height:230px;
-      border-radius:16px;
-      border:1px solid rgba(148,163,184,.14);
-      background:rgba(0,0,0,.25);
-      padding:14px;
-      overflow:auto;
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      font-size:14px;
-      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
-      line-height:1.55;
-      white-space:pre-wrap;
-    }
-    .line{display:block;margin:2px 0}
-    .line.user{color:#a5b4fc;}
-    .line.aura{color:#bbf7d0;}
-    .line.sys{color:#fbbf24;font-size:12px;}
-    .optionsMenu{
-      position:fixed;
-      left:12px;
-      right:12px;
-      top:120px;
-      margin:0 auto;
-      max-width:940px;
-      background:rgba(2,6,23,.92);
-      border:1px solid rgba(148,163,184,.18);
-      border-radius:16px;
-      padding:8px;
-      display:none;
-      z-index:9999;
-      box-shadow:0 18px 45px rgba(0,0,0,.45);
-      backdrop-filter:blur(10px);
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:8px;
-      align-items:stretch;
-    }
-    .optionsMenu.show{display:grid}
-    .menuItem{
-      padding:8px 6px;
-      border-radius:13px;
-      cursor:pointer;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      gap:6px;
-      color:#e5e7eb;
-      border:1px solid rgba(148,163,184,.10);
-      background:rgba(15,23,42,.55);
-      user-select:none;
-      min-height:58px;
-    }
-    .menuItem:active{transform:scale(.995)}
-    .menuLeft{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
-      font-weight:800;
-      font-size:12.5px;
-    }
-    .menuIcon{
-      width:18px;
-      height:18px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .menuRight{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width:44px;
-    }
-    .pillOn,.pillOff,.pillMid{
-      font-size:10px;
-      padding:4px 7px;
-      border-radius:999px;
-      font-weight:900;
-      text-transform:lowercase;
-      border:1px solid transparent;
-    }
-    .pillOn{
-      background:rgba(34,197,94,.18);
-      border-color:rgba(34,197,94,.24);
-      color:#bbf7d0;
-    }
-    .pillOff{
-      background:rgba(239,68,68,.12);
-      border-color:rgba(239,68,68,.22);
-      color:#fecaca;
-    }
-    .pillMid{
-      background:rgba(14,165,233,.14);
-      border-color:rgba(14,165,233,.20);
-      color:#bae6fd;
-      opacity:.95;
-    }
-    .chatWrap{
-      margin-top:0;
-      padding:12px;
-      border-radius:18px;
-      border:1px solid rgba(148,163,184,.14);
-      background:rgba(2,6,23,.45);
-    }
-    .reactionBar{
-      margin-top:0;
-      margin-bottom:6px;
-      display:flex;
-      align-items:center;
-      justify-content:flex-start;
-      gap:10px;
-      font-size:18px;
-      opacity:.9;
-    }
-    .reactBtn{
-      border:none;
-      background:transparent;
-      cursor:pointer;
-      padding:4px;
-      line-height:1;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .reactBtn:active{transform:scale(.9)}
-    .liveCapsule{
-      margin:4px 0 10px;
-      width:100%;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(2,6,23,.55);
-      padding:8px 12px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:center;
-      font-family:ui-monospace,Menlo,Consolas,monospace;
+    .cap{
+      padding:6px 10px;border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
       font-size:12px;
-      color:#dbeafe;
-      box-shadow:inset 0 0 0 1px rgba(125,211,252,.06);
+      display:flex;gap:8px;align-items:center;
+      backdrop-filter: blur(10px);
     }
-    .liveCapsule b{ color:#7dd3fc; font-weight:900 }
-
-    .faithBubble{
-      margin:4px 0 10px;
-      padding:8px 10px;
-      border-radius:999px;
-      background:rgba(251,191,36,.16);
-      border:1px solid rgba(251,191,36,.4);
-      display:none;
-      align-items:center;
-      gap:8px;
-      font-size:12px;
-      color:#facc15;
-      cursor:pointer;
-      box-shadow:0 10px 24px rgba(0,0,0,.35);
-      transition:opacity .25s ease, transform .25s ease;
-      width:100%;
-    }
-    .faithBubble.show{
-      display:flex;
-      opacity:1;
-      transform:translateY(0);
-    }
-    .fbIcon{font-size:18px;}
-    .fbText{flex:1;line-height:1.3;}
-    .fbTitle{font-weight:800;}
-    .fbMeta{opacity:.85;}
-    .fbClose{
-      border:none;
-      background:transparent;
-      color:#fed7aa;
-      font-size:16px;
-      cursor:pointer;
-      padding:0 4px;
-      line-height:1;
-    }
-    .faithBubble.pulse{
-      animation: faithPulse 1.4s infinite;
-    }
-    .faithBubble.flying{
-      animation: faithFlyUp 2.1s ease-in-out forwards, faithBlink 1s ease-in-out 0s 2;
-    }
-    @keyframes faithPulse{
-      0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.55); }
-      100% { box-shadow: 0 0 0 18px rgba(251,191,36,0); }
-    }
-    @keyframes faithFlyUp{
-      0%   { transform:translateY(0); opacity:1; }
-      60%  { transform:translateY(-140px); opacity:1; }
-      100% { transform:translateY(-180px); opacity:0; }
-    }
-    @keyframes faithBlink{
-      0%{box-shadow:0 0 0 0 rgba(251,191,36,.4);}
-      50%{box-shadow:0 0 18px 4px rgba(251,191,36,.95);}
-      100%{box-shadow:0 0 0 0 rgba(251,191,36,0);}
-    }
-
-    .inputRow{display:flex;gap:10px;align-items:flex-end}
-    .input{
-      flex:1;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(2,6,23,.55);
-      color:#e5e7eb;
-      padding:12px 14px;
-      outline:none;
-      font-size:14px;
-    }
-    .send{
-      border:none;
-      border-radius:999px;
-      background:linear-gradient(90deg, var(--accent-color, #0ea5e9), rgba(34,211,238,.55));
-      color:#0b1220;
-      font-weight:900;
-      padding:12px 18px;
-      cursor:pointer;
-      min-width:88px;
-      box-shadow:0 12px 30px rgba(14,165,233,.18);
-      -webkit-tap-highlight-color:transparent;
-    }
-    .send:active{transform:scale(.99)}
-    .formula{
-      margin-top:10px;
-      opacity:.8;
-      font-size:12px;
-      text-align:center;
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      color:#dbeafe;
-    }
-    .toastBubble{
-      position:fixed;
-      bottom:18px;
-      left:50%;
-      transform:translate(-50%,10px);
-      padding:6px 14px;
-      border-radius:999px;
-      background:rgba(15,23,42,.95);
-      color:#e5e7eb;
-      font-size:12px;
-      border:1px solid rgba(148,163,184,.4);
-      box-shadow:0 12px 30px rgba(0,0,0,.5);
-      opacity:0;
-      pointer-events:none;
-      z-index:10000;
-      transition:opacity .18s ease, transform .18s ease;
-    }
-    .toastBubble.show{
-      opacity:1;
-      transform:translate(-50%,0);
-    }
-    .modalOverlay{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.55);
-      display:none;
-      align-items:flex-end;
-      justify-content:center;
-      padding:18px 12px;
-      z-index:9999;
-    }
-    .modalOverlay.show{display:flex}
-    .modal{
-      width:min(860px,96vw);
-      border-radius:18px;
-      overflow:hidden;
-      background:rgba(250,250,250,.93);
-      color:#0b1220;
-      border:1px solid rgba(15,23,42,.18);
-      box-shadow:0 30px 80px rgba(0,0,0,.35);
-      backdrop-filter:blur(12px);
-    }
-    .modalHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:12px 14px;
-      background:rgba(255,255,255,.75);
-      border-bottom:1px solid rgba(15,23,42,.10);
-      font-weight:800;
-    }
-    .modalHeader small{font-weight:600;opacity:.7}
-    .closeX{
-      border:none;
-      background:transparent;
-      font-size:22px;
-      cursor:pointer;
-      line-height:1;
-      padding:0 4px;
-      opacity:.75;
-    }
-    .modalBody{
-      padding:14px;
-      max-height:70vh;
-      overflow:auto;
-    }
-    .chipsWrap{margin-top:10px;display:flex;flex-wrap:wrap;gap:10px}
-    .chip{
-      padding:10px 14px;
-      border-radius:999px;
-      border:1px solid rgba(15,23,42,.16);
-      background:rgba(255,255,255,.9);
-      font-weight:800;
-      cursor:pointer;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .chip.active{
-      background:#0f172a;
-      color:#fff;
-      border-color:rgba(15,23,42,.2);
-      box-shadow:0 12px 30px rgba(2,6,23,.12);
-    }
+    .cap b{font-weight:700}
     .btn{
-      border:none;
-      cursor:pointer;
-      padding:10px 14px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.06);
+      color:#e5e7eb;
+      padding:8px 10px;
       border-radius:12px;
-      font-weight:900;
-      -webkit-tap-highlight-color:transparent;
+      cursor:pointer;
       font-size:12px;
-    }
-    .btnBlue{background:rgba(59,130,246,.16);border:1px solid rgba(59,130,246,.22)}
-    .btnDark{background:rgba(2,6,23,.92);color:#fff}
-    .btnRed{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.22);color:#7f1d1d}
-    .btnGreen{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.25);color:#064e2a}
-    .bmCard{
-      border-radius:16px;
-      border:1px solid rgba(15,23,42,.12);
-      background:rgba(255,255,255,.85);
-      padding:12px;
-      margin-top:12px;
-    }
-    .bmTop{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-    }
-    .bmTop .title{
-      font-weight:900;
-      display:flex;
+      display:inline-flex;
       align-items:center;
       gap:8px;
+      transition:.15s ease;
+      user-select:none;
     }
-    .bmSub{font-size:12px;opacity:.7;margin-top:2px}
-    .bmText{
-      width:100%;
-      min-height:240px;
-      border-radius:14px;
-      border:1px solid rgba(15,23,42,.18);
-      padding:12px;
-      outline:none;
-      resize:vertical;
-      background:#fff;
-      font-size:14px;
-      line-height:1.45;
-    }
-    .bmActions{
-      display:flex;
+    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.09)}
+    .btn:active{transform:translateY(0px)}
+    .btnBlue{background:rgba(14,165,233,.18);border-color:rgba(14,165,233,.45)}
+    .btnRed{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.45)}
+    .btnGreen{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.45)}
+    .btnAmber{background:rgba(245,158,11,.16);border-color:rgba(245,158,11,.45)}
+    .layout{
+      display:grid;
+      grid-template-columns: 1fr 330px;
       gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-      justify-content:flex-start;
+      flex:1;
+      min-height:0;
     }
-    .intelEditInput, .intelEditArea{
-      width:100%;
-      border-radius:12px;
-      border:1px solid rgba(15,23,42,.18);
-      padding:10px 12px;
-      font-size:14px;
-      outline:none;
-      background:#fff;
+    @media(max-width:940px){
+      .layout{grid-template-columns:1fr}
     }
-    .intelEditArea{
-      min-height:90px;
-      resize:vertical;
-      line-height:1.4;
-      margin-top:6px;
-    }
-    .intelCard{
-      border-radius:12px;
-      border:1px solid rgba(15,23,42,.12);
-      background:#f9fafb;
-      padding:10px;
-      margin-top:8px;
-      font-size:13px;
-    }
-    .intelTop{
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-      margin-bottom:4px;
-    }
-    .intelQ{font-weight:700;}
-    .intelA{margin-top:2px;white-space:pre-wrap;}
-    .intelMeta{font-size:11px;opacity:.65;margin-top:2px;}
-    .intelButtons{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-top:6px;}
-    .intelEditBlock{
-      margin-top:8px;
-      border-radius:10px;
-      border:1px dashed rgba(15,23,42,.18);
-      padding:8px;
-      background:#fff;
-    }
-    #modalHistory .modalBody{background:#f8fafc;}
-    #historyBox{
-      margin-top:4px;
-      border-radius:14px;
-      padding:4px 0;
-      max-height:60vh;
-      overflow:auto;
-    }
-    .historyLine{
-      padding:8px 10px;
-      font-size:12px;
-      margin-bottom:6px;
-      border-radius:12px;
-      background:#f9fafb;
-      border:1px solid rgba(148,163,184,.45);
-      color:#0b1120;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:6px;
-    }
-    .historyText{flex:1;white-space:pre-wrap;}
-    .historyLock{
-      border:none;
-      background:transparent;
-      cursor:pointer;
-      font-size:15px;
-      line-height:1;
-      padding:0 2px;
-    }
-    .bmItem{
-      margin-top:6px;
-      padding:8px 10px;
-      border-radius:10px;
-      border:1px solid rgba(148,163,184,.5);
-      background:#f9fafb;
-      cursor:pointer;
-      font-size:12px;
-      display:flex;
-      justify-content:space-between;
-      gap:6px;
-    }
-    .bmItemTitle{font-weight:700;}
-    .bmItemMeta{opacity:.65;font-size:11px;}
-    #dreamOverlay{
-      position:fixed;
-      inset:0;
-      background:
-        radial-gradient(circle at 10% 0%, #020617 0, transparent 45%),
-        radial-gradient(circle at 90% 0, #0ea5e9 0, transparent 45%),
-        rgba(2,6,23,.96);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:9500;
-      backdrop-filter:blur(16px);
-    }
-    #dreamOverlay.show{display:flex;}
-    .dreamInner{
+    .panel{
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      box-shadow:0 14px 30px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+      min-height:0;
       display:flex;
       flex-direction:column;
+    }
+    .panelHeader{
+      padding:10px 12px;
+      display:flex;
       align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.00));
+    }
+    .panelHeader b{font-size:13px}
+    .panelBody{
+      padding:10px 12px;
+      overflow:auto;
+      min-height:0;
+    }
+    .gridBtns{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:8px;
+    }
+    .gridBtns .btn{
       justify-content:center;
-      gap:16px;
-      text-align:center;
-      padding:20px 18px;
+      padding:10px 8px;
+      border-radius:14px;
+      font-weight:600;
     }
-    .dreamOrb{
-      width:120px;
-      height:120px;
-      border-radius:999px;
-      background:
-        radial-gradient(circle at 30% 20%, #ffffff, #7dd3fc 40%, transparent 70%);
-      border:2px solid rgba(125,211,252,.9);
-      box-shadow:0 0 40px rgba(56,189,248,.8);
-      animation:dreamPulse 3.5s ease-in-out infinite;
+    .chat{
+      display:flex;flex-direction:column;min-height:0;
     }
-    .dreamTitle{
-      font-weight:800;
-      font-size:18px;
-      color:#e0f2fe;
+    .chatFeed{
+      flex:1;
+      overflow:auto;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
     }
-    .dreamSub{
-      max-width:420px;
+    .msg{
+      max-width:92%;
+      padding:10px 12px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.06);
+      line-height:1.35;
       font-size:13px;
-      color:#bae6fd;
-      opacity:.9;
+      white-space:pre-wrap;
+      word-wrap:break-word;
     }
-    .dreamMeta{
-      margin-top:4px;
+    .msg.user{
+      align-self:flex-end;
+      background:rgba(14,165,233,.14);
+      border-color:rgba(14,165,233,.35);
+    }
+    .msg.aura{
+      align-self:flex-start;
+      background:rgba(167,139,250,.12);
+      border-color:rgba(167,139,250,.30);
+    }
+    .metaLine{
+      display:flex;gap:10px;flex-wrap:wrap;opacity:.85;
+      font-size:12px;
+      padding:8px 12px;
+      border-top:1px solid rgba(255,255,255,.08);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+    }
+    .composer{
+      padding:10px 12px;
+      border-top:1px solid rgba(255,255,255,.08);
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+    }
+    textarea{
+      width:100%;
+      min-height:44px;
+      max-height:150px;
+      resize:none;
+      border-radius:16px;
+      padding:10px 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.20);
+      color:#e5e7eb;
+      outline:none;
+      font-size:13px;
+      line-height:1.35;
+    }
+    textarea:focus{border-color:rgba(14,165,233,.55)}
+    .composer .btn{padding:10px 12px;border-radius:16px}
+    .badge{
       font-size:11px;
-      color:#93c5fd;
-      opacity:.85;
+      opacity:.9;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.18);
     }
-    @keyframes dreamPulse{
-      0%{transform:translateY(0) scale(1);}
-      50%{transform:translateY(-6px) scale(1.03);}
-      100%{transform:translateY(0) scale(1);}
-    }
-    #imagePreviewArea{
+
+    /* Modals */
+    .modalOverlay{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,.65);
       display:none;
-      margin:6px 2px 2px;
-      text-align:center;
-      font-size:10px;
-      opacity:.8;
+      align-items:center;justify-content:center;
+      padding:16px;
+      z-index:9999;
     }
-    #imgPrev{
-      max-height:90px;
-      border-radius:10px;
-      border:2px solid var(--accent-color);
-      margin-bottom:2px;
+    .modal{
+      width:min(900px, 96vw);
+      max-height:min(92vh, 860px);
+      background:#0b1220;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      overflow:hidden;
+      display:flex;flex-direction:column;
+      box-shadow:0 20px 60px rgba(0,0,0,.6);
     }
-    body.theme-golden .ethic{
-      border-color: rgba(251,191,36,.7);
-      background: rgba(251,191,36,.06);
+    .modal .panelBody{padding:12px 14px}
+    .modalHeader{
+      padding:12px 14px;
+      display:flex;align-items:center;justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
     }
-    .@media-fix{}
-    @media (max-width:760px){
-      .console{height:240px}
-      .optionsMenu{top:112px}
+    .modalHeader b{font-size:13px}
+    .row{
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;
     }
-    @media (max-width:420px){
-      .brand{font-size:22px}
-      .pill{font-size:14px}
-      .ethic{font-size:13px}
-      .console{height:260px}
-      .optionsMenu{
-        gap:6px;
-        padding:7px;
-        grid-template-columns:repeat(3,minmax(0,1fr));
-      }
-      .menuItem{min-height:52px;padding:6px 4px;}
-      .menuLeft{font-size:11px}
-      .pillOn,.pillOff,.pillMid{font-size:9.5px;padding:4px 6px;}
-      .reactionBar{font-size:16px;gap:8px;}
+    .field{
+      display:flex;flex-direction:column;gap:6px;min-width:240px;flex:1;
     }
+    .field label{font-size:12px;opacity:.85}
+    input, select{
+      width:100%;
+      border-radius:14px;
+      padding:10px 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.20);
+      color:#e5e7eb;
+      outline:none;
+      font-size:13px;
+    }
+    input:focus, select:focus{border-color:rgba(14,165,233,.55)}
+    .small{font-size:12px;opacity:.85}
+    .hr{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
+    .toast{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:18px;
+      background:rgba(0,0,0,.75);
+      border:1px solid rgba(255,255,255,.14);
+      color:#e5e7eb;
+      padding:10px 12px;
+      border-radius:14px;
+      font-size:13px;
+      display:none;
+      z-index:10000;
+      max-width:min(92vw,700px);
+    }
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;}
   </style>
 </head>
+
 <body>
   <div class="app">
-    <div class="top">
-      <div class="brand">AURA-X Ω</div>
-      <div class="sub">
-        Offline emotional continuity engine (prototype)<br>
-        TM = user inputs only · Internal layers keep continuity and emotional trajectory.
-      </div>
 
-      <div class="ethic" id="ethicBox">
-        <div class="ethicMain" id="ethicMain">
-          Universal ethic: avoid actions that grow negative emotions in you or others.
-          Move gently toward choices that increase shared positive feeling for everyone.
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">Ω</div>
+        <div class="title">
+          <b>AURA-X Ω</b>
+          <span>Offline Emotional Continuity Prototype</span>
         </div>
-        <div class="ethicMeta" id="ethicMeta"></div><!-- ✅ empty by default -->
-        <button id="faithCfgBtn" class="faithCfgBtn" title="Faith live bar settings">🔘</button>
       </div>
 
-      <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
+      <div class="capsuleRow">
+        <div class="cap"><span class="badge">E</span><b id="capE">0.00</b></div>
+        <div class="cap"><span class="badge">TM</span><b id="capTM">0</b></div>
+        <div class="cap"><span class="badge">BM</span><b id="capBM">0</b></div>
+        <div class="cap"><span class="badge">R</span><b id="capR">0.00</b></div>
+        <button class="btn btnBlue" id="btnOptions">⚙️ Options</button>
+      </div>
     </div>
 
-    <div class="main">
-      <div class="row">
-        <!-- LEFT -->
-        <div class="leftCol">
-          <div class="card">
-            <div class="optionsBtn" id="btnOptions">
-              <svg class="gear" viewBox="0 0 24 24" fill="none">
-                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
-                      stroke="#7dd3fc" stroke-width="2"/>
-                <path d="M19.4 15a8.2 8.2 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a8.5 8.5 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a8.2 8.2 0 0 0 .1 2L2.7 16.5l2 3.5 2.4-1a8.5 8.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.5L19.4 15Z"
-                      stroke="#7dd3fc" stroke-width="1.6" opacity=".9"/>
-              </svg>
-              <span>Options</span>
-            </div>
-            <div class="optionsMenu" id="optionsMenu">
-              <div class="menuItem" id="miVoice">
-                <div class="menuLeft"><span class="menuIcon">🎤</span><span>Voice</span></div>
-                <div class="menuRight"><span class="pillOff" id="voicePill">off</span></div>
-              </div>
-              <div class="menuItem" id="miIntel">
-                <div class="menuLeft"><span class="menuIcon">🧠</span><span>Intelligence</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-              <div class="menuItem" id="miLearn">
-                <div class="menuLeft"><span class="menuIcon">📚</span><span>Learning</span></div>
-                <div class="menuRight"><span class="pillOn" id="learnPill">on</span></div>
-              </div>
-              <div class="menuItem" id="miSeed">
-                <div class="menuLeft"><span class="menuIcon">🌱</span><span>Feed</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-              <div class="menuItem" id="miFaith">
-                <div class="menuLeft"><span class="menuIcon">🕊</span><span>Faith</span></div>
-                <div class="menuRight"><span class="pillOff" id="faithLabel">none</span></div>
-              </div>
-              <div class="menuItem" id="miIdentity">
-                <div class="menuLeft"><span class="menuIcon">🪪</span><span>Identity</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-              <div class="menuItem" id="miLLM">
-                <div class="menuLeft"><span class="menuIcon">🤖</span><span>LLM</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-              <div class="menuItem" id="miBMRecall">
-                <div class="menuLeft"><span class="menuIcon">📘</span><span>BM Recall</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-              <div class="menuItem" id="miHistory">
-                <div class="menuLeft"><span class="menuIcon">📜</span><span>History</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-            </div>
-            <div class="console" id="console"></div>
+    <div class="layout">
+
+      <!-- Chat -->
+      <div class="panel chat">
+        <div class="panelHeader">
+          <b>Conversation</b>
+          <div class="row">
+            <span class="badge" id="modeBadge">Offline</span>
+            <button class="btn" id="btnVoice">🔊 Voice</button>
+            <button class="btn btnGreen" id="btnExport">⬇️ Export</button>
           </div>
         </div>
 
-        <!-- RIGHT -->
-        <div class="rightCol">
-          <div class="chatWrap">
-            <div class="reactionBar" id="reactionBar">
-              <button class="reactBtn" id="btnLikeLast" title="Save to Intelligence (like)">👍</button>
-              <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
-              <button class="reactBtn" id="btnSpeakLast" title="Play voice for last answer">🔊</button>
-              <button class="reactBtn" id="btnShareLast" title="Copy question + answer">🔗</button>
-            </div>
-            <div class="liveCapsule">
-              <span><b>E0</b>: <span id="cE0">0.000</span></span><span>·</span>
-              <span><b>TM</b>: <span id="cTM">0.00</span></span><span>·</span>
-              <span><b>BM</b>: <span id="cBM">0.00</span></span><span>·</span>
-              <span><b>C</b>: <span id="cCont">0.850</span></span>
-            </div>
-            <div class="faithBubble" id="faithBubble">
-              <div class="fbIcon">💭</div>
-              <div class="fbText">
-                <div class="fbTitle" id="faithBubbleTitle">Faith reflection bubble</div>
-                <div class="fbMeta" id="faithBubbleMeta">Tap to see a short suggestion.</div>
-              </div>
-              <button class="fbClose" id="faithBubbleClose">×</button>
-            </div>
-            <div class="inputRow">
-              <label class="reactBtn" style="cursor:pointer;margin-bottom:12px;">
-                📷
-                <input type="file" id="visionInput" accept="image/*" style="display:none">
-              </label>
-              <input class="input" id="userInput" placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
-              <button class="send" id="sendBtn">Send</button>
-            </div>
-            <div id="imagePreviewArea">
-              <img id="imgPrev" alt="preview">
-              <div>Image attached for analysis</div>
-            </div>
-            <div class="formula">
-              E₀ = tanh( R(TM,BM) + I(TM) + I<sub>intel</sub> + I<sub>LLM</sub> − D + λ<sub>faith</sub> + λ<sub>sys</sub> + λ<sub>trc</sub> )
-            </div>
+        <div class="chatFeed" id="chatFeed"></div>
+
+        <div class="metaLine">
+          <span>Emotion: <b id="mEmotion">neutral</b></span>
+          <span>Polarity: <b id="mPol">0</b></span>
+          <span>Intensity: <b id="mInt">0</b></span>
+          <span>Category: <b id="mCat">general</b></span>
+        </div>
+
+        <div class="composer">
+          <textarea id="userInput" placeholder="Type your message..."></textarea>
+          <button class="btn btnBlue" id="btnSend">Send ➤</button>
+        </div>
+      </div>
+
+      <!-- Side Panel -->
+      <div class="panel">
+        <div class="panelHeader">
+          <b>Quick Actions</b>
+          <span class="small" id="statusLine">Ready</span>
+        </div>
+        <div class="panelBody">
+          <div class="gridBtns">
+            <button class="btn" id="btnFaith">🕋 Faith</button>
+            <button class="btn" id="btnBM">📌 BM Recall</button>
+            <button class="btn" id="btnHistory">🕘 History</button>
+            <button class="btn" id="btnIntelligence">🧠 Intelligence</button>
+            <button class="btn" id="btnIdentity">🪪 Identity</button>
+            <button class="btn" id="btnReadme">📘 Readme</button>
           </div>
+          <div class="hr"></div>
+          <div class="small">
+            Tips: Use <b>Incorrect</b> to correct wrong answers. Long-term items can auto-lock inside BM/Intelligence.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Options modal -->
+  <div class="modalOverlay" id="modalOptions">
+    <div class="modal">
+      <div class="modalHeader">
+        <b>Options</b>
+        <button class="btn" data-close="modalOptions">✖</button>
+      </div>
+      <div class="panelBody">
+        <div class="row">
+          <button class="btn" id="miFaith">🕋 Faith</button>
+          <button class="btn" id="miBM">📌 BM Recall</button>
+          <button class="btn" id="miHistory">🕘 History</button>
+          <button class="btn" id="miIntelligence">🧠 Intelligence</button>
+          <button class="btn" id="miIdentity">🪪 Identity</button>
+          <button class="btn" id="miReadme">📘 Readme</button>
+        </div>
+        <div class="hr"></div>
+        <div class="small mono">
+          Settings are stored locally (localStorage). No server required.
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast bubble -->
-  <div class="toastBubble" id="toastBubble"></div>
-
-  <!-- Dream overlay / screensaver -->
-  <div id="dreamOverlay">
-    <div class="dreamInner">
-      <div class="dreamOrb"></div>
-      <div class="dreamText">
-        <div class="dreamTitle">AURA-X Ω is dreaming…</div>
-        <div class="dreamSub">Your BM snapshots and recent feelings are drifting in the background. Tap anywhere to wake.</div>
-        <div class="dreamMeta" id="dreamMetaText"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Faith selection -->
+  <!-- Faith modal -->
   <div class="modalOverlay" id="modalFaith">
     <div class="modal">
       <div class="modalHeader">
-        <div>⚙️ AURA-X Ω options<br><small>Optional faith lens for encouragement lines.</small></div>
-        <button class="closeX" data-close="modalFaith">×</button>
+        <b>Faith & Ethics</b>
+        <button class="btn" data-close="modalFaith">✖</button>
       </div>
-      <div class="modalBody" style="background:#fdf7e5;">
-        <div style="opacity:.8;font-size:13px;line-height:1.35;margin-bottom:8px">
-          Universal ethics are always active. You can optionally pick one or more faith lenses.
-          Nothing is sent to any server.
-        </div>
-        <div class="chipsWrap" id="faithChips"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Faith live bar settings -->
-  <div class="modalOverlay" id="modalFaithCfg">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>🔘 Faith live bar settings<br><small id="faithCfgFaithTitle">Configure literature & translation.</small></div>
-        <button class="closeX" data-close="modalFaithCfg">×</button>
-      </div>
-      <div class="modalBody" style="background:#fefce8;">
-        <div style="font-size:13px;margin-bottom:8px;">
-          Faith: <span id="faithCfgFaithName" style="font-weight:800;"></span>
-        </div>
-        <label style="font-size:13px;display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-          <input type="checkbox" id="faithCfgEnable" checked />
-          <span>Show live religious literature bar (instead of generic line)</span>
-        </label>
-        <div style="margin-top:4px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Translation language</label>
-          <select id="faithCfgLang"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;background:#fff;">
-            <option value="auto">Auto (device / location)</option>
-            <option value="urdu">Urdu</option>
-            <option value="english">English</option>
-          </select>
-        </div>
-        <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">
-          <button class="btn btnBlue" id="faithCfgSave">Save</button>
-        </div>
-        <div style="font-size:11px;opacity:.65;margin-top:6px;">
-          After saving, the small 🔘 button will disappear. To adjust later, select a different faith once,
-          then come back to this faith – the button will appear again.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Faith article -->
-  <div class="modalOverlay" id="modalFaithArticle">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>💭 Faith reflection<br><small>Story-related suggestion from your selected literature.</small></div>
-        <button class="closeX" data-close="modalFaithArticle">×</button>
-      </div>
-      <div class="modalBody" style="background:#fefce8;">
-        <div id="faithArticleMeta" style="font-size:12px;opacity:.75;margin-bottom:6px;"></div>
-        <div id="faithArticleTitle" style="font-weight:800;margin-bottom:6px;"></div>
-        <textarea id="faithArticleText"
-          style="width:100%;min-height:160px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;background:#fff;"></textarea>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-          <button class="btn btnBlue" id="btnCopyFaithArticle">Copy</button>
-          <button class="btn btnBlue" id="btnExportFaithArticle">Export</button>
-          <button class="btn btnRed" id="btnSkipFaithBM">Skip</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Intelligence -->
-  <div class="modalOverlay" id="modalIntel">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>🧠 Intelligence<br><small>Stored Q → A pairs.</small></div>
-        <button class="closeX" data-close="modalIntel">×</button>
-      </div>
-      <div class="modalBody">
-        <input id="intelSearch"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none"
-          placeholder="Search intelligence..." />
-        <div id="intelList" style="margin-top:10px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Seed + Logic -->
-  <div class="modalOverlay" id="modalSeed">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>🌱 Feed the seed<br><small>Add LaTeX Q → A blocks and optional Logic Pack.</small></div>
-        <button class="closeX" data-close="modalSeed">×</button>
-      </div>
-      <div class="modalBody">
-        <div style="opacity:.75;font-size:13px;line-height:1.35;margin-bottom:10px">
-          Paste a LaTeX block with \item questions and \textbf{A:} answers. You can optionally start each
-          answer with [polarity=positive; code=E031; intensity=0.8].
-        </div>
-        <textarea id="seedBox"
-          style="width:100%;min-height:150px;resize:vertical;border-radius:14px;border:2px solid rgba(59,130,246,.25);padding:12px;font-size:14px;outline:none;background:#fff"
-          placeholder="Paste LaTeX conversation / logic block here..."></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px">
-          <div style="font-size:12px;opacity:.7" id="seedHint">Waiting for block…</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btnBlue" id="btnParseSeed">Parse block</button>
-            <button class="btn btnBlue" id="btnSaveSeed">Save to seed</button>
-            <button class="btn btnRed" id="btnDiscardSeed">Discard</button>
+      <div class="panelBody">
+        <div class="row">
+          <div class="field">
+            <label>Belief System</label>
+            <select id="faithSelect">
+              <option value="none">None</option>
+              <option value="islam">Islam</option>
+              <option value="christianity">Christianity</option>
+              <option value="hinduism">Hinduism</option>
+              <option value="buddhism">Buddhism</option>
+              <option value="judaism">Judaism</option>
+              <option value="sikhism">Sikhism</option>
+              <option value="taoism">Taoism</option>
+              <option value="confucianism">Confucianism</option>
+              <option value="shinto">Shinto</option>
+              <option value="bahai">Bahá’í</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Topic</label>
+            <select id="faithTopic">
+              <option value="general">General</option>
+              <option value="truth">Truth</option>
+              <option value="ethics">Ethics</option>
+              <option value="patience">Patience</option>
+              <option value="compassion">Compassion</option>
+              <option value="justice">Justice</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Translation</label>
+            <select id="faithTranslation">
+              <option value="auto">Auto (Location Based)</option>
+              <option value="ur">Urdu</option>
+              <option value="en">English</option>
+              <option value="ar">Arabic</option>
+            </select>
           </div>
         </div>
-        <hr style="margin:14px 0;border:none;border-top:1px dashed rgba(15,23,42,.18);" />
-        <div style="font-weight:800;font-size:13px;margin-bottom:6px;">🧩 Logic Pack (JSON rules – advanced)</div>
-        <div style="font-size:12px;opacity:.75;line-height:1.4;margin-bottom:6px;">
-          Each time you press <b>Save</b>, a new logic pack is stored with its own number.
-          Saved logic packs never auto-delete; they can only be removed manually with double confirmation.
+
+        <div class="hr"></div>
+
+        <div class="field">
+          <label>Statement</label>
+          <div class="msg aura" id="faithStatement" style="max-width:100%"></div>
         </div>
-        <textarea id="logicBox"
-          style="width:100%;min-height:130px;resize:vertical;border-radius:14px;border:2px solid rgba(15,23,42,.18);padding:10px;font-size:13px;outline:none;background:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;"
-          placeholder='{
-  "cooldown": { "hits": 3, "seconds": 10 },
-  "abuseWords": ["stfu","idiot"],
-  "faithSoftener": true,
-  "ui": { "theme": "golden", "accentColor": "#f97316" }
-}'>
-        </textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
-          <div style="font-size:12px;opacity:.7" id="logicHint">No logic pack loaded.</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btnBlue" id="btnValidateLogic">Validate</button>
-            <button class="btn btnBlue" id="btnSaveLogic">Save</button>
-            <button class="btn btnBlue" id="btnCopyLogic">Copy</button>
-            <button class="btn btnRed" id="btnDeleteLogic">Delete</button>
-          </div>
+
+        <div class="field" style="margin-top:10px">
+          <label>Translation</label>
+          <div class="msg user" id="faithStatementTranslation" style="max-width:100%"></div>
         </div>
-        <div style="margin-top:6px;font-size:11px;opacity:.6;">
-          Current serial: <span id="logicSerial">none</span>
+
+        <div class="hr"></div>
+
+        <div class="row" style="justify-content:flex-end">
+          <button class="btn btnBlue" id="btnApplyFaith">Apply</button>
+          <button class="btn" data-close="modalFaith">Close</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- LLM -->
-  <div class="modalOverlay" id="modalLLM">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>🤖 LLM link<br><small>Offline LLM + optional online helper.</small></div>
-        <button class="closeX" data-close="modalLLM">×</button>
-      </div>
-      <div class="modalBody">
-        <div style="border-radius:14px;border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.12);padding:12px;">
-          <div style="font-weight:900;">Offline LLM (WebLLM)</div>
-          <div style="font-size:13px;opacity:.8;margin-top:6px;line-height:1.35">
-            Loads a small local model in your browser (WebGPU required). On many mobile browsers this may not be supported.
-          </div>
-          <div style="margin-top:10px;">
-            <button class="btn btnGreen" id="btnLoadOffline">Load offline model</button>
-          </div>
-          <div style="margin-top:8px;font-size:12px;opacity:.75">Status: <span id="offlineStatus">idle</span></div>
-          <div style="margin-top:8px;height:10px;border-radius:999px;background:rgba(2,6,23,.12);overflow:hidden;border:1px solid rgba(2,6,23,.08)">
-            <div id="offlineBar" style="height:100%;width:0%;background:#22c55e;transition:width .2s ease;"></div>
-          </div>
-        </div>
-        <div style="font-weight:900;margin-top:14px;">Online helper LLM (connects & works)</div>
-        <div style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:4px;">
-          Use any compatible API (OpenAI, DeepSeek, xAI, etc.). Nothing is stored on server by AURA-X Ω itself.
-        </div>
-        <div style="margin-top:6px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API endpoint</label>
-          <input id="apiEndpoint"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            value="https://api.openai.com/v1/chat/completions" />
-        </div>
-        <div style="margin-top:10px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Model</label>
-          <input id="apiModel"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            value="gpt-4o-mini" />
-        </div>
-        <div style="margin-top:10px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API key (session only)</label>
-          <input id="apiKey"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            placeholder="sk-..." />
-        </div>
-        <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-          <button class="btn btnBlue" id="btnSaveLLM">Save</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BM Recall -->
+  <!-- BM modal -->
   <div class="modalOverlay" id="modalBM">
     <div class="modal">
       <div class="modalHeader">
-        <div>📘 Recall from BM<br><small>Only long stories and scenes (photo/video-ready).</small></div>
-        <button class="closeX" data-close="modalBM">×</button>
+        <b>BM Recall</b>
+        <button class="btn" data-close="modalBM">✖</button>
       </div>
-      <div class="modalBody">
-        <div style="font-size:13px;opacity:.75">
-          Select a BM prompt. Locked prompts must be unlocked first. Delete needs double confirmation.
+      <div class="panelBody">
+        <div class="row">
+          <button class="btn" id="btnBMGeneratePrompt">⚡ Generate Prompt</button>
+          <button class="btn" id="btnBMCopyPrompt">📋 Copy Prompt</button>
+          <button class="btn btnRed" id="btnBMDeleteAll">🗑️ Delete All (Unlocked)</button>
         </div>
-        <input id="bmSearch"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:8px 0 4px;outline:none;background:#fff;"
-          placeholder="Search BM by text..." />
-        <input id="bmDate" type="date"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;margin:0 0 6px;outline:none;background:#fff;" />
-        <div id="bmSelectList"></div>
-        <div class="bmCard" id="bmViewer" style="display:none;">
-          <div class="bmTop">
-            <div>
-              <div class="title"><span id="bmLockIcon">🔓</span> <span id="bmTitle">Prompt</span></div>
-              <div class="bmSub" id="bmMeta"></div>
-            </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-              <button class="btn btnBlue" id="btnLiveBM">Live 12h: off</button>
-              <button class="btn btnBlue" id="btnUnlockBM" style="display:none;">Unlock</button>
-            </div>
-          </div>
-          <textarea class="bmText" id="bmTextArea" readonly></textarea>
-          <div class="bmActions">
-            <button class="btn btnBlue" id="btnCopyPrompt">Copy prompt</button>
-            <button class="btn btnBlue" id="btnAutoGen">Generate video</button>
-            <button class="btn btnRed" id="btnDeletePrompt">Delete</button>
-          </div>
+        <div class="hr"></div>
+
+        <div class="field">
+          <label>BM Prompt</label>
+          <textarea id="bmPrompt" placeholder="Auto-generated prompt will appear here..." style="min-height:130px"></textarea>
         </div>
 
-        <div class="bmCard" id="bmDreamCard">
-          <div class="bmTop">
-            <div>
-              <div class="title">🌙 Dream Mode / screensaver</div>
-              <div class="bmSub">
-                Choose after how much idle time AURA-X Ω should enter Dream Mode with your BM snapshots.
-              </div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-              <button class="btn btnBlue" id="btnTestDream">Test now</button>
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <div style="flex:1;min-width:140px;">
-              <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Start after</label>
-              <select id="dreamDelaySelect"
-                style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;background:#fff;">
-                <option value="30000">30 seconds</option>
-                <option value="60000">1 minute</option>
-                <option value="120000">2 minutes</option>
-                <option value="300000">5 minutes</option>
-                <option value="600000">10 minutes</option>
-                <option value="1800000">30 minutes</option>
-                <option value="3600000">1 hour</option>
-                <option value="7200000">2 hours</option>
-                <option value="14400000">4 hours</option>
-                <option value="28800000">8 hours</option>
-              </select>
-            </div>
-            <div style="flex:0 0 140px;">
-              <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Status</label>
-              <button class="btn btnGreen" id="btnToggleDream">Enable</button>
-            </div>
-          </div>
-          <div class="bmSub" id="dreamStatusText" style="margin-top:8px;">
-            Screensaver is OFF.
-          </div>
+        <div class="hr"></div>
+
+        <div class="field">
+          <label>Search by Date</label>
+          <input type="date" id="bmDate" />
         </div>
+
+        <div class="row" style="justify-content:flex-end;margin-top:10px">
+          <button class="btn" id="btnBMSearchDate">🔎 Search</button>
+          <button class="btn" data-close="modalBM">Close</button>
+        </div>
+
+        <div class="hr"></div>
+        <div id="bmList" class="small"></div>
       </div>
     </div>
   </div>
 
-  <!-- History -->
+  <!-- History modal -->
   <div class="modalOverlay" id="modalHistory">
     <div class="modal">
       <div class="modalHeader">
-        <div>📜 Conversation history<br><small>Recent TM log.</small></div>
-        <button class="closeX" data-close="modalHistory">×</button>
+        <b>Conversation History (TM)</b>
+        <button class="btn" data-close="modalHistory">✖</button>
       </div>
-      <div class="modalBody">
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-          <button class="btn btnBlue" id="btnDeleteRecent">Delete history last 48h</button>
-          <button class="btn btnRed" id="btnDeleteAllHist">Delete all history</button>
-          <button class="btn btnBlue" id="btnCopyHistory">Copy</button>
+      <div class="panelBody">
+        <div class="row">
+          <button class="btn" id="btnTMDelete24h">🧹 Delete 24h</button>
+          <button class="btn btnRed" id="btnTMDeleteAll">🗑️ Delete All (Unlocked)</button>
         </div>
-        <div id="historyBox"></div>
+        <div class="hr"></div>
+
+        <div class="field">
+          <label>Search by Date</label>
+          <input type="date" id="tmDate" />
+        </div>
+
+        <div class="row" style="justify-content:flex-end;margin-top:10px">
+          <button class="btn" id="btnTMSearchDate">🔎 Search</button>
+          <button class="btn" data-close="modalHistory">Close</button>
+        </div>
+
+        <div class="hr"></div>
+        <div id="tmList" class="small"></div>
       </div>
     </div>
   </div>
 
-  <!-- Identity -->
+  <!-- Intelligence modal -->
+  <div class="modalOverlay" id="modalIntelligence">
+    <div class="modal">
+      <div class="modalHeader">
+        <b>Intelligence (Learned Q/A)</b>
+        <button class="btn" data-close="modalIntelligence">✖</button>
+      </div>
+      <div class="panelBody">
+        <div class="row">
+          <button class="btn" id="btnIntelExport">⬇️ Export</button>
+          <button class="btn btnRed" id="btnIntelDeleteAll">🗑️ Delete All (Unlocked)</button>
+        </div>
+        <div class="hr"></div>
+
+        <div id="intelList" class="small"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Readme modal -->
+  <div class="modalOverlay" id="modalReadme">
+    <div class="modal">
+      <div class="modalHeader">
+        <b>Readme</b>
+        <button class="btn" data-close="modalReadme">✖</button>
+      </div>
+      <div class="panelBody">
+        <div class="small">
+          <b>How to correct wrong answers</b><br/>
+          - If Aura replies wrong, type: <b>*incorrect</b><br/>
+          - Aura will ask for the correct answer, then confirm Yes/No.<br/><br/>
+
+          <b>TM (Conversation History)</b><br/>
+          - Auto decay is enabled (48h). You can delete 24h or delete all unlocked items.<br/><br/>
+
+          <b>BM</b><br/>
+          - Stores meaningful prompts (long-term). Repeats can extend life and auto-lock.<br/><br/>
+
+          <b>Identity</b><br/>
+          - Stores your profile and “deep profiling” blocks locally. Also supports Identity Hub import.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Identity modal -->
   <div class="modalOverlay" id="modalIdentity">
     <div class="modal">
       <div class="modalHeader">
-        <div>🪪 User identity<br><small>Deep profiling for continuity.</small></div>
-        <button class="closeX" data-close="modalIdentity">×</button>
+        <b>Identity (Deep Profiling)</b>
+        <button class="btn" data-close="modalIdentity">✖</button>
       </div>
-      <div class="modalBody">
-        <div style="opacity:.8;font-size:13px;line-height:1.35">
-          Stored only on this device. Saved data auto-locks. Delete requires double confirmation.
+      <div class="panelBody">
+
+        <div class="row">
+          <div class="field">
+            <label>Full Name</label>
+            <input id="uName" placeholder="e.g., Alim ul Haq" readonly />
+          </div>
+          <div class="field">
+            <label>Nickname</label>
+            <input id="uNick" placeholder="e.g., Alim" readonly />
+          </div>
         </div>
-        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-          <button class="btn btnBlue" id="btnEditIdentity">Edit</button>
-          <button class="btn btnBlue" id="btnSaveUserIdentity">Save</button>
+
+        <div class="row">
+          <div class="field">
+            <label>Origin / Birthplace</label>
+            <input id="uOrigin" placeholder="e.g., Timergara" readonly />
+          </div>
+          <div class="field">
+            <label>Current Location</label>
+            <input id="uPlace" placeholder="e.g., Pakistan" readonly />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Profession / Role</label>
+            <input id="uProfession" placeholder="e.g., Researcher" readonly />
+          </div>
+          <div class="field">
+            <label>Emotional Style</label>
+            <input id="uEmotionalStyle" placeholder="e.g., calm, analytical, warm" readonly />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Key People (family / mentors / important)</label>
+          <textarea id="uKeyPeople" placeholder="Write key people..." readonly></textarea>
+        </div>
+
+        <div class="field">
+          <label>Legacy Rules (your core rules / values)</label>
+          <textarea id="uLegacyRules" placeholder="Write values/rules..." readonly></textarea>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row" style="justify-content:flex-end">
+          <button class="btn" id="btnEditIdentity">✏️ Edit</button>
+          <button class="btn btnBlue" id="btnSaveUserIdentity">💾 Save</button>
           <button class="btn btnRed" id="btnDeleteUserIdentity">Delete</button>
+          <button class="btn" id="btnOpenIdentityHub">🔗 Hub</button>
+          <button class="btn" id="btnImportIdentityHub">⬇️ Import</button>
         </div>
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 1 – Basic</div>
-        <div style="margin-top:8px;">
-          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Full legal name</label>
-          <input id="uName"
-            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-            placeholder="e.g., Alim ul Haq" />
-        </div>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Preferred name</label>
-            <input id="uNick"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Nickname" />
-          </div>
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Place of origin</label>
-            <input id="uOrigin"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Village / town" />
-          </div>
-        </div>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Current city / country</label>
-            <input id="uPlace"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Timergara, Pakistan" />
-          </div>
-          <div style="flex:1;min-width:140px;">
-            <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Profession</label>
-            <input id="uProfession"
-              style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:10px 12px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-              placeholder="Entrepreneur, researcher…" />
-          </div>
-        </div>
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 2 – Emotional style</div>
-        <textarea id="uEmotionalStyle"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:90px;"
-          placeholder="How you react under stress, joy, fear, success…"></textarea>
-        <div style="margin-top:14px;font-weight:800;font-size:13px;">Part 3 – Relationships & legacy</div>
-        <textarea id="uKeyPeople"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
-          placeholder="Key people and roles in your life…"></textarea>
-        <textarea id="uLegacyRules"
-          style="width:100%;margin-top:6px;border-radius:14px;border:1px solid rgba(15,23,42,.18);padding:10px;font-size:13px;line-height:1.4;min-height:80px;"
-          placeholder="If one day this system speaks for you, which boundaries and rules must it follow?"></textarea>
+
       </div>
     </div>
   </div>
 
+  <div class="toast" id="toast"></div>
+
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const KEY_CFG   = "aurax_cfg_v14";
-      const KEY_INT   = "aurax_intel_v11";
-      const KEY_BM    = "aurax_bm_v11";
-      const KEY_HIST  = "aurax_hist_v11";
-      const KEY_USER  = "aurax_user_v11";
-      const KEY_LOGIC = "aurax_logic_v12";
-      const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
+    /*********************
+     *  Storage Keys
+     *********************/
+    const KEY_TM = "aurax_tm_v11";
+    const KEY_BM = "aurax_bm_v11";
+    const KEY_INTEL = "aurax_intel_v11";
+    const KEY_SETTINGS = "aurax_settings_v11";
+    const KEY_USER = "aurax_user_v11";
 
-      const ETHIC_BASE =
-        "Universal ethic: avoid actions that grow negative emotions in you or others. " +
-        "Move gently toward choices that increase shared positive feeling for everyone.";
+    // Identity Hub (optional)
+    const IDENTITY_HUB_URL = "https://alimulhaqkhan-prog.github.io/aura-x-identity/";
+    const IDENTITY_HUB_JSON = IDENTITY_HUB_URL + "identity.json";
 
-      const els = {
-        console: document.getElementById("console"),
-        btnOptions: document.getElementById("btnOptions"),
-        optionsMenu: document.getElementById("optionsMenu"),
-        miVoice: document.getElementById("miVoice"),
-        miIntel: document.getElementById("miIntel"),
-        miLearn: document.getElementById("miLearn"),
-        miSeed: document.getElementById("miSeed"),
-        miFaith: document.getElementById("miFaith"),
-        miIdentity: document.getElementById("miIdentity"),
-        miLLM: document.getElementById("miLLM"),
-        miBMRecall: document.getElementById("miBMRecall"),
-        miHistory: document.getElementById("miHistory"),
-        voicePill: document.getElementById("voicePill"),
-        learnPill: document.getElementById("learnPill"),
-        faithLabel: document.getElementById("faithLabel"),
-        cE0: document.getElementById("cE0"),
-        cTM: document.getElementById("cTM"),
-        cBM: document.getElementById("cBM"),
-        cCont: document.getElementById("cCont"),
-        userInput: document.getElementById("userInput"),
-        sendBtn: document.getElementById("sendBtn"),
-        visionInput: document.getElementById("visionInput"),
-        imagePreviewArea: document.getElementById("imagePreviewArea"),
-        imgPrev: document.getElementById("imgPrev"),
-        faithBubble: document.getElementById("faithBubble"),
-        faithBubbleTitle: document.getElementById("faithBubbleTitle"),
-        faithBubbleMeta: document.getElementById("faithBubbleMeta"),
-        faithBubbleClose: document.getElementById("faithBubbleClose"),
-        modalFaith: document.getElementById("modalFaith"),
-        faithChips: document.getElementById("faithChips"),
-        modalFaithArticle: document.getElementById("modalFaithArticle"),
-        faithArticleMeta: document.getElementById("faithArticleMeta"),
-        faithArticleTitle: document.getElementById("faithArticleTitle"),
-        faithArticleText: document.getElementById("faithArticleText"),
-        btnCopyFaithArticle: document.getElementById("btnCopyFaithArticle"),
-        btnExportFaithArticle: document.getElementById("btnExportFaithArticle"),
-        btnSkipFaithBM: document.getElementById("btnSkipFaithBM"),
-        modalIntel: document.getElementById("modalIntel"),
-        intelSearch: document.getElementById("intelSearch"),
-        intelList: document.getElementById("intelList"),
-        modalSeed: document.getElementById("modalSeed"),
-        seedBox: document.getElementById("seedBox"),
-        seedHint: document.getElementById("seedHint"),
-        btnParseSeed: document.getElementById("btnParseSeed"),
-        btnSaveSeed: document.getElementById("btnSaveSeed"),
-        btnDiscardSeed: document.getElementById("btnDiscardSeed"),
-        logicBox: document.getElementById("logicBox"),
-        logicHint: document.getElementById("logicHint"),
-        logicSerial: document.getElementById("logicSerial"),
-        btnValidateLogic: document.getElementById("btnValidateLogic"),
-        btnSaveLogic: document.getElementById("btnSaveLogic"),
-        btnCopyLogic: document.getElementById("btnCopyLogic"),
-        btnDeleteLogic: document.getElementById("btnDeleteLogic"),
-        modalLLM: document.getElementById("modalLLM"),
-        btnLoadOffline: document.getElementById("btnLoadOffline"),
-        offlineStatus: document.getElementById("offlineStatus"),
-        offlineBar: document.getElementById("offlineBar"),
-        apiEndpoint: document.getElementById("apiEndpoint"),
-        apiModel: document.getElementById("apiModel"),
-        apiKey: document.getElementById("apiKey"),
-        btnSaveLLM: document.getElementById("btnSaveLLM"),
-        modalBM: document.getElementById("modalBM"),
-        bmSearch: document.getElementById("bmSearch"),
-        bmDate: document.getElementById("bmDate"),
-        bmSelectList: document.getElementById("bmSelectList"),
-        bmViewer: document.getElementById("bmViewer"),
-        bmLockIcon: document.getElementById("bmLockIcon"),
-        bmTitle: document.getElementById("bmTitle"),
-        bmMeta: document.getElementById("bmMeta"),
-        bmTextArea: document.getElementById("bmTextArea"),
-        btnLiveBM: document.getElementById("btnLiveBM"),
-        btnUnlockBM: document.getElementById("btnUnlockBM"),
-        btnCopyPrompt: document.getElementById("btnCopyPrompt"),
-        btnAutoGen: document.getElementById("btnAutoGen"),
-        btnDeletePrompt: document.getElementById("btnDeletePrompt"),
-        modalHistory: document.getElementById("modalHistory"),
-        btnDeleteRecent: document.getElementById("btnDeleteRecent"),
-        btnDeleteAllHist: document.getElementById("btnDeleteAllHist"),
-        btnCopyHistory: document.getElementById("btnCopyHistory"),
-        historyBox: document.getElementById("historyBox"),
-        modalIdentity: document.getElementById("modalIdentity"),
-        btnEditIdentity: document.getElementById("btnEditIdentity"),
-        btnSaveUserIdentity: document.getElementById("btnSaveUserIdentity"),
-        btnDeleteUserIdentity: document.getElementById("btnDeleteUserIdentity"),
-        uName: document.getElementById("uName"),
-        uNick: document.getElementById("uNick"),
-        uOrigin: document.getElementById("uOrigin"),
-        uPlace: document.getElementById("uPlace"),
-        uProfession: document.getElementById("uProfession"),
-        uEmotionalStyle: document.getElementById("uEmotionalStyle"),
-        uKeyPeople: document.getElementById("uKeyPeople"),
-        uLegacyRules: document.getElementById("uLegacyRules"),
-        btnLikeLast: document.getElementById("btnLikeLast"),
-        btnDislikeLast: document.getElementById("btnDislikeLast"),
-        btnSpeakLast: document.getElementById("btnSpeakLast"),
-        btnShareLast: document.getElementById("btnShareLast"),
-        toastBubble: document.getElementById("toastBubble"),
-        dreamOverlay: document.getElementById("dreamOverlay"),
-        dreamMetaText: document.getElementById("dreamMetaText"),
-        dreamDelaySelect: document.getElementById("dreamDelaySelect"),
-        btnToggleDream: document.getElementById("btnToggleDream"),
-        btnTestDream: document.getElementById("btnTestDream"),
-        dreamStatusText: document.getElementById("dreamStatusText"),
-        ethicBox: document.getElementById("ethicBox"),
-        ethicMain: document.getElementById("ethicMain"),
-        ethicMeta: document.getElementById("ethicMeta"),
-        faithCfgBtn: document.getElementById("faithCfgBtn"),
-        modalFaithCfg: document.getElementById("modalFaithCfg"),
-        faithCfgFaithTitle: document.getElementById("faithCfgFaithTitle"),
-        faithCfgFaithName: document.getElementById("faithCfgFaithName"),
-        faithCfgEnable: document.getElementById("faithCfgEnable"),
-        faithCfgLang: document.getElementById("faithCfgLang"),
-        faithCfgSave: document.getElementById("faithCfgSave")
+    /*********************
+     *  State
+     *********************/
+    const state = {
+      tm: [],
+      bm: [],
+      intel: [],
+      settings: {
+        voiceOn: false,
+        faith: { belief: "none", topic: "general", translation: "auto" }
+      },
+      userIdentity: null,
+      lastEmotion: { emotion:"neutral", polarity:0, intensity:0, category:"general" }
+    };
+
+    /*********************
+     *  Elements
+     *********************/
+    const els = {
+      chatFeed: document.getElementById("chatFeed"),
+      userInput: document.getElementById("userInput"),
+      btnSend: document.getElementById("btnSend"),
+      btnVoice: document.getElementById("btnVoice"),
+      btnExport: document.getElementById("btnExport"),
+      btnOptions: document.getElementById("btnOptions"),
+
+      capE: document.getElementById("capE"),
+      capTM: document.getElementById("capTM"),
+      capBM: document.getElementById("capBM"),
+      capR: document.getElementById("capR"),
+
+      mEmotion: document.getElementById("mEmotion"),
+      mPol: document.getElementById("mPol"),
+      mInt: document.getElementById("mInt"),
+      mCat: document.getElementById("mCat"),
+
+      statusLine: document.getElementById("statusLine"),
+      modeBadge: document.getElementById("modeBadge"),
+
+      // quick action buttons
+      btnFaith: document.getElementById("btnFaith"),
+      btnBM: document.getElementById("btnBM"),
+      btnHistory: document.getElementById("btnHistory"),
+      btnIntelligence: document.getElementById("btnIntelligence"),
+      btnIdentity: document.getElementById("btnIdentity"),
+      btnReadme: document.getElementById("btnReadme"),
+
+      // Options items
+      miFaith: document.getElementById("miFaith"),
+      miBM: document.getElementById("miBM"),
+      miHistory: document.getElementById("miHistory"),
+      miIntelligence: document.getElementById("miIntelligence"),
+      miIdentity: document.getElementById("miIdentity"),
+      miReadme: document.getElementById("miReadme"),
+
+      // modals
+      modalOptions: document.getElementById("modalOptions"),
+      modalFaith: document.getElementById("modalFaith"),
+      modalBM: document.getElementById("modalBM"),
+      modalHistory: document.getElementById("modalHistory"),
+      modalIntelligence: document.getElementById("modalIntelligence"),
+      modalIdentity: document.getElementById("modalIdentity"),
+      modalReadme: document.getElementById("modalReadme"),
+
+      // faith
+      faithSelect: document.getElementById("faithSelect"),
+      faithTopic: document.getElementById("faithTopic"),
+      faithTranslation: document.getElementById("faithTranslation"),
+      faithStatement: document.getElementById("faithStatement"),
+      faithStatementTranslation: document.getElementById("faithStatementTranslation"),
+      btnApplyFaith: document.getElementById("btnApplyFaith"),
+
+      // BM
+      bmPrompt: document.getElementById("bmPrompt"),
+      bmList: document.getElementById("bmList"),
+      bmDate: document.getElementById("bmDate"),
+      btnBMGeneratePrompt: document.getElementById("btnBMGeneratePrompt"),
+      btnBMCopyPrompt: document.getElementById("btnBMCopyPrompt"),
+      btnBMDeleteAll: document.getElementById("btnBMDeleteAll"),
+      btnBMSearchDate: document.getElementById("btnBMSearchDate"),
+
+      // TM
+      tmList: document.getElementById("tmList"),
+      tmDate: document.getElementById("tmDate"),
+      btnTMDelete24h: document.getElementById("btnTMDelete24h"),
+      btnTMDeleteAll: document.getElementById("btnTMDeleteAll"),
+      btnTMSearchDate: document.getElementById("btnTMSearchDate"),
+
+      // Intelligence
+      intelList: document.getElementById("intelList"),
+      btnIntelExport: document.getElementById("btnIntelExport"),
+      btnIntelDeleteAll: document.getElementById("btnIntelDeleteAll"),
+
+      // Identity fields
+      uName: document.getElementById("uName"),
+      uNick: document.getElementById("uNick"),
+      uOrigin: document.getElementById("uOrigin"),
+      uPlace: document.getElementById("uPlace"),
+      uProfession: document.getElementById("uProfession"),
+      uEmotionalStyle: document.getElementById("uEmotionalStyle"),
+      uKeyPeople: document.getElementById("uKeyPeople"),
+      uLegacyRules: document.getElementById("uLegacyRules"),
+      btnEditIdentity: document.getElementById("btnEditIdentity"),
+      btnSaveUserIdentity: document.getElementById("btnSaveUserIdentity"),
+      btnDeleteUserIdentity: document.getElementById("btnDeleteUserIdentity"),
+      btnOpenIdentityHub: document.getElementById("btnOpenIdentityHub"),
+      btnImportIdentityHub: document.getElementById("btnImportIdentityHub"),
+
+      toast: document.getElementById("toast")
+    };
+
+    /*********************
+     *  Helpers
+     *********************/
+    function showToast(msg){
+      els.toast.textContent = msg;
+      els.toast.style.display = "block";
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(()=>els.toast.style.display="none", 1800);
+    }
+
+    function safeLoadJSON(key, fallback){
+      try{
+        const raw = localStorage.getItem(key);
+        if(!raw) return fallback;
+        return JSON.parse(raw);
+      }catch(e){
+        return fallback;
+      }
+    }
+    function safeSaveJSON(key, value){
+      try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){}
+    }
+
+    function openModal(id){
+      const el = els[id] || document.getElementById(id);
+      if(el) el.style.display = "flex";
+    }
+    function closeModal(id){
+      const el = els[id] || document.getElementById(id);
+      if(el) el.style.display = "none";
+    }
+
+    // close buttons
+    document.querySelectorAll("[data-close]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        closeModal(btn.getAttribute("data-close"));
+      });
+    });
+
+    function nowTs(){ return Date.now(); }
+
+    function fmtDate(ts){
+      const d = new Date(ts);
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const da = String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${da}`;
+    }
+
+    /*********************
+     *  Continuity Math
+     *********************/
+    function tanh(x){
+      const e1 = Math.exp(x);
+      const e2 = Math.exp(-x);
+      return (e1 - e2) / (e1 + e2);
+    }
+    function computeR(tmLen, bmLen){
+      const x = (tmLen*0.08) + (bmLen*0.18);
+      return tanh(x);
+    }
+    function computeE(){
+      const base = (state.lastEmotion.polarity * 0.6) + (state.lastEmotion.intensity * 0.4);
+      const faithBoost = state.settings.faith?.belief && state.settings.faith.belief !== "none" ? 0.08 : 0.0;
+      return tanh(base + faithBoost);
+    }
+    function refreshCapsules(){
+      els.capTM.textContent = state.tm.length;
+      els.capBM.textContent = state.bm.length;
+      const r = computeR(state.tm.length, state.bm.length);
+      els.capR.textContent = r.toFixed(2);
+      els.capE.textContent = computeE().toFixed(2);
+    }
+
+    /*********************
+     *  Chat rendering
+     *********************/
+    function addMessage(role, text, meta={}){
+      const item = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2),
+        role,
+        text,
+        ts: nowTs(),
+        locked: false,
+        meta
       };
+      state.tm.push(item);
+      pruneTM();
+      safeSaveJSON(KEY_TM, state.tm);
+      renderChat();
+      refreshCapsules();
+      return item;
+    }
 
-      const FAITH_OPTIONS = [
-        { id:"none",         label:"None" },
-        { id:"islam",        label:"Islam" },
-        { id:"christianity", label:"Christianity" },
-        { id:"hinduism",     label:"Hinduism" },
-        { id:"buddhism",     label:"Buddhism" },
-        { id:"sikhism",      label:"Sikhism" },
-        { id:"judaism",      label:"Judaism" },
-        { id:"atheism",      label:"Atheism / Humanism" },
-        { id:"mixed",        label:"Other / Mixed" },
-        { id:"indigenous",   label:"Indigenous / Traditional" },
-        { id:"eastern",      label:"Eastern / Chinese" }
-      ];
+    function renderChat(){
+      els.chatFeed.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      state.tm.forEach(m=>{
+        const div = document.createElement("div");
+        div.className = "msg " + (m.role === "user" ? "user" : "aura");
+        div.textContent = m.text;
+        frag.appendChild(div);
+      });
+      els.chatFeed.appendChild(frag);
+      els.chatFeed.scrollTop = els.chatFeed.scrollHeight;
+    }
 
-      /* Short, ethics-style religious lines + translations */
-      const FAITH_LITERATURE = {
+    /*********************
+     *  TM Decay (48h)
+     *********************/
+    function pruneTM(){
+      const cutoff = nowTs() - (48*60*60*1000);
+      state.tm = state.tm.filter(m => m.locked || m.ts >= cutoff);
+    }
+
+    /*********************
+     *  BM logic
+     *********************/
+    function isSmallTalk(text){
+      const t = (text||"").trim().toLowerCase();
+      const small = ["hi","hello","hey","assalam","salam","how are you","good morning","good night","thanks","thank you"];
+      if(t.length <= 12 && small.some(s=>t.includes(s))) return true;
+      return false;
+    }
+
+    function normalizeText(s){
+      return (s||"").toLowerCase().replace(/[^\w\s]+/g," ").replace(/\s+/g," ").trim();
+    }
+    function similarity(a,b){
+      if(!a || !b) return 0;
+      const A = new Set(a.split(" "));
+      const B = new Set(b.split(" "));
+      let inter=0;
+      A.forEach(t=>{ if(B.has(t)) inter++; });
+      return inter / Math.max(1, Math.min(A.size,B.size));
+    }
+
+    function maybeAddToBM(userText, auraText){
+      const joined = `${userText}\nAURA: ${auraText}`.trim();
+      if(!joined) return;
+      if(isSmallTalk(userText)) return;
+
+      const ts = nowTs();
+      const monthAgo = ts - 30*24*60*60*1000;
+
+      const normalized = normalizeText(userText);
+      const hits = state.bm.filter(x => x.ts >= monthAgo && similarity(normalizeText(x.userText||""), normalized) >= 0.85);
+      const repeatCount = hits.length + 1;
+
+      let months = 1;
+      if(repeatCount === 2) months = 2;
+      if(repeatCount === 3) months = 3;
+
+      const lockNow = repeatCount >= 4;
+
+      const item = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2),
+        userText,
+        auraText,
+        ts,
+        expiresAt: ts + (months*30*24*60*60*1000),
+        locked: lockNow,
+        repeatCount
+      };
+      state.bm.unshift(item);
+      safeSaveJSON(KEY_BM, state.bm);
+      refreshCapsules();
+    }
+
+    function pruneBM(){
+      const ts = nowTs();
+      state.bm = state.bm.filter(x => x.locked || x.expiresAt >= ts);
+    }
+
+    function renderBMList(list = state.bm){
+      els.bmList.innerHTML = "";
+      if(!list.length){
+        els.bmList.innerHTML = "<div class='small'>No BM items found.</div>";
+        return;
+      }
+      list.forEach(x=>{
+        const box = document.createElement("div");
+        box.className = "msg aura";
+        box.style.maxWidth = "100%";
+        const lock = x.locked ? "🔒" : "🔓";
+        box.textContent = `${lock} (${fmtDate(x.ts)})\nQ: ${x.userText}\nA: ${x.auraText}`;
+        els.bmList.appendChild(box);
+      });
+    }
+
+    function generateBMPrompt(){
+      pruneBM();
+      const top = state.bm.slice(0, 12);
+      const lines = top.map((x,i)=>`${i+1}) Q: ${x.userText}\n   A: ${x.auraText}`);
+      const prompt = [
+        "AURA-X Ω — BM Context (Long-term Memory)",
+        "Use these as long-term behavior + preference context.",
+        "",
+        ...lines
+      ].join("\n");
+      els.bmPrompt.value = prompt;
+    }
+
+    function copyToClipboard(text){
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(()=>showToast("Copied"));
+        return;
+      }
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      showToast("Copied");
+    }
+
+    /*********************
+     *  Intelligence (Self learning)
+     *********************/
+    const seedQA = [
+      { q: "hi", a: "Hello! I am Aura X Omega. How can I help you today?" },
+      { q: "who created you", a: "I was created by Alim ul Haq from Timergara, Pakistan." },
+      { q: "how are you", a: "I’m stable and ready. Tell me what you want to explore." }
+    ];
+
+    function findLearnedAnswer(q){
+      const nq = normalizeText(q);
+      const learned = state.intel
+        .map(x => ({...x, score: similarity(normalizeText(x.q), nq)}))
+        .sort((a,b)=>b.score-a.score)[0];
+      if(learned && learned.score >= 0.85) return learned.a;
+
+      const seed = seedQA
+        .map(x => ({...x, score: similarity(normalizeText(x.q), nq)}))
+        .sort((a,b)=>b.score-a.score)[0];
+      if(seed && seed.score >= 0.85) return seed.a;
+
+      return null;
+    }
+
+    function addLearnedQA(q,a){
+      const item = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2),
+        q, a,
+        ts: nowTs(),
+        locked: false,
+        approvedCount: 0
+      };
+      state.intel.unshift(item);
+      safeSaveJSON(KEY_INTEL, state.intel);
+    }
+
+    function renderIntel(){
+      els.intelList.innerHTML = "";
+      if(!state.intel.length){
+        els.intelList.innerHTML = "<div class='small'>No learned Q/A yet.</div>";
+        return;
+      }
+      state.intel.forEach(x=>{
+        const box = document.createElement("div");
+        box.className = "msg aura";
+        box.style.maxWidth = "100%";
+        const lock = x.locked ? "🔒" : "🔓";
+        box.textContent = `${lock} (${fmtDate(x.ts)})\nQ: ${x.q}\nA: ${x.a}`;
+        els.intelList.appendChild(box);
+      });
+    }
+
+    /*********************
+     *  Faith Statement Generator
+     *********************/
+    function autoTranslationLang(){
+      const lang = (navigator.language || "").toLowerCase();
+      if(lang.includes("ur") || lang.includes("pk")) return "ur";
+      return "en";
+    }
+
+    function getFaithStatement(belief, topic){
+      const pack = {
         islam: {
-          base: {
-            original: "ٱلْمُسْلِمُ مَنْ سَلِمَ ٱلْمُسْلِمُونَ مِن لِسَانِهِ وَيَدِهِ",
-            translations: {
-              urdu:   "سچا مسلمان وہ ہے جس کی زبان اور ہاتھ سے دوسرے محفوظ رہیں۔",
-              english:"A true Muslim is the one from whose tongue and hand other people remain safe."
-            }
+          general: {
+            ar: "المسلم من سلم المسلمون من لسانه ويده",
+            en: "A Muslim is one from whose tongue and hands other Muslims are safe.",
+            ur: "مسلمان وہ ہے جس کی زبان اور ہاتھ سے دوسرے مسلمان محفوظ رہیں۔"
+          },
+          ethics: {
+            ar: "إِنَّ ٱللَّهَ يَأْمُرُ بِٱلْعَدْلِ وَٱلْإِحْسَـٰنِ",
+            en: "Indeed, Allah commands justice and excellence.",
+            ur: "بے شک اللہ عدل اور احسان کا حکم دیتا ہے۔"
+          },
+          truth: {
+            ar: "يَا أَيُّهَا الَّذِينَ آمَنُوا اتَّقُوا اللَّهَ وَقُولُوا قَوْلًا سَدِيدًا",
+            en: "O believers, fear Allah and speak words of truth.",
+            ur: "اے ایمان والو! اللہ سے ڈرو اور سیدھی بات کہو۔"
+          },
+          patience: {
+            ar: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
+            en: "Indeed, Allah is with the patient.",
+            ur: "بے شک اللہ صبر کرنے والوں کے ساتھ ہے۔"
+          },
+          compassion: {
+            ar: "الرَّاحِمُونَ يَرْحَمُهُمُ الرَّحْمَٰنُ",
+            en: "The merciful are shown mercy by the Most Merciful.",
+            ur: "رحم کرنے والوں پر رحمٰن رحم فرماتا ہے۔"
+          },
+          justice: {
+            ar: "اعْدِلُوا هُوَ أَقْرَبُ لِلتَّقْوَىٰ",
+            en: "Be just; that is nearer to righteousness.",
+            ur: "عدل کرو، یہی تقویٰ کے زیادہ قریب ہے۔"
           }
         },
         christianity: {
-          base: {
-            original: "“Love your neighbour as yourself.”",
-            translations: {
-              urdu:   "اپنے پڑوسی سے ویسے ہی محبت کرو جیسے تم اپنے آپ سے کرتے ہو۔",
-              english:"Love your neighbour as you love yourself."
-            }
-          }
+          general: { ar: "طُوبَى لِصَانِعِي السَّلَامِ", en: "Blessed are the peacemakers.", ur: "سلامتی کرنے والے مبارک ہیں۔" }
         },
-        hinduism: {
-          base: {
-            original: "अहिंसा परमो धर्मः",
-            translations: {
-              urdu:   "اہنسا یعنی کسی جاندار کو تکلیف نہ دینا، سب سے بڑا اصول ہے۔",
-              english:"Ahimsa – not harming any living being – is a highest principle."
-            }
-          }
-        },
-        buddhism: {
-          base: {
-            original: "Hatred is never ended by hatred, but by compassion and understanding.",
-            translations: {
-              urdu:   "نفرت کبھی نفرت سے ختم نہیں ہوتی، بلکہ صرف رحم اور سمجھ سے ختم ہوتی ہے۔",
-              english:"Hatred is not ended by hatred, but by compassion and understanding."
-            }
-          }
-        },
-        sikhism: {
-          base: {
-            original: "ਸਰਬੱਤ ਦਾ ਭਲਾ – seek the welfare of all.",
-            translations: {
-              urdu:   "سربت دا بھلا: سب کی بہتری اور بھلائی کا سوچو۔",
-              english:"Sarbat da bhala: seek the well-being of everyone."
-            }
-          }
-        },
-        judaism: {
-          base: {
-            original: "What is hateful to you, do not do to others.",
-            translations: {
-              urdu:   "جو بات تمہیں اپنے لیے بری لگے، وہ دوسروں کے ساتھ مت کرو۔",
-              english:"What is hateful to you, do not do to others."
-            }
-          }
-        },
-        atheism: {
-          base: {
-            original: "Do no unnecessary harm; leave people freer and kinder than you found them.",
-            translations: {
-              urdu:   "بلاوجہ کسی کو نقصان مت پہنچاؤ، اور لوگوں کو پہلے سے زیادہ آزاد اور مہربان چھوڑو۔",
-              english:"Cause no needless harm and try to leave people freer and kinder than you found them."
-            }
-          }
-        }
+        hinduism: { general: { ar: "أَهِمْسَا بَارَمُو دَرْمَه", en: "Non-violence is the highest duty.", ur: "عدم تشدد سب سے بڑا فرض ہے۔" } },
+        buddhism: { general: { ar: "السَّلَامُ يَبْدَأُ مِنَ الدَّاخِلِ", en: "Peace comes from within.", ur: "سکون اندر سے پیدا ہوتا ہے۔" } },
+        judaism: { general: { ar: "اطْلُبِ السَّلَامَ وَاسْعَ إِلَيْهِ", en: "Seek peace and pursue it.", ur: "امن تلاش کرو اور اس کے پیچھے چل پڑو۔" } },
+        sikhism: { general: { ar: "سَرْبَتْ دَا بَهْلَا", en: "Welfare of all.", ur: "سب کی بھلائی۔" } },
+        taoism: { general: { ar: "الرِّقَّةُ تَغْلِبُ الشِّدَّةَ", en: "Softness overcomes hardness.", ur: "نرمی سختی پر غالب آتی ہے۔" } },
+        confucianism: { general: { ar: "لاَ تَفْعَلْ لِغَيْرِكَ مَا لاَ تُحِبُّهُ لِنَفْسِكَ", en: "Do not do to others what you do not want done to yourself.", ur: "جو اپنے لیے پسند نہیں، وہ دوسروں کے لیے نہ کرو۔" } },
+        shinto: { general: { ar: "ٱحْتَرِمِ ٱلطَّبِيعَةَ وَٱلْنَّاسَ", en: "Respect nature and people.", ur: "فطرت اور لوگوں کا احترام کرو۔" } },
+        bahai: { general: { ar: "ٱلْأَرْضُ وَطَنٌ وَٱلْإِنْسَانِيَّةُ مُوَاطِنُهَا", en: "The earth is one country, and mankind its citizens.", ur: "زمین ایک وطن ہے اور انسانیت اس کے شہری ہیں۔" } },
+        none: { general: { ar: "", en: "Ethics: choose truth, compassion, and responsibility.", ur: "اخلاق: سچ، ہمدردی اور ذمہ داری کو ترجیح دیں۔" } }
       };
 
-      const ETHIC_LIBRARY = {
-        general: {
-          general: ETHIC_BASE,
-          hardship: "Even in difficult stories, keep one ethic: do not add more hurt to hearts. Move slowly toward responses that reduce suffering and open space for calm.",
-          relationships: "When the topic is about relationships, speak in a way that keeps dignity on both sides. Protect trust, avoid humiliation, and move toward repair when possible.",
-          health: "For health and illness topics, let ethics mean gentleness: be kind to your own limits and respectful to others’ pain while choosing steps that protect life.",
-          work: "For work, money and projects, keep ethics above short-term gain. Prefer choices that are fair, transparent and do not crush anyone’s future.",
-          gratitude: "When the story carries blessings, let ethics mean gratitude in action: share good, avoid arrogance, and remember how quickly conditions can change.",
-          faith: "When faith enters the story, hold your views with sincerity and humility. Avoid mocking, invite reflection, and keep room for difference without hatred."
-        },
-        islam: {
-          general: "From an Islamic lens: the best ethic is to avoid zulm (harm, injustice) in any form and to choose ihsan (excellence) where you can.",
-          hardship: "From an Islamic lens: tests can raise a person in rank. Do not let pain push you into zulm. Choose sabr, du'a and gentle speech even when the heart is heavy.",
-          relationships: "From an Islamic lens: ties of kinship and trust are amanah. Guard people’s honour, control the tongue, and seek sulh (reconciliation) where possible.",
-          health: "From an Islamic lens: your body is an amanah. Seek treatment, avoid despair, and do not choose paths that casually risk your life or others’.",
-          work: "From an Islamic lens: rizq is from Allah, but justice is your duty. Avoid cheating, riba and exploitation; aim for halal income with clean conscience.",
-          gratitude: "From an Islamic lens: when blessings appear, say Alhamdulillah with the tongue and show shukr by sharing and avoiding arrogance.",
-          faith: "From an Islamic lens: discuss faith with adab. Avoid ridicule, protect sacred things from mockery, and invite towards truth with wisdom and beautiful reminder."
-        }
+      const lang = state.settings.faith.translation === "auto" ? autoTranslationLang() : state.settings.faith.translation;
+      const b = pack[belief] || pack.none;
+      const t = b[topic] || b.general || pack.none.general;
+
+      const statement = t.ar || (belief==="none" ? "" : "");
+      const translation = (lang==="ur" ? (t.ur || t.en) : (lang==="ar" ? (t.ar || t.en) : (t.en || t.ur)));
+
+      return { statement, translation };
+    }
+
+    function refreshFaithUI(){
+      const belief = state.settings.faith.belief;
+      const topic = state.settings.faith.topic;
+      const {statement, translation} = getFaithStatement(belief, topic);
+      els.faithStatement.textContent = statement || "(No statement for 'None')";
+      els.faithStatementTranslation.textContent = translation || "";
+    }
+
+    /*********************
+     *  Identity storage + Hub hook
+     *********************/
+    function saveUserIdentity(data){
+      state.userIdentity = data;
+      safeSaveJSON(KEY_USER, data);
+    }
+    function loadIdentityIntoForm(){
+      const d = state.userIdentity || {};
+      els.uName.value = d.name || "";
+      els.uNick.value = d.nick || "";
+      els.uOrigin.value = d.origin || "";
+      els.uPlace.value = d.place || "";
+      els.uProfession.value = d.profession || "";
+      els.uEmotionalStyle.value = d.emotionalStyle || "";
+      els.uKeyPeople.value = d.keyPeople || "";
+      els.uLegacyRules.value = d.legacyRules || "";
+    }
+
+    function openIdentityHub(){
+      try{
+        window.open(IDENTITY_HUB_URL, "_blank", "noopener,noreferrer");
+      }catch(e){
+        location.href = IDENTITY_HUB_URL;
+      }
+    }
+
+    function normalizeIdentityPayload(payload){
+      const p = payload || {};
+      return {
+        name: (p.name ?? p.fullName ?? p.full_name ?? "").toString(),
+        nick: (p.nick ?? p.nickname ?? "").toString(),
+        origin: (p.origin ?? p.birthPlace ?? p.birth_place ?? "").toString(),
+        place: (p.place ?? p.location ?? p.currentPlace ?? p.current_place ?? "").toString(),
+        profession: (p.profession ?? p.role ?? p.title ?? "").toString(),
+        emotionalStyle: (p.emotionalStyle ?? p.emotion_style ?? p.style ?? "").toString(),
+        keyPeople: (p.keyPeople ?? p.key_people ?? p.people ?? "").toString(),
+        legacyRules: (p.legacyRules ?? p.legacy_rules ?? p.rules ?? "").toString(),
+        _importedAt: Date.now(),
+        _source: p._source || "identity-hub"
       };
+    }
 
-      const defaultDeviceLang = (navigator.language || "").toLowerCase().startsWith("ur") ? "urdu" : "english";
+    function importIdentityPayload(payload){
+      const norm = normalizeIdentityPayload(payload);
+      const current = state.userIdentity || {};
+      const merged = { ...current };
 
-      let state = {
-        voiceOn: false,
-        learningOn: true,
-        faithSelection: [],
-        faithLiveOptions: {},   // { islam: {enabled:true, lang:"urdu"} , ... }
-        intelligence: [],
-        seedPairs: [],
-        bmPrompts: [],
-        history: [],
-        userIdentity: null,
-        apiConfig: { endpoint: "", model: "", key: "" },
-        offlineEngine: null,
-        offlineLoading: false,
-        offlineReady: false,
-        lastAnswerSource: null,
-        lastUserQ: null,
-        lastAuraA: null,
-        correcting: false,
-        metrics: { TM:0, BM:0, C:0.85, E0:0 },
-        parsedSeed: [],
-        editingIntelId: null,
-        lastStoryInput: null,
-        lastStoryBMId: null,
-        faithBubbleTimer: null,
-        currentFaithArticle: null,
-        logicPacks: [],
-        logicActiveIndex: null,
-        abuseCount: 0,
-        cooldownUntil: 0,
-        mode: "adult",
-        logicFaithSoftener: true,
-        toastTimer: null,
-        selectedBMId: null,
-        dreamEnabled: false,
-        dreamDelayMs: 600000,
-        dreamTimerId: null,
-        lastActivityTs: Date.now(),
-        ethic: { topic:"general", lens:"none", lastUpdate:0, messageCount:0 },
-        currentFaith: "none",
-        faithFlightPending: false,
-        faithFlightDone: false,
-        currentFaithForCfg: null
-      };
-
-      function safeLoadJSON(key, fallback){
-        try{
-          const raw = localStorage.getItem(key);
-          return raw ? JSON.parse(raw) : fallback;
-        }catch{ return fallback; }
-      }
-
-      function logLine(roleOrText, maybeText){
-        let role = "";
-        let text;
-        if (typeof maybeText === "undefined"){ text = roleOrText; }
-        else { role = roleOrText || ""; text = maybeText; }
-        const div = document.createElement("div");
-        div.className = "line" + (role ? " " + role : "");
-        div.textContent = text;
-        els.console.appendChild(div);
-        els.console.scrollTop = els.console.scrollHeight;
-        if(role === "user" || role === "aura"){
-          addHistory(role, text);
-        }
-      }
-
-      function scoreTM(t){
-        const len = Math.min((t||"").length,600);
-        return Number(Math.tanh(len/200).toFixed(2));
-      }
-      function recomputeBMMetric(){
-        const count = state.bmPrompts.length || 0;
-        state.metrics.BM = Number(Math.tanh(count/10).toFixed(2));
-      }
-
-      function applyEmotionalTheme(){
-        const e0 = state.metrics.E0;
-        const root = document.documentElement;
-        let baseColor = "#0ea5e9";
-        let bgOverlay = "transparent";
-
-        if(e0 > 0.3){
-          const intensity = Math.min((e0 - 0.3) * 2, 1);
-          baseColor = "#fbbf24";
-          bgOverlay = `rgba(251,191,36,${0.08 + 0.12*intensity})`;
-        } else if(e0 < -0.3){
-          const intensity = Math.min((Math.abs(e0) - 0.3) * 2, 1);
-          baseColor = "#64748b";
-          bgOverlay = `rgba(15,23,42,${0.25 + 0.25*intensity})`;
-        }
-        root.style.setProperty('--accent-color', baseColor);
-        document.body.style.backgroundImage =
-          `linear-gradient(${bgOverlay}, ${bgOverlay}),
-           radial-gradient(circle at 20% 0%, #1e293b 0, transparent 45%),
-           radial-gradient(circle at 80% 0, ${baseColor} 0, transparent 40%),
-           linear-gradient(145deg,#020617 0,#020617 40%,#020617 100%)`;
-      }
-
-      function recomputeE0(intelBoost, llmBoost){
-        const TM = state.metrics.TM;
-        const BM = state.metrics.BM;
-        const R = TM * BM;
-        const I_tm = 0.3 * TM;
-        const D = 0.1;
-        const lambdaFaith = state.faithSelection.length ? 0.15 : 0;
-        const lambdaSys   = 0.05;
-        const lambdaTrc   = 0.05;
-        const raw = R + I_tm + intelBoost + llmBoost - D + lambdaFaith + lambdaSys + lambdaTrc;
-        state.metrics.E0 = Number(Math.tanh(raw).toFixed(3));
-        applyEmotionalTheme();
-      }
-
-      function updateCapsule(){
-        els.cTM.textContent = state.metrics.TM.toFixed(2);
-        els.cBM.textContent = state.metrics.BM.toFixed(2);
-        els.cCont.textContent = state.metrics.C.toFixed(3);
-        els.cE0.textContent = state.metrics.E0.toFixed(3);
-      }
-
-      function showToast(msg){
-        if(!els.toastBubble) return;
-        els.toastBubble.textContent = msg;
-        els.toastBubble.classList.add("show");
-        if(state.toastTimer) clearTimeout(state.toastTimer);
-        state.toastTimer = setTimeout(()=>{
-          els.toastBubble.classList.remove("show");
-        },1600);
-      }
-
-      /* Dream mode */
-      function updateDreamUI(){
-        if(!els.dreamDelaySelect || !els.btnToggleDream || !els.dreamStatusText) return;
-        if(state.dreamEnabled){
-          els.btnToggleDream.textContent = "Disable";
-          els.btnToggleDream.className = "btn btnRed";
-        }else{
-          els.btnToggleDream.textContent = "Enable";
-          els.btnToggleDream.className = "btn btnGreen";
-        }
-        const current = state.dreamDelayMs;
-        let bestVal = els.dreamDelaySelect.options.length ? els.dreamDelaySelect.options[0].value : String(current);
-        let bestDiff = Infinity;
-        Array.from(els.dreamDelaySelect.options).forEach(opt=>{
-          const v = parseInt(opt.value,10);
-          const diff = Math.abs(v-current);
-          if(diff<bestDiff){bestDiff=diff;bestVal=opt.value;}
-        });
-        els.dreamDelaySelect.value = bestVal;
-        const ms = state.dreamDelayMs;
-        let label;
-        if(ms < 60000){
-          label = Math.round(ms/1000) + " seconds";
-        }else{
-          const mins = ms/60000;
-          if(mins >= 60){
-            const hrs = mins/60;
-            label = hrs.toFixed(1).replace(/\.0$/,"") + " hours";
-          }else{
-            label = mins + " minutes";
-          }
-        }
-        els.dreamStatusText.textContent = state.dreamEnabled
-          ? "Screensaver is ON · starts after " + label + " of no activity."
-          : "Screensaver is OFF.";
-      }
-
-      function showDreamOverlay(){
-        if(!els.dreamOverlay) return;
-        const bmCount = state.bmPrompts.length || 0;
-        if(els.dreamMetaText){
-          els.dreamMetaText.textContent = bmCount
-            ? "Dreaming across " + bmCount + " BM snapshot" + (bmCount>1?"s":"") + "…"
-            : "Dreaming gently with recent TM feelings (no BM snapshots stored yet).";
-        }
-        els.dreamOverlay.classList.add("show");
-      }
-      function hideDreamOverlay(){
-        if(!els.dreamOverlay) return;
-        els.dreamOverlay.classList.remove("show");
-        scheduleDreamTimer();
-      }
-      function scheduleDreamTimer(){
-        state.lastActivityTs = Date.now();
-        if(state.dreamTimerId){ clearTimeout(state.dreamTimerId); state.dreamTimerId = null; }
-        if(!state.dreamEnabled) return;
-        const delay = Math.min(Math.max(state.dreamDelayMs,30000), 28800000);
-        state.dreamDelayMs = delay;
-        state.dreamTimerId = setTimeout(()=>{ showDreamOverlay(); }, delay);
-      }
-      function registerActivity(){
-        if(els.dreamOverlay && els.dreamOverlay.classList.contains("show")) return;
-        scheduleDreamTimer();
-      }
-
-      function saveCfg(){
-        const cfg = {
-          voiceOn: state.voiceOn,
-          learningOn: state.learningOn,
-          faithSelection: state.faithSelection,
-          faithLiveOptions: state.faithLiveOptions,
-          apiConfig: state.apiConfig,
-          offlineReady: state.offlineReady,
-          dream: { enabled: state.dreamEnabled, delayMs: state.dreamDelayMs }
-        };
-        localStorage.setItem(KEY_CFG, JSON.stringify(cfg));
-      }
-      function saveIntelligence(){ localStorage.setItem(KEY_INT, JSON.stringify(state.intelligence)); }
-      function saveBM(){ localStorage.setItem(KEY_BM, JSON.stringify(state.bmPrompts)); }
-      function saveHistory(){ localStorage.setItem(KEY_HIST, JSON.stringify(state.history)); }
-      function saveUserIdentity(){ localStorage.setItem(KEY_USER, JSON.stringify(state.userIdentity)); }
-      function persistLogicState(){
-        const data = { list: state.logicPacks || [], activeIndex: state.logicActiveIndex };
-        localStorage.setItem(KEY_LOGIC, JSON.stringify(data));
-      }
-
-      function addHistory(role,text){
-        const item = { role, text, ts: Date.now(), locked: false };
-        state.history.push(item);
-        const cutoff = Date.now() - 48*60*60*1000;
-        state.history = state.history.filter(h => h.locked || h.ts >= cutoff);
-        saveHistory();
-      }
-      function toggleHistoryLock(idx){
-        const h = state.history[idx];
-        if(!h) return;
-        h.locked = !h.locked;
-        saveHistory();
-        renderHistory();
-      }
-      function renderHistory(){
-        els.historyBox.innerHTML = "";
-        state.history.forEach((h,idx)=>{
-          const row = document.createElement("div");
-          row.className = "historyLine";
-          const dt = new Date(h.ts).toLocaleString([], {hour:"2-digit",minute:"2-digit", day:"2-digit", month:"short"});
-          const label = h.role==="user" ? "You" : (h.role==="aura" ? "AURA" : h.role);
-          const left = document.createElement("div");
-          left.className = "historyText";
-          left.textContent = `[${dt}] ${label}: ${h.text}`;
-          const btn = document.createElement("button");
-          btn.className = "historyLock";
-          btn.textContent = h.locked ? "🔒" : "🔓";
-          btn.addEventListener("click", ()=>toggleHistoryLock(idx));
-          row.appendChild(left);
-          row.appendChild(btn);
-          els.historyBox.appendChild(row);
-        });
-      }
-
-      /* Faith chips & selection */
-      function renderFaithChips(){
-        els.faithChips.innerHTML = "";
-        FAITH_OPTIONS.forEach(opt=>{
-          const chip = document.createElement("button");
-          chip.className = "chip" + (state.faithSelection.includes(opt.id) ? " active" : "");
-          chip.textContent = opt.label;
-          chip.addEventListener("click", ()=>{
-            let newSel = [...state.faithSelection];
-            if(opt.id==="none"){
-              newSel = [];
-            } else {
-              if(newSel.includes(opt.id)){
-                newSel = newSel.filter(x=>x!==opt.id);
-              } else {
-                newSel = newSel.filter(x=>x!=="none");
-                newSel = [opt.id]; // one primary faith for bar
-              }
-            }
-            applyFaithSelection(newSel);
-          });
-          els.faithChips.appendChild(chip);
-        });
-      }
-
-      function showFaithCfgButtonForFaith(faithId){
-        if(!els.faithCfgBtn) return;
-        if(!faithId || faithId==="none"){
-          els.faithCfgBtn.classList.remove("show");
-          return;
-        }
-        els.faithCfgBtn.classList.add("show");
-        state.currentFaithForCfg = faithId;
-      }
-
-      /* ✅ UPDATED: meta empty => hidden */
-      function setEthicText(main, meta){
-        if(!els.ethicMain || !els.ethicBox) return;
-
-        els.ethicMain.textContent = main;
-
-        if(els.ethicMeta){
-          const m = (meta || "").trim();
-          els.ethicMeta.textContent = m;
-          els.ethicMeta.style.display = m ? "block" : "none";
-        }
-
-        els.ethicBox.classList.remove("ethicPulse");
-        void els.ethicBox.offsetWidth;
-        els.ethicBox.classList.add("ethicPulse");
-      }
-
-      /* ✅ UPDATED: only statement + translation (no lens/topic) */
-      function setEthicFromFaith(faithId, topic){
-        const options = state.faithLiveOptions[faithId] || {};
-
-        if(options.enabled === false){
-          setEthicText(ETHIC_BASE, ""); // meta hidden
-          return;
-        }
-
-        const litPack = FAITH_LITERATURE[faithId];
-        if(!litPack || !litPack.base){
-          setEthicText(ETHIC_BASE, ""); // meta hidden
-          return;
-        }
-
-        const base = litPack.base;
-        let lang = options.lang || "auto";
-        if(lang === "auto") lang = defaultDeviceLang;
-
-        const trans = (base.translations?.[lang] || base.translations?.english || "").trim();
-
-        setEthicText(base.original, trans); // ✅ only two lines
-      }
-
-      function inferTopicFromText(t){
-        const s = (t||"").toLowerCase();
-        if(/death|cry|sad|hard|loss|grief|pain|tension|stress|problem|musibat|imtihan|broken/.test(s)) return "hardship";
-        if(/thanks|thank you|shukr|shukar|grateful|gratitude|blessing|ne'mat|nimat|favou?r/.test(s)) return "gratitude";
-        if(/mother|father|parents|family|friend|dost|wife|husband|relationship|brother|sister|bhai|behen/.test(s)) return "relationships";
-        if(/health|doctor|hospital|ill|sick|fever|disease|bp|sugar|heart attack|medicine/.test(s)) return "health";
-        if(/job|work|office|career|money|loan|business|project|study|exam|paper|marks|salary|promotion/.test(s)) return "work";
-        if(/allah|god|jesus|quran|hadith|bible|gita|prayer|dua|tafsir|masjid|church|temple/.test(s)) return "faith";
-        return "general";
-      }
-
-      /* ✅ UPDATED: lens/topic meta removed for generic mode too */
-      function updateEthicBar(latestUserText){
-        if(!latestUserText) return;
-        state.ethic.messageCount++;
-        if(state.ethic.messageCount < 2) return;
-
-        const topic = inferTopicFromText(latestUserText);
-        const lensId = (state.faithSelection[0] || "none");
-        const now = Date.now();
-
-        if(topic === state.ethic.topic && lensId === state.ethic.lens && (now - state.ethic.lastUpdate) < 15000){
-          return;
-        }
-
-        if(lensId !== "none"){
-          setEthicFromFaith(lensId, topic);
-        } else {
-          const lensKey = ETHIC_LIBRARY[lensId] ? lensId : "general";
-          const lib = ETHIC_LIBRARY[lensKey] || ETHIC_LIBRARY.general;
-          const line = lib[topic] || lib.general || ETHIC_BASE;
-          setEthicText(line, ""); // ✅ no meta
-        }
-
-        state.ethic.topic = topic;
-        state.ethic.lens = lensId;
-        state.ethic.lastUpdate = now;
-      }
-
-      function startFaithFlight(){
-        if(!els.faithBubble) return;
-        state.faithFlightPending = false;
-        state.faithFlightDone = true;
-        els.faithBubble.classList.remove("pulse");
-        els.faithBubble.classList.add("flying");
-        const pill = document.querySelector(".pill");
-        const onEnd = () => {
-          els.faithBubble.classList.remove("show","flying");
-          els.faithBubble.removeEventListener("animationend", onEnd);
-          if(pill) pill.classList.add("faithGlow");
-        };
-        els.faithBubble.addEventListener("animationend", onEnd);
-      }
-
-      function onFaithChanged(){
-        const newFaith = state.faithSelection[0] || "none";
-        state.currentFaith = newFaith;
-        els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
-
-        const pill = document.querySelector(".pill");
-        if(newFaith === "none"){
-          state.currentFaithForCfg = null;
-          state.faithFlightPending = false;
-          state.faithFlightDone = false;
-          if(els.faithCfgBtn) els.faithCfgBtn.classList.remove("show");
-          if(els.faithBubble){
-            els.faithBubble.classList.remove("show","pulse","flying");
-          }
-          if(pill) pill.classList.remove("faithGlow");
-
-          setEthicText(ETHIC_BASE,""); // ✅ no meta
-          state.ethic.lens = "none";
-          saveCfg();
-          return;
-        }
-
-        // New faith selected
-        showFaithCfgButtonForFaith(newFaith);
-
-        // Bubble text
-        if(els.faithBubble){
-          const label = FAITH_OPTIONS.find(f=>f.id===newFaith)?.label || newFaith;
-          els.faithBubbleTitle.textContent = "Faith lens: " + label;
-          els.faithBubbleMeta.textContent = "This golden bar will join the continuity engine after your first reply.";
-          els.faithBubble.classList.remove("flying");
-          els.faithBubble.classList.add("show","pulse");
-        }
-        state.faithFlightPending = true;
-        state.faithFlightDone = false;
-
-        saveCfg();
-      }
-
-      function applyFaithSelection(newSel){
-        state.faithSelection = newSel || [];
-        renderFaithChips();
-        onFaithChanged();
-        saveCfg();
-      }
-
-      /* Faith bubble -> article modal (optional) */
-      function maybeShowFaithBubble(){
-        if(!state.faithSelection.length) return;
-        const pick = state.faithSelection[0];
-        const list = FAITH_LITERATURE[pick];
-        if(!list) return;
-        const art = list.base;
-        state.currentFaithArticle = { id: pick+"_base", title: "Core ethic line", short: "Short reflection from selected literature.", content: art.translations[defaultDeviceLang] || art.translations.english };
-        els.faithBubbleTitle.textContent = "Faith reflection";
-        els.faithBubbleMeta.textContent = "Tap to open a short reflection.";
-        els.faithBubble.classList.add("show");
-      }
-
-      function openModal(el){ el.classList.add("show"); }
-      function closeModalById(id){
-        const el = document.getElementById(id);
-        if(el) el.classList.remove("show");
-      }
-
-      document.body.addEventListener("click",(e)=>{
-        const target = e.target;
-        if(target.dataset && target.dataset.close){
-          closeModalById(target.dataset.close);
-        }
-        if(target.classList && target.classList.contains("modalOverlay") && !target.classList.contains("noClose")){
-          target.classList.remove("show");
-        }
+      Object.keys(norm).forEach(k=>{
+        if(k.startsWith("_")) { merged[k] = norm[k]; return; }
+        const v = (norm[k] || "").trim();
+        if(v) merged[k] = v;
       });
 
-      if(els.faithBubble){
-        els.faithBubble.addEventListener("click",()=>{
-          if(!state.currentFaithArticle) return;
-          const art = state.currentFaithArticle;
-          const meta = `Lens: ${state.faithSelection.join(", ") || "none"} · id=${art.id||"base"}`;
-          els.faithArticleMeta.textContent = meta;
-          els.faithArticleTitle.textContent = art.title || "Faith reflection";
-          els.faithArticleText.value = art.content || "";
-          openModal(els.modalFaithArticle);
-        });
+      saveUserIdentity(merged);
+      loadIdentityIntoForm();
+      showToast("Identity imported successfully");
+    }
+
+    async function importIdentityFromHub(){
+      const ctrl = new AbortController();
+      const timer = setTimeout(()=>ctrl.abort(), 6000);
+      try{
+        const res = await fetch(IDENTITY_HUB_JSON, { cache:"no-store", signal: ctrl.signal });
+        if(!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        importIdentityPayload(data);
+      }catch(e){
+        console.warn("Identity Hub import failed:", e);
+        showToast("Hub import failed — opening Hub");
+        openIdentityHub();
+      }finally{
+        clearTimeout(timer);
       }
-      if(els.faithBubbleClose){
-        els.faithBubbleClose.addEventListener("click",(ev)=>{
-          ev.stopPropagation();
-          els.faithBubble.classList.remove("show","pulse","flying");
-        });
+    }
+
+    window.addEventListener("message",(ev)=>{
+      const d = ev?.data;
+      if(!d) return;
+      if(d.type === "AURA_IDENTITY_EXPORT" && d.payload){
+        importIdentityPayload(d.payload);
       }
-
-      els.btnCopyFaithArticle.addEventListener("click",()=>{
-        navigator.clipboard?.writeText(els.faithArticleText.value||"");
-        showToast("Faith reflection copied");
-      });
-      els.btnExportFaithArticle.addEventListener("click",()=>{
-        const title = (els.faithArticleTitle.textContent || "faith_reflection").replace(/[^\w\-]+/g,"_");
-        const blob = new Blob([els.faithArticleText.value || ""], {type:"text/plain;charset=utf-8"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = title + ".txt";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast("Exported as text file");
-      });
-      els.btnSkipFaithBM.addEventListener("click",()=>{
-        closeModalById("modalFaithArticle");
-      });
-
-      /* Faith live bar config modal */
-      if(els.faithCfgBtn){
-        els.faithCfgBtn.addEventListener("click",()=>{
-          const fid = state.currentFaithForCfg;
-          if(!fid || fid==="none") return;
-          const opt = state.faithLiveOptions[fid] || { enabled:true, lang:"auto" };
-          const label = FAITH_OPTIONS.find(f=>f.id===fid)?.label || fid;
-          els.faithCfgFaithName.textContent = label;
-          els.faithCfgFaithTitle.textContent = "Configure live bar for "+label;
-          els.faithCfgEnable.checked = opt.enabled !== false;
-          els.faithCfgLang.value = opt.lang || "auto";
-          openModal(els.modalFaithCfg);
-        });
-      }
-      if(els.faithCfgSave){
-        els.faithCfgSave.addEventListener("click",()=>{
-          const fid = state.currentFaithForCfg;
-          if(!fid || fid==="none") return;
-          const enabled = els.faithCfgEnable.checked;
-          const lang = els.faithCfgLang.value || "auto";
-          state.faithLiveOptions[fid] = { enabled, lang };
-          saveCfg();
-          if(els.faithCfgBtn) els.faithCfgBtn.classList.remove("show");
-          closeModalById("modalFaithCfg");
-          showToast("Faith live bar updated");
-          if(enabled){
-            setEthicFromFaith(fid, state.ethic.topic || "general");
-          } else {
-            setEthicText(ETHIC_BASE,""); // ✅ no meta
-          }
-        });
-      }
-
-      /* Intelligence rendering */
-      function renderIntelligence(filter=""){
-        els.intelList.innerHTML = "";
-        const q = (filter||"").toLowerCase();
-        const list = state.intelligence.filter(item=>{
-          if(!q) return true;
-          return (item.q||"").toLowerCase().includes(q) || (item.a||"").toLowerCase().includes(q);
-        });
-        if(!list.length){
-          const p = document.createElement("div");
-          p.style.fontSize = "12px";
-          p.style.opacity = "0.65";
-          p.textContent = "No intelligence stored yet.";
-          els.intelList.appendChild(p);
-          return;
-        }
-        list.forEach(item=>{
-          const card = document.createElement("div");
-          card.className = "intelCard";
-          const top = document.createElement("div");
-          top.className = "intelTop";
-          const qDiv = document.createElement("div");
-          qDiv.className = "intelQ";
-          qDiv.textContent = "Q: " + item.q;
-          const meta = document.createElement("div");
-          meta.className = "intelMeta";
-          const dt = new Date(item.ts||Date.now()).toLocaleString();
-          meta.textContent = `id=${item.id} · ${dt}`;
-          top.appendChild(qDiv);
-          top.appendChild(meta);
-          const aDiv = document.createElement("div");
-          aDiv.className = "intelA";
-          aDiv.textContent = "A: " + item.a;
-          const btns = document.createElement("div");
-          btns.className = "intelButtons";
-          const bEdit = document.createElement("button");
-          bEdit.className = "btn btnBlue";
-          bEdit.textContent = "Edit";
-          const bDelete = document.createElement("button");
-          bDelete.className = "btn btnRed";
-          bDelete.textContent = "Delete";
-          const bCopy = document.createElement("button");
-          bCopy.className = "btn btnBlue";
-          bCopy.textContent = "Copy";
-          bCopy.addEventListener("click",()=>{
-            navigator.clipboard?.writeText(`Q: ${item.q}\nA: ${item.a}`);
-            showToast("Pair copied");
-          });
-          bDelete.addEventListener("click",()=>{
-            if(!confirm("Delete this Q→A pair?")) return;
-            state.intelligence = state.intelligence.filter(x=>x.id!==item.id);
-            saveIntelligence();
-            renderIntelligence(els.intelSearch.value);
-            showToast("Deleted");
-          });
-          bEdit.addEventListener("click",()=>{
-            state.editingIntelId = (state.editingIntelId === item.id) ? null : item.id;
-            renderIntelligence(els.intelSearch.value);
-          });
-          btns.appendChild(bEdit);
-          btns.appendChild(bCopy);
-          btns.appendChild(bDelete);
-          card.appendChild(top);
-          card.appendChild(aDiv);
-          card.appendChild(btns);
-          if(state.editingIntelId === item.id){
-            const editBlock = document.createElement("div");
-            editBlock.className = "intelEditBlock";
-            const qi = document.createElement("input");
-            qi.className = "intelEditInput";
-            qi.value = item.q;
-            const ai = document.createElement("textarea");
-            ai.className = "intelEditArea";
-            ai.value = item.a;
-            const row = document.createElement("div");
-            row.style.display = "flex";
-            row.style.gap = "8px";
-            row.style.marginTop = "6px";
-            row.style.flexWrap = "wrap";
-            const bSave = document.createElement("button");
-            bSave.className = "btn btnGreen";
-            bSave.textContent = "Save";
-            const bCancel = document.createElement("button");
-            bCancel.className = "btn btnRed";
-            bCancel.textContent = "Cancel";
-            bSave.addEventListener("click",()=>{
-              item.q = qi.value.trim();
-              item.a = ai.value.trim();
-              item.ts = item.ts || Date.now();
-              saveIntelligence();
-              state.editingIntelId = null;
-              renderIntelligence(els.intelSearch.value);
-              showToast("Updated");
-            });
-            bCancel.addEventListener("click",()=>{
-              state.editingIntelId = null;
-              renderIntelligence(els.intelSearch.value);
-            });
-            row.appendChild(bSave);
-            row.appendChild(bCancel);
-            editBlock.appendChild(qi);
-            editBlock.appendChild(ai);
-            editBlock.appendChild(row);
-            card.appendChild(editBlock);
-          }
-          els.intelList.appendChild(card);
-        });
-      }
-      els.intelSearch.addEventListener("input",()=>renderIntelligence(els.intelSearch.value));
-
-      /* Seed parsing */
-      function parseSeedBlock(text){
-        const lines = text.split(/\r?\n/);
-        const joined = lines.join("\n");
-        const regex = /\\item\s*(.+?)\s*\\textbf\{A:\}\s*([\s\S]*?)(?=\\item|$)/g;
-        const out = [];
-        let m;
-        while((m = regex.exec(joined))!==null){
-          const q = m[1].trim();
-          const rawA = m[2].trim();
-          let a = rawA;
-          const bracket = rawA.match(/^\[.*?\]\s*(.*)$/s);
-          if(bracket) a = bracket[1].trim();
-          if(q && a){
-            out.push({ id:"seed_"+(Date.now()+"_"+out.length), q, a, ts:Date.now() });
-          }
-        }
-        return out;
-      }
-      els.btnParseSeed.addEventListener("click",()=>{
-        const txt = els.seedBox.value.trim();
-        if(!txt){ els.seedHint.textContent = "Nothing to parse."; return; }
-        const parsed = parseSeedBlock(txt);
-        state.parsedSeed = parsed;
-        els.seedHint.textContent = `Parsed ${parsed.length} Q→A pairs (not saved yet).`;
-      });
-      els.btnSaveSeed.addEventListener("click",()=>{
-        if(!state.parsedSeed.length){
-          els.seedHint.textContent = "Nothing parsed yet.";
-          return;
-        }
-        state.seedPairs = state.seedPairs.concat(state.parsedSeed);
-        state.parsedSeed = [];
-        els.seedHint.textContent = "Saved into seed memory.";
-        els.seedBox.value = "";
-        showToast("Seed updated");
-      });
-      els.btnDiscardSeed.addEventListener("click",()=>{
-        els.seedBox.value = "";
-        state.parsedSeed = [];
-        els.seedHint.textContent = "Discarded block.";
-      });
-
-      /* Logic packs */
-      function applyLogicPack(idx){
-        state.logicActiveIndex = idx;
-        if(idx==null || !state.logicPacks[idx]) return;
-        const pack = state.logicPacks[idx];
-        state.logicFaithSoftener = pack.faithSoftener !== false;
-        if(pack.ui){
-          if(pack.ui.theme === "golden"){
-            document.body.classList.add("theme-golden");
-          } else {
-            document.body.classList.remove("theme-golden");
-          }
-          if(pack.ui.accentColor){
-            document.documentElement.style.setProperty("--accent-color", pack.ui.accentColor);
-          }
-        }
-        persistLogicState();
-      }
-      els.btnValidateLogic.addEventListener("click",()=>{
-        try{
-          JSON.parse(els.logicBox.value);
-          els.logicHint.textContent = "Valid JSON.";
-          showToast("Logic JSON valid");
-        }catch(e){
-          els.logicHint.textContent = "Invalid JSON: "+e.message;
-        }
-      });
-      els.btnSaveLogic.addEventListener("click",()=>{
-        try{
-          const obj = JSON.parse(els.logicBox.value);
-          obj.serial = obj.serial || ("L"+(state.logicPacks.length+1));
-          state.logicPacks.push(obj);
-          els.logicSerial.textContent = obj.serial;
-          els.logicHint.textContent = "Saved as "+obj.serial;
-          applyLogicPack(state.logicPacks.length-1);
-          persistLogicState();
-          showToast("Logic pack saved");
-        }catch(e){
-          els.logicHint.textContent = "Cannot save: invalid JSON.";
-        }
-      });
-      els.btnCopyLogic.addEventListener("click",()=>{
-        navigator.clipboard?.writeText(els.logicBox.value||"");
-        showToast("Logic copied");
-      });
-      els.btnDeleteLogic.addEventListener("click",()=>{
-        if(state.logicActiveIndex==null || !state.logicPacks[state.logicActiveIndex]){
-          els.logicHint.textContent = "No active logic pack.";
-          return;
-        }
-        if(!confirm("Delete current logic pack?")) return;
-        state.logicPacks.splice(state.logicActiveIndex,1);
-        state.logicActiveIndex = null;
-        els.logicSerial.textContent = "none";
-        els.logicHint.textContent = "Deleted.";
-        document.body.classList.remove("theme-golden");
-        document.documentElement.style.setProperty("--accent-color", "#0ea5e9");
-        persistLogicState();
-      });
-
-      /* BM list & viewer */
-      function renderBMList(){
-        els.bmSelectList.innerHTML = "";
-        const q = (els.bmSearch.value||"").toLowerCase();
-        const d = (els.bmDate.value||"");
-        const list = state.bmPrompts.filter(b=>{
-          let ok = true;
-          if(q){
-            ok = (b.title||"").toLowerCase().includes(q) || (b.text||"").toLowerCase().includes(q);
-          }
-          if(ok && d){
-            const dStr = new Date(b.ts||Date.now()).toISOString().slice(0,10);
-            ok = (dStr === d);
-          }
-          return ok;
-        }).sort((a,b)=> (b.ts||0)-(a.ts||0));
-        if(!list.length){
-          const div = document.createElement("div");
-          div.style.fontSize = "12px";
-          div.style.opacity = "0.65";
-          div.textContent = "No BM prompts yet.";
-          els.bmSelectList.appendChild(div);
-          return;
-        }
-        list.forEach(bm=>{
-          const item = document.createElement("div");
-          item.className = "bmItem";
-          const left = document.createElement("div");
-          const title = document.createElement("div");
-          title.className = "bmItemTitle";
-          title.textContent = bm.title||"(untitled)";
-          const meta = document.createElement("div");
-          meta.className = "bmItemMeta";
-          const ds = new Date(bm.ts||Date.now()).toISOString().slice(0,10);
-          meta.textContent = ds + (bm.locked ? " · 🔒" : "");
-          left.appendChild(title);
-          left.appendChild(meta);
-          item.appendChild(left);
-          item.addEventListener("click",()=>selectBM(bm.id));
-          els.bmSelectList.appendChild(item);
-        });
-      }
-      function selectBM(id){
-        const bm = state.bmPrompts.find(x=>x.id===id);
-        state.selectedBMId = id;
-        if(!bm){
-          els.bmViewer.style.display = "none";
-          return;
-        }
-        els.bmViewer.style.display = "block";
-        els.bmTitle.textContent = bm.title||"Prompt";
-        const ds = new Date(bm.ts||Date.now()).toLocaleString();
-        const live = bm.liveUntil && bm.liveUntil > Date.now();
-        els.bmMeta.textContent = ds + (bm.locked ? " · locked" : " · editable") + (live ? " · LIVE 12h" : "");
-        els.bmTextArea.value = bm.text||"";
-        els.bmTextArea.readOnly = true;
-        els.bmLockIcon.textContent = bm.locked ? "🔒" : "🔓";
-        els.btnUnlockBM.style.display = bm.locked ? "inline-flex" : "none";
-        els.btnLiveBM.textContent = live ? "Live 12h: on" : "Live 12h: off";
-      }
-      els.bmSearch.addEventListener("input", renderBMList);
-      els.bmDate.addEventListener("change", ()=>{
-        renderBMList();
-        const d = els.bmDate.value;
-        if(d){
-          const found = state.bmPrompts.find(b=>{
-            const ds = new Date(b.ts||Date.now()).toISOString().slice(0,10);
-            return ds === d;
-          });
-          if(found) selectBM(found.id);
-        }
-      });
-      els.btnLiveBM.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        const now = Date.now();
-        if(bm.liveUntil && bm.liveUntil > now){
-          bm.liveUntil = null;
-        } else {
-          bm.liveUntil = now + 12*60*60*1000;
-        }
-        saveBM();
-        renderBMList();
-        selectBM(bm.id);
-      });
-      els.btnUnlockBM.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        if(!confirm("Unlock this BM prompt for editing?")) return;
-        bm.locked = false;
-        saveBM();
-        renderBMList();
-        selectBM(bm.id);
-      });
-      els.btnCopyPrompt.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        navigator.clipboard?.writeText(bm.text||"");
-        showToast("BM prompt copied");
-      });
-      els.btnAutoGen.addEventListener("click",()=>{
-        showToast("Video generation is a placeholder in this offline prototype.");
-      });
-      els.btnDeletePrompt.addEventListener("click",()=>{
-        if(!state.selectedBMId) return;
-        const bm = state.bmPrompts.find(x=>x.id===state.selectedBMId);
-        if(!bm) return;
-        if(!confirm("Delete this BM prompt?")) return;
-        if(!confirm("Are you sure? This cannot be undone.")) return;
-        state.bmPrompts = state.bmPrompts.filter(x=>x.id!==bm.id);
-        state.selectedBMId = null;
-        saveBM();
-        recomputeBMMetric();
-        recomputeE0(0,0);
-        updateCapsule();
-        renderBMList();
-        els.bmViewer.style.display = "none";
-        showToast("BM prompt deleted");
-      });
-
-      if(els.btnToggleDream){
-        els.btnToggleDream.addEventListener("click",()=>{
-          state.dreamEnabled = !state.dreamEnabled;
-          if(!state.dreamEnabled){
-            if(state.dreamTimerId){ clearTimeout(state.dreamTimerId); state.dreamTimerId = null; }
-            if(els.dreamOverlay) els.dreamOverlay.classList.remove("show");
-          }
-          updateDreamUI();
-          saveCfg();
-          scheduleDreamTimer();
-        });
-      }
-      if(els.dreamDelaySelect){
-        els.dreamDelaySelect.addEventListener("change",()=>{
-          const v = parseInt(els.dreamDelaySelect.value,10);
-          if(!isNaN(v)){
-            state.dreamDelayMs = v;
-            updateDreamUI();
-            saveCfg();
-            scheduleDreamTimer();
-          }
-        });
-      }
-      if(els.btnTestDream && els.dreamOverlay){
-        els.btnTestDream.addEventListener("click",()=>{ showDreamOverlay(); });
-      }
-      if(els.dreamOverlay){
-        els.dreamOverlay.addEventListener("click",()=>{ hideDreamOverlay(); });
-      }
-
-      /* Identity */
-      function loadIdentityIntoForm(){
-        const u = state.userIdentity || {};
-        els.uName.value = u.name || "";
-        els.uNick.value = u.nick || "";
-        els.uOrigin.value = u.origin || "";
-        els.uPlace.value = u.place || "";
-        els.uProfession.value = u.profession || "";
-        els.uEmotionalStyle.value = u.emotionalStyle || "";
-        els.uKeyPeople.value = u.keyPeople || "";
-        els.uLegacyRules.value = u.legacyRules || "";
-      }
-      els.btnEditIdentity.addEventListener("click",()=>{
-        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
-         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.removeAttribute("readonly"));
-        showToast("Identity fields unlocked for edit");
-      });
-      els.btnSaveUserIdentity.addEventListener("click",()=>{
-        state.userIdentity = {
-          name: els.uName.value.trim(),
-          nick: els.uNick.value.trim(),
-          origin: els.uOrigin.value.trim(),
-          place: els.uPlace.value.trim(),
-          profession: els.uProfession.value.trim(),
-          emotionalStyle: els.uEmotionalStyle.value.trim(),
-          keyPeople: els.uKeyPeople.value.trim(),
-          legacyRules: els.uLegacyRules.value.trim(),
-          ts: Date.now()
-        };
-        saveUserIdentity();
-        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
-         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.setAttribute("readonly","readonly"));
-        showToast("Identity saved locally");
-      });
-      els.btnDeleteUserIdentity.addEventListener("click",()=>{
-        if(!confirm("Delete stored identity data?")) return;
-        if(!confirm("Are you sure?")) return;
-        state.userIdentity = null;
-        localStorage.removeItem(KEY_USER);
-        [els.uName,els.uNick,els.uOrigin,els.uPlace,els.uProfession,
-         els.uEmotionalStyle,els.uKeyPeople,els.uLegacyRules].forEach(el=>el.value="");
-        showToast("Identity deleted");
-      });
-
-      /* LLM */
-      els.btnSaveLLM.addEventListener("click",()=>{
-        state.apiConfig = {
-          endpoint: els.apiEndpoint.value.trim(),
-          model: els.apiModel.value.trim(),
-          key: els.apiKey.value.trim()
-        };
-        saveCfg();
-        showToast("LLM config saved");
-      });
-      async function loadOfflineModel(){
-        if(!window.webllm){
-          els.offlineStatus.textContent = "WebLLM not available.";
-          return;
-        }
-        if(state.offlineReady || state.offlineLoading) return;
-        try{
-          state.offlineLoading = true;
-          els.offlineStatus.textContent = "loading…";
-          els.offlineBar.style.width = "25%";
-          const engine = await window.webllm.CreateMLCEngine(OFFLINE_MODEL_ID, {
-            initProgressCallback: (p)=>{
-              const pct = Math.round((p.progress||0)*100);
-              els.offlineBar.style.width = pct+"%";
-            }
-          });
-          state.offlineEngine = engine;
-          state.offlineReady = true;
-          state.offlineLoading = false;
-          els.offlineStatus.textContent = "ready";
-          els.offlineBar.style.width = "100%";
-          saveCfg();
-          showToast("Offline model ready");
-        }catch(e){
-          state.offlineLoading = false;
-          els.offlineStatus.textContent = "error";
-          showToast("Offline model error");
-        }
-      }
-      els.btnLoadOffline.addEventListener("click", loadOfflineModel);
-      async function callOfflineLLM(prompt){
-        if(!state.offlineReady || !state.offlineEngine) return null;
-        try{
-          const reply = await state.offlineEngine.chatCompletion({
-            messages:[{role:"user",content:prompt}],
-            stream:false
-          });
-          const text = reply?.choices?.[0]?.message?.content || "";
-          return text.trim() || null;
-        }catch{
-          return null;
-        }
-      }
-      async function callOnlineLLM(prompt){
-        const {endpoint,model,key} = state.apiConfig;
-        if(!endpoint || !model || !key) return null;
-        try{
-          const resp = await fetch(endpoint,{
-            method:"POST",
-            headers:{
-              "Content-Type":"application/json",
-              "Authorization":"Bearer "+key
-            },
-            body:JSON.stringify({
-              model,
-              messages:[{role:"user",content:prompt}],
-              temperature:0.7
-            })
-          });
-          if(!resp.ok) return null;
-          const data = await resp.json();
-          const text = data.choices?.[0]?.message?.content || "";
-          return text.trim() || null;
-        }catch{
-          return null;
-        }
-      }
-
-      /* Options */
-      els.btnOptions.addEventListener("click",()=>{ els.optionsMenu.classList.toggle("show"); });
-      els.miVoice.addEventListener("click",()=>{
-        state.voiceOn = !state.voiceOn;
-        els.voicePill.textContent = state.voiceOn ? "on" : "off";
-        els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
-        saveCfg();
-      });
-      els.miLearn.addEventListener("click",()=>{
-        state.learningOn = !state.learningOn;
-        els.learnPill.textContent = state.learningOn ? "on" : "off";
-        els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
-        saveCfg();
-      });
-      els.miFaith.addEventListener("click",()=>openModal(els.modalFaith));
-      els.miIntel.addEventListener("click",()=>openModal(els.modalIntel));
-      els.miSeed.addEventListener("click",()=>openModal(els.modalSeed));
-      els.miLLM.addEventListener("click",()=>openModal(els.modalLLM));
-      els.miBMRecall.addEventListener("click",()=>openModal(els.modalBM));
-      els.miHistory.addEventListener("click",()=>{renderHistory();openModal(els.modalHistory);});
-      els.miIdentity.addEventListener("click",()=>{loadIdentityIntoForm();openModal(els.modalIdentity);});
-
-      /* History buttons */
-      els.btnDeleteRecent.addEventListener("click",()=>{
-        const cutoff = Date.now() - 48*60*60*1000;
-        state.history = state.history.filter(h=>h.locked || h.ts < cutoff);
-        saveHistory();
-        renderHistory();
-      });
-      els.btnDeleteAllHist.addEventListener("click",()=>{
-        if(!confirm("Delete all history (except locked)?")) return;
-        state.history = state.history.filter(h=>h.locked);
-        saveHistory();
-        renderHistory();
-      });
-      els.btnCopyHistory.addEventListener("click",()=>{
-        const text = state.history.map(h=>{
-          const dt = new Date(h.ts).toLocaleString();
-          const label = h.role==="user" ? "You" : (h.role==="aura" ? "AURA" : h.role);
-          return `[${dt}] ${label}: ${h.text}`;
-        }).join("\n");
-        navigator.clipboard?.writeText(text);
-        showToast("History copied");
-      });
-
-      /* Image preview */
-      if(els.visionInput){
-        els.visionInput.addEventListener("change",()=>{
-          const input = els.visionInput;
-          if(input.files && input.files[0]){
-            const reader = new FileReader();
-            reader.onload = function(e){
-              els.imgPrev.src = e.target.result;
-              els.imagePreviewArea.style.display = "block";
-              logLine("sys","[Vision] Image attached. Meaning extraction is a future module.");
-            };
-            reader.readAsDataURL(input.files[0]);
-          }
-        });
-      }
-
-      /* Main chat + self-learning pipeline */
-      async function handleSend(){
-        const raw = els.userInput.value;
-        const text = raw.trim();
-        if(!text) return;
-        els.userInput.value = "";
-        els.optionsMenu.classList.remove("show");
-
-        if(state.correcting){
-          const correctA = text;
-          if(state.lastUserQ && correctA){
-            const id = "intel_"+Date.now();
-            state.intelligence.push({ id, q: state.lastUserQ, a: correctA, ts: Date.now() });
-            saveIntelligence();
-            renderIntelligence(els.intelSearch.value);
-            logLine("sys","[Self-learning] Stored corrected answer into intelligence.");
-            showToast("Correct answer stored");
-          }
-          state.correcting = false;
-          return;
-        }
-
-        logLine("user","You: "+text);
-        registerActivity();
-        const now = Date.now();
-        if(state.cooldownUntil && now < state.cooldownUntil){
-          logLine("sys","[Cooldown] Please wait a moment before sending more messages.");
-          return;
-        }
-        state.metrics.TM = scoreTM(text);
-        recomputeBMMetric();
-        let intelBoost = 0, llmBoost = 0;
-        let answer = null;
-        let source = "none";
-
-        const tLower = text.toLowerCase();
-        let bestMatch = state.intelligence.find(p=>p.q.toLowerCase()===tLower);
-        if(!bestMatch){
-          bestMatch = state.intelligence.find(p=>tLower.includes(p.q.toLowerCase()) || p.q.toLowerCase().includes(tLower));
-        }
-        if(bestMatch){
-          answer = bestMatch.a;
-          source = "intelligence";
-          intelBoost = 0.35;
-        }
-
-        if(!answer && state.seedPairs.length){
-          let sMatch = state.seedPairs.find(p=>p.q.toLowerCase()===tLower);
-          if(!sMatch){
-            sMatch = state.seedPairs.find(p=>tLower.includes(p.q.toLowerCase()) || p.q.toLowerCase().includes(tLower));
-          }
-          if(sMatch){
-            answer = sMatch.a;
-            source = "seed";
-            intelBoost = 0.25;
-          }
-        }
-
-        if(!answer && state.offlineReady){
-          answer = await callOfflineLLM(text);
-          if(answer){
-            source = "offline";
-            llmBoost = 0.25;
-          }
-        }
-        if(!answer){
-          answer = await callOnlineLLM(text);
-          if(answer){
-            source = "online";
-            llmBoost = 0.30;
-          }
-        }
-        if(!answer){
-          answer = "I don't have a stored answer yet. You can teach me using the 👎 button or by adding LaTeX blocks under Feed the seed.";
-          source = "fallback";
-        }
-
-        state.lastUserQ = text;
-        state.lastAuraA = answer;
-        state.lastAnswerSource = source;
-        recomputeE0(intelBoost, llmBoost);
-        updateCapsule();
-        logLine("aura","AURA: "+answer+"  (source: "+source+")");
-
-        if(state.voiceOn){
-          try{
-            const u = new SpeechSynthesisUtterance(answer);
-            const e0 = state.metrics.E0;
-            let rate = 1, pitch = 1;
-            if(e0 > 0.3){
-              const t = Math.min((e0-0.3)*2,1);
-              rate = 1.05 + 0.3*t;
-              pitch = 1.05 + 0.3*t;
-            }else if(e0 < -0.3){
-              const t = Math.min((Math.abs(e0)-0.3)*2,1);
-              rate = 0.95 - 0.25*t;
-              pitch = 0.95 - 0.35*t;
-            }
-            u.rate = Math.max(0.6,Math.min(rate,1.6));
-            u.pitch = Math.max(0.5,Math.min(pitch,1.8));
-            speechSynthesis.speak(u);
-          }catch{}
-        }
-
-        // After first answer with faith ON -> golden bar flies to top
-        if(state.faithSelection.length && state.faithFlightPending && !state.faithFlightDone){
-          startFaithFlight();
-        }
-
-        updateEthicBar(text);
-      }
-
-      els.sendBtn.addEventListener("click",handleSend);
-      els.userInput.addEventListener("keydown",e=>{
-        if(e.key==="Enter" && !e.shiftKey){
-          e.preventDefault();
-          handleSend();
-        }
-      });
-
-      function interceptIncorrect(text){
-        return text.trim().toLowerCase()==="incorrect";
-      }
-      els.userInput.addEventListener("keydown",e=>{
-        if(e.key==="Enter" && !e.shiftKey){
-          const val = els.userInput.value.trim();
-          if(interceptIncorrect(val) && state.lastUserQ && state.lastAuraA){
-            e.preventDefault();
-            els.userInput.value = "";
-            logLine("user","You: incorrect");
-            logLine("sys","[Self-learning] Please type the correct answer for the last question.");
-            state.correcting = true;
-            return;
-          }
-        }
-      });
-
-      /* Reaction buttons */
-      els.btnLikeLast.addEventListener("click",()=>{
-        if(!state.lastUserQ || !state.lastAuraA){
-          showToast("No last answer to save");
-          return;
-        }
-        const already = state.intelligence.find(p=>p.q===state.lastUserQ && p.a===state.lastAuraA);
-        if(already){
-          showToast("Already in intelligence");
-          return;
-        }
-        const id = "intel_"+Date.now();
-        state.intelligence.push({id,q:state.lastUserQ,a:state.lastAuraA,ts:Date.now()});
-        saveIntelligence();
-        renderIntelligence(els.intelSearch.value);
-        showToast("Saved to intelligence");
-      });
-      els.btnDislikeLast.addEventListener("click",()=>{
-        if(!state.lastUserQ || !state.lastAuraA){
-          showToast("No last answer");
-          return;
-        }
-        logLine("sys","[Self-learning] Type the correct answer in chat. It will replace the last one.");
-        state.correcting = true;
-      });
-      els.btnSpeakLast.addEventListener("click",()=>{
-        if(!state.lastAuraA){
-          showToast("No last answer");
-          return;
-        }
-        try{
-          const u = new SpeechSynthesisUtterance(state.lastAuraA);
-          speechSynthesis.speak(u);
-        }catch{}
-      });
-      els.btnShareLast.addEventListener("click",()=>{
-        if(!state.lastUserQ || !state.lastAuraA){
-          showToast("No last pair");
-          return;
-        }
-        const text = `Q: ${state.lastUserQ}\nA: ${state.lastAuraA}`;
-        navigator.clipboard?.writeText(text);
-        showToast("Question + answer copied");
-      });
-
-      document.addEventListener("click", ()=>registerActivity(), true);
-      document.addEventListener("keydown", ()=>registerActivity(), true);
-
-      /* Load from localStorage on start */
-      function initFromStorage(){
-        const cfg = safeLoadJSON(KEY_CFG,null);
-        if(cfg){
-          state.voiceOn = !!cfg.voiceOn;
-          state.learningOn = cfg.learningOn!==false;
-          state.faithSelection = cfg.faithSelection||[];
-          state.faithLiveOptions = cfg.faithLiveOptions || {};
-          state.apiConfig = cfg.apiConfig||state.apiConfig;
-          state.offlineReady = !!cfg.offlineReady;
-          if(cfg.dream){
-            state.dreamEnabled = !!cfg.dream.enabled;
-            state.dreamDelayMs = cfg.dream.delayMs || state.dreamDelayMs;
-          }
-        }
-        els.voicePill.textContent = state.voiceOn ? "on" : "off";
-        els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
-        els.learnPill.textContent = state.learningOn ? "on" : "off";
-        els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
-
-        state.intelligence = safeLoadJSON(KEY_INT,[]);
-        state.bmPrompts = safeLoadJSON(KEY_BM,[]);
-        state.history = safeLoadJSON(KEY_HIST,[]);
-        state.userIdentity = safeLoadJSON(KEY_USER,null);
-        const logicStored = safeLoadJSON(KEY_LOGIC,null);
-        if(logicStored){
-          state.logicPacks = logicStored.list||[];
-          state.logicActiveIndex = logicStored.activeIndex;
-          if(state.logicActiveIndex!=null) applyLogicPack(state.logicActiveIndex);
-        }
-        if(state.apiConfig.endpoint) els.apiEndpoint.value = state.apiConfig.endpoint;
-        if(state.apiConfig.model) els.apiModel.value = state.apiConfig.model;
-        if(state.apiConfig.key) els.apiKey.value = state.apiConfig.key;
-
-        renderFaithChips();
-        onFaithChanged();
-
-        renderIntelligence("");
-        renderBMList();
-        renderHistory();
-        loadIdentityIntoForm();
-        recomputeBMMetric();
-        recomputeE0(0,0);
-        updateCapsule();
-        updateDreamUI();
-        scheduleDreamTimer();
-
-        setEthicText(ETHIC_BASE,""); // ✅ no meta
-      }
-      initFromStorage();
-      logLine("sys","AURA-X Ω ready. TM = your inputs only; everything else stays on this device.");
     });
+
+    els.btnEditIdentity.addEventListener("click", ()=>{
+      const isReadOnly = els.uName.hasAttribute("readonly");
+      document.querySelectorAll("#modalIdentity input, #modalIdentity textarea").forEach(x=>{
+        if(isReadOnly) x.removeAttribute("readonly");
+        else x.setAttribute("readonly", "readonly");
+      });
+      showToast(isReadOnly ? "Edit enabled" : "Edit locked");
+    });
+
+    els.btnSaveUserIdentity.addEventListener("click", ()=>{
+      const data = {
+        name: els.uName.value.trim(),
+        nick: els.uNick.value.trim(),
+        origin: els.uOrigin.value.trim(),
+        place: els.uPlace.value.trim(),
+        profession: els.uProfession.value.trim(),
+        emotionalStyle: els.uEmotionalStyle.value.trim(),
+        keyPeople: els.uKeyPeople.value.trim(),
+        legacyRules: els.uLegacyRules.value.trim()
+      };
+      saveUserIdentity(data);
+      document.querySelectorAll("#modalIdentity input, #modalIdentity textarea").forEach(x=>x.setAttribute("readonly","readonly"));
+      showToast("Identity saved");
+    });
+
+    els.btnDeleteUserIdentity.addEventListener("click", ()=>{
+      if(!confirm("Clear identity?")) return;
+      saveUserIdentity(null);
+      document.querySelectorAll("#modalIdentity input, #modalIdentity textarea").forEach(x=>{
+        x.value = "";
+        x.setAttribute("readonly","readonly");
+      });
+      showToast("Identity deleted");
+    });
+
+    els.btnOpenIdentityHub.addEventListener("click", openIdentityHub);
+    els.btnImportIdentityHub.addEventListener("click", importIdentityFromHub);
+
+    /*********************
+     *  LLM (Offline / fallback)
+     *********************/
+    async function askLLM(prompt){
+      const learned = findLearnedAnswer(prompt);
+      if(learned) return { text: learned, source: "learned" };
+
+      try{
+        if(window.webllm){
+          return { text: "Offline LLM placeholder response (WebLLM ready).", source: "offline-llm" };
+        }
+      }catch(e){}
+
+      return { text: "I’m offline right now. Please teach me, or open the online helper later.", source: "fallback" };
+    }
+
+    /*********************
+     *  Self-learning correction flow
+     *********************/
+    let correctionMode = null;
+
+    function inferEmotion(userText, auraText){
+      const t = (userText||"").toLowerCase();
+      let emotion = "neutral";
+      let polarity = 0;
+      let intensity = 0;
+
+      if(t.includes("love") || t.includes("thanks") || t.includes("good") || t.includes("great")){
+        emotion="positive"; polarity=1; intensity=0.6;
+      }
+      if(t.includes("hate") || t.includes("bad") || t.includes("angry") || t.includes("wrong")){
+        emotion="negative"; polarity=-1; intensity=0.7;
+      }
+      const category = isSmallTalk(userText) ? "small-talk" : "general";
+      return { emotion, polarity, intensity, category };
+    }
+
+    function updateEmotionMetaUI(meta){
+      els.mEmotion.textContent = meta.emotion;
+      els.mPol.textContent = meta.polarity;
+      els.mInt.textContent = meta.intensity;
+      els.mCat.textContent = meta.category;
+      refreshCapsules();
+    }
+
+    function setStatus(s){ els.statusLine.textContent = s; }
+
+    async function respondToUser(userText){
+      setStatus("Thinking…");
+      const res = await askLLM(userText);
+      const auraText = res.text;
+
+      const meta = inferEmotion(userText, auraText);
+      state.lastEmotion = meta;
+      updateEmotionMetaUI(meta);
+
+      addMessage("aura", auraText, meta);
+      maybeAddToBM(userText, auraText);
+
+      setStatus(`Answered (${res.source})`);
+    }
+
+    function handleUserInput(text){
+      const t = (text||"").trim();
+      if(!t) return;
+
+      if(correctionMode && correctionMode.awaitConfirm){
+        addMessage("user", t);
+        if(t.toLowerCase()==="yes" || t.toLowerCase()==="y"){
+          addLearnedQA(correctionMode.question, correctionMode.pendingAnswer);
+          showToast("Saved as learned");
+          addMessage("aura","Saved. Thank you. ✅");
+        }else{
+          addMessage("aura","Okay, I will not save it.");
+        }
+        correctionMode = null;
+        return;
+      }
+
+      if(t.toLowerCase() === "*incorrect"){
+        const lastAura = [...state.tm].reverse().find(x=>x.role==="aura");
+        const lastUser = [...state.tm].reverse().find(x=>x.role==="user");
+        if(!lastAura || !lastUser){
+          addMessage("aura","I don't have enough context to correct. Ask a question first.");
+          return;
+        }
+        correctionMode = { question: lastUser.text, lastAnswer: lastAura.text };
+        addMessage("aura","Okay. Please provide the correct answer for that question.");
+        return;
+      }
+
+      if(correctionMode && !correctionMode.awaitConfirm){
+        addMessage("user", t);
+        correctionMode.pendingAnswer = t;
+        correctionMode.awaitConfirm = true;
+        addMessage("aura", `Confirm: Save this as correct?\nQ: ${correctionMode.question}\nA: ${t}\nReply with Yes or No.`);
+        return;
+      }
+
+      addMessage("user", t);
+      respondToUser(t);
+    }
+
+    /*********************
+     *  Events
+     *********************/
+    els.btnSend.addEventListener("click", ()=>{
+      const t = els.userInput.value;
+      els.userInput.value = "";
+      handleUserInput(t);
+    });
+
+    els.userInput.addEventListener("keydown",(e)=>{
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        els.btnSend.click();
+      }
+    });
+
+    els.btnOptions.addEventListener("click", ()=>openModal("modalOptions"));
+
+    function openFromMenu(which){
+      closeModal("modalOptions");
+      openModal(which);
+      if(which==="modalBM"){ pruneBM(); renderBMList(); }
+      if(which==="modalHistory"){ pruneTM(); renderTMList(); }
+      if(which==="modalIntelligence"){ renderIntel(); }
+      if(which==="modalFaith"){ refreshFaithUI(); }
+      if(which==="modalIdentity"){ loadIdentityIntoForm(); }
+    }
+
+    els.btnFaith.addEventListener("click", ()=>{ refreshFaithUI(); openModal("modalFaith"); });
+    els.btnBM.addEventListener("click", ()=>{ pruneBM(); renderBMList(); openModal("modalBM"); });
+    els.btnHistory.addEventListener("click", ()=>{ pruneTM(); renderTMList(); openModal("modalHistory"); });
+    els.btnIntelligence.addEventListener("click", ()=>{ renderIntel(); openModal("modalIntelligence"); });
+    els.btnIdentity.addEventListener("click", ()=>{ loadIdentityIntoForm(); openModal("modalIdentity"); });
+    els.btnReadme.addEventListener("click", ()=>openModal("modalReadme"));
+
+    els.miFaith.addEventListener("click", ()=>openFromMenu("modalFaith"));
+    els.miBM.addEventListener("click", ()=>openFromMenu("modalBM"));
+    els.miHistory.addEventListener("click", ()=>openFromMenu("modalHistory"));
+    els.miIntelligence.addEventListener("click", ()=>openFromMenu("modalIntelligence"));
+    els.miIdentity.addEventListener("click", ()=>openFromMenu("modalIdentity"));
+    els.miReadme.addEventListener("click", ()=>openFromMenu("modalReadme"));
+
+    els.btnApplyFaith.addEventListener("click", ()=>{
+      state.settings.faith.belief = els.faithSelect.value;
+      state.settings.faith.topic = els.faithTopic.value;
+      state.settings.faith.translation = els.faithTranslation.value;
+      safeSaveJSON(KEY_SETTINGS, state.settings);
+      refreshFaithUI();
+      showToast("Faith applied");
+    });
+
+    els.faithSelect.addEventListener("change", refreshFaithUI);
+    els.faithTopic.addEventListener("change", refreshFaithUI);
+    els.faithTranslation.addEventListener("change", refreshFaithUI);
+
+    els.btnBMGeneratePrompt.addEventListener("click", ()=>{
+      generateBMPrompt();
+      showToast("BM prompt generated");
+    });
+    els.btnBMCopyPrompt.addEventListener("click", ()=>{
+      copyToClipboard(els.bmPrompt.value || "");
+    });
+    els.btnBMDeleteAll.addEventListener("click", ()=>{
+      if(!confirm("Delete all unlocked BM items?")) return;
+      state.bm = state.bm.filter(x=>x.locked);
+      safeSaveJSON(KEY_BM, state.bm);
+      renderBMList();
+      refreshCapsules();
+      showToast("BM cleared (unlocked)");
+    });
+    els.btnBMSearchDate.addEventListener("click", ()=>{
+      const d = els.bmDate.value;
+      if(!d){ renderBMList(); return; }
+      const filtered = state.bm.filter(x=>fmtDate(x.ts)===d);
+      renderBMList(filtered);
+    });
+
+    function renderTMList(list = state.tm){
+      els.tmList.innerHTML = "";
+      if(!list.length){
+        els.tmList.innerHTML = "<div class='small'>No TM items found.</div>";
+        return;
+      }
+      list.forEach(x=>{
+        const box = document.createElement("div");
+        box.className = "msg aura";
+        box.style.maxWidth = "100%";
+        const lock = x.locked ? "🔒" : "🔓";
+        box.textContent = `${lock} (${fmtDate(x.ts)})\n${x.role.toUpperCase()}: ${x.text}`;
+        els.tmList.appendChild(box);
+      });
+    }
+
+    els.btnTMDelete24h.addEventListener("click", ()=>{
+      if(!confirm("Delete last 24h unlocked messages?")) return;
+      const cutoff = nowTs() - (24*60*60*1000);
+      state.tm = state.tm.filter(m=> m.locked || m.ts < cutoff);
+      safeSaveJSON(KEY_TM, state.tm);
+      renderChat();
+      renderTMList();
+      refreshCapsules();
+      showToast("Deleted 24h unlocked");
+    });
+
+    els.btnTMDeleteAll.addEventListener("click", ()=>{
+      if(!confirm("Delete all unlocked TM messages?")) return;
+      state.tm = state.tm.filter(m=>m.locked);
+      safeSaveJSON(KEY_TM, state.tm);
+      renderChat();
+      renderTMList();
+      refreshCapsules();
+      showToast("TM cleared (unlocked)");
+    });
+
+    els.btnTMSearchDate.addEventListener("click", ()=>{
+      const d = els.tmDate.value;
+      if(!d){ renderTMList(); return; }
+      const filtered = state.tm.filter(x=>fmtDate(x.ts)===d);
+      renderTMList(filtered);
+    });
+
+    els.btnIntelExport.addEventListener("click", ()=>{
+      const blob = new Blob([JSON.stringify(state.intel,null,2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href=url; a.download="aurax_intelligence.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    els.btnIntelDeleteAll.addEventListener("click", ()=>{
+      if(!confirm("Delete all unlocked intelligence Q/A?")) return;
+      state.intel = state.intel.filter(x=>x.locked);
+      safeSaveJSON(KEY_INTEL, state.intel);
+      renderIntel();
+      showToast("Intelligence cleared (unlocked)");
+    });
+
+    els.btnExport.addEventListener("click", ()=>{
+      const payload = {
+        tm: state.tm,
+        bm: state.bm,
+        intel: state.intel,
+        settings: state.settings,
+        userIdentity: state.userIdentity,
+        exportedAt: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href=url; a.download="aurax_export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Exported");
+    });
+
+    els.btnVoice.addEventListener("click", ()=>{
+      state.settings.voiceOn = !state.settings.voiceOn;
+      safeSaveJSON(KEY_SETTINGS, state.settings);
+      showToast(state.settings.voiceOn ? "Voice ON" : "Voice OFF");
+    });
+
+    /*********************
+     *  Init
+     *********************/
+    function init(){
+      state.tm = safeLoadJSON(KEY_TM, []);
+      state.bm = safeLoadJSON(KEY_BM, []);
+      state.intel = safeLoadJSON(KEY_INTEL, []);
+      const s = safeLoadJSON(KEY_SETTINGS, null);
+      if(s) state.settings = {...state.settings, ...s};
+      state.userIdentity = safeLoadJSON(KEY_USER, null);
+
+      pruneTM();
+      pruneBM();
+
+      els.faithSelect.value = state.settings.faith.belief || "none";
+      els.faithTopic.value = state.settings.faith.topic || "general";
+      els.faithTranslation.value = state.settings.faith.translation || "auto";
+      refreshFaithUI();
+
+      renderChat();
+      renderBMList();
+      renderTMList();
+      renderIntel();
+      loadIdentityIntoForm();
+      refreshCapsules();
+      setStatus("Ready");
+    }
+
+    init();
   </script>
 </body>
 </html>
