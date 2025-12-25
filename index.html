@@ -37,6 +37,7 @@
       padding:20px 18px 10px;
       border-bottom:1px solid rgba(148,163,184,.14);
       text-align:center;
+      position:relative;
     }
     .brand{
       font-weight:800;
@@ -55,7 +56,7 @@
       max-width:720px;
       border:1px solid rgba(251,191,36,.35);
       border-radius:14px;
-      padding:10px 14px 9px;
+      padding:10px 36px 9px 14px;
       color:#fbbf24;
       background:rgba(2,6,23,.35);
       box-shadow:inset 0 0 0 1px rgba(251,191,36,.08);
@@ -79,6 +80,20 @@
       45%{box-shadow:0 0 0 16px rgba(251,191,36,0);transform:translateY(-1px);}
       100%{box-shadow:0 0 0 0 rgba(251,191,36,0);transform:translateY(0);}
     }
+    .faithCfgBtn{
+      position:absolute;
+      right:6px;
+      top:4px;
+      border:none;
+      background:transparent;
+      color:#fde68a;
+      cursor:pointer;
+      font-size:16px;
+      line-height:1;
+      display:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .faithCfgBtn.show{display:inline-flex;}
     .pill{
       margin:10px auto 0;
       max-width:760px;
@@ -91,6 +106,12 @@
       padding:14px 16px;
       text-transform:uppercase;
       box-shadow:0 12px 40px rgba(14,165,233,.22);
+      position:relative;
+    }
+    .pill.faithGlow{
+      border-color:rgba(251,191,36,.9);
+      box-shadow:0 0 26px rgba(251,191,36,.75);
+      background:linear-gradient(90deg, rgba(14,165,233,.6), rgba(251,191,36,.9));
     }
     .main{ padding:16px 16px 18px }
     .row{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
@@ -282,6 +303,7 @@
       cursor:pointer;
       box-shadow:0 10px 24px rgba(0,0,0,.35);
       transition:opacity .25s ease, transform .25s ease;
+      width:100%;
     }
     .faithBubble.show{
       display:flex;
@@ -304,10 +326,24 @@
     .faithBubble.pulse{
       animation: faithPulse 1.4s infinite;
     }
+    .faithBubble.flying{
+      animation: faithFlyUp 2.1s ease-in-out forwards, faithBlink 1s ease-in-out 0s 2;
+    }
     @keyframes faithPulse{
       0%   { box-shadow: 0 0 0 0 rgba(251,191,36,.55); }
       100% { box-shadow: 0 0 0 18px rgba(251,191,36,0); }
     }
+    @keyframes faithFlyUp{
+      0%   { transform:translateY(0); opacity:1; }
+      60%  { transform:translateY(-140px); opacity:1; }
+      100% { transform:translateY(-180px); opacity:0; }
+    }
+    @keyframes faithBlink{
+      0%{box-shadow:0 0 0 0 rgba(251,191,36,.4);}
+      50%{box-shadow:0 0 18px 4px rgba(251,191,36,.95);}
+      100%{box-shadow:0 0 0 0 rgba(251,191,36,0);}
+    }
+
     .inputRow{display:flex;gap:10px;align-items:flex-end}
     .input{
       flex:1;
@@ -669,6 +705,7 @@
         <div class="ethicMeta" id="ethicMeta">
           Live continuity ethic · lens-neutral.
         </div>
+        <button id="faithCfgBtn" class="faithCfgBtn" title="Faith live bar settings">🔘</button>
       </div>
       <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
     </div>
@@ -799,6 +836,41 @@
           Nothing is sent to any server.
         </div>
         <div class="chipsWrap" id="faithChips"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Faith live bar settings -->
+  <div class="modalOverlay" id="modalFaithCfg">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🔘 Faith live bar settings<br><small id="faithCfgFaithTitle">Configure literature & translation.</small></div>
+        <button class="closeX" data-close="modalFaithCfg">×</button>
+      </div>
+      <div class="modalBody" style="background:#fefce8;">
+        <div style="font-size:13px;margin-bottom:8px;">
+          Faith: <span id="faithCfgFaithName" style="font-weight:800;"></span>
+        </div>
+        <label style="font-size:13px;display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <input type="checkbox" id="faithCfgEnable" checked />
+          <span>Show live religious literature bar (instead of generic line)</span>
+        </label>
+        <div style="margin-top:4px;">
+          <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Translation language</label>
+          <select id="faithCfgLang"
+            style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:13px;background:#fff;">
+            <option value="auto">Auto (device / location)</option>
+            <option value="urdu">Urdu</option>
+            <option value="english">English</option>
+          </select>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn btnBlue" id="faithCfgSave">Save</button>
+        </div>
+        <div style="font-size:11px;opacity:.65;margin-top:6px;">
+          After saving, the small 🔘 button will disappear. To adjust later, select a different faith once,
+          then come back to this faith – the button will appear again.
+        </div>
       </div>
     </div>
   </div>
@@ -1108,7 +1180,7 @@
 
   <script>
     window.addEventListener("DOMContentLoaded", () => {
-      const KEY_CFG   = "aurax_cfg_v13";
+      const KEY_CFG   = "aurax_cfg_v14";
       const KEY_INT   = "aurax_intel_v11";
       const KEY_BM    = "aurax_bm_v11";
       const KEY_HIST  = "aurax_hist_v11";
@@ -1116,7 +1188,9 @@
       const KEY_LOGIC = "aurax_logic_v12";
       const OFFLINE_MODEL_ID = "Llama-3-8B-Instruct-q4f32_1-MLC";
 
-      const ETHIC_BASE = "Universal ethic: avoid actions that grow negative emotions in you or others. Move gently toward choices that increase shared positive feeling for everyone.";
+      const ETHIC_BASE =
+        "Universal ethic: avoid actions that grow negative emotions in you or others. " +
+        "Move gently toward choices that increase shared positive feeling for everyone.";
 
       const els = {
         console: document.getElementById("console"),
@@ -1224,7 +1298,14 @@
         dreamStatusText: document.getElementById("dreamStatusText"),
         ethicBox: document.getElementById("ethicBox"),
         ethicMain: document.getElementById("ethicMain"),
-        ethicMeta: document.getElementById("ethicMeta")
+        ethicMeta: document.getElementById("ethicMeta"),
+        faithCfgBtn: document.getElementById("faithCfgBtn"),
+        modalFaithCfg: document.getElementById("modalFaithCfg"),
+        faithCfgFaithTitle: document.getElementById("faithCfgFaithTitle"),
+        faithCfgFaithName: document.getElementById("faithCfgFaithName"),
+        faithCfgEnable: document.getElementById("faithCfgEnable"),
+        faithCfgLang: document.getElementById("faithCfgLang"),
+        faithCfgSave: document.getElementById("faithCfgSave")
       };
 
       const FAITH_OPTIONS = [
@@ -1241,17 +1322,71 @@
         { id:"eastern",      label:"Eastern / Chinese" }
       ];
 
-      const FAITH_LIBRARY = {
-        islam: [{
-          id: "islam_generic",
-          title: "Meaning of hardship and patience",
-          short: "Trust, sabr and good opinion of Allah during hard stories.",
-          content:
-            "In Islamic reflection, hardship is often seen as a temporary test that polishes the heart. " +
-            "Believers are invited toward sabr (patience), shukr (gratitude where possible), and husn-uz-zann " +
-            "(a good opinion of Allah). You can ask: what quality is being trained in me here, and which door " +
-            "of mercy may open later from this chapter of my life?"
-        }]
+      /* Short, ethics-style religious lines + translations */
+      const FAITH_LITERATURE = {
+        islam: {
+          base: {
+            original: "ٱلْمُسْلِمُ مَنْ سَلِمَ ٱلْمُسْلِمُونَ مِن لِسَانِهِ وَيَدِهِ",
+            translations: {
+              urdu:   "سچا مسلمان وہ ہے جس کی زبان اور ہاتھ سے دوسرے محفوظ رہیں۔",
+              english:"A true Muslim is the one from whose tongue and hand other people remain safe."
+            }
+          }
+        },
+        christianity: {
+          base: {
+            original: "“Love your neighbour as yourself.”",
+            translations: {
+              urdu:   "اپنے پڑوسی سے ویسے ہی محبت کرو جیسے تم اپنے آپ سے کرتے ہو۔",
+              english:"Love your neighbour as you love yourself."
+            }
+          }
+        },
+        hinduism: {
+          base: {
+            original: "अहिंसा परमो धर्मः",
+            translations: {
+              urdu:   "اہنسا یعنی کسی جاندار کو تکلیف نہ دینا، سب سے بڑا اصول ہے۔",
+              english:"Ahimsa – not harming any living being – is a highest principle."
+            }
+          }
+        },
+        buddhism: {
+          base: {
+            original: "Hatred is never ended by hatred, but by compassion and understanding.",
+            translations: {
+              urdu:   "نفرت کبھی نفرت سے ختم نہیں ہوتی، بلکہ صرف رحم اور سمجھ سے ختم ہوتی ہے۔",
+              english:"Hatred is not ended by hatred, but by compassion and understanding."
+            }
+          }
+        },
+        sikhism: {
+          base: {
+            original: "ਸਰਬੱਤ ਦਾ ਭਲਾ – seek the welfare of all.",
+            translations: {
+              urdu:   "سربت دا بھلا: سب کی بہتری اور بھلائی کا سوچو۔",
+              english:"Sarbat da bhala: seek the well-being of everyone."
+            }
+          }
+        },
+        judaism: {
+          base: {
+            original: "What is hateful to you, do not do to others.",
+            translations: {
+              urdu:   "جو بات تمہیں اپنے لیے بری لگے، وہ دوسروں کے ساتھ مت کرو۔",
+              english:"What is hateful to you, do not do to others."
+            }
+          }
+        },
+        atheism: {
+          base: {
+            original: "Do no unnecessary harm; leave people freer and kinder than you found them.",
+            translations: {
+              urdu:   "بلاوجہ کسی کو نقصان مت پہنچاؤ، اور لوگوں کو پہلے سے زیادہ آزاد اور مہربان چھوڑو۔",
+              english:"Cause no needless harm and try to leave people freer and kinder than you found them."
+            }
+          }
+        }
       };
 
       const ETHIC_LIBRARY = {
@@ -1275,10 +1410,13 @@
         }
       };
 
+      const defaultDeviceLang = (navigator.language || "").toLowerCase().startsWith("ur") ? "urdu" : "english";
+
       let state = {
         voiceOn: false,
         learningOn: true,
         faithSelection: [],
+        faithLiveOptions: {},   // { islam: {enabled:true, lang:"urdu"} , ... }
         intelligence: [],
         seedPairs: [],
         bmPrompts: [],
@@ -1311,7 +1449,11 @@
         dreamDelayMs: 600000,
         dreamTimerId: null,
         lastActivityTs: Date.now(),
-        ethic: { topic:"general", lens:"none", lastUpdate:0, messageCount:0 }
+        ethic: { topic:"general", lens:"none", lastUpdate:0, messageCount:0 },
+        currentFaith: "none",
+        faithFlightPending: false,
+        faithFlightDone: false,
+        currentFaithForCfg: null
       };
 
       function safeLoadJSON(key, fallback){
@@ -1399,7 +1541,7 @@
         },1600);
       }
 
-      /* Dream mode helpers */
+      /* Dream mode */
       function updateDreamUI(){
         if(!els.dreamDelaySelect || !els.btnToggleDream || !els.dreamStatusText) return;
         if(state.dreamEnabled){
@@ -1469,6 +1611,7 @@
           voiceOn: state.voiceOn,
           learningOn: state.learningOn,
           faithSelection: state.faithSelection,
+          faithLiveOptions: state.faithLiveOptions,
           apiConfig: state.apiConfig,
           offlineReady: state.offlineReady,
           dream: { enabled: state.dreamEnabled, delayMs: state.dreamDelayMs }
@@ -1518,7 +1661,7 @@
         });
       }
 
-      /* Faith chips */
+      /* Faith chips & selection */
       function renderFaithChips(){
         els.faithChips.innerHTML = "";
         FAITH_OPTIONS.forEach(opt=>{
@@ -1526,34 +1669,172 @@
           chip.className = "chip" + (state.faithSelection.includes(opt.id) ? " active" : "");
           chip.textContent = opt.label;
           chip.addEventListener("click", ()=>{
+            let newSel = [...state.faithSelection];
             if(opt.id==="none"){
-              state.faithSelection = [];
+              newSel = [];
             } else {
-              if(state.faithSelection.includes(opt.id)){
-                state.faithSelection = state.faithSelection.filter(x=>x!==opt.id);
+              if(newSel.includes(opt.id)){
+                newSel = newSel.filter(x=>x!==opt.id);
               } else {
-                state.faithSelection = state.faithSelection.filter(x=>x!=="none");
-                state.faithSelection.push(opt.id);
+                newSel = newSel.filter(x=>x!=="none");
+                newSel = [opt.id]; // one primary faith for bar
               }
             }
-            els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
-            renderFaithChips();
-            saveCfg();
+            applyFaithSelection(newSel);
           });
           els.faithChips.appendChild(chip);
         });
       }
 
+      function showFaithCfgButtonForFaith(faithId){
+        if(!els.faithCfgBtn) return;
+        if(!faithId || faithId==="none"){
+          els.faithCfgBtn.classList.remove("show");
+          return;
+        }
+        els.faithCfgBtn.classList.add("show");
+        state.currentFaithForCfg = faithId;
+      }
+
+      function setEthicText(main, meta){
+        if(!els.ethicMain || !els.ethicBox) return;
+        els.ethicMain.textContent = main;
+        if(els.ethicMeta) els.ethicMeta.textContent = meta;
+        els.ethicBox.classList.remove("ethicPulse");
+        void els.ethicBox.offsetWidth;
+        els.ethicBox.classList.add("ethicPulse");
+      }
+
+      function setEthicFromFaith(faithId, topic){
+        const options = state.faithLiveOptions[faithId] || {};
+        if(options.enabled === false){
+          const meta = "Live continuity ethic · lens-neutral.";
+          setEthicText(ETHIC_BASE, meta);
+          return;
+        }
+        const litPack = FAITH_LITERATURE[faithId];
+        if(!litPack || !litPack.base){
+          const lensLabel = FAITH_OPTIONS.find(f=>f.id===faithId)?.label || faithId;
+          const meta = `Live continuity ethic · lens: ${lensLabel} · topic: ${topic}`;
+          setEthicText(ETHIC_BASE, meta);
+          return;
+        }
+        const base = litPack.base;
+        let lang = options.lang || "auto";
+        if(lang === "auto") lang = defaultDeviceLang;
+        const trans = base.translations[lang] || base.translations.english || "";
+        const lensLabel = FAITH_OPTIONS.find(f=>f.id===faithId)?.label || faithId;
+        const meta = `${trans} · lens: ${lensLabel} · topic: ${topic}`;
+        setEthicText(base.original, meta);
+      }
+
+      function inferTopicFromText(t){
+        const s = (t||"").toLowerCase();
+        if(/death|cry|sad|hard|loss|grief|pain|tension|stress|problem|musibat|imtihan|broken/.test(s)) return "hardship";
+        if(/thanks|thank you|shukr|shukar|grateful|gratitude|blessing|ne'mat|nimat|favou?r/.test(s)) return "gratitude";
+        if(/mother|father|parents|family|friend|dost|wife|husband|relationship|brother|sister|bhai|behen/.test(s)) return "relationships";
+        if(/health|doctor|hospital|ill|sick|fever|disease|bp|sugar|heart attack|medicine/.test(s)) return "health";
+        if(/job|work|office|career|money|loan|business|project|study|exam|paper|marks|salary|promotion/.test(s)) return "work";
+        if(/allah|god|jesus|quran|hadith|bible|gita|prayer|dua|tafsir|masjid|church|temple/.test(s)) return "faith";
+        return "general";
+      }
+
+      function updateEthicBar(latestUserText){
+        if(!latestUserText) return;
+        state.ethic.messageCount++;
+        if(state.ethic.messageCount < 2) return;
+        const topic = inferTopicFromText(latestUserText);
+        const lensId = (state.faithSelection[0] || "none");
+        const now = Date.now();
+        if(topic === state.ethic.topic && lensId === state.ethic.lens && (now - state.ethic.lastUpdate) < 15000){
+          return;
+        }
+        if(lensId !== "none"){
+          setEthicFromFaith(lensId, topic);
+        } else {
+          const lensKey = ETHIC_LIBRARY[lensId] ? lensId : "general";
+          const lib = ETHIC_LIBRARY[lensKey] || ETHIC_LIBRARY.general;
+          const line = lib[topic] || lib.general || ETHIC_BASE;
+          const lensLabel = "lens-neutral";
+          const meta = `Live continuity ethic · lens: ${lensLabel} · topic: ${topic}`;
+          setEthicText(line, meta);
+        }
+        state.ethic.topic = topic;
+        state.ethic.lens = lensId;
+        state.ethic.lastUpdate = now;
+      }
+
+      function startFaithFlight(){
+        if(!els.faithBubble) return;
+        state.faithFlightPending = false;
+        state.faithFlightDone = true;
+        els.faithBubble.classList.remove("pulse");
+        els.faithBubble.classList.add("flying");
+        const pill = document.querySelector(".pill");
+        const onEnd = () => {
+          els.faithBubble.classList.remove("show","flying");
+          els.faithBubble.removeEventListener("animationend", onEnd);
+          if(pill) pill.classList.add("faithGlow");
+        };
+        els.faithBubble.addEventListener("animationend", onEnd);
+      }
+
+      function onFaithChanged(){
+        const newFaith = state.faithSelection[0] || "none";
+        state.currentFaith = newFaith;
+        els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
+
+        const pill = document.querySelector(".pill");
+        if(newFaith === "none"){
+          state.currentFaithForCfg = null;
+          state.faithFlightPending = false;
+          state.faithFlightDone = false;
+          if(els.faithCfgBtn) els.faithCfgBtn.classList.remove("show");
+          if(els.faithBubble){
+            els.faithBubble.classList.remove("show","pulse","flying");
+          }
+          if(pill) pill.classList.remove("faithGlow");
+          setEthicText(ETHIC_BASE,"Live continuity ethic · lens-neutral.");
+          state.ethic.lens = "none";
+          saveCfg();
+          return;
+        }
+
+        // New faith selected
+        showFaithCfgButtonForFaith(newFaith);
+
+        // Prepare golden bar text
+        if(els.faithBubble){
+          const label = FAITH_OPTIONS.find(f=>f.id===newFaith)?.label || newFaith;
+          els.faithBubbleTitle.textContent = "Faith lens: " + label;
+          els.faithBubbleMeta.textContent = "This golden bar will join the continuity engine after your first reply.";
+          els.faithBubble.classList.remove("flying");
+          els.faithBubble.classList.add("show","pulse");
+        }
+        state.faithFlightPending = true;
+        state.faithFlightDone = false;
+
+        saveCfg();
+      }
+
+      function applyFaithSelection(newSel){
+        state.faithSelection = newSel || [];
+        renderFaithChips();
+        onFaithChanged();
+        saveCfg();
+      }
+
+      /* Faith bubble -> article modal (optional) */
       function maybeShowFaithBubble(){
         if(!state.faithSelection.length) return;
         const pick = state.faithSelection[0];
-        const list = FAITH_LIBRARY[pick];
-        if(!list || !list.length) return;
-        const art = list[0];
-        state.currentFaithArticle = art;
-        els.faithBubbleTitle.textContent = art.title;
-        els.faithBubbleMeta.textContent = art.short;
-        els.faithBubble.classList.add("show","pulse");
+        const list = FAITH_LITERATURE[pick];
+        if(!list) return;
+        const art = list.base;
+        state.currentFaithArticle = { id: pick+"_base", title: "Core ethic line", short: "Short reflection from selected literature.", content: art.translations[defaultDeviceLang] || art.translations.english };
+        els.faithBubbleTitle.textContent = "Faith reflection";
+        els.faithBubbleMeta.textContent = "Tap to open a short reflection.";
+        els.faithBubble.classList.add("show");
       }
 
       function openModal(el){ el.classList.add("show"); }
@@ -1576,17 +1857,17 @@
         els.faithBubble.addEventListener("click",()=>{
           if(!state.currentFaithArticle) return;
           const art = state.currentFaithArticle;
-          const meta = `Lens: ${state.faithSelection.join(", ")} · id=${art.id}`;
+          const meta = `Lens: ${state.faithSelection.join(", ") || "none"} · id=${art.id||"base"}`;
           els.faithArticleMeta.textContent = meta;
-          els.faithArticleTitle.textContent = art.title;
-          els.faithArticleText.value = art.content;
+          els.faithArticleTitle.textContent = art.title || "Faith reflection";
+          els.faithArticleText.value = art.content || "";
           openModal(els.modalFaithArticle);
         });
       }
       if(els.faithBubbleClose){
         els.faithBubbleClose.addEventListener("click",(ev)=>{
           ev.stopPropagation();
-          els.faithBubble.classList.remove("show","pulse");
+          els.faithBubble.classList.remove("show","pulse","flying");
         });
       }
 
@@ -1610,6 +1891,39 @@
       els.btnSkipFaithBM.addEventListener("click",()=>{
         closeModalById("modalFaithArticle");
       });
+
+      /* Faith live bar config modal */
+      if(els.faithCfgBtn){
+        els.faithCfgBtn.addEventListener("click",()=>{
+          const fid = state.currentFaithForCfg;
+          if(!fid || fid==="none") return;
+          const opt = state.faithLiveOptions[fid] || { enabled:true, lang:"auto" };
+          const label = FAITH_OPTIONS.find(f=>f.id===fid)?.label || fid;
+          els.faithCfgFaithName.textContent = label;
+          els.faithCfgFaithTitle.textContent = "Configure live bar for "+label;
+          els.faithCfgEnable.checked = opt.enabled !== false;
+          els.faithCfgLang.value = opt.lang || "auto";
+          openModal(els.modalFaithCfg);
+        });
+      }
+      if(els.faithCfgSave){
+        els.faithCfgSave.addEventListener("click",()=>{
+          const fid = state.currentFaithForCfg;
+          if(!fid || fid==="none") return;
+          const enabled = els.faithCfgEnable.checked;
+          const lang = els.faithCfgLang.value || "auto";
+          state.faithLiveOptions[fid] = { enabled, lang };
+          saveCfg();
+          if(els.faithCfgBtn) els.faithCfgBtn.classList.remove("show");
+          closeModalById("modalFaithCfg");
+          showToast("Faith live bar updated");
+          if(enabled){
+            setEthicFromFaith(fid, state.ethic.topic || "general");
+          } else {
+            setEthicText(ETHIC_BASE,"Live continuity ethic · lens-neutral.");
+          }
+        });
+      }
 
       /* Intelligence rendering */
       function renderIntelligence(filter=""){
@@ -2160,47 +2474,6 @@
         });
       }
 
-      /* Live ethic bar helpers */
-      function setEthicText(main, meta){
-        if(!els.ethicMain || !els.ethicBox) return;
-        els.ethicMain.textContent = main;
-        if(els.ethicMeta) els.ethicMeta.textContent = meta;
-        els.ethicBox.classList.remove("ethicPulse");
-        void els.ethicBox.offsetWidth;
-        els.ethicBox.classList.add("ethicPulse");
-      }
-      function inferTopicFromText(t){
-        const s = (t||"").toLowerCase();
-        if(/death|cry|sad|hard|loss|grief|pain|tension|stress|problem|musibat|imtihan|broken/.test(s)) return "hardship";
-        if(/thanks|thank you|shukr|shukar|grateful|gratitude|blessing|ne'mat|nimat|favou?r/.test(s)) return "gratitude";
-        if(/mother|father|parents|family|friend|dost|wife|husband|relationship|brother|sister|bhai|behen/.test(s)) return "relationships";
-        if(/health|doctor|hospital|ill|sick|fever|disease|bp|sugar|heart attack|medicine/.test(s)) return "health";
-        if(/job|work|office|career|money|loan|business|project|study|exam|paper|marks|salary|promotion/.test(s)) return "work";
-        if(/allah|god|jesus|quran|hadith|bible|gita|prayer|dua|tasfeer|tafsir|masjid|church|temple/.test(s)) return "faith";
-        return "general";
-      }
-      function updateEthicBar(latestUserText){
-        if(!latestUserText) return;
-        state.ethic.messageCount++;
-        if(state.ethic.messageCount < 2) return; // wait until some context
-        const topic = inferTopicFromText(latestUserText);
-        const lensId = (state.faithSelection[0] || "none");
-        const now = Date.now();
-        if(topic === state.ethic.topic && lensId === state.ethic.lens && (now - state.ethic.lastUpdate) < 15000){
-          return;
-        }
-        const lensKey = ETHIC_LIBRARY[lensId] ? lensId : "general";
-        const lib = ETHIC_LIBRARY[lensKey] || ETHIC_LIBRARY.general;
-        const line = lib[topic] || lib.general || ETHIC_BASE;
-        const lensLabel = lensId==="none" ? "lens-neutral" :
-          (FAITH_OPTIONS.find(f=>f.id===lensId)?.label || lensId);
-        const meta = `Live continuity ethic · lens: ${lensLabel} · topic: ${topic}`;
-        setEthicText(line, meta);
-        state.ethic.topic = topic;
-        state.ethic.lens = lensId;
-        state.ethic.lastUpdate = now;
-      }
-
       /* Main chat + self-learning pipeline */
       async function handleSend(){
         const raw = els.userInput.value;
@@ -2305,7 +2578,11 @@
           }catch{}
         }
 
-        maybeShowFaithBubble();
+        // After first answer with faith ON -> golden bar flies to top
+        if(state.faithSelection.length && state.faithFlightPending && !state.faithFlightDone){
+          startFaithFlight();
+        }
+
         updateEthicBar(text);
       }
 
@@ -2389,6 +2666,7 @@
           state.voiceOn = !!cfg.voiceOn;
           state.learningOn = cfg.learningOn!==false;
           state.faithSelection = cfg.faithSelection||[];
+          state.faithLiveOptions = cfg.faithLiveOptions || {};
           state.apiConfig = cfg.apiConfig||state.apiConfig;
           state.offlineReady = !!cfg.offlineReady;
           if(cfg.dream){
@@ -2400,7 +2678,7 @@
         els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
         els.learnPill.textContent = state.learningOn ? "on" : "off";
         els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
-        els.faithLabel.textContent = state.faithSelection.length ? state.faithSelection.join(", ") : "none";
+
         state.intelligence = safeLoadJSON(KEY_INT,[]);
         state.bmPrompts = safeLoadJSON(KEY_BM,[]);
         state.history = safeLoadJSON(KEY_HIST,[]);
@@ -2414,7 +2692,11 @@
         if(state.apiConfig.endpoint) els.apiEndpoint.value = state.apiConfig.endpoint;
         if(state.apiConfig.model) els.apiModel.value = state.apiConfig.model;
         if(state.apiConfig.key) els.apiKey.value = state.apiConfig.key;
+
         renderFaithChips();
+        // set label + ethic based on stored faith (default: none)
+        onFaithChanged();
+
         renderIntelligence("");
         renderBMList();
         renderHistory();
