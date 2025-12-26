@@ -769,6 +769,8 @@
               <button class="reactBtn" id="btnDislikeLast" title="Mark incorrect & teach new answer">👎</button>
               <button class="reactBtn" id="btnSpeakLast" title="Play voice for last answer">🔊</button>
               <button class="reactBtn" id="btnShareLast" title="Copy question + answer">🔗</button>
+              <!-- 🎥 New observation button -->
+              <button class="reactBtn" id="btnObserve" title="Observe 5s via camera + mic">🎥</button>
             </div>
             <div class="liveCapsule">
               <span><b>E0</b>: <span id="cE0">0.000</span></span><span>·</span>
@@ -1271,6 +1273,7 @@
         btnDislikeLast: document.getElementById("btnDislikeLast"),
         btnSpeakLast: document.getElementById("btnSpeakLast"),
         btnShareLast: document.getElementById("btnShareLast"),
+        btnObserve: document.getElementById("btnObserve"),  // 🎥
         toastBubble: document.getElementById("toastBubble"),
         dreamOverlay: document.getElementById("dreamOverlay"),
         dreamMetaText: document.getElementById("dreamMetaText"),
@@ -2409,6 +2412,70 @@
           }
         });
       }
+
+      /* 🎥 Build BM prompt from observation event */
+      function buildObservationPrompt(eventObj){
+        const actorsText = (eventObj.actors && eventObj.actors.length)
+          ? eventObj.actors.map(a=>`${a.role||"person"} (${a.emotion||"neutral"})`).join(", ")
+          : "no clear actors identified (prototype placeholder).";
+        const place = eventObj.placeHint || "indoor / outdoor (unspecified)";
+        const summary = eventObj.summary || "Prototype observation; replace this with scene description from your model.";
+        const audioMood = eventObj.audioMood || "neutral background noise";
+        return `A short 10–15 second cinematic video.\n\nScene: ${place}.\nSummary: ${summary}\nActors: ${actorsText}.\nAudio mood: ${audioMood}.\n\nFaces are not shown in detail; people appear as neutral silhouettes or generic figures. Focus on the emotional atmosphere and movements, not identity.`;
+      }
+      function createObservationBM(eventObj){
+        const time = eventObj.time ? new Date(eventObj.time) : new Date();
+        const title = "Observed scene – " + time.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+        const text = buildObservationPrompt(eventObj);
+        const bm = {
+          id: "bm_obs_"+Date.now(),
+          title,
+          text,
+          ts: Date.now(),
+          locked: false,
+          source: "observation",
+          emotionalVector: eventObj.emotionalVector || null
+        };
+        state.bmPrompts.push(bm);
+        saveBM();
+        recomputeBMMetric();
+        recomputeE0(0.15,0);
+        updateCapsule();
+        renderBMList();
+        state.selectedBMId = bm.id;
+        selectBM(bm.id);
+        showToast("Observation saved into BM as video-style prompt");
+      }
+      async function startObservation(){
+        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+          logLine("sys","[Observe] Camera/mic not available in this browser.");
+          showToast("Camera/mic not available");
+          return;
+        }
+        try{
+          registerActivity();
+          logLine("sys","[Observe] Starting 5-second observation via camera + mic. No video is uploaded; only a text summary is stored in BM.");
+          const stream = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+          await new Promise(res=>setTimeout(res,5000));
+          stream.getTracks().forEach(t=>t.stop());
+          const ev = {
+            time: new Date().toISOString(),
+            placeHint: "real-world scene (prototype)",
+            actors: [],
+            summary: "Short observation captured via camera + mic in the AURA-X Ω prototype. Replace this with automatic scene description once your model is ready.",
+            audioMood: "ambient sounds (not analysed yet)",
+            riskFlags: [],
+            emotionalVector: { valence: 0, arousal: 0.5 }
+          };
+          createObservationBM(ev);
+          logLine("sys","[Observe] Observation window finished and stored in BM.");
+        }catch(err){
+          console.error(err);
+          logLine("sys","[Observe] Permission denied or error. No observation saved.");
+          showToast("Observation cancelled");
+        }
+      }
+
       /* Main chat + self-learning pipeline */
       async function handleSend(){
         const raw = els.userInput.value;
@@ -2578,6 +2645,9 @@
         navigator.clipboard?.writeText(text);
         showToast("Question + answer copied");
       });
+      if(els.btnObserve){
+        els.btnObserve.addEventListener("click", ()=>{ startObservation(); });
+      }
       document.addEventListener("click", ()=>registerActivity(), true);
       document.addEventListener("keydown", ()=>registerActivity(), true);
       /* Load from localStorage on start */
