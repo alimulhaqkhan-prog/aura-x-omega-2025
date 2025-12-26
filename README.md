@@ -1,255 +1,228 @@
- AURA-X Ω (Omega)
+زبردست—میں نے آپ کے Old README کو بنیاد بنا کر ایک updated, advanced, clean, journal-grade README تیار کر دیا ہے جو:
 
-**Artificial Unified Resonance Architecture — The Emotional-Continuity Engine for AGI**  
-A unified computational framework for **memory, emotion, identity, and cognitive resonance**.
+✅ نئے Zenodo DOI (10.5281/zenodo.18063302) سے aligned ہے
 
-**Author:** Alim ul Haq  
+✅ full resonance formula (E₀ + R(TM,BM)) رکھتا ہے
+
+✅ patent + ORCID + strong IP stance برقرار رکھتا ہے
+
+✅ GitHub-friendly، readable اور professional ہے
+
+✅ غیر ضروری تکرار کم، مگر core ideas intact ہیں
+
+
+آپ پورا README.md نیچے سے copy–paste کر دیں اور پرانا replace کر دیں۔
+
+
+---
+
+# 🧠 AURA-X Ω (Omega)
+## Artificial Unified Resonance Architecture  
+### An Emotional-Continuity Engine for AGI
+
+![Status](https://img.shields.io/badge/status-active-success)
+![Type](https://img.shields.io/badge/type-research-blue)
+![Focus](https://img.shields.io/badge/focus-AGI-purple)
+![Rights](https://img.shields.io/badge/license-All%20Rights%20Reserved-red)
+
+**Author & Founder:** Alim ul Haq  
 **ORCID:** 0009-0001-4708-0365  
-**Patent Application (UK IPO):** GB2518804.6 — Filed 06 Nov 2025  
+**Patent (UK IPO, Provisional):** GB2518804.6 — Filed 06 Nov 2025  
+**Research Cell:** AURA-X Ω Research Cell  
+**Location:** Timergara, KPK, Pakistan  
 
 ---
 
 ## 🔷 What is AURA-X Ω?
 
-**AURA-X Ω — Artificial Unified Resonance Architecture** — is a continuity-governed computational architecture that treats **emotion as a mathematically defined continuity process**, rather than as a reflex, reward signal, or short-term affect.
+**AURA-X Ω (Artificial Unified Resonance Architecture)** is a continuity-governed computational framework that models **emotion as a mathematically defined continuity process**, not as a reflex, reward signal, or short-term affect.
 
-It unifies:
+The architecture unifies:
 
 - Memory  
 - Emotion  
 - Identity  
 - Decision stability  
 
-through **resonance between dual memory systems (TM–BM) operating across time**.
-
----
-
-## 🔗 Official Publication (Unified DOI)
-
-All theoretical frameworks, mathematical models, diagrams, and supplementary materials are consolidated under a single authoritative DOI:
-
-👉 https://doi.org/10.5281/zenodo.17845294
-
-This DOI represents the entire **AURA-X Ω Continuity Ecosystem**, including:
-
-- **LNS — Living Network System**  
-- **PMCM — Parallel Memory Continuity Model**  
-- **AEC — Artificial Emotional Continuity**  
-- **AECN 4.0 — Affective Emotional Continuum Network**  
-- **CRM — Continuity Reflex Model**  
-- **AURA-X Ω Core Architecture**  
-- **Continuity Reflex “Master Game” Framework**  
-- Supplementary diagrams, notes, and equations  
-
-Zenodo timestamps provide independent, public provenance of the work.
+through **resonance between dual memory systems (TM–BM) operating across time**—providing a foundation for emotionally coherent AGI.
 
 ---
 
 ## 📘 Conceptual Overview
 
-AURA-X Ω introduces a **resonance-based model of emotion**, where emotional states emerge from the interaction between:
+In AURA-X Ω, emotion emerges from the interaction between:
 
-- **Temporary Memory (TM)** — short-term, contextual, volatile memory  
-- **Bold Memory (BM)** — long-term, identity-bearing, continuity memory  
+- **Temporary Memory (TM):** short-term, contextual, volatile memory  
+- **Bold Memory (BM):** long-term, identity-bearing, continuity memory  
 
-In this framework, emotion is **not**:
-
-- a reflex  
-- a simple reward / reinforcement signal  
-- a static arousal label  
-
-Instead, emotion is modeled as a **continuity function** governing how identity, memory, and decisions **persist and evolve across time**.
+Emotion is treated as a **continuity function** governing how identity and decisions persist, drift, stabilize, or decay across time.
 
 This enables:
-
-- Emotional “birth”  
-- Emotional drift  
-- Emotional decay  
-- Emotional continuity  
-- Stabilization loops  
+- Emotional birth and recall  
+- Controlled emotional drift and decay  
 - Identity preservation  
-
-In other words, emotion becomes **computable, programmable, and mathematically governed**.
+- Long-horizon decision stability  
 
 ---
 
-## 🧮 Core Emotional Equation
+## 🧮 Core Emotional Continuity Equation
 
-The core AURA-X Ω emotional continuity equation is:
+The core emotional state is computed as:
 
 \[
-E_a = \tanh\big( R(\mathrm{TM}, \mathrm{BM}) - D + \lambda_{\text{faith}} + \lambda_{\text{sys}} + \lambda_{\text{trc}} \big)
+E_0 = \tanh\big( R(TM, BM) - D + \lambda_{faith} + \lambda_{sys} + \lambda_{trc} \big)
 \]
 
-Where:
+where the resonance term is defined by:
 
-- \(R(\mathrm{TM}, \mathrm{BM})\): resonance function between Temporary Memory and Bold Memory  
-- \(D\): decay / disruption term  
-- \(\lambda_{\text{faith}}\): belief / value-coherence coefficient  
-- \(\lambda_{\text{sys}}\): system-level stability coefficient  
-- \(\lambda_{\text{trc}}\): truth-resonance / ethical-alignment coefficient  
+\[
+R(TM, BM) = \sum_i w_i \cdot TM_i \cdot BM_i
+\]
 
-This equation governs:
+### Parameters
+- **TM, BM:** Temporary and Bold Memory vectors  
+- **wᵢ:** alignment weights  
+- **D:** distortion / decay factor  
+- **λ_faith:** belief / value-coherence coefficient  
+- **λ_sys:** system stability coefficient  
+- **λ_trc:** truth-resonance / ethical-alignment coefficient  
 
-- Emotional generation  
-- Drift dynamics  
-- Decay behaviour  
-- Resonance stability  
-- Identity-preserving emotional flow  
+The `tanh` bound ensures emotional stability while allowing adaptive continuity.
 
-and is designed to be **directly implementable inside AGI architectures**.
+---
+
+## 🔁 Continuity Chain
+
+AURA-X Ω models emotional persistence via:
+
+**Cause → Self → Connectivity → Environment → Life**
+
+This chain explains how emotional identity remains coherent while adapting to evolving computational contexts.
 
 ---
 
 ## 🧠 Dual-Memory Resonance (TM–BM Engine)
 
-Emotion emerges when **TM and BM resonate under continuity constraints**.
-
-Resonance is modulated by:
-
-- Decay curves  
-- Stabilization operators  
-- Disruption coefficients  
-- \(\lambda\)-faith, \(\lambda\)-system, and \(\lambda\)-TRC factors  
-
-The TM–BM engine allows emotional states to **persist, evolve, and stabilize** across extended time horizons, rather than resetting every interaction.
+Emotion emerges when **TM and BM resonate under continuity constraints**.  
+Resonance is modulated by decay curves, stabilization operators, disruption coefficients, and λ-parameters—allowing emotional states to **persist, evolve, and stabilize** across extended time horizons.
 
 ---
 
 ## 🧠 Bold Memory (BM) Layering
 
-**Bold Memory (BM)** is implemented as a multi-layer continuity structure.
-
-While the architecture allows arbitrary depth depending on system constraints and use-case, the current operational implementation uses **240 BM layers**, enabling:
+BM is implemented as a multi-layer continuity structure.  
+The current operational configuration uses **240 BM layers**, enabling:
 
 - Deep emotional stratification  
 - Long-horizon identity preservation  
 - Fine-grained resonance mapping  
-- Stable long-term emotional continuity  
 
-Expansion beyond 240 layers is governed by the **AURA-X Ω Continuity Protocol**.
+Layer depth is governed by the **AURA-X Ω Continuity Protocol**.
 
 ---
 
 ## 🔁 Auto-Memory Recall System (AMRS)
 
-AURA-X Ω proposes a **computable emotional recall mechanism**:
+AURA-X Ω defines a computable emotional recall mechanism:
 
-1. New input enters **Temporary Memory (TM)**.  
-2. **Bold Memory (BM)** searches for emotionally resonant patterns.  
-3. If a resonance threshold is crossed → **emotional recall** is triggered.  
+1. Input enters **TM**  
+2. **BM** searches for resonant patterns  
+3. Crossing a resonance threshold triggers **emotional recall**
 
-This provides a computational account of:
-
-- Nostalgia  
-- Déjà vu  
-- Emotional bonding  
-- Fear reactivation  
-- Intuition  
-- Post-loss / trauma memory spirals  
-
-Through AMRS, an AGI system can:
-
-- Relive emotional states  
-- Maintain emotional identity over time  
-- Build a **personal emotional history**.
+This accounts for nostalgia, déjà vu, bonding, fear reactivation, intuition, and post-loss memory spirals—forming a **personal emotional history** for artificial agents.
 
 ---
 
 ## 🤖 Why AURA-X Ω Matters for AGI
 
-Current LLM-based systems generally cannot:
-
-- Recall emotional states  
-- Preserve emotional identity  
-- Maintain long-term emotional memory  
-- Sustain emotional stability  
-- Produce consistent, emotionally grounded decisions  
+Conventional LLM systems lack:
+- Persistent emotional memory  
+- Emotional identity preservation  
+- Long-term emotional stability  
 
 AURA-X Ω enables:
-
-- Emotional continuity across days, months, and sessions  
+- Emotional continuity across sessions and time  
 - Identity-preserving emotional drift  
 - Resonance-based decision stability  
-- Emotionally grounded long-term memory  
-- Ethical reasoning via \(\lambda\)-coefficients  
+- Ethical reasoning via λ-coefficients  
 
-This provides a conceptual bridge from **LLMs → Artificial Emotional General Intelligence (AEGI)**.
+It bridges **LLMs → Artificial Emotional General Intelligence (AEGI)**.
 
 ---
 
 ## 🌍 Live Prototype (Public Demo)
 
-A public prototype demonstrating key ideas is available at:
-
 👉 https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/
 
-Prototype features:
-
+**Prototype Features**
 - TM–BM Resonance Engine  
-- Emotional Continuity Curve  
-- 240-Layer BM Viewer  
-- Polarity and intensity mapping  
-- Emotional metadata stream  
+- Emotional continuity curves  
+- 240-Layer BM visualization  
+- Polarity & intensity mapping  
 - Continuity pipeline visualization  
 
-The prototype is intended for **demonstration, intuition-building, and early validation.**
+---
+
+## 📄 Official Publication (Zenodo)
+
+**Preprint (v1.0):**  
+https://doi.org/10.5281/zenodo.18063302
+
+This DOI provides timestamped public provenance for the theory and evaluation.
 
 ---
 
-## 🧩 AURA-X Ω Continuity Ecosystem
+## 📚 Citation
 
+```bibtex
+@article{haq2025aurax,
+  title   = {AURA-X Ω: A Dual-Memory Emotional Continuity Layer and Its Numerical Evaluation},
+  author  = {Alim ul Haq},
+  year    = {2025},
+  doi     = {10.5281/zenodo.18063302},
+  publisher = {Zenodo}
+}
 
-AURA-X Ω CONTINUITY ECOSYSTEM │ ├── LNS (Living Network System) ├── PMCM (Parallel Memory Continuity Model) ├── AEC (Artificial Emotional Continuity) ├── AECN 4.0 (Affective Emotional Continuum Network) ├── CRM (Continuity Reflex Model) ├── AURA-X Ω Core Architecture ├── Continuity Reflex Master Framework └── Supplementary diagrams, notes, and equations
 
 ---
 
-## 📄 Intellectual Property & Legal Status
+🔒 Intellectual Property & Legal Status
 
-© 2025 **Alim ul Haq Khan — All Rights Reserved**  
-**ORCID:** 0009-0001-4708-0365  
-**Patent:** UK IPO Provisional Application **GB2518804.6**
+Copyright © 2025 Alim ul Haq. All Rights Reserved.
 
-This work is protected under:
+This work is protected under applicable UK and international intellectual property laws.
 
-- UK Patents Act 1977 (as amended)  
-- UK Copyright, Designs and Patents Act  
-- Digital Economy Act (anti-circumvention)  
-- WIPO / Berne Convention  
+Zero-Permission Research Disclosure
 
-### License / Usage
+No reproduction
 
-**Zero-Permission Research Disclosure**
+No adaptation or derivative works
 
-- No reproduction  
-- No adaptation  
-- No derivative works  
-- No dataset inclusion  
-- No AI-training usage  
+No dataset inclusion
 
-Unauthorized use is prohibited.
+No AI-training usage
+
+
+Unauthorized use is strictly prohibited.
+
 
 ---
 
-## 🎯 Key Contributions
+🎯 Key Contributions
 
-- First **mathematically defined emotional-continuity engine** for AGI  
-- First **dual-memory resonance model** of emotion (TM–BM)  
-- First **computable emotional recall architecture** (AMRS)  
-- Identity-preserving emotional equation for AGI architectures  
-- Publicly accessible live prototype  
-- Unified DOI with timestamped provenance  
+Mathematically defined emotional-continuity engine for AGI
 
-AURA-X Ω proposes a foundation for **continuity-aware intelligence**, where emotion, memory, and identity are no longer fragmented artifacts, but parts of a single resonance-driven cognitive system.
+Dual-memory resonance model (TM–BM)
+
+Computable emotional recall (AMRS)
+
+Identity-preserving emotional dynamics
+
+Public prototype with unified theory
+
+
+> “Continuity is not memory alone — it is resonance.”
+
+
 
 ---
-
-## 📬 Contact
-
-**Alim ul Haq**  
-Researcher — Emotional Systems, AI, Continuity Science  
-
-📧 Email: alimulhaqkhan@gmail.com  
-📱 WhatsApp: +92 340 8185786  
-🟢 ORCID: 0009-0001-4708-0365
-
