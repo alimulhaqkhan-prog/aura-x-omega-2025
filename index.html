@@ -2,427 +2,555 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AURA-X Ω – Offline Emotional Continuity Prototype</title>
+  <title>AURA-X Ω – Offline emotional continuity engine (4.9 + Sense)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Offline LLM package (WebLLM, for in-browser models – future ready) -->
+
+  <!-- Future-ready offline LLM (web-llm) – optional -->
   <script type="module">
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
   </script>
+
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    :root { --accent-color:#0ea5e9; }
+
+    :root{
+      --bg:#020617;
+      --card:#020617;
+      --card-soft:#020617;
+      --border-soft:rgba(15,23,42,.8);
+      --accent:#0ea5e9;
+      --accent-soft:rgba(56,189,248,.24);
+      --accent-strong:#38bdf8;
+      --pill:#0ea5e9;
+      --pill-soft:#0369a1;
+      --text-main:#e5f2ff;
+      --text-soft:#9fb4d8;
+      --console-bg:rgba(15,23,42,.92);
+      --ethic-bg:rgba(15,23,42,.9);
+      --input-bg:#020617;
+      --danger:#f97373;
+      --ok:#4ade80;
+    }
+
     body{
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial;
-      background: radial-gradient(1200px 800px at 20% 0%, rgba(14,165,233,.15), transparent 60%),
-                  radial-gradient(900px 700px at 80% 20%, rgba(251,191,36,.12), transparent 55%),
-                  #f6f7fb;
-      color:#0f172a;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+      background:radial-gradient(circle at 0 0,#0ea5e911,transparent 55%),
+                 radial-gradient(circle at 100% 100%,#22d3ee11,transparent 55%),
+                 #020617;
+      color:var(--text-main);
       min-height:100vh;
+      padding:12px;
       display:flex;
       justify-content:center;
-      padding:12px;
+      align-items:flex-start;
     }
+
     .app{
-      width:min(980px,98vw);
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+      width:100%;
+      max-width:960px;
+      border-radius:32px;
+      padding:18px 16px 18px;
+      background:radial-gradient(circle at top,#0f172a,#020617 55%),
+                  radial-gradient(circle at bottom,#020617,#020617 60%);
+      box-shadow:0 24px 80px rgba(15,23,42,.9);
+      border:1px solid rgba(15,23,42,.9);
     }
+
     .top{
-      background:rgba(255,255,255,.72);
-      border:1px solid rgba(15,23,42,.10);
-      border-radius:18px;
-      padding:12px 14px;
-      box-shadow:0 20px 60px rgba(2,6,23,.08);
-      position:relative;
-      overflow:hidden;
+      text-align:center;
+      margin-bottom:18px;
     }
+
     .brand{
-      font-weight:1000;
-      letter-spacing:.5px;
-      font-size:18px;
+      font-size:26px;
+      letter-spacing:.18em;
+      font-weight:800;
+      color:#e0f2fe;
+      text-transform:uppercase;
     }
+
     .sub{
-      opacity:.75;
-      margin-top:2px;
-      font-size:12px;
-      line-height:1.25;
+      margin-top:4px;
+      font-size:13px;
+      color:var(--text-soft);
     }
+
     .ethic{
-      margin-top:10px;
-      background:rgba(255,255,255,.82);
-      border:1px solid rgba(15,23,42,.12);
-      border-radius:16px;
-      padding:10px 44px 10px 12px;
       position:relative;
+      margin:14px auto 10px;
+      max-width:760px;
+      border-radius:20px;
+      padding:10px 40px 10px 18px;
+      background:var(--ethic-bg);
+      border:1px solid rgba(148,163,184,.55);
+      text-align:left;
     }
+
     .ethicMain{
-      font-weight:900;
-      font-size:12px;
+      font-size:13px;
+      color:#fbbf24;
       line-height:1.35;
     }
+
     .ethicMeta{
-      margin-top:6px;
-      font-size:12px;
-      opacity:.78;
-      line-height:1.35;
-      white-space:pre-wrap;
+      margin-top:4px;
+      font-size:11px;
+      color:#bfdbfe;
+      opacity:.9;
     }
+
     .faithCfgBtn{
       position:absolute;
-      right:10px; top:10px;
-      width:30px;height:30px;
-      border-radius:12px;
-      border:1px solid rgba(15,23,42,.14);
-      background:rgba(255,255,255,.9);
+      right:10px;
+      top:10px;
+      width:20px;
+      height:20px;
+      border-radius:999px;
+      border:none;
+      background:#0f172a;
+      color:#e5e7eb;
       cursor:pointer;
-      font-weight:900;
+      font-size:11px;
     }
-    .consoleWrap{
-      background:rgba(255,255,255,.70);
-      border:1px solid rgba(15,23,42,.10);
-      border-radius:18px;
-      box-shadow:0 20px 60px rgba(2,6,23,.08);
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      min-height:58vh;
-    }
-    .toolbar{
-      display:flex;
-      gap:10px;
+
+    .pill{
+      display:inline-flex;
       align-items:center;
-      justify-content:space-between;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(15,23,42,.10);
-      background:rgba(255,255,255,.75);
-      position:relative;
+      justify-content:center;
+      margin-top:8px;
+      padding:8px 20px;
+      border-radius:999px;
+      background:linear-gradient(to right,#0ea5e9,#22c55e);
+      color:#0b1220;
+      font-size:14px;
+      font-weight:600;
+      letter-spacing:.12em;
     }
-    .toolbarLeft{
-      display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+
+    .main{
+      margin-top:4px;
     }
-    .chip{
+
+    .row{
+      display:grid;
+      grid-template-columns:280px minmax(0,1fr);
+      gap:14px;
+    }
+
+    .leftCol,.rightCol{
+      min-width:0;
+    }
+
+    .card{
+      border-radius:22px;
+      padding:12px;
+      background:radial-gradient(circle at top left,#0b1120,#020617 65%);
+      border:1px solid rgba(30,64,175,.65);
+      box-shadow:0 18px 40px rgba(15,23,42,.9);
+    }
+
+    .optionsBtn{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:8px 10px;
+      padding:6px 12px;
       border-radius:999px;
-      border:1px solid rgba(15,23,42,.12);
-      background:rgba(255,255,255,.9);
-      font-size:12px;
-      font-weight:900;
-      cursor:pointer;
-      user-select:none;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .chip small{opacity:.7;font-weight:800}
-    .chip.active{
-      background:#0f172a;
-      color:#fff;
-      border-color:rgba(15,23,42,.2);
-      box-shadow:0 12px 30px rgba(2,6,23,.12);
-    }
-    .btn{
-      border:none;
-      cursor:pointer;
-      padding:10px 14px;
-      border-radius:12px;
-      font-weight:900;
-      -webkit-tap-highlight-color:transparent;
-      font-size:12px;
-      background:rgba(15,23,42,.06);
-      color:#0f172a;
-    }
-    .btnBlue{
-      background:linear-gradient(135deg, var(--accent-color), #2563eb);
-      color:#fff;
-      box-shadow:0 12px 30px rgba(37,99,235,.18);
-    }
-    .btnRed{
-      background:linear-gradient(135deg, #ef4444, #b91c1c);
-      color:#fff;
-      box-shadow:0 12px 30px rgba(239,68,68,.18);
-    }
-    .iconBtn{
-      width:34px;height:34px;
-      border-radius:12px;
-      border:1px solid rgba(15,23,42,.14);
-      background:rgba(255,255,255,.92);
-      cursor:pointer;
-      font-weight:900;
-    }
-    .optionsWrap{
-      position:relative;
-    }
-    .optionsBtn{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:8px 10px;
-      border-radius:14px;
-      border:1px solid rgba(15,23,42,.12);
-      background:rgba(255,255,255,.9);
-      cursor:pointer;
-      font-weight:900;
-      font-size:12px;
-    }
-    .optionsMenu{
-      position:absolute;
-      right:0;
-      top:44px;
-      width:240px;
-      max-height:60vh;
-      overflow:auto;
-      background:rgba(255,255,255,.96);
-      border:1px solid rgba(15,23,42,.12);
-      border-radius:16px;
-      box-shadow:0 25px 70px rgba(2,6,23,.18);
-      display:none;
-      z-index:50;
-      padding:8px;
-    }
-    .optionsMenu.show{display:block;}
-    .menuItem{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:10px 10px;
-      border-radius:14px;
+      border:1px solid rgba(148,163,184,.6);
+      background:rgba(15,23,42,.95);
+      color:#e5e7eb;
+      font-size:13px;
       cursor:pointer;
       user-select:none;
     }
-    .menuItem:hover{background:rgba(15,23,42,.06)}
-    .menuLeft{display:flex;gap:10px;align-items:center;font-weight:900;font-size:13px}
-    .menuIcon{width:22px;text-align:center}
-    .menuRight{display:flex;gap:8px;align-items:center}
-    .pillOn,.pillOff,.pillMid{
-      font-size:11px;
-      font-weight:1000;
-      padding:4px 8px;
-      border-radius:999px;
-      border:1px solid rgba(15,23,42,.14);
-      background:rgba(15,23,42,.05);
-      opacity:.9;
+
+    .optionsBtn:hover{
+      border-color:#38bdf8;
+      box-shadow:0 0 0 1px rgba(56,189,248,.45);
     }
-    .pillOn{background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.28)}
-    .pillOff{background:rgba(148,163,184,.12); border-color:rgba(148,163,184,.28)}
-    .pillMid{background:rgba(59,130,246,.12); border-color:rgba(59,130,246,.28)}
-    .liveCapsule{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
-      font-size:12px;
-      opacity:.8;
-      font-weight:800;
-    }
-    .faithBubble{
-      position:absolute;
-      left:10px; bottom:-90px;
-      width:min(520px,94%);
-      background:rgba(255,255,255,.96);
-      border:1px solid rgba(15,23,42,.12);
-      border-radius:18px;
-      box-shadow:0 20px 70px rgba(2,6,23,.18);
-      padding:10px 12px;
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-      z-index:20;
-      opacity:0;
-      transform:translateY(0);
-      transition:all .28s ease;
-      pointer-events:none;
-    }
-    .faithBubble.show{
-      bottom:10px;
-      opacity:1;
-      pointer-events:auto;
-    }
-    .fbIcon{font-size:20px;line-height:1}
-    .fbTitle{font-weight:1000;font-size:12px}
-    .fbMeta{opacity:.75;font-size:12px;line-height:1.35;margin-top:2px;white-space:pre-wrap}
-    .fbClose{
-      margin-left:auto;
-      width:28px;height:28px;
-      border-radius:12px;
-      border:1px solid rgba(15,23,42,.12);
-      background:rgba(15,23,42,.04);
-      cursor:pointer;
-      font-weight:1000;
+
+    .gear{
+      width:18px;
+      height:18px;
     }
 
     .console{
-      padding:12px 12px;
-      overflow:auto;
-      flex:1;
-      background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.90));
+      margin-top:10px;
+      border-radius:18px;
+      background:var(--console-bg);
+      border:1px solid rgba(15,23,42,.9);
+      height:260px;
+      padding:10px 10px 8px;
+      overflow-y:auto;
+      font-size:13px;
+      line-height:1.35;
     }
-    .msg{
-      max-width:90%;
-      padding:10px 12px;
-      border-radius:16px;
-      margin:8px 0;
-      line-height:1.42;
-      font-size:14px;
+
+    .line{
+      margin-bottom:6px;
       white-space:pre-wrap;
-      border:1px solid rgba(15,23,42,.10);
-      box-shadow:0 10px 25px rgba(2,6,23,.06);
+      word-break:break-word;
     }
-    .msg.user{
-      margin-left:auto;
-      background:rgba(14,165,233,.10);
-      border-color:rgba(14,165,233,.22);
+
+    .line.user{
+      color:#e5f2ff;
     }
-    .msg.aura{
-      margin-right:auto;
-      background:rgba(15,23,42,.05);
+
+    .line.aura{
+      color:#bfdbfe;
     }
-    .msgMeta{
-      font-size:11px;
-      opacity:.65;
-      margin-top:6px;
-      font-weight:800;
+
+    .line.system{
+      color:#a5b4fc;
+      font-size:12px;
+      opacity:.9;
+    }
+
+    .metrics{
+      margin-top:12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      font-size:12px;
+      color:#cbd5f5;
+      padding:8px 10px;
+      border-radius:16px;
+      background:rgba(15,23,42,.92);
+      border:1px solid rgba(30,64,175,.7);
+    }
+
+    .metricLabel{
+      color:#93c5fd;
+    }
+
+    .inputRow{
+      margin-top:8px;
       display:flex;
       gap:8px;
-      flex-wrap:wrap;
     }
-    .inputBar{
-      border-top:1px solid rgba(15,23,42,.10);
-      background:rgba(255,255,255,.88);
-      padding:10px;
-      display:flex;
-      gap:8px;
-      align-items:flex-end;
-      flex-wrap:wrap;
-    }
-    .inputBar textarea{
+
+    #mainInput{
       flex:1;
-      min-width:220px;
-      min-height:46px;
-      max-height:180px;
-      resize:vertical;
-      border-radius:16px;
-      border:1px solid rgba(15,23,42,.12);
-      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.7);
+      padding:9px 14px;
       font-size:14px;
+      background:var(--input-bg);
+      color:#e5f2ff;
       outline:none;
-      background:#fff;
     }
-    .visionWrap{
+
+    #mainInput::placeholder{
+      color:#6b7280;
+    }
+
+    .sendBtn{
+      border:none;
+      border-radius:999px;
+      padding:0 20px;
+      background:linear-gradient(to right,#0ea5e9,#22c55e);
+      color:#020617;
+      font-weight:600;
+      font-size:14px;
+      cursor:pointer;
+      min-width:80px;
+    }
+
+    .reactionBar{
+      margin-top:10px;
       display:flex;
-      flex-direction:column;
-      gap:6px;
-      width:100%;
+      align-items:center;
+      justify-content:flex-end;
+      gap:10px;
+      font-size:18px;
+      opacity:.9;
     }
-    .visionRow{
-      display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+
+    .reactionBar span{
+      cursor:pointer;
+      filter:grayscale(.1);
+      transition:transform .12s ease,filter .12s ease;
     }
-    .visionInput{
-      display:none;
+
+    .reactionBar span:hover{
+      transform:translateY(-1px) scale(1.1);
+      filter:none;
     }
-    .imgPrev{
-      width:100%;
-      max-height:220px;
+
+    /* Options menu */
+
+    .optionsMenu{
+      position:relative;
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      transition:opacity .15s ease,transform .15s ease;
+    }
+
+    .menuItem{
       border-radius:16px;
-      border:1px solid rgba(15,23,42,.10);
-      object-fit:cover;
-      display:none;
+      padding:6px 6px;
+      border:1px solid rgba(30,64,175,.7);
+      background:radial-gradient(circle at top,#0f172a,#020617 70%);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-height:52px;
     }
+
+    .menuItem:hover{
+      border-color:#38bdf8;
+      box-shadow:0 0 0 1px rgba(56,189,248,.35);
+    }
+
+    .menuIcon{
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      background:rgba(15,23,42,.9);
+      border:1px solid rgba(30,64,175,.7);
+    }
+
+    .menuLeft{
+      font-size:11px;
+      line-height:1.2;
+    }
+
+    .menuTitle{
+      font-weight:600;
+      color:#e5f2ff;
+    }
+
+    .menuSub{
+      color:#9ca3af;
+    }
+
+    .pillOn,.pillOff,.pillMid{
+      border-radius:999px;
+      padding:4px 7px;
+      font-size:10px;
+      border:none;
+      cursor:pointer;
+    }
+
+    .pillOn{
+      background:rgba(16,185,129,.15);
+      color:#6ee7b7;
+    }
+
+    .pillOff{
+      background:rgba(248,113,113,.12);
+      color:#fecaca;
+    }
+
+    .pillMid{
+      background:rgba(59,130,246,.15);
+      color:#bfdbfe;
+    }
+
+    .statusDot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#22c55e;
+      box-shadow:0 0 0 3px rgba(34,197,94,.22);
+    }
+
+    /* Modals */
+
     .modalOverlay{
       position:fixed;
       inset:0;
-      background:rgba(2,6,23,.55);
+      background:rgba(15,23,42,.7);
       display:none;
       align-items:center;
       justify-content:center;
-      padding:14px;
-      z-index:200;
+      z-index:40;
+      padding:12px;
     }
-    .modalOverlay.show{display:flex;}
+
     .modal{
-      width:min(900px,96vw);
-      max-height:92vh;
-      overflow:auto;
-      background:rgba(255,255,255,.96);
-      border:1px solid rgba(255,255,255,.25);
-      border-radius:20px;
-      box-shadow:0 30px 120px rgba(0,0,0,.35);
+      width:100%;
+      max-width:560px;
+      border-radius:22px;
+      background:#020617;
+      border:1px solid rgba(30,64,175,.9);
+      box-shadow:0 24px 80px rgba(15,23,42,.95);
+      padding:14px 16px 16px;
     }
+
     .modalHeader{
       display:flex;
-      align-items:flex-start;
       justify-content:space-between;
+      align-items:flex-start;
       gap:10px;
-      padding:14px 14px;
-      border-bottom:1px solid rgba(15,23,42,.10);
-      font-weight:1000;
-    }
-    .modalHeader small{display:block;font-weight:800;opacity:.7;margin-top:2px}
-    .modalBody{padding:14px 14px}
-    .list{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .card{
-      border-radius:16px;
-      border:1px solid rgba(15,23,42,.12);
-      background:rgba(255,255,255,.95);
-      padding:12px 12px;
-      box-shadow:0 14px 40px rgba(2,6,23,.08);
-    }
-    .cardTop{
-      display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;
-    }
-    .title{font-weight:1000}
-    .subt{opacity:.75;font-size:12px;margin-top:3px;line-height:1.3}
-    .cardBtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .divider{height:1px;background:rgba(15,23,42,.10);margin:10px 0}
-    .logicArea{
-      width:100%;
-      min-height:140px;
-      resize:vertical;
-      border-radius:14px;
-      border:1px solid rgba(15,23,42,.12);
-      padding:10px 12px;
+      margin-bottom:10px;
       font-size:14px;
-      outline:none;
-      background:#fff;
+      color:#e5f2ff;
     }
-    .intelEditArea{
-      min-height:90px;
-      resize:vertical;
-      line-height:1.4;
-      margin-top:6px;
+
+    .modalHeader small{
+      color:#9ca3af;
+      font-weight:400;
     }
-    .intelCard{
-      border-radius:12px;
-      border:1px solid rgba(15,23,42,.12);
-      background:rgba(255,255,255,.95);
-      padding:10px 10px;
+
+    .modalBody{
+      font-size:13px;
+      color:#d1d5db;
+      max-height:60vh;
+      overflow-y:auto;
     }
-    .toast{
-      position:fixed;
-      left:50%;
-      transform:translateX(-50%);
-      bottom:16px;
-      background:rgba(15,23,42,.92);
-      color:#fff;
-      padding:10px 12px;
-      border-radius:14px;
-      font-weight:900;
+
+    .closeX{
+      border-radius:999px;
+      width:22px;
+      height:22px;
+      border:1px solid rgba(148,163,184,.7);
+      background:#020617;
+      color:#e5e7eb;
+      cursor:pointer;
+      font-size:13px;
+    }
+
+    .btn{
+      border-radius:999px;
+      padding:6px 14px;
       font-size:12px;
-      box-shadow:0 20px 70px rgba(0,0,0,.25);
-      display:none;
-      z-index:999;
-      max-width:min(520px,92vw);
+      border:1px solid transparent;
+      cursor:pointer;
+      white-space:nowrap;
     }
-    .toast.show{display:block;}
-    @media (max-width:560px){
-      .brand{font-size:16px}
-      .msg{max-width:96%}
-      .toolbar{gap:8px}
-      .optionsMenu{width:92vw}
+
+    .btnBlue{
+      background:rgba(37,99,235,.18);
+      border-color:rgba(59,130,246,.7);
+      color:#bfdbfe;
+    }
+
+    .btnRed{
+      background:rgba(248,113,113,.12);
+      border-color:rgba(248,113,113,.5);
+      color:#fecaca;
+    }
+
+    .btnGhost{
+      background:transparent;
+      border-color:rgba(148,163,184,.6);
+      color:#e5e7eb;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.6);
+      padding:2px 8px;
+      font-size:11px;
+      gap:4px;
+      color:#cbd5f5;
+    }
+
+    /* Dream bubble + image preview already used in 4.9 */
+
+    #dreamBubble{
+      margin-top:10px;
+      border-radius:18px;
+      padding:10px 12px;
+      background:radial-gradient(circle at top,#0b1120,#020617 70%);
+      border:1px dashed rgba(59,130,246,.6);
+      display:none;
+    }
+
+    .dreamTitle{
+      font-weight:800;
+      font-size:18px;
+      color:#e0f2fe;
+    }
+
+    .dreamSub{
+      max-width:420px;
+      font-size:13px;
+      color:#bae6fd;
+      opacity:.9;
+    }
+
+    .dreamMeta{
+      margin-top:4px;
+      font-size:11px;
+      color:#93c5fd;
+      opacity:.85;
+    }
+
+    @keyframes dreamPulse{
+      0%{transform:translateY(0) scale(1);}
+      50%{transform:translateY(-6px) scale(1.03);}
+      100%{transform:translateY(0) scale(1);}
+    }
+
+    #dreamBubble.dreamActive{animation:dreamPulse 3.5s ease-in-out infinite;}
+
+    #imagePreviewArea{
+      display:none;
+      margin:6px 2px 2px;
+      text-align:center;
+      font-size:10px;
+      opacity:.8;
+    }
+
+    #imgPrev{
+      max-height:90px;
+      border-radius:10px;
+      border:2px solid var(--accent);
+      margin-bottom:2px;
+    }
+
+    /* Toast */
+
+    #toast{
+      position:fixed;
+      bottom:16px;
+      right:16px;
+      left:16px;
+      max-width:320px;
+      margin:0 auto;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(15,23,42,.96);
+      border:1px solid rgba(59,130,246,.7);
+      color:#e5e7eb;
+      font-size:12px;
+      display:none;
+      z-index:50;
+      text-align:center;
+    }
+
+    @media (max-width:760px){
+      .row{grid-template-columns:1fr}
+      .console{height:240px}
+      .optionsMenu{top:0}
+    }
+
+    @media (max-width:420px){
+      .brand{font-size:22px}
+      .pill{font-size:14px}
+      .ethic{font-size:13px}
+      .console{height:260px}
+      .optionsMenu{
+        gap:6px;
+        padding:0;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+      }
+      .menuItem{min-height:52px;padding:6px 4px;}
+      .menuLeft{font-size:11px}
+      .pillOn,.pillOff,.pillMid{font-size:9.5px;padding:4px 6px;}
+      .reactionBar{font-size:16px;gap:8px;}
     }
   </style>
 </head>
@@ -440,485 +568,441 @@
           Universal ethic: avoid actions that grow negative emotions in you or others.
           Move gently toward choices that increase shared positive feeling for everyone.
         </div>
-        <div class="ethicMeta" id="ethicMeta"></div><!-- ✅ empty by default -->
+        <div class="ethicMeta" id="ethicMeta"></div>
         <button id="faithCfgBtn" class="faithCfgBtn" title="Faith live bar settings">🔘</button>
       </div>
+
+      <div class="pill">EMOTIONAL CONTINUITY ENGINE — ACTIVE</div>
     </div>
 
-    <div class="consoleWrap">
-      <div class="toolbar">
-        <div class="toolbarLeft">
-          <div class="chip" id="chipContinuity">Continuity <small id="contVal">0.85</small></div>
-          <div class="chip" id="chipEmotion">Emotion <small id="emoVal">0.00</small></div>
-          <div class="chip" id="chipTruth">TRC <small id="trcVal">0.75</small></div>
+    <div class="main">
+      <div class="row">
+        <!-- LEFT -->
+        <div class="leftCol">
+          <div class="card">
+            <div class="optionsBtn" id="btnOptions">
+              <svg class="gear" viewBox="0 0 24 24" fill="none">
+                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+                      stroke="#7dd3fc" stroke-width="2"/>
+                <path d="M19.4 15a8.2 8.2 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a8.5 8.5 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a8.2 8.2 0 0 0 .1 2L2.7 16.5l2 3.5 2.4-1a8.5 8.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.5L19.4 15Z"
+                      stroke="#7dd3fc" stroke-width="1.6" opacity=".9"/>
+              </svg>
+              <span>Options</span>
+            </div>
 
-          <div class="optionsWrap">
-            <button class="optionsBtn" id="btnOptions">⚙️ <span>Options</span></button>
             <div class="optionsMenu" id="optionsMenu">
-              <div class="menuItem" id="miVoice">
-                <div class="menuLeft"><span class="menuIcon">🎤</span><span>Voice</span></div>
-                <div class="menuRight"><span class="pillOff" id="voicePill">off</span></div>
+              <!-- Voice -->
+              <div class="menuItem" data-open="modalVoice">
+                <div class="menuIcon">🎙️</div>
+                <div class="menuLeft">
+                  <div class="menuTitle">Voice</div>
+                  <div class="menuSub">Read answers aloud.</div>
+                </div>
+                <button class="pillOff" id="pillVoice">off</button>
               </div>
 
-              <!-- ✅ Injected (4.9 UI unchanged) -->
-              <div class="menuItem" id="miCamera">
-                <div class="menuLeft"><span class="menuIcon">📷</span><span>Camera</span></div>
-                <div class="menuRight"><span class="pillOff" id="camPill">off</span></div>
+              <!-- Intelligence -->
+              <div class="menuItem" data-open="modalIntel">
+                <div class="menuIcon">🧠</div>
+                <div class="menuLeft">
+                  <div class="menuTitle">Intelligence</div>
+                  <div class="menuSub">Stored Q → A.</div>
+                </div>
+                <button class="pillMid">open</button>
               </div>
-              <div class="menuItem" id="miMicSense">
-                <div class="menuLeft"><span class="menuIcon">🎧</span><span>Mic (sense)</span></div>
-                <div class="menuRight"><span class="pillOff" id="micPill">off</span></div>
-              </div>
-              <div class="menuItem" id="miSense">
-                <div class="menuLeft"><span class="menuIcon">👁️</span><span>Sense</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
-              </div>
-              <!-- ✅ end injected -->
 
-              <div class="menuItem" id="miIntel">
-                <div class="menuLeft"><span class="menuIcon">🧠</span><span>Intelligence</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
+              <!-- Learning -->
+              <div class="menuItem" data-open="modalLearn">
+                <div class="menuIcon">📚</div>
+                <div class="menuLeft">
+                  <div class="menuTitle">Learning</div>
+                  <div class="menuSub">Self-learning rules.</div>
+                </div>
+                <button class="pillOn" id="pillLearn">on</button>
               </div>
-              <div class="menuItem" id="miLearn">
-                <div class="menuLeft"><span class="menuIcon">📚</span><span>Learning</span></div>
-                <div class="menuRight"><span class="pillOn" id="learnPill">on</span></div>
+
+              <!-- Seed -->
+              <div class="menuItem" data-open="modalSeed">
+                <div class="menuIcon">🌱</div>
+                <div class="menuLeft">
+                  <div class="menuTitle">Feed</div>
+                  <div class="menuSub">Seed LaTeX blocks.</div>
+                </div>
+                <button class="pillMid">open</button>
               </div>
-              <div class="menuItem" id="miSeed">
-                <div class="menuLeft"><span class="menuIcon">🌱</span><span>Feed</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
+
+              <!-- Faith -->
+              <div class="menuItem" data-open="modalFaith">
+                <div class="menuIcon">🕊️</div>
+                <div class="menuLeft">
+                  <div class="menuTitle">Faith</div>
+                  <div class="menuSub">Ethic + lens.</div>
+                </div>
+                <button class="pillMid" id="pillFaith">none</button>
               </div>
-              <div class="menuItem" id="miFaith">
-                <div class="menuLeft"><span class="menuIcon">🕊</span><span>Faith</span></div>
-                <div class="menuRight"><span class="pillOff" id="faithLabel">none</span></div>
+
+              <!-- Identity -->
+              <div class="menuItem" data-open="modalId">
+                <div class="menuIcon">🪪</div>
+                <div class="menuLeft">
+                  <div class="menuTitle">Identity</div>
+                  <div class="menuSub">User profile.</div>
+                </div>
+                <button class="pillMid">open</button>
               </div>
-              <div class="menuItem" id="miIdentity">
-                <div class="menuLeft"><span class="menuIcon">🪪</span><span>Identity</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
+
+              <!-- LLM -->
+              <div class="menuItem" data-open="modalLLM">
+                <div class="menuIcon">🤖</div>
+                <div class="menuLeft">
+                  <div class="menuTitle">LLM</div>
+                  <div class="menuSub">API & model.</div>
+                </div>
+                <button class="pillMid">open</button>
               </div>
-              <div class="menuItem" id="miLLM">
-                <div class="menuLeft"><span class="menuIcon">🤖</span><span>LLM</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
+
+              <!-- BM Recall -->
+              <div class="menuItem" data-open="modalBM">
+                <div class="menuIcon">📘</div>
+                <div class="menuLeft">
+                  <div class="menuTitle">BM Recall</div>
+                  <div class="menuSub">Deep memory.</div>
+                </div>
+                <button class="pillMid">open</button>
               </div>
-              <div class="menuItem" id="miBMRecall">
-                <div class="menuLeft"><span class="menuIcon">📘</span><span>BM</span></div>
-                <div class="menuRight"><span class="pillMid">open</span></div>
+
+              <!-- History -->
+              <div class="menuItem" data-open="modalHist">
+                <div class="menuIcon">📜</div>
+                <div class="menuLeft">
+                  <div class="menuTitle">History</div>
+                  <div class="menuSub">Episodes.</div>
+                </div>
+                <button class="pillMid">open</button>
+              </div>
+
+              <!-- NEW: Sense (Camera + Mic) -->
+              <div class="menuItem" data-open="modalSense">
+                <div class="menuIcon">👁️</div>
+                <div class="menuLeft">
+                  <div class="menuTitle">Sense</div>
+                  <div class="menuSub">Camera + Mic → BM.</div>
+                </div>
+                <div class="statusDot" id="senseDot" title="Idle"></div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="liveCapsule">
-          <span><b>E0</b>: <span id="cE0">0.000</span></span><span>·</span>
-          <span><b>TM</b>: <span id="cTM">0.00</span></span><span>·</span>
-          <span><b>BM</b>: <span id="cBM">0.00</span></span><span>·</span>
-          <span><b>C</b>: <span id="cCont">0.850</span></span>
-        </div>
-
-        <div class="faithBubble" id="faithBubble">
-          <div class="fbIcon">💭</div>
-          <div class="fbText">
-            <div class="fbTitle" id="faithBubbleTitle">Faith reflection bubble</div>
-            <div class="fbMeta" id="faithBubbleMeta">Tap to see a short suggestion.</div>
-          </div>
-          <button class="fbClose" id="faithBubbleClose">×</button>
-        </div>
-      </div>
-
-      <div class="console" id="console"></div>
-
-      <div class="inputBar">
-        <textarea id="userInput" placeholder="Type here..."></textarea>
-        <button class="btn btnBlue" id="sendBtn">Send</button>
-
-        <div class="visionWrap">
-          <div class="visionRow">
-            <button class="btn" id="btnVisionPick">🖼 Add image</button>
-            <input type="file" id="visionInput" class="visionInput" accept="image/*" />
-            <button class="btn" id="btnClearVision">Clear image</button>
-          </div>
-          <div id="imagePreviewArea">
-            <img id="imgPrev" class="imgPrev" alt="preview" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Faith Live Bar Settings -->
-    <div class="modalOverlay" id="modalFaithCfg">
-      <div class="modal">
-        <div class="modalHeader">
-          <div>🔘 Faith live bar settings<br><small>Enable/disable faith lenses (and choose language for each).</small></div>
-          <button class="iconBtn" data-close="modalFaithCfg">✕</button>
-        </div>
-        <div class="modalBody">
-          <div id="faithCfgList" class="list"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Intelligence -->
-    <div class="modalOverlay" id="modalIntel">
-      <div class="modal">
-        <div class="modalHeader">
-          <div>🧠 Intelligence<br><small>Learned Q/A pairs (editable). Locked entries require unlock first.</small></div>
-          <button class="iconBtn" data-close="modalIntel">✕</button>
-        </div>
-        <div class="modalBody">
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <input id="intelSearch" style="flex:1;min-width:220px;border-radius:14px;border:1px solid rgba(15,23,42,.12);padding:10px 12px;font-size:14px;outline:none;background:#fff"
-              placeholder="Search..." />
-            <button class="btn btnBlue" id="btnExportIntel">Export</button>
-            <button class="btn btnRed" id="btnClearIntel">Clear (unlocked)</button>
-          </div>
-          <div class="divider"></div>
-          <div id="intelList" class="list"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Feed the Seed -->
-    <div class="modalOverlay" id="modalSeed">
-      <div class="modal">
-        <div class="modalHeader">
-          <div>🌱 Feed the Seed<br><small>Inject basic Q/A or knowledge blocks (auto-lock on save).</small></div>
-          <button class="iconBtn" data-close="modalSeed">✕</button>
-        </div>
-        <div class="modalBody">
-          <textarea id="seedArea" class="logicArea" placeholder="Paste Q/A pairs or knowledge blocks..."></textarea>
-          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;flex-wrap:wrap;">
-            <button class="btn btnBlue" id="btnSeedSave">Save to Intelligence</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Faith -->
-    <div class="modalOverlay" id="modalFaith">
-      <div class="modal">
-        <div class="modalHeader">
-          <div>🕊 Faith lens<br><small>Select one or more lenses (Top 10).</small></div>
-          <button class="iconBtn" data-close="modalFaith">✕</button>
-        </div>
-        <div class="modalBody">
-          <div id="faithList" class="list"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Identity -->
-    <div class="modalOverlay" id="modalIdentity">
-      <div class="modal">
-        <div class="modalHeader">
-          <div>🪪 Identity (Deep Profiling)<br><small>Store user identity blocks (auto-lock). You can delete only after unlock + double confirm.</small></div>
-          <button class="iconBtn" data-close="modalIdentity">✕</button>
-        </div>
-        <div class="modalBody">
-          <textarea id="identityArea" class="logicArea" placeholder="Write identity blocks here..."></textarea>
-          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;flex-wrap:wrap;">
-            <button class="btn btnBlue" id="btnSaveIdentity">Save</button>
-            <button class="btn btnRed" id="btnDeleteIdentity">Delete (unlock + confirm)</button>
-          </div>
-          <div style="margin-top:8px;font-size:12px;opacity:.7;" id="identityStatus">No identity saved.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LLM -->
-    <div class="modalOverlay" id="modalLLM">
-      <div class="modal">
-        <div class="modalHeader">
-          <div>🤖 LLM settings<br><small>Offline WebLLM (future) and optional online API fallback.</small></div>
-          <button class="iconBtn" data-close="modalLLM">✕</button>
-        </div>
-        <div class="modalBody">
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;">
-            <div style="flex:1;min-width:260px;">
-              <div class="card">
-                <div class="title">Offline (WebLLM)</div>
-                <div class="subt">Reserved for future – model loading can be heavy on mobile.</div>
-                <div class="divider"></div>
-                <button class="btn btnBlue" id="btnInitOffline">Init Offline LLM</button>
-                <div style="margin-top:8px;font-size:12px;opacity:.7;" id="offlineStatus">Not initialized.</div>
-              </div>
-            </div>
-            <div style="flex:1;min-width:260px;">
-              <div class="card">
-                <div class="title">Online API (optional)</div>
-                <div class="subt">Only used if enabled and key is provided.</div>
-                <div class="divider"></div>
-                <div style="margin-top:10px;">
-                  <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Endpoint (OpenAI compatible)</label>
-                  <input id="apiEndpoint"
-                    style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-                    value="https://api.openai.com/v1/chat/completions" />
-                </div>
-                <div style="margin-top:10px;">
-                  <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Model</label>
-                  <input id="apiModel"
-                    style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-                    value="gpt-4o-mini" />
-                </div>
-                <div style="margin-top:10px;">
-                  <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">API key (session only)</label>
-                  <input id="apiKey"
-                    style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:14px;outline:none;background:rgba(255,255,255,.88)"
-                    placeholder="sk-..." />
-                </div>
-                <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-                  <button class="btn btnBlue" id="btnSaveLLM">Save</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ✅ Injected Sense modal (UI preserved; just added new modal) -->
-    <div class="modalOverlay" id="modalSense">
-      <div class="modal">
-        <div class="modalHeader">
-          <div>👁️ Sense<br><small>Camera/Mic perception → build a BM prompt (no media is stored unless you save).</small></div>
-          <button class="iconBtn" data-close="modalSense">✕</button>
-        </div>
-        <div class="modalBody">
-          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
-            <div style="flex:1;min-width:240px;">
-              <div style="font-size:12px;opacity:.75;margin-bottom:6px;">Camera preview</div>
-              <video id="senseVideo" autoplay playsinline muted style="width:100%;border-radius:14px;border:1px solid rgba(15,23,42,.12);background:#0b1220;min-height:160px;"></video>
-              <canvas id="senseCanvas" style="display:none;"></canvas>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-                <button class="btn btnBlue" id="btnCamStart">Start camera</button>
-                <button class="btn btnRed" id="btnCamStop">Stop</button>
-                <button class="btn" id="btnSnap">Snapshot</button>
-              </div>
-              <div style="margin-top:10px;font-size:12px;opacity:.75;">Mic capture (5–10s)</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                <button class="btn btnBlue" id="btnMicStart">Start mic</button>
-                <button class="btn btnRed" id="btnMicStop">Stop</button>
-                <button class="btn" id="btnMicTest">Test beep</button>
-              </div>
-              <div id="micInfo" style="margin-top:8px;font-size:12px;opacity:.75;">Mic: idle</div>
-            </div>
-
-            <div style="flex:1;min-width:240px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-                <div style="font-weight:900;">Scene → BM prompt</div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-                  <button class="btn btnBlue" id="btnSenseAnalyze">Analyze</button>
-                  <button class="btn btnBlue" id="btnSenseSaveBM">Save to BM</button>
-                </div>
-              </div>
-              <div style="margin-top:8px;font-size:12px;opacity:.72;">
-                Tip: If you have an API endpoint set in <b>LLM</b>, AURA will send a lightweight summary request (image+audio optional).
-                Otherwise it will create a local, heuristic scene summary.
-              </div>
-              <textarea id="senseSummary" class="logicArea" placeholder="Scene summary will appear here..."></textarea>
-              <div style="margin-top:8px;font-size:12px;opacity:.7;">
-                Last snapshot: <span id="senseSnapInfo">none</span> · Last mic: <span id="senseMicInfo">none</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- BM Recall -->
-    <div class="modalOverlay" id="modalBM">
-      <div class="modal">
-        <div class="modalHeader">
-          <div>📘 Recall from BM<br><small>Only long stories and scenes (photo/video-ready).</small></div>
-          <button class="iconBtn" data-close="modalBM">✕</button>
-        </div>
-        <div class="modalBody">
+        <!-- RIGHT -->
+        <div class="rightCol">
           <div class="card">
-            <div class="bmTop">
-              <div>
-                <div class="title">🌙 Dream Mode / screensaver</div>
-                <div class="bmSub">
-                  Choose after how much idle time AURA-X Ω should enter Dream Mode with your BM snapshots.
-                </div>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-                <button class="btn btnBlue" id="btnTestDream">Test now</button>
-              </div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <div style="flex:1;min-width:140px;">
-                <label style="font-size:12px;opacity:.75;display:block;margin-bottom:4px;">Start after</label>
-                <select id="dreamDelay"
-                  style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.18);padding:8px 10px;font-size:14px;outline:none;background:rgba(255,255,255,.88)">
-                  <option value="30000">30 seconds</option>
-                  <option value="60000">1 minute</option>
-                  <option value="120000">2 minutes</option>
-                  <option value="300000">5 minutes</option>
-                  <option value="600000">10 minutes</option>
-                  <option value="1800000">30 minutes</option>
-                  <option value="3600000">1 hour</option>
-                  <option value="7200000">2 hours</option>
-                  <option value="14400000">4 hours</option>
-                  <option value="28800000">8 hours</option>
-                </select>
-              </div>
-              <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
-                <button class="btn btnBlue" id="btnSaveDream">Save</button>
-              </div>
-            </div>
-          </div>
+            <div id="console" class="console"></div>
 
-          <div class="divider"></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <input id="bmSearch"
-              style="flex:1;min-width:240px;border-radius:14px;border:1px solid rgba(15,23,42,.12);padding:10px 12px;font-size:14px;outline:none;background:#fff"
-              placeholder="Search BM prompts..." />
-            <button class="btn btnBlue" id="btnBMExport">Export</button>
-            <button class="btn btnRed" id="btnBMClear">Clear (unlocked)</button>
-          </div>
-          <div class="divider"></div>
-          <div id="bmList" class="list"></div>
-
-          <div class="divider"></div>
-          <div class="card">
-            <div class="title">🧩 Logic Pack</div>
-            <div class="subt">Save a behavior logic block. (Input clears after save.)</div>
-            <div class="divider"></div>
-            <textarea id="logicArea" class="logicArea" placeholder=""></textarea>
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
-              <div style="font-size:12px;opacity:.7" id="logicHint">No logic pack loaded.</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn btnBlue" id="btnValidateLogic">Validate</button>
-                <button class="btn btnBlue" id="btnSaveLogic">Save</button>
-                <button class="btn btnBlue" id="btnCopyLogic">Copy</button>
-                <button class="btn btnRed" id="btnDeleteLogic">Delete</button>
+            <div id="dreamBubble">
+              <div class="dreamTitle">Dream mode ready</div>
+              <div class="dreamSub">
+                When you leave AURA-X Ω idle, it can “dream” over your BM prompts and
+                generate gentle reflections to keep emotional continuity soft and alive.
               </div>
+              <div class="dreamMeta" id="dreamMeta"></div>
             </div>
-            <div style="margin-top:6px;font-size:11px;opacity:.6;">
-              Current serial: <span id="logicSerial">none</span>
+
+            <div id="imagePreviewArea">
+              <img id="imgPrev" alt="preview">
+              <div>Attached vision will influence BM and answer (developer can plug a vision API here).</div>
+            </div>
+
+            <div class="metrics">
+              <div><span class="metricLabel">E0:</span> <span id="mE0">0.000</span></div>
+              <div><span class="metricLabel">TM:</span> <span id="mTM">0.00</span></div>
+              <div><span class="metricLabel">BM:</span> <span id="mBM">0.00</span></div>
+              <div><span class="metricLabel">C:</span> <span id="mC">0.850</span></div>
+            </div>
+
+            <div class="inputRow">
+              <input id="mainInput" autocomplete="off"
+                     placeholder="Talk to AURA-X Ω… (TM = your inputs)" />
+              <button class="sendBtn" id="btnSend">Send</button>
+            </div>
+
+            <div class="reactionBar" id="reactionBar">
+              <span data-r="pos">😊</span>
+              <span data-r="calm">😌</span>
+              <span data-r="neutral">😐</span>
+              <span data-r="sad">😢</span>
+              <span data-r="angry">😡</span>
+              <span data-r="think">🤔</span>
+            </div>
+
+            <div style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">
+              E₀ = tanh( R(TM,BM) + I(TM) + I_intel + I_LLM − D + λ_faith + λ_sys + λ_trc )
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <div class="toast" id="toast"></div>
   </div>
 
+  <!-- ====== Modals (minimal versions, same structure as 4.9) ====== -->
+
+  <!-- Voice -->
+  <div class="modalOverlay" id="modalVoice">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🎙️ Voice<br><small>Read Aura’s replies using browser speech synthesis.</small></div>
+        <button class="closeX" data-close="modalVoice">×</button>
+      </div>
+      <div class="modalBody">
+        <p style="margin-bottom:8px">
+          When <span class="badge"><span style="width:6px;height:6px;border-radius:999px;background:#22c55e"></span> on</span>,
+          AURA-X Ω will speak answers aloud. This uses your device TTS; nothing is sent to a server.
+        </p>
+        <button class="btn btnBlue" id="toggleVoiceBtn">Toggle voice (now: <span id="voiceStatusLabel">off</span>)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Learning -->
+  <div class="modalOverlay" id="modalLearn">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>📚 Learning<br><small>Correct answers become new Intelligence.</small></div>
+        <button class="closeX" data-close="modalLearn">×</button>
+      </div>
+      <div class="modalBody">
+        <p>
+          If an answer is wrong, type <code>*incorrect</code>. AURA-X Ω will ask for the correct
+          answer and store it as a new Q → A pair for future continuity.
+        </p>
+        <p style="margin-top:8px;font-size:12px;opacity:.8">
+          You can disable this self-learning if you want a “read-only” emotional continuity engine.
+        </p>
+        <button class="btn btnBlue" id="toggleLearnBtn">Toggle learning (now: <span id="learnStatusLabel">on</span>)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intelligence -->
+  <div class="modalOverlay" id="modalIntel">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🧠 Intelligence<br><small>Stored Q → A pairs.</small></div>
+        <button class="closeX" data-close="modalIntel">×</button>
+      </div>
+      <div class="modalBody">
+        <input id="intelSearch"
+          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.4);padding:8px 10px;font-size:13px;outline:none"
+          placeholder="Search intelligence..." />
+        <div id="intelList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seed / Logic -->
+  <div class="modalOverlay" id="modalSeed">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🌱 Feed the seed<br><small>Add LaTeX Q → A blocks and optional logic metadata.</small></div>
+        <button class="closeX" data-close="modalSeed">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="opacity:.75;font-size:13px;line-height:1.35;margin-bottom:10px">
+          Paste a LaTeX block with <code>\item</code> questions and <code>\textbf{A:}</code> answers.
+          Optionally prefix answers with <code>[polarity=positive; code=E031; intensity=0.8]</code>.
+        </div>
+        <textarea id="seedBox"
+          style="width:100%;min-height:150px;resize:vertical;border-radius:14px;border:2px solid rgba(59,130,246,.25);padding:10px;font-size:13px;outline:none;background:#020617;color:#e5e7eb"
+          placeholder="Paste LaTeX conversation / logic block here..."></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px">
+          <div style="font-size:12px;opacity:.7" id="seedHint">Waiting for block…</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btnBlue" id="btnParseSeed">Parse block</button>
+            <button class="btn btnBlue" id="btnSaveSeed">Save to seed</button>
+            <button class="btn btnRed" id="btnDiscardSeed">Discard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Faith (simplified – lens only, article box like 4.9) -->
+  <div class="modalOverlay" id="modalFaith">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🕊️ Faith lens<br><small>Select lens + language; ethic text stays universal.</small></div>
+        <button class="closeX" data-close="modalFaith">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="margin-bottom:8px;font-size:13px;opacity:.9">
+          Choose a faith lens. Engine stays respectful and will not attack other paths.
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="faithChips"></div>
+        <textarea id="faithArticleBox"
+          style="width:100%;min-height:120px;border-radius:14px;border:1px solid rgba(15,23,42,.55);padding:10px;font-size:13px;line-height:1.4;background:#020617;color:#e5e7eb;"></textarea>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+          <button class="btn btnBlue" id="btnCopyFaithArticle">Copy</button>
+          <button class="btn btnRed" id="btnSkipFaithBM">Skip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Identity -->
+  <div class="modalOverlay" id="modalId">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🪪 Identity<br><small>Deep profiling for continuity (local only).</small></div>
+        <button class="closeX" data-close="modalId">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <input id="idName" placeholder="Name" style="padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.5);background:#020617;color:#e5e7eb;">
+          <input id="idRole" placeholder="Primary role (e.g. AI researcher)"
+                 style="padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.5);background:#020617;color:#e5e7eb;">
+          <input id="idPlace" placeholder="Base city / context"
+                 style="grid-column:1/3;padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.5);background:#020617;color:#e5e7eb;">
+        </div>
+        <textarea id="idStory"
+          style="width:100%;min-height:120px;border-radius:14px;border:1px solid rgba(15,23,42,.5);padding:10px;font-size:13px;background:#020617;color:#e5e7eb;"
+          placeholder="Short emotional biography – what matters to you, long-term projects, fears, hopes…"></textarea>
+        <div style="margin-top:10px;display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btnBlue" id="btnSaveId">Save identity</button>
+          <button class="btn btnGhost" id="btnClearId">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LLM config -->
+  <div class="modalOverlay" id="modalLLM">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>🤖 Online LLM<br><small>Optional HTTP endpoint for TM → answer.</small></div>
+        <button class="closeX" data-close="modalLLM">×</button>
+      </div>
+      <div class="modalBody">
+        <input id="apiEndpoint" placeholder="Endpoint URL"
+               style="width:100%;margin-bottom:6px;padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.5);background:#020617;color:#e5e7eb;">
+        <input id="apiModel" placeholder="Model ID (optional)"
+               style="width:100%;margin-bottom:6px;padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.5);background:#020617;color:#e5e7eb;">
+        <input id="apiKey" placeholder="API key (stored locally)"
+               style="width:100%;margin-bottom:8px;padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.5);background:#020617;color:#e5e7eb;">
+        <button class="btn btnBlue" id="btnSaveAPI">Save settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BM recall -->
+  <div class="modalOverlay" id="modalBM">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>📘 Bold Memory (BM)<br><small>Emotionally important prompts.</small></div>
+        <button class="closeX" data-close="modalBM">×</button>
+      </div>
+      <div class="modalBody">
+        <div id="bmList" style="font-size:13px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="modalOverlay" id="modalHist">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>📜 Conversation history<br><small>Episodes with emotional tags.</small></div>
+        <button class="closeX" data-close="modalHist">×</button>
+      </div>
+      <div class="modalBody">
+        <div id="histList" style="font-size:13px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW: Sense (Camera + Mic) -->
+  <div class="modalOverlay" id="modalSense">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>👁️ + 🎙️ Sense<br><small>Capture a scene and create a BM prompt stub.</small></div>
+        <button class="closeX" data-close="modalSense">×</button>
+      </div>
+      <div class="modalBody">
+        <p style="margin-bottom:8px">
+          This panel can use <b>camera</b> and <b>microphone</b> (with your permission) to observe a
+          short moment. The code prepares a descriptive BM prompt stub – you can later connect
+          a vision / speech API to analyse the actual content.
+        </p>
+
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <button class="btn btnBlue" id="btnSenseCamera">Capture camera snapshot</button>
+          <button class="btn btnBlue" id="btnSenseMic">Record 10s audio</button>
+        </div>
+
+        <video id="senseVideo" autoplay playsinline muted
+               style="width:100%;max-height:180px;border-radius:16px;border:1px solid rgba(30,64,175,.7);display:none;margin-bottom:8px"></video>
+
+        <canvas id="senseCanvas" style="display:none"></canvas>
+
+        <div id="senseStatus" style="font-size:12px;opacity:.85;margin-bottom:8px"></div>
+
+        <textarea id="senseBMBox"
+          style="width:100%;min-height:120px;border-radius:14px;border:1px solid rgba(15,23,42,.55);padding:10px;font-size:13px;background:#020617;color:#e5e7eb;"
+          placeholder="Scene → BM prompt stub will appear here… You can edit before saving."></textarea>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+          <button class="btn btnBlue" id="btnSaveSenseBM">Save stub to BM</button>
+        </div>
+
+        <p style="margin-top:10px;font-size:11px;opacity:.7">
+          ⚠ Always respect privacy and local law. Do not record people without consent. Nothing in this demo
+          is sent to any server unless you connect your own API in the LLM settings.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
   <script>
-    // ====== AURA-X Ω 4.9 baseline (UI kept) + injected Sense module ======
-
-    const STORAGE_KEY = "aurax_omega_49_state";
-    const CFG_KEY = "aurax_omega_49_cfg";
-    const DREAM_KEY = "aurax_omega_49_dream";
-
-    const FAITH_TOP10 = [
-      "Islam","Christianity","Hinduism","Buddhism","Sikhism","Judaism","Taoism","Confucianism","Shinto","Atheism"
-    ];
-
-    const faithLiveDefaults = {};
-    FAITH_TOP10.forEach(f=> faithLiveDefaults[f.toLowerCase()] = { enabled:false, lang:"english" });
-
-    const FAITH_ARTIFACTS = {
-      islam: {
-        label:"Islam",
-        samples: [
-          { ar: "ٱلْمُسْلِمُ مَنْ سَلِمَ ٱلْمُسْلِمُونَ مِنْ لِسَانِهِ وَيَدِهِ", en:"The Muslim is the one from whose tongue and hand other Muslims are safe.", ur:"مسلمان وہ ہے جس کی زبان اور ہاتھ سے دوسرے مسلمان محفوظ رہیں۔" },
-          { ar: "إِنَّ ٱللَّهَ يَأْمُرُ بِٱلْعَدْلِ وَٱلْإِحْسَٰنِ", en:"Indeed Allah commands justice and excellence.", ur:"بے شک اللہ عدل اور احسان کا حکم دیتا ہے۔" }
-        ],
-        translations: {
-          english: "From an Islamic lens: speak with adab, avoid ظلم, increase عدل و احسان. Choose a response that reduces harm and preserves dignity.",
-          urdu: "اسلامی زاویے سے: ادب کے ساتھ بات، ظلم سے اجتناب، عدل و احسان میں اضافہ۔ ایسا جواب دیں جو نقصان کم کرے اور عزت محفوظ رکھے۔"
-        }
-      },
-      christianity: {
-        label:"Christianity",
-        samples: [
-          { ar:"", en:"Love your neighbor as yourself.", ur:"اپنے پڑوسی سے اپنے جیسا محبت کرو۔" }
-        ],
-        translations:{
-          english:"From a Christian lens: respond with compassion, forgiveness, and truth in love.",
-          urdu:"مسیحی زاویے سے: رحم، معافی، اور محبت میں سچائی کے ساتھ جواب دیں۔"
-        }
-      },
-      hinduism: {
-        label:"Hinduism",
-        samples: [
-          { ar:"", en:"Ahimsa (non-violence) and dharma guide the right action.", ur:"اہنسا (عدم تشدد) اور دھرم درست عمل کی رہنمائی کرتے ہیں۔" }
-        ],
-        translations:{
-          english:"From a Hindu lens: act with dharma, ahimsa, and balance; reduce harm and cultivate good karma.",
-          urdu:"ہندو زاویے سے: دھرم، اہنسا اور توازن کے ساتھ عمل؛ نقصان کم کریں اور اچھا کرم بڑھائیں۔"
-        }
-      },
-      buddhism: {
-        label:"Buddhism",
-        samples: [
-          { ar:"", en:"Right speech: truthful, kind, and beneficial.", ur:"صحیح کلام: سچ، مہربان اور مفید۔" }
-        ],
-        translations:{
-          english:"From a Buddhist lens: right speech, compassion, and mindful awareness; reduce suffering.",
-          urdu:"بدھ مت کے زاویے سے: صحیح کلام، کرُونا اور شعوری آگاہی؛ دکھ کم کریں۔"
-        }
-      },
-      sikhism: {
-        label:"Sikhism",
-        samples: [
-          { ar:"", en:"Truth, compassion, and service (seva).", ur:"سچائی، رحمت اور خدمت (سیوا)۔" }
-        ],
-        translations:{
-          english:"From a Sikh lens: truth, humility, and seva; act for collective well-being.",
-          urdu:"سکھ زاویے سے: سچ، عاجزی اور سیوا؛ اجتماعی بھلائی کے لیے عمل کریں۔"
-        }
-      },
-      judaism: {
-        label:"Judaism",
-        samples: [
-          { ar:"", en:"Pursue justice and kindness.", ur:"انصاف اور مہربانی کو اختیار کرو۔" }
-        ],
-        translations:{
-          english:"From a Jewish lens: pursue justice, kindness, and responsible speech.",
-          urdu:"یہودی زاویے سے: انصاف، مہربانی، اور ذمہ دار گفتگو۔"
-        }
-      },
-      taoism: {
-        label:"Taoism",
-        samples: [
-          { ar:"", en:"Act with wu-wei: natural, non-forcing harmony.", ur:"وو وے کے ساتھ عمل: فطری ہم آہنگی، زبردستی نہیں۔" }
-        ],
-        translations:{
-          english:"From a Taoist lens: seek harmony, avoid forcing; respond softly and wisely.",
-          urdu:"تاؤ ازم کے زاویے سے: ہم آہنگی، جبر سے پرہیز؛ نرم اور حکیمانہ جواب۔"
-        }
-      },
-      confucianism: {
-        label:"Confucianism",
-        samples: [
-          { ar:"", en:"Cultivate virtue and respectful conduct.", ur:"فضیلت اور باادب طرزِعمل اپنائیں۔" }
-        ],
-        translations:{
-          english:"From a Confucian lens: respectful conduct, virtue, and social harmony.",
-          urdu:"کنفیوشس زاویے سے: باادب طرزِعمل، فضیلت، اور سماجی ہم آہنگی۔"
-        }
-      },
-      shinto: {
-        label:"Shinto",
-        samples: [
-          { ar:"", en:"Purity, gratitude, and respect for nature.", ur:"پاکیزگی، شکرگزاری اور فطرت کا احترام۔" }
-        ],
-        translations:{
-          english:"From a Shinto lens: purity of intention, gratitude, and respect for life and nature.",
-          urdu:"شنٹو زاویے سے: نیت کی پاکیزگی، شکرگزاری اور زندگی/فطرت کا احترام۔"
-        }
-      },
-      atheism: {
-        label:"Atheism",
-        samples: [
-          { ar:"", en:"Ground choices in evidence, empathy, and human well-being.", ur:"فیصلے ثبوت، ہمدردی اور انسانی بھلائی پر رکھیں۔" }
-        ],
-        translations:{
-          english:"From a secular lens: evidence, empathy, and wellbeing; minimize harm.",
-          urdu:"سیکولر زاویے سے: ثبوت، ہمدردی اور بھلائی؛ نقصان کم کریں۔"
-        }
-      }
+    const els = {
+      console: document.getElementById("console"),
+      mainInput: document.getElementById("mainInput"),
+      btnSend: document.getElementById("btnSend"),
+      mE0: document.getElementById("mE0"),
+      mTM: document.getElementById("mTM"),
+      mBM: document.getElementById("mBM"),
+      mC: document.getElementById("mC"),
+      dreamBubble: document.getElementById("dreamBubble"),
+      dreamMeta: document.getElementById("dreamMeta"),
+      imagePreviewArea: document.getElementById("imagePreviewArea"),
+      imgPrev: document.getElementById("imgPrev"),
+      toast: document.getElementById("toast"),
+      optionsMenu: document.getElementById("optionsMenu"),
+      faithChips: document.getElementById("faithChips"),
+      faithArticleBox: document.getElementById("faithArticleBox"),
+      pillFaith: document.getElementById("pillFaith"),
+      pillVoice: document.getElementById("pillVoice"),
+      pillLearn: document.getElementById("pillLearn"),
+      voiceStatusLabel: document.getElementById("voiceStatusLabel"),
+      learnStatusLabel: document.getElementById("learnStatusLabel"),
+      intelList: document.getElementById("intelList"),
+      intelSearch: document.getElementById("intelSearch"),
+      bmList: document.getElementById("bmList"),
+      histList: document.getElementById("histList"),
+      idName: document.getElementById("idName"),
+      idRole: document.getElementById("idRole"),
+      idPlace: document.getElementById("idPlace"),
+      idStory: document.getElementById("idStory"),
+      apiEndpoint: document.getElementById("apiEndpoint"),
+      apiModel: document.getElementById("apiModel"),
+      apiKey: document.getElementById("apiKey"),
+      seedBox: document.getElementById("seedBox"),
+      seedHint: document.getElementById("seedHint"),
+      senseVideo: document.getElementById("senseVideo"),
+      senseCanvas: document.getElementById("senseCanvas"),
+      senseStatus: document.getElementById("senseStatus"),
+      senseBMBox: document.getElementById("senseBMBox"),
+      senseDot: document.getElementById("senseDot")
     };
 
     const defaultDeviceLang = (navigator.language || "").toLowerCase().startsWith("ur") ? "urdu" : "english";
@@ -927,1146 +1011,647 @@
       voiceOn: false,
       learningOn: true,
       faithSelection: [],
-      faithLiveOptions: {},   // { islam: {enabled:true, lang:"urdu"} , ... }
       intelligence: [],
       seedPairs: [],
       bmPrompts: [],
       history: [],
       userIdentity: null,
       apiConfig: { endpoint: "", model: "", key: "" },
-
-      // ✅ Injected sense state (backwards-compatible)
-      sense: { camOn:false, micOn:false, lastSnapAt:null, lastMicAt:null, lastImageData:null, lastAudioBlob:null, lastSummary:"" },
-
-      metrics: {
-        E0: 0.000,
-        TM: 0.00,
-        BM: 0.00,
-        C: 0.85,
-        TRC: 0.75
-      },
       lastAnswerSource: null,
       lastUserQ: null,
-      dreamEnabled: true,
-      dreamDelayMs: 30000,
-      dreamTimer: null
+      lastAuraA: null,
+      correcting: false,
+      metrics: { TM:0, BM:0, C:0.85, E0:0 },
+      parsedSeed: [],
+      editingIntelId: null,
+      lastActivityTs: Date.now(),
+      ethic: { topic:"general", lens:"none", lastUpdate:0, messageCount:0 },
+      sense: { stream: null, mediaRecorder:null, chunks:[], hasCamera:false, hasAudio:false }
     };
 
-    const ETHIC_BASE =
-      "Universal ethic: avoid actions that grow negative emotions in you or others. " +
-      "Move gently toward choices that increase shared positive feeling for everyone.";
-
-    const els = {
-      console: document.getElementById("console"),
-      btnOptions: document.getElementById("btnOptions"),
-      optionsMenu: document.getElementById("optionsMenu"),
-
-      miVoice: document.getElementById("miVoice"),
-      miCamera: document.getElementById("miCamera"),
-      miMicSense: document.getElementById("miMicSense"),
-      miSense: document.getElementById("miSense"),
-
-      miIntel: document.getElementById("miIntel"),
-      miLearn: document.getElementById("miLearn"),
-      miSeed: document.getElementById("miSeed"),
-      miFaith: document.getElementById("miFaith"),
-      miIdentity: document.getElementById("miIdentity"),
-      miLLM: document.getElementById("miLLM"),
-      miBMRecall: document.getElementById("miBMRecall"),
-
-      voicePill: document.getElementById("voicePill"),
-      camPill: document.getElementById("camPill"),
-      micPill: document.getElementById("micPill"),
-
-      learnPill: document.getElementById("learnPill"),
-      faithLabel: document.getElementById("faithLabel"),
-
-      chipContinuity: document.getElementById("chipContinuity"),
-      chipEmotion: document.getElementById("chipEmotion"),
-      chipTruth: document.getElementById("chipTruth"),
-
-      contVal: document.getElementById("contVal"),
-      emoVal: document.getElementById("emoVal"),
-      trcVal: document.getElementById("trcVal"),
-
-      cE0: document.getElementById("cE0"),
-      cTM: document.getElementById("cTM"),
-      cBM: document.getElementById("cBM"),
-      cCont: document.getElementById("cCont"),
-
-      userInput: document.getElementById("userInput"),
-      sendBtn: document.getElementById("sendBtn"),
-      btnVisionPick: document.getElementById("btnVisionPick"),
-      visionInput: document.getElementById("visionInput"),
-      btnClearVision: document.getElementById("btnClearVision"),
-      imgPrev: document.getElementById("imgPrev"),
-      imagePreviewArea: document.getElementById("imagePreviewArea"),
-
-      ethicMain: document.getElementById("ethicMain"),
-      ethicMeta: document.getElementById("ethicMeta"),
-
-      faithCfgBtn: document.getElementById("faithCfgBtn"),
-      modalFaithCfg: document.getElementById("modalFaithCfg"),
-      faithCfgList: document.getElementById("faithCfgList"),
-
-      faithBubble: document.getElementById("faithBubble"),
-      faithBubbleTitle: document.getElementById("faithBubbleTitle"),
-      faithBubbleMeta: document.getElementById("faithBubbleMeta"),
-      faithBubbleClose: document.getElementById("faithBubbleClose"),
-
-      modalIntel: document.getElementById("modalIntel"),
-      intelList: document.getElementById("intelList"),
-      intelSearch: document.getElementById("intelSearch"),
-      btnExportIntel: document.getElementById("btnExportIntel"),
-      btnClearIntel: document.getElementById("btnClearIntel"),
-
-      modalSeed: document.getElementById("modalSeed"),
-      seedArea: document.getElementById("seedArea"),
-      btnSeedSave: document.getElementById("btnSeedSave"),
-
-      modalFaith: document.getElementById("modalFaith"),
-      faithList: document.getElementById("faithList"),
-
-      modalIdentity: document.getElementById("modalIdentity"),
-      identityArea: document.getElementById("identityArea"),
-      btnSaveIdentity: document.getElementById("btnSaveIdentity"),
-      btnDeleteIdentity: document.getElementById("btnDeleteIdentity"),
-      identityStatus: document.getElementById("identityStatus"),
-
-      modalLLM: document.getElementById("modalLLM"),
-      btnInitOffline: document.getElementById("btnInitOffline"),
-      offlineStatus: document.getElementById("offlineStatus"),
-      apiEndpoint: document.getElementById("apiEndpoint"),
-      apiModel: document.getElementById("apiModel"),
-      apiKey: document.getElementById("apiKey"),
-      btnSaveLLM: document.getElementById("btnSaveLLM"),
-
-      modalBM: document.getElementById("modalBM"),
-      bmSearch: document.getElementById("bmSearch"),
-      bmList: document.getElementById("bmList"),
-      btnBMExport: document.getElementById("btnBMExport"),
-      btnBMClear: document.getElementById("btnBMClear"),
-
-      logicArea: document.getElementById("logicArea"),
-      btnValidateLogic: document.getElementById("btnValidateLogic"),
-      btnSaveLogic: document.getElementById("btnSaveLogic"),
-      btnCopyLogic: document.getElementById("btnCopyLogic"),
-      btnDeleteLogic: document.getElementById("btnDeleteLogic"),
-      logicHint: document.getElementById("logicHint"),
-      logicSerial: document.getElementById("logicSerial"),
-
-      dreamDelay: document.getElementById("dreamDelay"),
-      btnSaveDream: document.getElementById("btnSaveDream"),
-      btnTestDream: document.getElementById("btnTestDream"),
-
-      toast: document.getElementById("toast"),
-    };
-
-    let visionImageData = null; // base64 dataURL
-
-    function toast(msg){
-      els.toast.textContent = msg;
-      els.toast.classList.add("show");
-      setTimeout(()=>els.toast.classList.remove("show"), 1600);
-    }
-
-    function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
-
-    function saveAll(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state, (k,v)=>{
-        // avoid storing audio blob in localStorage (too large). We store only flags and image data.
-        if(k==="lastAudioBlob") return null;
-        return v;
-      }));
-      saveCfg();
-    }
-
-    function saveCfg(){
-      const cfg = {
-        voiceOn: state.voiceOn,
-        learningOn: state.learningOn,
-        faithSelection: state.faithSelection,
-        faithLiveOptions: state.faithLiveOptions,
-        apiConfig: state.apiConfig,
-        sense: { camOn: !!state.sense?.camOn, micOn: !!state.sense?.micOn }, // only flags
-        dream: { enabled: !!state.dreamEnabled, delayMs: state.dreamDelayMs }
-      };
-      localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
-    }
-
-    function loadCfg(){
+    function safeLoadJSON(key, fallback){
       try{
-        const raw = localStorage.getItem(CFG_KEY);
-        if(!raw) return;
-        const cfg = JSON.parse(raw);
-        if(cfg){
-          state.voiceOn = !!cfg.voiceOn;
-          state.learningOn = cfg.learningOn !== false;
-          state.faithSelection = Array.isArray(cfg.faithSelection) ? cfg.faithSelection : [];
-          state.faithLiveOptions = cfg.faithLiveOptions || {};
-          if(cfg.apiConfig) state.apiConfig = cfg.apiConfig;
-          if(cfg.sense){
-            state.sense = state.sense || {};
-            state.sense.camOn = !!cfg.sense.camOn;
-            state.sense.micOn = !!cfg.sense.micOn;
-          }
-          if(cfg.dream){
-            state.dreamEnabled = !!cfg.dream.enabled;
-            state.dreamDelayMs = cfg.dream.delayMs || state.dreamDelayMs;
-          }
-        }
-        els.voicePill.textContent = state.voiceOn ? "on" : "off";
-        els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
-        if(els.camPill){ els.camPill.textContent = state.sense?.camOn ? "on":"off"; els.camPill.className = state.sense?.camOn ? "pillOn":"pillOff"; }
-        if(els.micPill){ els.micPill.textContent = state.sense?.micOn ? "on":"off"; els.micPill.className = state.sense?.micOn ? "pillOn":"pillOff"; }
-        els.learnPill.textContent = state.learningOn ? "on" : "off";
-        els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
-      }catch(_){}
-    }
-
-    function loadAll(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if(!raw) return;
-        const obj = JSON.parse(raw);
-        if(obj){
-          state = { ...state, ...obj };
-          // ensure injected state exists
-          if(!state.sense) state.sense = { camOn:false, micOn:false, lastSnapAt:null, lastMicAt:null, lastImageData:null, lastAudioBlob:null, lastSummary:"" };
-          if(!state.apiConfig) state.apiConfig = { endpoint:"", model:"", key:"" };
-          if(!state.metrics) state.metrics = {E0:0,TM:0,BM:0,C:0.85,TRC:0.75};
-        }
-      }catch(_){}
-    }
-
-    function openModal(el){ el.classList.add("show"); }
-    function closeModalById(id){
-      const el = document.getElementById(id);
-      if(el) el.classList.remove("show");
-    }
-
-    document.body.addEventListener("click",(e)=>{
-      const target = e.target;
-      if(target.dataset && target.dataset.close){
-        closeModalById(target.dataset.close);
-        if(target.dataset.close==="modalSense"){ try{ stopCamera(); }catch(_){} try{ stopMic(); }catch(_){} }
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      }catch{
+        return fallback;
       }
-      if(target.classList && target.classList.contains("modalOverlay") && !target.classList.contains("modal")){
-        // clicking overlay background closes
-        if(target.id) closeModalById(target.id);
-        if(target.id==="modalSense"){ try{ stopCamera(); }catch(_){} try{ stopMic(); }catch(_){} }
+    }
+
+    function safeSaveJSON(key,value){
+      try{ localStorage.setItem(key,JSON.stringify(value)); }catch{}
+    }
+
+    function initFromStorage(){
+      state.intelligence = safeLoadJSON("ax_intel",[]);
+      state.bmPrompts = safeLoadJSON("ax_bm",[]);
+      state.history = safeLoadJSON("ax_hist",[]);
+      state.userIdentity = safeLoadJSON("ax_id",null);
+      state.apiConfig = safeLoadJSON("ax_api",{endpoint:"",model:"",key:""});
+      if(state.userIdentity){
+        els.idName.value = state.userIdentity.name || "";
+        els.idRole.value = state.userIdentity.role || "";
+        els.idPlace.value = state.userIdentity.place || "";
+        els.idStory.value = state.userIdentity.story || "";
       }
-    });
-
-    // ====== Metrics / theme ======
-    function updateMetricsFromState(){
-      // simple placeholders (keep existing style)
-      const tm = clamp((state.history?.length || 0)/20, 0, 1);
-      const bm = clamp((state.bmPrompts?.length || 0)/30, 0, 1);
-      state.metrics.TM = Number(tm.toFixed(2));
-      state.metrics.BM = Number(bm.toFixed(2));
-      // E0 based on last emotion slope (placeholder)
-      state.metrics.E0 = Number((Math.tanh((tm*bm) - 0.3)).toFixed(3));
-      state.metrics.C = Number((0.65 + 0.35*bm).toFixed(3));
-    }
-    function applyEmotionalTheme(){
-      const e0 = state.metrics.E0;
-      const root = document.documentElement;
-      let baseColor = "#0ea5e9";
-      if(e0 > 0.3) baseColor = "#fbbf24";
-      else if(e0 < -0.3) baseColor = "#64748b";
-      root.style.setProperty("--accent-color", baseColor);
-    }
-    function renderCapsule(){
-      els.cE0.textContent = state.metrics.E0.toFixed(3);
-      els.cTM.textContent = state.metrics.TM.toFixed(2);
-      els.cBM.textContent = state.metrics.BM.toFixed(2);
-      els.cCont.textContent = state.metrics.C.toFixed(3);
-      els.contVal.textContent = state.metrics.C.toFixed(2);
-      els.emoVal.textContent = state.metrics.E0.toFixed(2);
-      els.trcVal.textContent = state.metrics.TRC.toFixed(2);
+      els.apiEndpoint.value = state.apiConfig.endpoint;
+      els.apiModel.value = state.apiConfig.model;
+      els.apiKey.value = state.apiConfig.key;
+      recomputeBMMetric();
+      refreshBMList();
+      refreshIntelList();
+      refreshHistoryView();
     }
 
-    // ====== Chat render ======
-    function renderChat(){
-      els.console.innerHTML = "";
-      (state.history||[]).forEach(m=>{
-        const div = document.createElement("div");
-        div.className = "msg " + (m.role==="user" ? "user":"aura");
-        div.textContent = m.text;
-        const meta = document.createElement("div");
-        meta.className = "msgMeta";
-        if(m.source) meta.innerHTML = `<span>source: ${m.source}</span>`;
-        if(m.emo) meta.innerHTML += `<span>emo: ${m.emo}</span>`;
-        div.appendChild(meta);
-        els.console.appendChild(div);
-      });
+    function logLine(roleOrText,maybeText){
+      let role = "";
+      let text;
+      if(typeof maybeText === "undefined"){ text = roleOrText; }
+      else { role = roleOrText || ""; text = maybeText; }
+      const div = document.createElement("div");
+      div.className = "line" + (role ? " " + role : "");
+      div.textContent = text;
+      els.console.appendChild(div);
       els.console.scrollTop = els.console.scrollHeight;
+      if(role === "user" || role === "aura"){
+        addHistory(role,text);
+      }
     }
 
-    function pickFaithBubble(){
-      const sel = (state.faithSelection||[])[0];
-      if(!sel){
-        els.faithBubbleTitle.textContent = "Faith reflection";
-        els.faithBubbleMeta.textContent = "Select a faith lens to see a short reflection.";
+    function scoreTM(t){
+      const len = Math.min((t||"").length,600);
+      return Number(Math.tanh(len/200).toFixed(2));
+    }
+
+    function recomputeBMMetric(){
+      const count = state.bmPrompts.length || 0;
+      state.metrics.BM = Number(Math.tanh(count/10).toFixed(2));
+      els.mBM.textContent = state.metrics.BM.toFixed(2);
+    }
+
+    function updateMetrics(tmIncrement){
+      if(typeof tmIncrement === "number"){
+        state.metrics.TM = Math.max(0,Math.min(1, tmIncrement));
+      }
+      const E0 = Math.tanh(state.metrics.TM + state.metrics.BM + state.metrics.C - 0.2);
+      state.metrics.E0 = Number(E0.toFixed(3));
+      els.mTM.textContent = state.metrics.TM.toFixed(2);
+      els.mE0.textContent = state.metrics.E0.toFixed(3);
+      els.mC.textContent = state.metrics.C.toFixed(3);
+    }
+
+    function showToast(msg){
+      els.toast.textContent = msg;
+      els.toast.style.display = "block";
+      clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(()=>{ els.toast.style.display="none"; },2600);
+    }
+
+    function addHistory(role,text){
+      const now = new Date();
+      const ep = {
+        ts: now.toISOString(),
+        role,
+        text
+      };
+      state.history.push(ep);
+      if(state.history.length>400) state.history.shift();
+      safeSaveJSON("ax_hist",state.history);
+    }
+
+    function refreshHistoryView(){
+      const box = els.histList;
+      box.innerHTML = "";
+      if(!state.history.length){
+        box.textContent = "No episodes yet.";
         return;
       }
-      const key = sel.toLowerCase();
-      const art = FAITH_ARTIFACTS[key];
-      if(!art){
-        els.faithBubbleTitle.textContent = "Faith reflection";
-        els.faithBubbleMeta.textContent = "No artifact found.";
-        return;
-      }
-      const pref = state.faithLiveOptions?.[key]?.lang || defaultDeviceLang;
-      const sample = art.samples[Math.floor(Math.random()*art.samples.length)] || {};
-      const head = (key==="islam" && sample.ar) ? sample.ar : (sample.en || "");
-      const body = (pref==="urdu" ? (sample.ur || art.translations.urdu || "") : (sample.en || art.translations.english || ""));
-      els.faithBubbleTitle.textContent = "Faith reflection";
-      els.faithBubbleMeta.textContent = (head? head + "\n":"") + body;
-    }
-
-    function updateEthicBox(){
-      // base ethic + selected faith statement (without showing lens labels)
-      const key = (state.faithSelection||[])[0]?.toLowerCase();
-      let extra = "";
-      if(key && FAITH_ARTIFACTS[key]){
-        const art = FAITH_ARTIFACTS[key];
-        const pref = state.faithLiveOptions?.[key]?.lang || defaultDeviceLang;
-        const sample = art.samples[Math.floor(Math.random()*art.samples.length)] || {};
-        const head = (key==="islam" && sample.ar) ? sample.ar : "";
-        const body = (pref==="urdu" ? (sample.ur || art.translations.urdu || "") : (sample.en || art.translations.english || ""));
-        extra = (head? head + "\n":"") + body;
-      }
-      els.ethicMain.textContent = ETHIC_BASE;
-      els.ethicMeta.textContent = extra;
-      els.faithLabel.textContent = key ? key : "none";
-      els.faithLabel.className = key ? "pillOn" : "pillOff";
-    }
-
-    // ====== BM ======
-    function renderBM(){
-      const q = (els.bmSearch.value||"").toLowerCase().trim();
-      const list = (state.bmPrompts||[]).filter(p=>{
-        if(!q) return true;
-        return (p.title||"").toLowerCase().includes(q) || (p.prompt||"").toLowerCase().includes(q);
+      let lastDate = "";
+      state.history.forEach(ep=>{
+        const d = ep.ts.slice(0,10);
+        if(d!==lastDate){
+          const h = document.createElement("div");
+          h.style.marginTop = "6px";
+          h.style.fontSize = "11px";
+          h.style.color = "#9ca3af";
+          h.textContent = d;
+          box.appendChild(h);
+          lastDate = d;
+        }
+        const row = document.createElement("div");
+        row.style.fontSize = "12px";
+        row.style.marginLeft = "6px";
+        row.textContent = (ep.role==="user"?"You: ":"Aura: ")+ep.text;
+        box.appendChild(row);
       });
-      els.bmList.innerHTML = "";
-      list.forEach(p=>{
-        const card = document.createElement("div");
-        card.className="card";
-        const top = document.createElement("div");
-        top.className="cardTop";
-        const left = document.createElement("div");
-        left.innerHTML = `<div class="title">${p.title || "BM Prompt"}</div>
-          <div class="subt">${new Date(p.createdAt || Date.now()).toLocaleString()} · ${p.type||"prompt"} · ${p.locked?"locked":"unlocked"}</div>`;
-        const btns = document.createElement("div");
-        btns.className="cardBtns";
+    }
+
+    function refreshBMList(){
+      const box = els.bmList;
+      box.innerHTML = "";
+      if(!state.bmPrompts.length){
+        box.textContent = "No BM prompts yet.";
+        return;
+      }
+      state.bmPrompts.forEach((bm,idx)=>{
+        const wrap = document.createElement("div");
+        wrap.style.borderBottom = "1px dashed rgba(148,163,184,.3)";
+        wrap.style.padding = "6px 0";
+        const t = document.createElement("div");
+        t.style.fontSize = "12px";
+        t.textContent = bm.text;
+        const meta = document.createElement("div");
+        meta.style.fontSize = "11px";
+        meta.style.opacity = ".7";
+        meta.textContent = "Saved: "+(bm.ts || "");
+        const rowBtns = document.createElement("div");
+        rowBtns.style.display="flex";
+        rowBtns.style.gap="6px";
+        rowBtns.style.marginTop="4px";
         const bCopy = document.createElement("button");
-        bCopy.className="btn";
         bCopy.textContent="Copy";
-        bCopy.onclick=()=>{ navigator.clipboard.writeText(p.prompt||""); toast("Copied"); };
-        const bToggle = document.createElement("button");
-        bToggle.className="btn";
-        bToggle.textContent = p.locked ? "Unlock" : "Lock";
-        bToggle.onclick=()=>{
-          if(p.locked){
-            const ok = confirm("Unlock this BM prompt?");
-            if(!ok) return;
-            p.locked=false;
-          }else{
-            p.locked=true;
-          }
-          saveAll(); renderBM();
-        };
+        bCopy.className="btn btnBlue";
+        bCopy.onclick=()=>{ navigator.clipboard?.writeText(bm.text); showToast("BM prompt copied.");};
         const bDel = document.createElement("button");
-        bDel.className="btn btnRed";
         bDel.textContent="Delete";
+        bDel.className="btn btnRed";
         bDel.onclick=()=>{
-          if(p.locked){ toast("Unlock first."); return; }
-          const ok = confirm("Delete this BM prompt?");
-          if(!ok) return;
-          const ok2 = confirm("Are you sure? This cannot be undone.");
-          if(!ok2) return;
-          state.bmPrompts = state.bmPrompts.filter(x=>x.id!==p.id);
-          saveAll(); renderBM();
+          if(confirm("Delete this BM prompt?")){
+            state.bmPrompts.splice(idx,1);
+            safeSaveJSON("ax_bm",state.bmPrompts);
+            recomputeBMMetric();
+            refreshBMList();
+          }
         };
-        btns.appendChild(bCopy);
-        btns.appendChild(bToggle);
-        btns.appendChild(bDel);
-        top.appendChild(left);
-        top.appendChild(btns);
-
-        const div = document.createElement("div");
-        div.style.marginTop="10px";
-        div.style.whiteSpace="pre-wrap";
-        div.style.fontSize="14px";
-        div.textContent = p.prompt || "";
-        card.appendChild(top);
-        card.appendChild(div);
-        els.bmList.appendChild(card);
+        rowBtns.appendChild(bCopy);
+        rowBtns.appendChild(bDel);
+        wrap.appendChild(t);
+        wrap.appendChild(meta);
+        wrap.appendChild(rowBtns);
+        box.appendChild(wrap);
       });
     }
 
-    // ====== Intelligence (simple) ======
-    function renderIntel(){
-      const q = (els.intelSearch.value||"").toLowerCase().trim();
-      const list = (state.intelligence||[]).filter(it=>{
+    function refreshIntelList(){
+      const box = els.intelList;
+      box.innerHTML = "";
+      const q = (els.intelSearch.value||"").toLowerCase();
+      const data = state.intelligence.filter(it=>{
         if(!q) return true;
         return (it.q||"").toLowerCase().includes(q) || (it.a||"").toLowerCase().includes(q);
       });
-      els.intelList.innerHTML="";
-      list.forEach((it, idx)=>{
-        const c = document.createElement("div");
-        c.className="card";
-        const top = document.createElement("div");
-        top.className="cardTop";
-        const left = document.createElement("div");
-        left.innerHTML = `<div class="title">${(it.q||"").slice(0,80) || "Q/A"}</div>
-          <div class="subt">${it.locked?"locked":"unlocked"} · ${it.createdAt ? new Date(it.createdAt).toLocaleString():""}</div>`;
-        const btns = document.createElement("div");
-        btns.className="cardBtns";
-
-        const bUnlock = document.createElement("button");
-        bUnlock.className="btn";
-        bUnlock.textContent = it.locked ? "Unlock" : "Lock";
-        bUnlock.onclick=()=>{
-          if(it.locked){
-            if(!confirm("Unlock this learned item?")) return;
-            it.locked=false;
-          }else{
-            it.locked=true;
-          }
-          saveAll(); renderIntel();
-        };
-
+      if(!data.length){
+        box.textContent = "No intelligence entries yet.";
+        return;
+      }
+      data.forEach((it,idx)=>{
+        const wrap = document.createElement("div");
+        wrap.style.borderBottom = "1px dashed rgba(148,163,184,.3)";
+        wrap.style.padding = "6px 0";
+        wrap.style.fontSize = "12px";
+        const qDiv = document.createElement("div");
+        qDiv.textContent = "Q: "+it.q;
+        const aDiv = document.createElement("div");
+        aDiv.textContent = "A: "+it.a;
+        aDiv.style.color="#bfdbfe";
+        const rowBtns = document.createElement("div");
+        rowBtns.style.display="flex";
+        rowBtns.style.gap="6px";
+        rowBtns.style.marginTop="4px";
+        const bUse = document.createElement("button");
+        bUse.className="btn btnBlue";
+        bUse.textContent="Use";
+        bUse.onclick=()=>{ els.mainInput.value = it.q; els.mainInput.focus(); };
         const bDel = document.createElement("button");
         bDel.className="btn btnRed";
         bDel.textContent="Delete";
         bDel.onclick=()=>{
-          if(it.locked){ toast("Unlock first."); return; }
-          if(!confirm("Delete this item?")) return;
-          if(!confirm("Are you sure?")) return;
-          state.intelligence.splice(idx,1);
-          saveAll(); renderIntel();
-        };
-
-        btns.appendChild(bUnlock);
-        btns.appendChild(bDel);
-        top.appendChild(left); top.appendChild(btns);
-
-        const qa = document.createElement("div");
-        qa.style.marginTop="10px";
-        qa.innerHTML = `<div style="font-weight:900">Q:</div><div style="white-space:pre-wrap">${escapeHtml(it.q||"")}</div>
-          <div style="font-weight:900;margin-top:8px">A:</div><div style="white-space:pre-wrap">${escapeHtml(it.a||"")}</div>`;
-
-        // inline edit area (kept simple)
-        const edit = document.createElement("textarea");
-        edit.className="logicArea intelEditArea";
-        edit.value = `Q: ${it.q||""}\nA: ${it.a||""}`;
-        const bSave = document.createElement("button");
-        bSave.className="btn btnBlue";
-        bSave.textContent="Save edit";
-        bSave.onclick=()=>{
-          if(it.locked){ toast("Unlock first."); return; }
-          const txt = edit.value;
-          const mq = txt.match(/Q:\s*([\s\S]*?)\nA:/);
-          const ma = txt.match(/\nA:\s*([\s\S]*)$/);
-          if(mq) it.q = mq[1].trim();
-          if(ma) it.a = ma[1].trim();
-          saveAll(); renderIntel(); toast("Saved");
-        };
-
-        c.appendChild(top);
-        c.appendChild(qa);
-        c.appendChild(document.createElement("div")).className="divider";
-        c.appendChild(edit);
-        c.appendChild(document.createElement("div")).style.marginTop="8px";
-        c.lastChild.appendChild(bSave);
-
-        els.intelList.appendChild(c);
-      });
-    }
-
-    function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
-    }
-
-    // ====== Faith config list ======
-    function renderFaithCfg(){
-      els.faithCfgList.innerHTML="";
-      FAITH_TOP10.forEach(name=>{
-        const k = name.toLowerCase();
-        const row = document.createElement("div");
-        row.className="card";
-        const enabled = !!state.faithLiveOptions?.[k]?.enabled;
-        const lang = state.faithLiveOptions?.[k]?.lang || defaultDeviceLang;
-        row.innerHTML = `
-          <div class="cardTop">
-            <div>
-              <div class="title">${name}</div>
-              <div class="subt">Live bar display + language</div>
-            </div>
-            <div class="cardBtns">
-              <button class="btn ${enabled?'btnBlue':''}" data-faith-toggle="${k}">${enabled?'Enabled':'Enable'}</button>
-              <button class="btn" data-faith-lang="${k}">${lang}</button>
-            </div>
-          </div>`;
-        els.faithCfgList.appendChild(row);
-      });
-      els.faithCfgList.querySelectorAll("[data-faith-toggle]").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          const k = btn.dataset.faithToggle;
-          state.faithLiveOptions = state.faithLiveOptions || {};
-          state.faithLiveOptions[k] = state.faithLiveOptions[k] || { enabled:false, lang:defaultDeviceLang };
-          state.faithLiveOptions[k].enabled = !state.faithLiveOptions[k].enabled;
-          saveCfg(); renderFaithCfg(); toast("Updated");
-        });
-      });
-      els.faithCfgList.querySelectorAll("[data-faith-lang]").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          const k = btn.dataset.faithLang;
-          state.faithLiveOptions = state.faithLiveOptions || {};
-          state.faithLiveOptions[k] = state.faithLiveOptions[k] || { enabled:false, lang:defaultDeviceLang };
-          state.faithLiveOptions[k].lang = (state.faithLiveOptions[k].lang==="urdu") ? "english" : "urdu";
-          saveCfg(); renderFaithCfg(); toast("Language toggled");
-        });
-      });
-    }
-
-    function renderFaithList(){
-      els.faithList.innerHTML="";
-      FAITH_TOP10.forEach(name=>{
-        const k = name.toLowerCase();
-        const item = document.createElement("div");
-        item.className="card";
-        const active = (state.faithSelection||[]).includes(name);
-        item.innerHTML = `
-          <div class="cardTop">
-            <div>
-              <div class="title">${name}</div>
-              <div class="subt">Tap to ${active?'remove':'select'}</div>
-            </div>
-            <div class="cardBtns">
-              <button class="btn ${active?'btnBlue':''}" data-faith="${name}">${active?'Selected':'Select'}</button>
-            </div>
-          </div>`;
-        els.faithList.appendChild(item);
-      });
-      els.faithList.querySelectorAll("[data-faith]").forEach(b=>{
-        b.addEventListener("click",()=>{
-          const name = b.dataset.faith;
-          state.faithSelection = state.faithSelection || [];
-          if(state.faithSelection.includes(name)){
-            state.faithSelection = state.faithSelection.filter(x=>x!==name);
-          }else{
-            state.faithSelection = [name]; // single select for simplicity
+          if(confirm("Delete this intelligence item?")){
+            const realIndex = state.intelligence.indexOf(it);
+            if(realIndex>=0){
+              state.intelligence.splice(realIndex,1);
+              safeSaveJSON("ax_intel",state.intelligence);
+              refreshIntelList();
+            }
           }
-          saveCfg();
-          updateEthicBox();
-          pickFaithBubble();
-          renderFaithList();
-        });
+        };
+        rowBtns.appendChild(bUse);
+        rowBtns.appendChild(bDel);
+        wrap.appendChild(qDiv);
+        wrap.appendChild(aDiv);
+        wrap.appendChild(rowBtns);
+        box.appendChild(wrap);
       });
     }
 
-    // ====== Dream mode ======
-    function armDream(){
-      clearTimeout(state.dreamTimer);
-      if(!state.dreamEnabled) return;
-      state.dreamTimer = setTimeout(()=>{
-        // simple dream: show bubble and toast
-        pickFaithBubble();
-        els.faithBubble.classList.add("show");
-      }, state.dreamDelayMs);
+    function addIntelPair(q,a){
+      if(!q || !a) return;
+      state.intelligence.push({q,a,ts:new Date().toISOString()});
+      if(state.intelligence.length>600) state.intelligence.shift();
+      safeSaveJSON("ax_intel",state.intelligence);
+      refreshIntelList();
     }
 
-    function resetActivity(){
-      armDream();
+    // ==== core answer routing (very simplified compared to your big 4.9 logic) ====
+
+    async function handleUserInput(){
+      const text = (els.mainInput.value||"").trim();
+      if(!text) return;
+      els.mainInput.value = "";
+      logLine("user","You: "+text);
+      state.lastActivityTs = Date.now();
+      state.metrics.TM = scoreTM(text);
+      updateMetrics(state.metrics.TM);
+      if(state.learningOn && text==="*incorrect"){
+        if(!state.lastUserQ || !state.lastAuraA){
+          logLine("system","No last Q → A to correct.");
+          return;
+        }
+        state.correcting = true;
+        logLine("system","Please type the correct answer; it will be learned.");
+        return;
+      }
+      if(state.correcting){
+        addIntelPair(state.lastUserQ,text);
+        state.correcting = false;
+        logLine("system","Correct answer stored in Intelligence.");
+        return;
+      }
+
+      state.lastUserQ = text;
+
+      // 1) Check Intelligence
+      const intelHit = state.intelligence.find(it => it.q.toLowerCase()===text.toLowerCase());
+      if(intelHit){
+        state.lastAnswerSource = "intel";
+        answerFrom("intel",intelHit.a);
+        return;
+      }
+
+      // 2) simple seed / BM echo
+      const bmHit = state.bmPrompts[0];
+      let baseReply = "I am listening and keeping continuity with your feelings. Tell me a bit more.";
+      if(bmHit){
+        baseReply = "I am holding your important BM context: \""+bmHit.text.slice(0,120)+"…\". "
+                    +"How does your current thought connect to this?";
+      }
+
+      state.lastAnswerSource = "heuristic";
+
+      // 3) if online API set, you can call it (placeholder)
+      if(state.apiConfig.endpoint){
+        try{
+          const apiReply = await callOnlineLLM(text);
+          if(apiReply){
+            answerFrom("LLM",apiReply);
+            return;
+          }
+        }catch(e){
+          console.warn(e);
+          showToast("Online API call failed; falling back to heuristic reply.");
+        }
+      }
+
+      answerFrom("heuristic",baseReply);
     }
 
-    // ====== LLM fallback ======
+    function answerFrom(source, text){
+      state.lastAuraA = text;
+      logLine("aura","Aura: "+text);
+      if(state.voiceOn){
+        speak(text);
+      }
+      // simple continuity update
+      state.metrics.C = Math.min(1, state.metrics.C + 0.01);
+      updateMetrics(state.metrics.TM);
+    }
+
     async function callOnlineLLM(userText){
-      const endpoint = (state.apiConfig.endpoint||"").trim();
-      const model = (state.apiConfig.model||"").trim();
-      const key = (state.apiConfig.key||"").trim();
-      if(!endpoint || !model || !key) return null;
-      try{
-        const res = await fetch(endpoint, {
-          method:"POST",
-          headers:{
-            "Content-Type":"application/json",
-            "Authorization":`Bearer ${key}`
-          },
-          body: JSON.stringify({
-            model,
-            messages:[
-              {role:"system", content:"You are AURA-X Ω. Be concise, safe, and helpful."},
-              {role:"user", content:userText}
-            ],
-            temperature:0.6
-          })
-        });
-        const j = await res.json();
-        return j?.choices?.[0]?.message?.content || null;
-      }catch(_){
-        return null;
-      }
-    }
-
-    function findLearnedAnswer(q){
-      const list = state.intelligence||[];
-      const qq = (q||"").toLowerCase();
-      const hit = list.find(it=> (it.q||"").toLowerCase()===qq);
-      return hit ? hit.a : null;
-    }
-
-    async function respond(userText){
-      state.lastUserQ = userText;
-
-      // 1) learned
-      const learned = findLearnedAnswer(userText);
-      if(learned){
-        state.lastAnswerSource="learned";
-        return learned;
-      }
-
-      // 2) online if configured
-      const online = await callOnlineLLM(userText);
-      if(online){
-        state.lastAnswerSource="api";
-        return online;
-      }
-
-      // 3) fallback offline simple
-      state.lastAnswerSource="local";
-      return "I understood. (Offline mode) Tell me more, and I will keep continuity in BM/TM.";
-    }
-
-    // ====== Vision image pick ======
-    els.btnVisionPick.addEventListener("click", ()=> els.visionInput.click());
-    els.visionInput.addEventListener("change", ()=>{
-      const f = els.visionInput.files?.[0];
-      if(!f) return;
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        visionImageData = reader.result;
-        els.imgPrev.src = visionImageData;
-        els.imgPrev.style.display="block";
-        toast("Image attached");
+      if(!state.apiConfig.endpoint) return null;
+      const payload = {
+        model: state.apiConfig.model || undefined,
+        messages: [
+          {role:"system",content:"You are Aura X Omega, an emotional continuity assistant. Keep answers short."},
+          {role:"user",content:userText}
+        ]
       };
-      reader.readAsDataURL(f);
-    });
-    els.btnClearVision.addEventListener("click", ()=>{
-      visionImageData = null;
-      els.visionInput.value = "";
-      els.imgPrev.src = "";
-      els.imgPrev.style.display="none";
-      toast("Image cleared");
-    });
+      const res = await fetch(state.apiConfig.endpoint,{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization": state.apiConfig.key ? ("Bearer "+state.apiConfig.key) : undefined
+        },
+        body:JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error("API error "+res.status);
+      const data = await res.json();
+      const txt = data.choices?.[0]?.message?.content || "";
+      return txt;
+    }
 
-    // ====== Options menu ======
-    els.btnOptions.addEventListener("click",()=>{ els.optionsMenu.classList.toggle("show"); });
+    // ==== Voice (TTS) ====
 
-    els.miVoice.addEventListener("click",()=>{
-      state.voiceOn = !state.voiceOn;
-      els.voicePill.textContent = state.voiceOn ? "on" : "off";
-      els.voicePill.className = state.voiceOn ? "pillOn" : "pillOff";
-      saveCfg();
-    });
+    function speak(text){
+      if(!("speechSynthesis" in window)) return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = defaultDeviceLang==="urdu" ? "ur-PK" : "en-US";
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utter);
+    }
 
-    // ====== ✅ Injected Camera/Mic sensing ======
-    let camStream = null;
-    let micStream = null;
-    let mediaRecorder = null;
-    let audioChunks = [];
+    // ==== Faith chips (very small stub, you can expand with full 4.9 logic later) ====
 
-    const senseEls = {
-      modal: document.getElementById("modalSense"),
-      video: document.getElementById("senseVideo"),
-      canvas: document.getElementById("senseCanvas"),
-      summary: document.getElementById("senseSummary"),
-      snapInfo: document.getElementById("senseSnapInfo"),
-      micInfo: document.getElementById("senseMicInfo"),
-      micStatus: document.getElementById("micInfo"),
-      btnCamStart: document.getElementById("btnCamStart"),
-      btnCamStop: document.getElementById("btnCamStop"),
-      btnSnap: document.getElementById("btnSnap"),
-      btnMicStart: document.getElementById("btnMicStart"),
-      btnMicStop: document.getElementById("btnMicStop"),
-      btnMicTest: document.getElementById("btnMicTest"),
-      btnAnalyze: document.getElementById("btnSenseAnalyze"),
-      btnSaveBM: document.getElementById("btnSenseSaveBM"),
+    const faithPresets = [
+      {id:"none",label:"None"},
+      {id:"islam",label:"Islam"},
+      {id:"christianity",label:"Christianity"},
+      {id:"judaism",label:"Judaism"},
+      {id:"hinduism",label:"Hinduism"},
+      {id:"buddhism",label:"Buddhism"},
+      {id:"sikhism",label:"Sikhism"},
+      {id:"bahai",label:"Baháʼí"},
+      {id:"secular",label:"Secular humanism"},
+      {id:"other",label:"Other / custom"}
+    ];
+
+    function buildFaithChips(){
+      els.faithChips.innerHTML = "";
+      faithPresets.forEach(p=>{
+        const b = document.createElement("button");
+        b.className="btn btnGhost";
+        b.textContent=p.label;
+        b.onclick=()=>{
+          state.faithSelection = [p.id];
+          els.pillFaith.textContent = p.id==="none"?"none":p.label;
+          showToast("Faith lens set to: "+p.label);
+        };
+        els.faithChips.appendChild(b);
+      });
+    }
+
+    // ==== Identity save ====
+
+    document.getElementById("btnSaveId").onclick = ()=>{
+      state.userIdentity = {
+        name: els.idName.value.trim(),
+        role: els.idRole.value.trim(),
+        place: els.idPlace.value.trim(),
+        story: els.idStory.value.trim()
+      };
+      safeSaveJSON("ax_id",state.userIdentity);
+      showToast("Identity saved locally.");
     };
 
-    function setPill(pillEl, on){
-      if(!pillEl) return;
-      pillEl.textContent = on ? "on" : "off";
-      pillEl.className = on ? "pillOn" : "pillOff";
-    }
+    document.getElementById("btnClearId").onclick = ()=>{
+      if(!confirm("Clear saved identity?")) return;
+      state.userIdentity = null;
+      safeSaveJSON("ax_id",null);
+      els.idName.value = "";
+      els.idRole.value = "";
+      els.idPlace.value = "";
+      els.idStory.value = "";
+    };
 
-    async function startCamera(){
-      if(camStream) return;
-      camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-      senseEls.video.srcObject = camStream;
-      state.sense.camOn = true;
-      setPill(els.camPill, true);
-      saveCfg();
-    }
-    function stopCamera(){
-      if(!camStream) return;
-      camStream.getTracks().forEach(t=>t.stop());
-      camStream = null;
-      senseEls.video.srcObject = null;
-      state.sense.camOn = false;
-      setPill(els.camPill, false);
-      saveCfg();
-    }
-    async function startMic(){
-      if(micStream) return;
-      micStream = await navigator.mediaDevices.getUserMedia({ video:false, audio:true });
-      state.sense.micOn = true;
-      setPill(els.micPill, true);
-      senseEls.micStatus.textContent = "Mic: ready";
-      saveCfg();
-    }
-    function stopMic(){
-      try{
-        if(mediaRecorder && mediaRecorder.state!=="inactive") mediaRecorder.stop();
-      }catch(_){}
-      if(!micStream) return;
-      micStream.getTracks().forEach(t=>t.stop());
-      micStream = null;
-      state.sense.micOn = false;
-      setPill(els.micPill, false);
-      senseEls.micStatus.textContent = "Mic: idle";
-      saveCfg();
-    }
+    // ==== API save ====
 
-    function takeSnapshot(){
-      if(!camStream) return null;
-      const v = senseEls.video;
-      const c = senseEls.canvas;
-      const w = Math.min(960, v.videoWidth || 640);
-      const h = Math.round(w * ((v.videoHeight || 480) / (v.videoWidth || 640)));
-      c.width = w; c.height = h;
-      const ctx = c.getContext("2d");
-      ctx.drawImage(v, 0, 0, w, h);
-      const dataUrl = c.toDataURL("image/jpeg", 0.78);
-      state.sense.lastImageData = dataUrl;
-      state.sense.lastSnapAt = new Date().toISOString();
-      senseEls.snapInfo.textContent = new Date().toLocaleTimeString();
-      saveCfg();
-      return dataUrl;
-    }
-
-    async function recordMicChunk(ms=7000){
-      if(!micStream) await startMic();
-      if(!micStream) return null;
-      audioChunks = [];
-      mediaRecorder = new MediaRecorder(micStream);
-      mediaRecorder.ondataavailable = (e)=>{ if(e.data && e.data.size) audioChunks.push(e.data); };
-      const done = new Promise((resolve)=>{
-        mediaRecorder.onstop = ()=> resolve(new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" }));
-      });
-      mediaRecorder.start();
-      senseEls.micStatus.textContent = "Mic: recording…";
-      await new Promise(r=>setTimeout(r, ms));
-      try{ mediaRecorder.stop(); }catch(_){}
-      const blob = await done;
-      state.sense.lastAudioBlob = blob;
-      state.sense.lastMicAt = new Date().toISOString();
-      senseEls.micInfo.textContent = new Date().toLocaleTimeString();
-      senseEls.micStatus.textContent = "Mic: captured";
-      saveCfg();
-      return blob;
-    }
-
-    function heuristicSceneSummary(){
-      const parts = [];
-      if(state.sense.lastImageData) parts.push("Visual: snapshot captured (details pending).");
-      if(state.sense.lastAudioBlob) parts.push("Audio: short ambience captured (details pending).");
-      const base = parts.length ? parts.join(" ") : "No camera/mic capture yet.";
-      return base + "\n\nBM Prompt template:\nDescribe what happened, who/what is present, actions, environment, and emotional tone. Include a short timeline (00:00–00:10).";
-    }
-
-    async function analyzeScene(){
-      const endpoint = (state.apiConfig.endpoint || "").trim();
-      const key = (state.apiConfig.key || "").trim();
-      const model = (state.apiConfig.model || "").trim();
-      if(!endpoint || !key || !model){
-        const txt = heuristicSceneSummary();
-        senseEls.summary.value = txt;
-        state.sense.lastSummary = txt;
-        saveCfg();
-        return;
-      }
-
-      const messages = [{
-        role:"user",
-        content:[
-          { type:"text", text:
-            "Analyze this scene and return a compact JSON with: {scene, entities, actions, sounds, emotional_tone, safety_flags, bm_prompt}. Keep it faithful (no hallucinated specifics). If unsure, mark unknown."
-          }
-        ]
-      }];
-
-      if(state.sense.lastImageData){
-        messages[0].content.push({ type:"image_url", image_url:{ url: state.sense.lastImageData } });
-      }
-      if(state.sense.lastAudioBlob){
-        messages[0].content.push({ type:"text", text:"Audio captured: yes (ambience/voice). If your API supports audio, extend this client accordingly." });
-      }
-
-      try{
-        const res = await fetch(endpoint, {
-          method:"POST",
-          headers:{
-            "Content-Type":"application/json",
-            "Authorization":`Bearer ${key}`
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            temperature: 0.2
-          })
-        });
-        const j = await res.json();
-        const out = j?.choices?.[0]?.message?.content || JSON.stringify(j);
-        senseEls.summary.value = out;
-        state.sense.lastSummary = out;
-        saveCfg();
-      }catch(err){
-        const txt = "API analyze failed. Fallback summary:\n" + heuristicSceneSummary();
-        senseEls.summary.value = txt;
-        state.sense.lastSummary = txt;
-        saveCfg();
-      }
-    }
-
-    function saveSenseToBM(){
-      const content = (senseEls.summary.value || "").trim() || heuristicSceneSummary();
-      const promptObj = {
-        id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
-        createdAt: new Date().toISOString(),
-        type: "scene_prompt",
-        title: "Scene → BM prompt",
-        prompt: content,
-        locked: false
+    document.getElementById("btnSaveAPI").onclick = ()=>{
+      state.apiConfig = {
+        endpoint: els.apiEndpoint.value.trim(),
+        model: els.apiModel.value.trim(),
+        key: els.apiKey.value.trim()
       };
-      state.bmPrompts.unshift(promptObj);
-      saveAll();
-      renderBM();
-      toast("Saved to BM.");
-    }
+      safeSaveJSON("ax_api",state.apiConfig);
+      showToast("API settings saved locally.");
+    };
 
-    // options menu bindings
-    els.miCamera.addEventListener("click", async()=>{
-      try{
-        if(state.sense.camOn) stopCamera();
-        else await startCamera();
-      }catch(_){
-        toast("Camera permission denied or unavailable.");
-        stopCamera();
-      }
-    });
-    els.miMicSense.addEventListener("click", async()=>{
-      try{
-        if(state.sense.micOn) stopMic();
-        else await startMic();
-      }catch(_){
-        toast("Mic permission denied or unavailable.");
-        stopMic();
-      }
-    });
-    els.miSense.addEventListener("click", ()=>{
-      openModal(senseEls.modal);
-      els.optionsMenu.classList.remove("show");
-    });
+    // ==== Seed parsing (very simplified) ====
 
-    // sense modal buttons
-    if(senseEls.btnCamStart) senseEls.btnCamStart.addEventListener("click", async()=>{ try{ await startCamera(); }catch(_){ toast("Camera permission denied."); } });
-    if(senseEls.btnCamStop)  senseEls.btnCamStop.addEventListener("click", ()=> stopCamera());
-    if(senseEls.btnSnap)     senseEls.btnSnap.addEventListener("click", ()=>{ const ok = takeSnapshot(); if(ok) toast("Snapshot captured."); else toast("Start camera first."); });
-    if(senseEls.btnMicStart) senseEls.btnMicStart.addEventListener("click", async()=>{ try{ await recordMicChunk(8000); }catch(_){ toast("Mic permission denied."); } });
-    if(senseEls.btnMicStop)  senseEls.btnMicStop.addEventListener("click", ()=> stopMic());
-    if(senseEls.btnMicTest)  senseEls.btnMicTest.addEventListener("click", ()=>{ try{ const a = new (window.AudioContext||window.webkitAudioContext)(); const o=a.createOscillator(); const g=a.createGain(); g.gain.value=0.02; o.connect(g); g.connect(a.destination); o.frequency.value=880; o.start(); setTimeout(()=>{o.stop(); a.close();}, 120); }catch(_){ } });
-    if(senseEls.btnAnalyze)  senseEls.btnAnalyze.addEventListener("click", ()=> analyzeScene());
-    if(senseEls.btnSaveBM)   senseEls.btnSaveBM.addEventListener("click", ()=> saveSenseToBM());
-
-    // ====== rest options ======
-    els.miLearn.addEventListener("click",()=>{
-      state.learningOn = !state.learningOn;
-      els.learnPill.textContent = state.learningOn ? "on" : "off";
-      els.learnPill.className = state.learningOn ? "pillOn" : "pillOff";
-      saveCfg();
-      toast("Learning " + (state.learningOn?"on":"off"));
-    });
-
-    els.miIntel.addEventListener("click",()=>{
-      openModal(els.modalIntel);
-      els.optionsMenu.classList.remove("show");
-      renderIntel();
-    });
-
-    els.miSeed.addEventListener("click",()=>{
-      openModal(els.modalSeed);
-      els.optionsMenu.classList.remove("show");
-    });
-
-    els.miFaith.addEventListener("click",()=>{
-      openModal(els.modalFaith);
-      els.optionsMenu.classList.remove("show");
-      renderFaithList();
-    });
-
-    els.miIdentity.addEventListener("click",()=>{
-      openModal(els.modalIdentity);
-      els.optionsMenu.classList.remove("show");
-    });
-
-    els.miLLM.addEventListener("click",()=>{
-      openModal(els.modalLLM);
-      els.optionsMenu.classList.remove("show");
-      els.apiEndpoint.value = state.apiConfig.endpoint || "https://api.openai.com/v1/chat/completions";
-      els.apiModel.value = state.apiConfig.model || "gpt-4o-mini";
-      els.apiKey.value = state.apiConfig.key || "";
-    });
-
-    els.miBMRecall.addEventListener("click",()=>{
-      openModal(els.modalBM);
-      els.optionsMenu.classList.remove("show");
-      renderBM();
-    });
-
-    // ====== Faith bubble controls ======
-    els.faithBubbleClose.addEventListener("click",()=> els.faithBubble.classList.remove("show"));
-    els.faithBubble.addEventListener("click",()=>{
-      if(!els.faithBubble.classList.contains("show")) return;
-      pickFaithBubble();
-    });
-
-    // Faith live bar settings
-    els.faithCfgBtn.addEventListener("click",()=>{
-      openModal(els.modalFaithCfg);
-      renderFaithCfg();
-    });
-
-    // Seed save
-    els.btnSeedSave.addEventListener("click",()=>{
-      const txt = (els.seedArea.value||"").trim();
-      if(!txt){ toast("Empty"); return; }
-      // very simple parser: lines "Q:" "A:"
-      const chunks = txt.split(/\n{2,}/);
-      chunks.forEach(ch=>{
-        const mq = ch.match(/Q:\s*([\s\S]*?)\nA:/);
-        const ma = ch.match(/\nA:\s*([\s\S]*)$/);
-        if(mq && ma){
-          state.intelligence.unshift({
-            q: mq[1].trim(),
-            a: ma[1].trim(),
-            locked:true,
-            createdAt: new Date().toISOString()
-          });
+    function parseSeedText(text){
+      const items = [];
+      const parts = text.split("\\item").map(s=>s.trim()).filter(Boolean);
+      parts.forEach(part=>{
+        const idx = part.indexOf("\\textbf{A:");
+        if(idx>0){
+          const q = part.slice(0,idx).replace(/^[\-\*]/,"").trim();
+          const rest = part.slice(idx+10);
+          const end = rest.indexOf("}");
+          const aRaw = end>=0 ? rest.slice(end+1) : rest;
+          const a = aRaw.replace(/^[:\-]/,"").trim();
+          if(q && a) items.push({q,a});
         }
       });
-      els.seedArea.value="";
-      saveAll();
-      toast("Saved (locked)");
-    });
+      return items;
+    }
 
-    // Identity save/delete
-    els.btnSaveIdentity.addEventListener("click",()=>{
-      const txt = (els.identityArea.value||"").trim();
-      if(!txt){ toast("Empty"); return; }
-      state.userIdentity = { text: txt, locked:true, createdAt:new Date().toISOString() };
-      saveAll();
-      els.identityStatus.textContent = "Identity saved (locked).";
-      toast("Saved");
-    });
-    els.btnDeleteIdentity.addEventListener("click",()=>{
-      if(!state.userIdentity){ toast("No identity"); return; }
-      if(state.userIdentity.locked){
-        if(!confirm("Unlock identity first?")) return;
-        state.userIdentity.locked=false;
-        saveAll();
-        els.identityStatus.textContent = "Identity unlocked.";
-        toast("Unlocked");
+    document.getElementById("btnParseSeed").onclick = ()=>{
+      const raw = els.seedBox.value;
+      const parsed = parseSeedText(raw);
+      if(!parsed.length){
+        els.seedHint.textContent = "No Q → A pairs detected.";
         return;
       }
-      if(!confirm("Delete identity?")) return;
-      if(!confirm("Are you sure?")) return;
-      state.userIdentity=null;
-      saveAll();
-      els.identityArea.value="";
-      els.identityStatus.textContent="No identity saved.";
-      toast("Deleted");
+      state.parsedSeed = parsed;
+      els.seedHint.textContent = "Detected "+parsed.length+" pairs. Click Save to add to Intelligence.";
+    };
+
+    document.getElementById("btnSaveSeed").onclick = ()=>{
+      if(!state.parsedSeed.length){
+        showToast("Nothing parsed yet.");
+        return;
+      }
+      state.parsedSeed.forEach(p=>addIntelPair(p.q,p.a));
+      state.parsedSeed = [];
+      els.seedBox.value = "";
+      els.seedHint.textContent = "Saved to Intelligence.";
+    };
+
+    document.getElementById("btnDiscardSeed").onclick = ()=>{
+      state.parsedSeed = [];
+      els.seedBox.value = "";
+      els.seedHint.textContent = "Waiting for block…";
+    };
+
+    // ==== Options / modals open-close ====
+
+    document.getElementById("btnOptions").onclick = ()=>{
+      // in 4.9 this was static; we just keep a small visual pulse
+      els.optionsMenu.style.transform = "scale(1.01)";
+      setTimeout(()=>{ els.optionsMenu.style.transform="scale(1)"; },120);
+    };
+
+    document.querySelectorAll(".menuItem[data-open]").forEach(mi=>{
+      mi.addEventListener("click",()=>{
+        const id = mi.getAttribute("data-open");
+        const m = document.getElementById(id);
+        if(m){ m.style.display="flex"; }
+      });
     });
 
-    // LLM save
-    els.btnSaveLLM.addEventListener("click",()=>{
-      state.apiConfig.endpoint = (els.apiEndpoint.value||"").trim();
-      state.apiConfig.model = (els.apiModel.value||"").trim();
-      state.apiConfig.key = (els.apiKey.value||"").trim();
-      saveCfg();
-      toast("Saved");
+    document.querySelectorAll(".closeX").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const target = btn.getAttribute("data-close");
+        if(target){
+          const m = document.getElementById(target);
+          if(m) m.style.display="none";
+        }else{
+          btn.closest(".modalOverlay").style.display="none";
+        }
+      });
     });
 
-    // Intel export/clear/search
-    els.intelSearch.addEventListener("input", renderIntel);
-    els.btnClearIntel.addEventListener("click",()=>{
-      const before = state.intelligence.length;
-      state.intelligence = (state.intelligence||[]).filter(it=>it.locked);
-      saveAll(); renderIntel();
-      toast(`Cleared ${before - state.intelligence.length}`);
-    });
-    els.btnExportIntel.addEventListener("click",()=>{
-      const blob = new Blob([JSON.stringify(state.intelligence||[], null, 2)], {type:"application/json"});
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "aurax_intelligence.json";
-      a.click();
-      toast("Exported");
+    window.addEventListener("click",e=>{
+      if(e.target.classList.contains("modalOverlay")){
+        e.target.style.display="none";
+      }
     });
 
-    // BM export/clear/search
-    els.bmSearch.addEventListener("input", renderBM);
-    els.btnBMClear.addEventListener("click",()=>{
-      const before = state.bmPrompts.length;
-      state.bmPrompts = (state.bmPrompts||[]).filter(p=>p.locked);
-      saveAll(); renderBM();
-      toast(`Cleared ${before - state.bmPrompts.length}`);
-    });
-    els.btnBMExport.addEventListener("click",()=>{
-      const blob = new Blob([JSON.stringify(state.bmPrompts||[], null, 2)], {type:"application/json"});
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "aurax_bm_prompts.json";
-      a.click();
-      toast("Exported");
-    });
+    // ==== Voice + Learning toggles ====
 
-    // Logic pack simple behavior
-    function loadLogic(){
+    document.getElementById("toggleVoiceBtn").onclick = ()=>{
+      state.voiceOn = !state.voiceOn;
+      els.pillVoice.textContent = state.voiceOn?"on":"off";
+      els.pillVoice.className = state.voiceOn?"pillOn":"pillOff";
+      els.voiceStatusLabel.textContent = state.voiceOn?"on":"off";
+    };
+
+    document.getElementById("toggleLearnBtn").onclick = ()=>{
+      state.learningOn = !state.learningOn;
+      els.pillLearn.textContent = state.learningOn?"on":"off";
+      els.pillLearn.className = state.learningOn?"pillOn":"pillOff";
+      els.learnStatusLabel.textContent = state.learningOn?"on":"off";
+    };
+
+    // ==== Faith ====
+    buildFaithChips();
+
+    // ====== Sense: Camera + Mic logic (NEW) ======
+
+    async function startCameraCapture(){
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        showToast("Camera not available in this browser.");
+        return;
+      }
       try{
-        const raw = localStorage.getItem("aurax_logic_pack");
-        if(!raw) return null;
-        return JSON.parse(raw);
-      }catch(_){ return null; }
-    }
-    function saveLogicPack(obj){
-      localStorage.setItem("aurax_logic_pack", JSON.stringify(obj));
-    }
-    let currentLogic = loadLogic();
-    function renderLogic(){
-      if(currentLogic){
-        els.logicArea.value = currentLogic.text || "";
-        els.logicHint.textContent = "Logic pack loaded.";
-        els.logicSerial.textContent = currentLogic.serial || "unknown";
-      }else{
-        els.logicArea.value = "";
-        els.logicHint.textContent = "No logic pack loaded.";
-        els.logicSerial.textContent = "none";
+        const stream = await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+        if(state.sense.stream){
+          state.sense.stream.getTracks().forEach(t=>t.stop());
+        }
+        state.sense.stream = stream;
+        els.senseVideo.srcObject = stream;
+        els.senseVideo.style.display = "block";
+        els.senseStatus.textContent = "Camera on. Capturing snapshot in 2 seconds…";
+        els.senseDot.style.background = "#22c55e";
+        setTimeout(captureSnapshotFromVideo,2000);
+      }catch(err){
+        console.warn(err);
+        showToast("Camera permission denied or error.");
       }
     }
-    els.btnValidateLogic.addEventListener("click",()=>{
-      const txt = (els.logicArea.value||"").trim();
-      if(!txt){ toast("Empty"); return; }
-      toast("Looks OK");
-    });
-    els.btnSaveLogic.addEventListener("click",()=>{
-      const txt = (els.logicArea.value||"").trim();
-      if(!txt){ toast("Empty"); return; }
-      currentLogic = { serial: "LP-"+Date.now(), text: txt };
-      saveLogicPack(currentLogic);
-      els.logicArea.value = ""; // ✅ auto clear
-      toast("Saved");
-      renderLogic();
-    });
-    els.btnCopyLogic.addEventListener("click",()=>{
-      navigator.clipboard.writeText((els.logicArea.value||"").trim() || (currentLogic?.text||""));
-      toast("Copied");
-    });
-    els.btnDeleteLogic.addEventListener("click",()=>{
-      if(!currentLogic){ toast("None"); return; }
-      if(!confirm("Delete logic pack?")) return;
-      localStorage.removeItem("aurax_logic_pack");
-      currentLogic=null;
-      renderLogic();
-      toast("Deleted");
-    });
 
-    // Dream settings
-    els.btnSaveDream.addEventListener("click",()=>{
-      state.dreamDelayMs = Number(els.dreamDelay.value||30000);
-      saveCfg();
-      toast("Dream saved");
-      armDream();
-    });
-    els.btnTestDream.addEventListener("click",()=>{
-      pickFaithBubble();
-      els.faithBubble.classList.add("show");
-      toast("Dream test");
-    });
+    function captureSnapshotFromVideo(){
+      if(!state.sense.stream) return;
+      const video = els.senseVideo;
+      const canvas = els.senseCanvas;
+      const w = video.videoWidth || 320;
+      const h = video.videoHeight || 240;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video,0,0,w,h);
+      const dataUrl = canvas.toDataURL("image/jpeg",0.7);
+      // stop stream to save battery
+      state.sense.stream.getTracks().forEach(t=>t.stop());
+      state.sense.stream = null;
+      els.senseVideo.style.display = "none";
+      els.senseDot.style.background = "#22c55e";
+      els.senseStatus.textContent = "Snapshot captured locally (dataURL length "+dataUrl.length+"). Plug your vision API where indicated in code.";
 
-    // Send
-    async function onSend(){
-      const text = (els.userInput.value||"").trim();
-      if(!text && !visionImageData) return;
-      els.userInput.value="";
-      resetActivity();
-
-      if(text){
-        state.history.push({role:"user", text, ts:Date.now()});
-      }else{
-        state.history.push({role:"user", text:"[image]", ts:Date.now()});
-      }
-
-      const answer = await respond(text || "Describe this image.");
-      state.history.push({role:"aura", text: answer, ts:Date.now(), source: state.lastAnswerSource || "local"});
-      // Keep history lightweight (48h idea can be added later; for now keep as-is)
-      saveAll();
-      updateMetricsFromState();
-      applyEmotionalTheme();
-      renderCapsule();
-      updateEthicBox();
-      renderChat();
+      // Here we synthesize a BM stub – YOU can replace with real CV/LLM analysis
+      const stub = "Scene snapshot BM stub:\n"
+        + "- Time: "+new Date().toLocaleString()+"\n"
+        + "- Source: camera snapshot\n"
+        + "- Developer TODO: send image dataURL to vision API and summarise people / objects / mood.\n"
+        + "- Emotional guess: calm / neutral until analysed.\n";
+      els.senseBMBox.value = stub;
     }
-    els.sendBtn.addEventListener("click", onSend);
-    els.userInput.addEventListener("keydown",(e)=>{
+
+    async function startMicCapture(){
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        showToast("Microphone not available.");
+        return;
+      }
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+        state.sense.chunks = [];
+        const rec = new MediaRecorder(stream);
+        state.sense.mediaRecorder = rec;
+        els.senseStatus.textContent = "Recording 10 seconds of audio…";
+        els.senseDot.style.background = "#f97373";
+        rec.ondataavailable = e => state.sense.chunks.push(e.data);
+        rec.onstop = ()=>{
+          stream.getTracks().forEach(t=>t.stop());
+          els.senseDot.style.background = "#22c55e";
+          const blob = new Blob(state.sense.chunks,{type:"audio/webm"});
+          els.senseStatus.textContent = "Audio sample captured (~"+Math.round(blob.size/1024)+" KB). Plug your speech-to-text + emotion API here.";
+          const stub = (els.senseBMBox.value||"")+"\n"
+            +"Audio BM stub:\n"
+            +"- Time: "+new Date().toLocaleString()+"\n"
+            +"- Source: 10s microphone sample\n"
+            +"- Developer TODO: send audio blob to ASR/emotion API (pitch, intensity, speaker count).\n";
+          els.senseBMBox.value = stub.trim()+"\n";
+        };
+        rec.start();
+        setTimeout(()=>{ if(rec.state==="recording") rec.stop(); },10000);
+      }catch(err){
+        console.warn(err);
+        showToast("Mic permission denied or error.");
+      }
+    }
+
+    document.getElementById("btnSenseCamera").onclick = startCameraCapture;
+    document.getElementById("btnSenseMic").onclick = startMicCapture;
+
+    document.getElementById("btnSaveSenseBM").onclick = ()=>{
+      const text = els.senseBMBox.value.trim();
+      if(!text){ showToast("Nothing to save."); return; }
+      state.bmPrompts.push({text,ts:new Date().toISOString(),source:"sense"});
+      safeSaveJSON("ax_bm",state.bmPrompts);
+      recomputeBMMetric();
+      refreshBMList();
+      showToast("Scene BM stub saved.");
+      els.senseBMBox.value = "";
+    };
+
+    // ==== Events ====
+
+    els.btnSend.addEventListener("click",handleUserInput);
+    els.mainInput.addEventListener("keydown",e=>{
       if(e.key==="Enter" && !e.shiftKey){
         e.preventDefault();
-        onSend();
+        handleUserInput();
       }
     });
 
-    // Global activity reset
-    ["click","keydown","touchstart","mousemove"].forEach(ev=>{
-      document.addEventListener(ev, resetActivity, {passive:true});
+    document.getElementById("reactionBar").addEventListener("click",e=>{
+      const el = e.target;
+      if(!el.dataset.r) return;
+      const tag = el.dataset.r;
+      logLine("system","Reaction logged: "+tag);
+      // simple continuity tweak
+      if(tag==="pos" || tag==="calm") state.metrics.C = Math.min(1,state.metrics.C+0.02);
+      if(tag==="sad" || tag==="angry") state.metrics.C = Math.max(0,state.metrics.C-0.02);
+      updateMetrics(state.metrics.TM);
     });
 
-    // Init
-    loadCfg();
-    loadAll();
-    updateMetricsFromState();
-    applyEmotionalTheme();
-    renderCapsule();
-    updateEthicBox();
-    renderLogic();
-    renderChat();
-    renderBM();
-    renderIntel();
-    renderFaithList();
-    renderFaithCfg();
+    els.intelSearch.addEventListener("input",refreshIntelList);
 
-    // If cfg had cam/mic ON, do NOT auto-start streams (privacy). Pills show state, but actual start requires user click.
-    state.sense.camOn = false;
-    state.sense.micOn = false;
-    if(els.camPill) { els.camPill.textContent="off"; els.camPill.className="pillOff"; }
-    if(els.micPill) { els.micPill.textContent="off"; els.micPill.className="pillOff"; }
-    saveCfg();
+    document.getElementById("btnSaveId"); // already wired above
 
-    armDream();
+    // ==== Init ====
+
+    initFromStorage();
+    logLine("system","AURA-X Ω 4.9 + Sense ready. TM = your inputs; internal layers keep emotional continuity.");
+
   </script>
 </body>
 </html>
