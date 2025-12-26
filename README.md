@@ -1,21 +1,3 @@
-زبردست—میں نے آپ کے Old README کو بنیاد بنا کر ایک updated, advanced, clean, journal-grade README تیار کر دیا ہے جو:
-
-✅ نئے Zenodo DOI (10.5281/zenodo.18063302) سے aligned ہے
-
-✅ full resonance formula (E₀ + R(TM,BM)) رکھتا ہے
-
-✅ patent + ORCID + strong IP stance برقرار رکھتا ہے
-
-✅ GitHub-friendly، readable اور professional ہے
-
-✅ غیر ضروری تکرار کم، مگر core ideas intact ہیں
-
-
-آپ پورا README.md نیچے سے copy–paste کر دیں اور پرانا replace کر دیں۔
-
-
----
-
 # 🧠 AURA-X Ω (Omega)
 ## Artificial Unified Resonance Architecture  
 ### An Emotional-Continuity Engine for AGI
