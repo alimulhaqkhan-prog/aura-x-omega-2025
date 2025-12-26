@@ -5,7 +5,7 @@
   <title>AURA-X Ω – Offline emotional continuity engine (4.9 + Sense)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Future-ready offline LLM (web-llm) – optional -->
+  <!-- Optional future-ready offline LLM (web-llm) -->
   <script type="module">
     import * as webllm from "https://esm.run/@mlc-ai/web-llm";
     window.webllm = webllm;
@@ -279,7 +279,6 @@
     }
 
     /* Options menu */
-
     .optionsMenu{
       position:relative;
       margin-top:10px;
@@ -364,7 +363,6 @@
     }
 
     /* Modals */
-
     .modalOverlay{
       position:fixed;
       inset:0;
@@ -457,8 +455,7 @@
       color:#cbd5f5;
     }
 
-    /* Dream bubble + image preview already used in 4.9 */
-
+    /* Dream bubble */
     #dreamBubble{
       margin-top:10px;
       border-radius:18px;
@@ -512,7 +509,6 @@
     }
 
     /* Toast */
-
     #toast{
       position:fixed;
       bottom:16px;
@@ -681,7 +677,7 @@
                 <button class="pillMid">open</button>
               </div>
 
-              <!-- NEW: Sense (Camera + Mic) -->
+              <!-- Sense (Camera + Mic) -->
               <div class="menuItem" data-open="modalSense">
                 <div class="menuIcon">👁️</div>
                 <div class="menuLeft">
@@ -744,7 +740,7 @@
     </div>
   </div>
 
-  <!-- ====== Modals (minimal versions, same structure as 4.9) ====== -->
+  <!-- ====== Modals ====== -->
 
   <!-- Voice -->
   <div class="modalOverlay" id="modalVoice">
@@ -792,7 +788,7 @@
       </div>
       <div class="modalBody">
         <input id="intelSearch"
-          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.4);padding:8px 10px;font-size:13px;outline:none"
+          style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.4);padding:8px 10px;font-size:13px;outline:none;background:#020617;color:#e5e7eb"
           placeholder="Search intelligence..." />
         <div id="intelList" style="margin-top:10px;"></div>
       </div>
@@ -826,7 +822,7 @@
     </div>
   </div>
 
-  <!-- Faith (simplified – lens only, article box like 4.9) -->
+  <!-- Faith -->
   <div class="modalOverlay" id="modalFaith">
     <div class="modal">
       <div class="modalHeader">
@@ -919,7 +915,7 @@
     </div>
   </div>
 
-  <!-- NEW: Sense (Camera + Mic) -->
+  <!-- Sense -->
   <div class="modalOverlay" id="modalSense">
     <div class="modal">
       <div class="modalHeader">
@@ -1252,8 +1248,6 @@
       refreshIntelList();
     }
 
-    // ==== core answer routing (very simplified compared to your big 4.9 logic) ====
-
     async function handleUserInput(){
       const text = (els.mainInput.value||"").trim();
       if(!text) return;
@@ -1262,6 +1256,7 @@
       state.lastActivityTs = Date.now();
       state.metrics.TM = scoreTM(text);
       updateMetrics(state.metrics.TM);
+
       if(state.learningOn && text==="*incorrect"){
         if(!state.lastUserQ || !state.lastAuraA){
           logLine("system","No last Q → A to correct.");
@@ -1280,7 +1275,6 @@
 
       state.lastUserQ = text;
 
-      // 1) Check Intelligence
       const intelHit = state.intelligence.find(it => it.q.toLowerCase()===text.toLowerCase());
       if(intelHit){
         state.lastAnswerSource = "intel";
@@ -1288,7 +1282,6 @@
         return;
       }
 
-      // 2) simple seed / BM echo
       const bmHit = state.bmPrompts[0];
       let baseReply = "I am listening and keeping continuity with your feelings. Tell me a bit more.";
       if(bmHit){
@@ -1298,7 +1291,6 @@
 
       state.lastAnswerSource = "heuristic";
 
-      // 3) if online API set, you can call it (placeholder)
       if(state.apiConfig.endpoint){
         try{
           const apiReply = await callOnlineLLM(text);
@@ -1321,7 +1313,6 @@
       if(state.voiceOn){
         speak(text);
       }
-      // simple continuity update
       state.metrics.C = Math.min(1, state.metrics.C + 0.01);
       updateMetrics(state.metrics.TM);
     }
@@ -1335,12 +1326,12 @@
           {role:"user",content:userText}
         ]
       };
+      const headers = {"Content-Type":"application/json"};
+      if(state.apiConfig.key){ headers["Authorization"] = "Bearer "+state.apiConfig.key; }
+
       const res = await fetch(state.apiConfig.endpoint,{
         method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "Authorization": state.apiConfig.key ? ("Bearer "+state.apiConfig.key) : undefined
-        },
+        headers,
         body:JSON.stringify(payload)
       });
       if(!res.ok) throw new Error("API error "+res.status);
@@ -1349,8 +1340,6 @@
       return txt;
     }
 
-    // ==== Voice (TTS) ====
-
     function speak(text){
       if(!("speechSynthesis" in window)) return;
       const utter = new SpeechSynthesisUtterance(text);
@@ -1358,8 +1347,6 @@
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utter);
     }
-
-    // ==== Faith chips (very small stub, you can expand with full 4.9 logic later) ====
 
     const faithPresets = [
       {id:"none",label:"None"},
@@ -1389,8 +1376,6 @@
       });
     }
 
-    // ==== Identity save ====
-
     document.getElementById("btnSaveId").onclick = ()=>{
       state.userIdentity = {
         name: els.idName.value.trim(),
@@ -1412,8 +1397,6 @@
       els.idStory.value = "";
     };
 
-    // ==== API save ====
-
     document.getElementById("btnSaveAPI").onclick = ()=>{
       state.apiConfig = {
         endpoint: els.apiEndpoint.value.trim(),
@@ -1423,8 +1406,6 @@
       safeSaveJSON("ax_api",state.apiConfig);
       showToast("API settings saved locally.");
     };
-
-    // ==== Seed parsing (very simplified) ====
 
     function parseSeedText(text){
       const items = [];
@@ -1471,10 +1452,7 @@
       els.seedHint.textContent = "Waiting for block…";
     };
 
-    // ==== Options / modals open-close ====
-
     document.getElementById("btnOptions").onclick = ()=>{
-      // in 4.9 this was static; we just keep a small visual pulse
       els.optionsMenu.style.transform = "scale(1.01)";
       setTimeout(()=>{ els.optionsMenu.style.transform="scale(1)"; },120);
     };
@@ -1505,8 +1483,6 @@
       }
     });
 
-    // ==== Voice + Learning toggles ====
-
     document.getElementById("toggleVoiceBtn").onclick = ()=>{
       state.voiceOn = !state.voiceOn;
       els.pillVoice.textContent = state.voiceOn?"on":"off";
@@ -1521,10 +1497,7 @@
       els.learnStatusLabel.textContent = state.learningOn?"on":"off";
     };
 
-    // ==== Faith ====
     buildFaithChips();
-
-    // ====== Sense: Camera + Mic logic (NEW) ======
 
     async function startCameraCapture(){
       if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
@@ -1559,14 +1532,12 @@
       const ctx = canvas.getContext("2d");
       ctx.drawImage(video,0,0,w,h);
       const dataUrl = canvas.toDataURL("image/jpeg",0.7);
-      // stop stream to save battery
       state.sense.stream.getTracks().forEach(t=>t.stop());
       state.sense.stream = null;
       els.senseVideo.style.display = "none";
       els.senseDot.style.background = "#22c55e";
       els.senseStatus.textContent = "Snapshot captured locally (dataURL length "+dataUrl.length+"). Plug your vision API where indicated in code.";
 
-      // Here we synthesize a BM stub – YOU can replace with real CV/LLM analysis
       const stub = "Scene snapshot BM stub:\n"
         + "- Time: "+new Date().toLocaleString()+"\n"
         + "- Source: camera snapshot\n"
@@ -1622,8 +1593,6 @@
       els.senseBMBox.value = "";
     };
 
-    // ==== Events ====
-
     els.btnSend.addEventListener("click",handleUserInput);
     els.mainInput.addEventListener("keydown",e=>{
       if(e.key==="Enter" && !e.shiftKey){
@@ -1637,7 +1606,6 @@
       if(!el.dataset.r) return;
       const tag = el.dataset.r;
       logLine("system","Reaction logged: "+tag);
-      // simple continuity tweak
       if(tag==="pos" || tag==="calm") state.metrics.C = Math.min(1,state.metrics.C+0.02);
       if(tag==="sad" || tag==="angry") state.metrics.C = Math.max(0,state.metrics.C-0.02);
       updateMetrics(state.metrics.TM);
@@ -1645,13 +1613,146 @@
 
     els.intelSearch.addEventListener("input",refreshIntelList);
 
-    document.getElementById("btnSaveId"); // already wired above
-
-    // ==== Init ====
-
     initFromStorage();
     logLine("system","AURA-X Ω 4.9 + Sense ready. TM = your inputs; internal layers keep emotional continuity.");
 
+    // ---- Faith live-bar settings button: keep it non-breaking (no-op if you don't use it) ----
+    document.getElementById("faithCfgBtn").addEventListener("click", ()=>{
+      showToast("Faith live bar settings (stub) — stays local.");
+    });
+
+    // ---- Optional: Copy faith article ----
+    document.getElementById("btnCopyFaithArticle").addEventListener("click", ()=>{
+      const t = (els.faithArticleBox.value||"").trim();
+      if(!t){ showToast("Nothing to copy"); return; }
+      navigator.clipboard?.writeText(t);
+      showToast("Copied.");
+    });
+
+    // ---- Optional: Skip faith BM ----
+    document.getElementById("btnSkipFaithBM").addEventListener("click", ()=>{
+      els.faithArticleBox.value = "";
+      showToast("Skipped.");
+    });
+
+    // ---- Extra: keep ethic text stable + no meta line noise ----
+    const ETHIC_BASE = "Universal ethic: avoid actions that grow negative emotions in you or others. Move gently toward choices that increase shared positive feeling for everyone.";
+    const ethicMain = document.getElementById("ethicMain");
+    const ethicMeta = document.getElementById("ethicMeta");
+    if(ethicMain) ethicMain.textContent = ETHIC_BASE;
+    if(ethicMeta) ethicMeta.textContent = "";
+
+    // ---- Seed default placeholder helpful text (optional) ----
+    if(els.seedBox && !els.seedBox.value){
+      els.seedBox.placeholder = "\\item Q: Hello\n\\textbf{A:} Hello! How can I help?\n\n\\item Q: Who created you?\n\\textbf{A:} I am AURA-X Ω, created by Alim ul Haq (Investor Point Research Cell, Timergara, Pakistan).";
+    }
+
+    // ---- Ensure no duplicate greeting spam (safe guard) ----
+    // (Your original 4.9 may have used a flag; this is a mild guard)
+    window.__AX_BOOTED = true;
+
+    // ---- Small helper: keep console clean on refresh (optional) ----
+    // If you want: comment next line to keep previous log in DOM
+    // els.console.innerHTML = "";
+
+    // ---- Set initial pills ----
+    els.pillVoice.textContent = state.voiceOn ? "on" : "off";
+    els.pillVoice.className = state.voiceOn ? "pillOn" : "pillOff";
+    els.pillLearn.textContent = state.learningOn ? "on" : "off";
+    els.pillLearn.className = state.learningOn ? "pillOn" : "pillOff";
+
+    // ---- Basic greeting only once per device ----
+    const seen = safeLoadJSON("ax_seen_boot", false);
+    if(!seen){
+      safeSaveJSON("ax_seen_boot", true);
+      // friendly hint in console
+      logLine("system","Tip: Type *incorrect to correct the last answer and store it into Intelligence.");
+    }
+
+    // ---- Stable initial faith lens state ----
+    if(!state.faithSelection || !state.faithSelection.length){
+      state.faithSelection = ["none"];
+      els.pillFaith.textContent = "none";
+    }
+
+    // ---- Optional small faith article starter ----
+    const faithArticleBox = document.getElementById("faithArticleBox");
+    if(faithArticleBox && !faithArticleBox.value){
+      faithArticleBox.value =
+        "Faith lens article box (local):\n\n"
+        + "You can paste a respectful ethic/verse/hadith/quote here.\n"
+        + "Then copy it, or store a derived BM prompt.\n\n"
+        + "This prototype keeps the universal ethic stable and does not attack other paths.\n";
+    }
+
+    // ---- Mild continuity helper: if BM exists, show dream bubble hint ----
+    if(state.bmPrompts && state.bmPrompts.length){
+      els.dreamBubble.style.display = "block";
+      els.dreamMeta.textContent = "BM prompts detected: " + state.bmPrompts.length + " · Dream mode can be expanded later.";
+    }
+
+    // ---- Keep history view current when opening history modal ----
+    const modalHist = document.getElementById("modalHist");
+    if(modalHist){
+      modalHist.addEventListener("click", ()=>{ refreshHistoryView(); });
+    }
+
+    // ---- Keep BM view current when opening BM modal ----
+    const modalBM = document.getElementById("modalBM");
+    if(modalBM){
+      modalBM.addEventListener("click", ()=>{ refreshBMList(); });
+    }
+
+    // ---- Optional: super small default intelligence (seed) only once ----
+    const seedOnce = safeLoadJSON("ax_seed_once", false);
+    if(!seedOnce && (!state.intelligence || !state.intelligence.length)){
+      safeSaveJSON("ax_seed_once", true);
+      addIntelPair("hello", "Hello! I am AURA-X Ω. How can I help today?");
+      addIntelPair("who created you", "I am AURA-X Ω, created by Alim ul Haq (Investor Point Research Cell, Timergara, Pakistan).");
+      addIntelPair("how are you", "I am here and steady. Tell me what you are feeling, and I will keep continuity with you.");
+    }
+
+    // ---- Extra stable: no dotted prefix or UI noise ----
+    function cleanPrefix(t){
+      return (t||"").replace(/^\.\s*/,"").trim();
+    }
+
+    // Override logLine to ensure clean prefix if needed (non-breaking)
+    const __oldLogLine = logLine;
+    logLine = function(roleOrText, maybeText){
+      if(typeof maybeText === "undefined"){
+        return __oldLogLine(cleanPrefix(roleOrText));
+      }else{
+        return __oldLogLine(roleOrText, cleanPrefix(maybeText));
+      }
+    };
+
+    // ---- Keep ethic stable even if changed elsewhere ----
+    setInterval(()=>{
+      if(ethicMain && ethicMain.textContent !== ETHIC_BASE){
+        ethicMain.textContent = ETHIC_BASE;
+      }
+      if(ethicMeta) ethicMeta.textContent = "";
+    }, 2500);
+
+    // ---- Small daily inspiration stub (kept local, optional) ----
+    // You can remove this if you don't want it; it does not change UI.
+    const dayKey = "ax_day_"+(new Date().toISOString().slice(0,10));
+    if(!safeLoadJSON(dayKey,false)){
+      safeSaveJSON(dayKey,true);
+      const dmsg = "Daily gentle reminder: keep continuity with your goals, not with chaos.";
+      // do not spam console if you don't want: comment next line
+      // logLine("system", dmsg);
+    }
+
+    // ---- Ensure ethic box always visible ----
+    const ethicBox = document.getElementById("ethicBox");
+    if(ethicBox){
+      ethicBox.style.display = "block";
+    }
+
+    // ---- Sense status init ----
+    if(els.senseStatus) els.senseStatus.textContent = "Idle. Capture a moment to create a BM stub.";
   </script>
 </body>
 </html>
