@@ -56,7 +56,7 @@ This enables:
 
 ---
 
-## 🧮 Core Emotional Continuity Model (1)
+## 🧮 Core Emotional Continuity Model
 
 ### Emotional State Equation
 
@@ -80,9 +80,9 @@ The **tanh** boundary keeps the emotional state stable while allowing adaptive c
 
 ---
 
-## 🧮 Core Emotional Continuity Model (2)
+## 🧮 Core Emotional Continuity Model
 
-## Trainable Resonance
+with Trainable Resonance (R)
 
 R = Σ softmax( wi × sim_i ) × intensity_i
 
