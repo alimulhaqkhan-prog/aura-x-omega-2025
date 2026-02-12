@@ -247,7 +247,7 @@ Identity-preserving emotional dynamics
 Public prototype with unified theory
 
 
-> “Continuity is not memory alone — it is resonance.”
+  “Continuity is not memory alone — it is resonance.”
 
 
 
