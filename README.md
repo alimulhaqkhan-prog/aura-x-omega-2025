@@ -154,31 +154,29 @@ This forms a bridge from **LLMs → Artificial Emotional General Intelligence (A
 
 ---
 
-## 🌍 Live Prototype (Public Demo)
+## 🌍 Live Prototypes (Public Demo)
 
+
+### 🔹 Prototype v1 — Static Continuity Engine
 https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/
 
-https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/AURA_X_Omega_Trainable_R.html
-
-https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/index.html
-
-**Prototype Features**
-- TM–BM resonance engine  
-- Emotional continuity curves  
-- 240-layer BM visualization  
-- Polarity and intensity mapping  
-- Continuity pipeline visualization  
-
-The prototype is intended for **demonstration and intuition-building**.
+Features:
+• 240-layer BM visualization  
+• Emotional continuity curves  
+• Drift and decay modeling  
+• λ-stabilization tuning  
 
 ---
 
-## 📄 Official Publication
+### 🔹 Prototype v2 — Trainable Resonance Engine
+https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/AURA_X_Omega_Trainable_R.html
 
-**Zenodo Preprint (v1.0)**  
-https://doi.org/10.5281/zenodo.18063302  
-
-This DOI provides timestamped, public provenance of the theory and numerical evaluation.
+Features:
+• Trainable memory weights  
+• Softmax-based resonance competition  
+• Dynamic learning rate  
+• Adaptive emotional plasticity  
+• Identity recalibration  
 
 ---
 
