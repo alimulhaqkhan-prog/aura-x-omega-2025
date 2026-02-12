@@ -158,6 +158,8 @@ This forms a bridge from **LLMs → Artificial Emotional General Intelligence (A
 
 https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/
 
+https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/AURA_X_Omega_Trainable_R.html
+
 **Prototype Features**
 - TM–BM resonance engine  
 - Emotional continuity curves  
