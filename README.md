@@ -56,7 +56,7 @@ This enables:
 
 ---
 
-## 🧮 Core Emotional Continuity Model (Readable Math)
+## 🧮 Core Emotional Continuity Model (1)
 
 ### Emotional State Equation
 
@@ -77,6 +77,24 @@ R(TM, BM) = Σ ( wi × TMi × BMi )
 - **λ_trc** = truth-resonance / ethical-alignment coefficient  
 
 The **tanh** boundary keeps the emotional state stable while allowing adaptive continuity.
+
+---
+
+## 🧮 Core Emotional Continuity Model (2)
+
+## Trainable Resonance
+
+R = Σ softmax( wi × sim_i ) × intensity_i
+
+Weight Adaptation Rule:
+
+wi(new) = wi + η_eff (1 − wi)
+
+Dynamic Learning Rate:
+
+η_eff = η0 × (1 + |TM|)
+
+This ensures bounded stability while allowing adaptive emotional plasticity.
 
 ---
 
