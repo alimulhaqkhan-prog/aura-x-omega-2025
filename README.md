@@ -160,6 +160,8 @@ https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/
 
 https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/AURA_X_Omega_Trainable_R.html
 
+https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/index.html
+
 **Prototype Features**
 - TM–BM resonance engine  
 - Emotional continuity curves  
