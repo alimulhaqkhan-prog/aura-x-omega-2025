@@ -154,7 +154,8 @@ This forms a bridge from **LLMs → Artificial Emotional General Intelligence (A
 
 ---
 
-## 🌍 Live Prototypes (Public Demo)
+## 🌍 Live Prototypes
+ (Public Demo)
 
 
 ### 🔹 Prototype v1 — Static Continuity Engine
