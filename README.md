@@ -37,6 +37,10 @@ The architecture unifies:
 
 through **resonance between dual memory systems (TM–BM) operating across time**, forming a foundation for emotionally coherent Artificial General Intelligence (AGI).
 
+Final version of ** AURA-X-Ω **
+
+DOI: https://doi.org/10.5281/zenodo.18865265
+
 ---
 
 ## 📘 Conceptual Overview
