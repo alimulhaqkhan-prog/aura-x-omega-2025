@@ -185,7 +185,8 @@ https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/AURA_X_Omega_Tr
 
 ### 2️⃣ AURA-X Ω — Mathematical Foundations V2
 **Resonance, Decay, Stabilization, and UPS-Gated Emotional Continuity (E₀–E₄)**  
-📄 Zenodo DOI: https://doi.org/10.5281/zenodo.18080853  
+📄 Zenodo DOI:
+https://doi.org/10.5281/zenodo.18865265
 *Complete mathematical reference — time-dependent parameters, UPS gating, AECN 4.0 hierarchy.*
 
 ---
