@@ -178,7 +178,9 @@ https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/AURA_X_Omega_Tr
 
 ### 1️⃣ AURA-X Ω — Core Framework
 **A Dual Memory Framework for Ensuring Emotional Continuity in AI Systems**  
-📄 Zenodo DOI: https://doi.org/10.5281/zenodo.17845294  
+📄 Zenodo DOI:
+ https://doi.org/10.5281/zenodo.18865265
+
 *Foundation paper — Grand Emotional Continuity Equation, dual-memory architecture, numerical evaluation.*
 
 ---
