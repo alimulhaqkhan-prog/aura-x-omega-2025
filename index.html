@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>AURAX_Omega_v1_0_0_FINAL</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#040d1a; --bg2:#071325; --bg3:#0b1c34; --bg4:#102847;
+  --line:#17355f; --line2:#244b7e; --txt:#d8ebff; --muted:#7e9ec7; --muted2:#49678f;
+  --cyan:#6dc9ff; --cyan2:#33b7ff; --jade:#58e5b8; --violet:#b88cff; --pink:#ff7b98; --gold:#ffc86a;
+  --shadow:0 18px 48px rgba(0,0,0,.42); --mono:"JetBrains Mono",monospace; --sans:"Inter",system-ui,sans-serif;
+  --r:16px; --r2:12px; --r3:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--sans); color:var(--txt);
+  background:
+    radial-gradient(circle at 15% 10%, rgba(109,201,255,.10), transparent 24%),
+    radial-gradient(circle at 85% 8%, rgba(184,140,255,.09), transparent 18%),
+    linear-gradient(180deg,#020914,#07111e 20%, #030b17 100%);
+}
+.wrap{max-width:1240px;margin:0 auto;padding:0 14px}
+a{color:var(--cyan)}
+.top{
+  padding:20px 0 12px;border-bottom:1px solid rgba(255,255,255,.05);
+  background:linear-gradient(180deg,rgba(7,19,37,.96),rgba(4,13,26,.88));
+  position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);
+}
+.head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.brand{display:flex;gap:14px;align-items:center;min-width:0}
+.logo{
+  width:56px;height:56px;border-radius:16px;display:grid;place-items:center;flex-shrink:0;
+  background:linear-gradient(135deg,var(--cyan),var(--violet),var(--jade)); color:#05111f;
+  box-shadow:0 0 28px rgba(109,201,255,.25); font-size:30px; font-weight:800;
+}
+.h1{font-size:26px;font-weight:800;letter-spacing:-.4px}
+.h1 .ver{color:var(--violet);font-size:.9em}
+.sub{color:var(--muted2);font-size:12px;margin-top:4px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.badge{
+  padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.02);
+  font:700 11px var(--mono);color:var(--muted)
+}
+.badge.c{color:var(--cyan)} .badge.g{color:var(--jade)} .badge.v{color:var(--violet)} .badge.p{color:var(--pink)}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mode-dot{display:flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted)}
+.mode-dot i{width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--jade);box-shadow:0 0 10px var(--jade)}
+.btn{
+  border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700;
+  display:inline-flex;align-items:center;gap:8px;transition:.15s ease; text-decoration:none;
+}
+.btn.c{background:#0f243f;border:1px solid var(--line2);color:var(--cyan)}
+.btn.v{background:#141f3a;border:1px solid #4f4c82;color:var(--violet)}
+.btn:hover{transform:translateY(-1px)}
+.eqbox{
+  margin-top:14px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.015));
+  border:1px solid var(--line); border-radius:18px; padding:16px;
+}
+.eq-main{
+  font:500 13px/1.8 var(--mono); color:#bfe3ff; background:#08111e; border:1px solid var(--line2);
+  border-radius:14px; padding:16px; overflow:auto;
+}
+.eq-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.eq-tag{
+  font:700 11px var(--mono); color:var(--muted); background:#0a1a31; border:1px solid var(--line);
+  border-radius:10px; padding:6px 10px;
+}
+.tabs{
+  display:flex;gap:4px;overflow:auto;padding:12px 0 0;scrollbar-width:none
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  background:transparent;color:var(--muted);border:none;padding:10px 14px;border-radius:10px 10px 0 0;
+  border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap; font-weight:700;
+}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.main{padding:16px 0 28px}
+.panel{display:none}.panel.active{display:block}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1.15fr .85fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,.012));
+  border:1px solid var(--line); border-radius:18px; padding:16px; box-shadow:var(--shadow)
+}
+.title{font:700 12px var(--mono); letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:12px}
+select,input[type=text],input[type=password],textarea,input[type=range]{
+  width:100%; background:#08111e; color:var(--txt); border:1px solid var(--line2); border-radius:14px; outline:none;
+}
+input[type=text],input[type=password],select,textarea{padding:12px 14px;font-family:var(--sans)}
+textarea{min-height:96px;resize:vertical}
+.rowlab{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:13px;margin:8px 0 6px}
+.chart{position:relative;height:320px;background:#07111f;border:1px solid rgba(255,255,255,.04);border-radius:16px;padding:8px}
+.chart canvas{width:100%!important;height:100%!important}
+.metric{
+  background:#08111e;border:1px solid var(--line);border-radius:14px;padding:12px
+}
+.metric .k{font:700 11px var(--mono);text-transform:uppercase;color:var(--muted)}
+.metric .v{font:800 24px var(--mono);margin-top:6px}
+.metric .s{font-size:12px;color:var(--muted);margin-top:4px}
+.flex{display:flex}.between{justify-content:space-between}.center{align-items:center}.gap8{gap:8px}.gap10{gap:10px}.gap12{gap:12px}.wrapf{flex-wrap:wrap}
+.small{font-size:12px;color:var(--muted)}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+.table th{font:700 11px var(--mono);color:var(--muted);text-transform:uppercase}
+.chat-shell{display:grid;gap:10px}
+.chatbox{
+  min-height:380px;max-height:520px;overflow:auto;background:#08111e;border:1px solid var(--line2);
+  border-radius:16px;padding:14px
+}
+.msg{display:flex;margin-bottom:12px}
+.msg.user{justify-content:flex-end}
+.bubble{
+  max-width:86%;padding:13px 14px;border-radius:16px;background:#0f1f36;border:1px solid var(--line2);
+  line-height:1.72;white-space:pre-wrap;word-break:break-word
+}
+.msg.user .bubble{background:#112949}
+.promptchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.promptchips button{
+  background:#10213a;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:8px 10px;
+  font:700 11px var(--mono);cursor:pointer
+}
+.promptchips button:hover{border-color:var(--cyan);color:var(--cyan)}
+.sidebox{
+  background:#08111e;border:1px solid var(--line2);border-radius:16px;padding:12px
+}
+.hr{height:1px;background:rgba(255,255,255,.06);margin:12px 0}
+.notice{
+  background:#0d2237;border:1px solid var(--line2);color:var(--muted);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.7
+}
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:60;padding:16px
+}
+.modal-bg.open{display:flex}
+.modal{
+  width:100%;max-width:680px;background:#08111e;border:1px solid var(--line2);border-radius:18px;padding:16px;box-shadow:var(--shadow)
+}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.footer{margin-top:18px;text-align:center;color:var(--muted);font-size:12px}
+@media(max-width:980px){.g2,.g3,.g4,.twocol{grid-template-columns:1fr}}
+@media(max-width:700px){
+  .chart{height:240px}
+  .h1{font-size:22px;line-height:1.15}
+  .head{flex-direction:column;align-items:stretch;gap:12px}
+  .brand{align-items:flex-start}
+  .brand > div:last-child{flex:1;min-width:0}
+  .sub{font-size:11px;line-height:1.45}
+  .badges{gap:6px}
+  .badge{font-size:10px;padding:5px 8px}
+  .actions{width:100%;justify-content:space-between}
+  .actions .btn{flex:0 0 auto;padding:10px 12px}
+  .mode-dot{flex:1;min-width:0}
+}
+
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="wrap">
+    <div class="head" style="row-gap:12px">
+      <div style="min-width:0;flex:1">
+        <div class="brand">
+          <div class="logo">Ω</div>
+          <div style="min-width:0">
+            <div class="h1">AURA-X <span style="color:var(--cyan)">Ω</span> <span class="ver">v1.0.0</span></div>
+            <div class="sub">Dr. Alimulhaq Khan · Patent GB2518804.6 · AURA-X Ω Research Cell, Timergara KP · Clean Research Grade</div>
+            <div class="badges">
+              <span class="badge c">Grok · OpenAI</span>
+              <span class="badge v">ANIMA 13-Layer</span>
+              <span class="badge v">PNR+Kinship+Blueprint</span>
+              <span class="badge v">W(t) وجدان L11</span>
+              <span class="badge c">L12 Epistemic · L13 Anchor</span>
+              <span class="badge p">RGCC-X+ V4</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="mode-dot"><i></i><span id="statusTop">Local mode · UI active</span></div>
+        <button class="btn c" onclick="exportSummary()">⬇ Export</button>
+        <button class="btn v" onclick="openSettings()">⚙ Settings</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="title">Local demo mode · UI active</div>
+      <div class="flex gap10 wrapf">
+        <button class="btn c" onclick="setProviderQuick('xai')">⚡ Grok</button>
+        <button class="btn c" onclick="setProviderQuick('openai')">🤖 OpenAI</button>
+      </div>
+    </div>
+
+    <div class="eqbox">
+      <div class="eq-main">E₀ = tanh( R(TM,BM) − D + λ_faith + λ_sys + λ_trc )
+
+E[t] = (1 − γ)·E[t−1] + γ·tanh(X[t])
+M[t] = (1 − β)·M[t−1] + β·E[t−1]
+R[t] = tanh( TM[t] + k·M[t] )
+
+# Extended reference layer
+C(Eᵢ) = Σ wₖ·Eₖ − δ_decay + λ_TRC</div>
+      <div class="eq-tags">
+        <span class="eq-tag">D=0.30</span>
+        <span class="eq-tag">λ_f=0.10</span>
+        <span class="eq-tag">λ_s=0.10</span>
+        <span class="eq-tag">γ=0.50</span>
+        <span class="eq-tag">β=0.30</span>
+        <span class="eq-tag">k=0.30</span>
+        <span class="eq-tag">TM~N(0.2,0.5)</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="chat">💬 Chat</button>
+      <button class="tab" data-tab="sim">📊 CRM Tests</button>
+      <button class="tab" data-tab="custom">🧪 Custom Test</button>
+      <button class="tab" data-tab="analyze">🧬 Analyze</button>
+      <button class="tab" data-tab="refs">📄 Reference</button>
+    </div>
+  </div>
+</div>
+
+<div class="main wrap">
+  <section id="chat" class="panel active">
+    <div class="card">
+      <div class="title">Persona & Seed Bold Memory</div>
+      <div class="flex gap10 wrapf center">
+        <select id="personaSeed" style="flex:1;min-width:230px">
+          <option value="blank">No seed — blank BM (pure continuity test)</option>
+          <option value="researcher">Researcher — paper under review</option>
+          <option value="student">Anxious student</option>
+          <option value="caregiver">Caregiver burnout</option>
+        </select>
+        <button class="btn c" onclick="resetChat()">↺ Reset</button>
+        <button class="btn c" onclick="exportSummary()">⬇ Export</button>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div>
+        <div class="grid g2">
+          <div class="card">
+            <div class="title">🤖 Baseline LLM</div>
+            <div class="small">Stateless · No memory · No E₀</div>
+            <div class="chatbox" id="baselineBox" style="margin-top:12px">
+              <div class="msg"><div class="bubble">Hello! I am a helpful AI assistant. How can I help you today?</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="flex between center">
+              <div>
+                <div class="title">Ω AURA-X Ω v1.0.0</div>
+                <div class="small">Colab-aligned continuity runtime · reviewer-safe</div>
+              </div>
+              <div class="badge" id="e0Badge">E₀ = 0.000</div>
+            </div>
+            <div class="chatbox" id="omegaBox" style="margin-top:12px">
+              <div class="msg"><div class="bubble">Hello! I can answer in a natural way, but I stay careful about what this prototype actually proves.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="input-row flex gap10">
+            <input id="chatInput" type="text" placeholder="Ask anything… e.g. What does gamma control?" onkeydown="if(event.key==='Enter') sendChat()">
+            <button class="btn c" onclick="sendChat()">Send</button>
+          </div>
+          <div class="promptchips">
+            <button data-p="What are you?">👋 What are you?</button>
+            <button data-p="How do you handle uncertainty?">💭 Uncertainty</button>
+            <button data-p="I feel overwhelmed today">😔 Overwhelmed</button>
+            <button data-p="Explain your layers">🧠 13 layers</button>
+            <button data-p="What is Wajdan?">⚡ Wajdan</button>
+            <button data-p="Who created you?">🤔 Creator</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="title">Live E₀ State</div>
+          <div class="grid g2">
+            <div class="metric">
+              <div class="k">Emotion state</div>
+              <div class="v" id="emoReg">Neutral</div>
+              <div class="s" id="emoUrdu">معتدل</div>
+            </div>
+            <div class="metric">
+              <div class="k">Grand E₀</div>
+              <div class="v" id="emoVal">0.000</div>
+              <div class="s">continuity state</div>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="grid g2">
+            <div class="metric"><div class="k">R(TM,BM)</div><div class="v" id="liveR">0.000</div></div>
+            <div class="metric"><div class="k">W(t) وجدان</div><div class="v" id="liveW">0.000</div></div>
+            <div class="metric"><div class="k">C(t) stake</div><div class="v" id="liveCt">1.000</div></div>
+            <div class="metric"><div class="k">BM items</div><div class="v" id="liveBm">0</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="title">Scientific inspector</div>
+          <div class="sidebox"><div class="small">Last topic</div><div id="topicBox" style="margin-top:6px;font-family:var(--mono)">none yet</div></div>
+          <div class="sidebox" style="margin-top:10px"><div class="small">Current memory</div><div id="memBox" style="margin-top:6px;font-family:var(--mono);white-space:pre-wrap">no prior turns yet</div></div>
+          <div class="sidebox" style="margin-top:10px"><div class="small">Response mode</div><div id="modeBox" style="margin-top:6px;font-family:var(--mono)">offline natural + scientific</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sim" class="panel">
+    <div class="grid g2">
+      <div class="card">
+        <div class="title">Simulation</div>
+        <div class="chart"><canvas id="simChart"></canvas></div>
+        <div class="small" style="margin-top:10px">Blue = E[t], green = TM[t], pink = λtrc pulse</div>
+      </div>
+      <div class="card">
+        <div class="title">Controls</div>
+        <div class="rowlab"><span>γ — temporal smoothing</span><span id="gVal">0.50</span></div>
+        <input id="gamma" type="range" min="0.05" max="0.95" step="0.05" value="0.50">
+        <div class="rowlab"><span>β — memory update</span><span id="bVal">0.30</span></div>
+        <input id="beta" type="range" min="0.05" max="0.80" step="0.05" value="0.30">
+        <div class="rowlab"><span>k — coupling</span><span id="kVal">0.30</span></div>
+        <input id="k" type="range" min="0.00" max="0.80" step="0.05" value="0.30">
+        <div class="rowlab"><span>λtrc magnitude</span><span id="lVal">0.80</span></div>
+        <input id="lam" type="range" min="0.10" max="1.50" step="0.10" value="0.80">
+        <div class="flex gap10 wrapf" style="margin-top:12px">
+          <button class="btn c" onclick="runSimulation()">Run</button>
+          <button class="btn c" onclick="resetSim()">Reset</button>
+        </div>
+        <div class="grid g4" style="margin-top:14px">
+          <div class="metric"><div class="k">Response</div><div class="v" id="mResp">—</div><div class="s">corr(TM,E)</div></div>
+          <div class="metric"><div class="k">Memory</div><div class="v" id="mMem">—</div><div class="s">lag-1 autocorr</div></div>
+          <div class="metric"><div class="k">Volatility</div><div class="v" id="mVol">—</div><div class="s">σ(ΔE)</div></div>
+          <div class="metric"><div class="k">Bound</div><div class="v" id="mBound">—</div><div class="s">|ΔE| ≤ 2γ</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="custom" class="panel">
+    <div class="grid g2">
+      <div class="card">
+        <div class="title">Custom test</div>
+        <textarea id="customJson">{
+  "gamma": 0.50,
+  "beta": 0.30,
+  "k": 0.30,
+  "lambda_trc": 0.80,
+  "mu": 0.2,
+  "sigma": 0.5,
+  "T": 200,
+  "spikeProb": 0.08
+}</textarea>
+        <div class="flex gap10 wrapf" style="margin-top:12px">
+          <button class="btn c" onclick="runCustom()">Run custom test</button>
+        </div>
+        <div class="notice" id="customOut" style="margin-top:12px">Ready.</div>
+      </div>
+      <div class="card">
+        <div class="title">Validated Colab comparison</div>
+        <table class="table">
+          <thead><tr><th>Metric</th><th>Baseline</th><th>TM–BM</th><th>Δ</th></tr></thead>
+          <tbody>
+            <tr><td>Response</td><td>0.859</td><td>0.674</td><td>−0.185</td></tr>
+            <tr><td>Memory</td><td>0.489</td><td><b>0.599</b></td><td><b>+0.110</b></td></tr>
+            <tr><td>Volatility</td><td>0.232</td><td><b>0.187</b></td><td><b>−0.045</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="analyze" class="panel">
+    <div class="grid g2">
+      <div class="card">
+        <div class="title">Baseline vs TM–BM</div>
+        <div class="chart"><canvas id="cmpChart"></canvas></div>
+        <div class="flex gap10 wrapf" style="margin-top:10px">
+          <button class="btn c" onclick="runComparison()">Run comparison</button>
+          <button class="btn c" onclick="runMonteCarlo()">500-trial Monte Carlo</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="title">Analyze summary</div>
+        <table class="table">
+          <thead><tr><th>Measure</th><th>Mean</th><th>95% CI</th></tr></thead>
+          <tbody>
+            <tr><td>Response</td><td id="mcResp">—</td><td id="mcRespCI">—</td></tr>
+            <tr><td>Memory</td><td id="mcMem">—</td><td id="mcMemCI">—</td></tr>
+            <tr><td>Volatility</td><td id="mcVol">—</td><td id="mcVolCI">—</td></tr>
+            <tr><td>Bound violations</td><td id="mcViol">—</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <div class="notice" style="margin-top:12px">
+          This panel stays within the simulation-stage claims: bounded output, lag-1 continuity, volatility reduction, and transient λtrc behavior.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="refs" class="panel">
+    <div class="grid g2">
+      <div class="card">
+        <div class="title">Reference framing</div>
+        <div class="notice">
+Validated here:
+• bounded output
+• reduced volatility vs baseline
+• increased lag-1 continuity
+• transient λtrc recovery behavior
+
+Not validated here:
+• semantic memory
+• human emotion modeling
+• deployed AI integration
+• neuroscience claims
+        </div>
+      </div>
+      <div class="card">
+        <div class="title">Embedded paper knowledge</div>
+        <textarea id="paperKB" readonly></textarea>
+      </div>
+    </div>
+    <div class="footer">AURA-X Ω · exact UI direction preserved, math updated to Colab-aligned simulation form, API settings protected by PIN.</div>
+  </section>
+</div>
+
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <div class="flex between center">
+      <div class="title" style="margin:0">Settings</div>
+      <button class="btn v" onclick="closeSettings()">Close</button>
+    </div>
+
+    <div id="pinGate" style="margin-top:10px">
+      <div class="small">Default PIN is <b>1234</b>. You can change it after unlock.</div>
+      <input id="pinInput" type="password" placeholder="Enter PIN" style="margin-top:10px">
+      <div class="flex gap10" style="margin-top:10px">
+        <button class="btn c" onclick="unlockSettings()">Unlock</button>
+      </div>
+      <div id="pinMsg" class="small" style="margin-top:8px"></div>
+    </div>
+
+    <div id="settingsBody" style="display:none;margin-top:10px">
+      <div class="twocol">
+        <div>
+          <div class="small" style="margin-bottom:6px">Provider</div>
+          <select id="provider">
+            <option value="xai">Grok / xAI</option>
+            <option value="openai">OpenAI</option>
+          </select>
+        </div>
+        <div>
+          <div class="small" style="margin-bottom:6px">Model</div>
+          <input id="modelName" type="text" value="grok-4" placeholder="grok-4 or gpt-5.4">
+        </div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="small" style="margin-bottom:6px">API key</div>
+        <input id="apiKey" type="password" placeholder="Paste your API key">
+      </div>
+      <div style="margin-top:10px">
+        <div class="small" style="margin-bottom:6px">System prompt</div>
+        <textarea id="systemPrompt"></textarea>
+      </div>
+      <div style="margin-top:10px">
+        <div class="small" style="margin-bottom:6px">Change PIN</div>
+        <div class="twocol">
+          <input id="newPin1" type="password" placeholder="New PIN">
+          <input id="newPin2" type="password" placeholder="Repeat new PIN">
+        </div>
+      </div>
+      <div class="flex gap10 wrapf" style="margin-top:12px">
+        <button class="btn c" onclick="saveSettings()">Save</button>
+        <button class="btn c" onclick="clearKey()">Clear Key</button>
+        <button class="btn v" onclick="changePin()">Change PIN</button>
+      </div>
+      <div id="settingsMsg" class="small" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY='aurax_clean_research_settings_v1';
+const PIN_KEY='aurax_clean_research_pin_v1';
+
+const kbText = `AURA-X Ω embedded knowledge base
+
+Core conceptual form:
+E₀ = tanh(R(TM,BM) − D + λ_faith + λ_sys + λ_trc)
+
+Dynamic simulation form:
+M[t] = (1 − β)·M[t−1] + β·E[t−1]
+R[t] = tanh(TM[t] + k·M[t])
+X[t] = R[t] − D + λ_faith + λ_sys + λ_trc[t]
+E[t] = (1 − γ)·E[t−1] + γ·tanh(X[t])
+
+Validated Colab-aligned numerical pattern:
+Baseline vs TM–BM at gamma=0.50, beta=0.30, k=0.30
+Response: 0.859 vs 0.674
+Memory: 0.489 vs 0.599
+Volatility: 0.232 vs 0.187
+
+Current scope:
+simulation-stage only
+synthetic Gaussian input only
+not evidence of deployed emotional AI
+not a neuroscience claim
+not proof of semantic autobiographical memory
+
+Unified continuity architecture reference:
+PMCM → UPS Theory → AEC → CRM → AURA-X Ω → RGCC-X+ → CSLV → ACI (Λ) → ANIMA → Wajdan`;
+
+const defaultPrompt = `You are the natural-chat research assistant inside the AURA-X Ω prototype.
+Reply naturally first, then add careful scientific clarification only when helpful.
+Do not overclaim.
+Treat this as a simulation-stage dual-memory continuity framework under peer review.
+Use the embedded paper knowledge when relevant.`;
+
+const S = {
+  mu:0.2, sigma:0.5, D:0.30, lambdaFaith:0.10, lambdaSys:0.10, spikeProb:0.08, T:200,
+  history:[]
+};
+
+function $(id){return document.getElementById(id)}
+
+function getSettings(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return {provider:'xai',modelName:'grok-4',apiKey:'',systemPrompt:defaultPrompt};
+  try{return JSON.parse(raw)}catch(e){return {provider:'xai',modelName:'grok-4',apiKey:'',systemPrompt:defaultPrompt}}
+}
+function saveLocalSettings(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
+function getPin(){ return localStorage.getItem(PIN_KEY) || '1234'; }
+
+function openSettings(){ $('settingsModal').classList.add('open'); $('pinGate').style.display='block'; $('settingsBody').style.display='none'; $('pinInput').value=''; $('pinMsg').textContent='';}
+function closeSettings(){ $('settingsModal').classList.remove('open'); }
+function unlockSettings(){
+  if(($('pinInput').value||'') === getPin()){
+    $('pinGate').style.display='none'; $('settingsBody').style.display='block';
+    const s = getSettings();
+    $('provider').value=s.provider; $('modelName').value=s.modelName; $('apiKey').value=s.apiKey; $('systemPrompt').value=s.systemPrompt;
+  } else $('pinMsg').textContent='Incorrect PIN.';
+}
+function saveSettings(){
+  const obj = {provider:$('provider').value, modelName:$('modelName').value.trim(), apiKey:$('apiKey').value.trim(), systemPrompt:$('systemPrompt').value.trim() || defaultPrompt};
+  saveLocalSettings(obj); $('settingsMsg').textContent='Settings saved.'; setProviderQuick(obj.provider);
+}
+function clearKey(){ const s=getSettings(); s.apiKey=''; saveLocalSettings(s); $('apiKey').value=''; $('settingsMsg').textContent='API key cleared.'; }
+function changePin(){
+  if(!$('newPin1').value || $('newPin1').value!==$('newPin2').value){ $('settingsMsg').textContent='PIN mismatch.'; return; }
+  localStorage.setItem(PIN_KEY, $('newPin1').value); $('newPin1').value=''; $('newPin2').value=''; $('settingsMsg').textContent='PIN changed.';
+}
+function setProviderQuick(p){
+  const s = getSettings(); s.provider = p;
+  if(p==='xai' && !s.modelName) s.modelName='grok-4';
+  if(p==='openai' && !s.modelName) s.modelName='gpt-5.4';
+  saveLocalSettings(s);
+  $('statusTop').textContent = (p==='xai' ? 'Grok selected' : 'OpenAI selected') + (s.apiKey ? ' · key loaded' : ' · local mode');
+}
+document.querySelectorAll('.tab').forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active'); $(btn.dataset.tab).classList.add('active');
+});
+
+function randn(){
+  let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function mean(a){return a.reduce((s,x)=>s+x,0)/a.length}
+function std(a){const m=mean(a); return Math.sqrt(mean(a.map(x=>(x-m)**2)))}
+function corr(a,b){
+  const n=Math.min(a.length,b.length); if(n<2) return 0;
+  const A=a.slice(0,n), B=b.slice(0,n), ma=mean(A), mb=mean(B);
+  let num=0,da=0,db=0;
+  for(let i=0;i<n;i++){ const xa=A[i]-ma, xb=B[i]-mb; num+=xa*xb; da+=xa*xa; db+=xb*xb; }
+  return (da===0||db===0)?0:num/Math.sqrt(da*db);
+}
+function lag1(a){return corr(a.slice(1), a.slice(0,-1))}
+function diffs(a){const d=[]; for(let i=1;i<a.length;i++) d.push(a[i]-a[i-1]); return d;}
+function ci95(arr){return 1.96*std(arr)/Math.sqrt(arr.length)}
+
+function simulate({gamma,beta,k,lam,baseline=false,T=S.T}){
+  const E=Array(T).fill(0), M=Array(T).fill(0), TM=Array(T).fill(0), spikes=Array(T).fill(null);
+  E[0]=0.1; M[0]=0.1;
+  for(let t=1;t<T;t++){
+    TM[t] = S.mu + S.sigma*randn();
+    M[t] = (1-beta)*M[t-1] + beta*E[t-1];
+    const R = baseline ? Math.tanh(TM[t]) : Math.tanh(TM[t] + k*M[t]);
+    let ltrc = 0;
+    if(Math.random() < S.spikeProb){ ltrc = -lam; spikes[t] = -0.95; }
+    const X = R - S.D + S.lambdaFaith + S.lambdaSys + ltrc;
+    E[t] = (1-gamma)*E[t-1] + gamma*Math.tanh(X);
+  }
+  const response = corr(TM.slice(1), E.slice(1));
+  const memory = lag1(E);
+  const volatility = std(diffs(E));
+  const maxAbsDE = Math.max(...diffs(E).map(v=>Math.abs(v)));
+  return {E,M,TM,spikes,response,memory,volatility,boundOK:maxAbsDE <= 2*gamma + 1e-9, maxAbsDE};
+}
+
+let simChart, cmpChart;
+function makeLine(canvas, datasets){
+  return new Chart(canvas,{
+    type:'line',
+    data:{labels:[...datasets[0].data.keys()], datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:false,
+      plugins:{legend:{display:false}},
+      elements:{point:{radius:0}},
+      scales:{
+        x:{ticks:{color:'#7e9ec7',maxTicksLimit:8},grid:{color:'rgba(255,255,255,.05)'}},
+        y:{ticks:{color:'#7e9ec7'},grid:{color:'rgba(255,255,255,.05)'},min:-1,max:1}
+      }
+    }
+  })
+}
+function syncSliderLabels(){
+  $('gVal').textContent=(+$('gamma').value).toFixed(2);
+  $('bVal').textContent=(+$('beta').value).toFixed(2);
+  $('kVal').textContent=(+$('k').value).toFixed(2);
+  $('lVal').textContent=(+$('lam').value).toFixed(2);
+}
+['gamma','beta','k','lam'].forEach(id=>$(id).addEventListener('input',syncSliderLabels));
+
+function runSimulation(){
+  syncSliderLabels();
+  const out = simulate({gamma:+$('gamma').value,beta:+$('beta').value,k:+$('k').value,lam:+$('lam').value});
+  $('mResp').textContent=out.response.toFixed(3);
+  $('mMem').textContent=out.memory.toFixed(3);
+  $('mVol').textContent=out.volatility.toFixed(3);
+  $('mBound').textContent=out.boundOK?'OK':'FAIL';
+  if(simChart) simChart.destroy();
+  simChart = makeLine($('simChart'),[
+    {data:out.E,borderColor:'#6dc9ff',borderWidth:2,tension:.18},
+    {data:out.TM,borderColor:'#58e5b8',borderWidth:1.1,tension:.06},
+    {data:out.spikes,borderColor:'#ff7b98',pointRadius:3,showLine:false}
+  ]);
+}
+function resetSim(){
+  $('gamma').value='0.50'; $('beta').value='0.30'; $('k').value='0.30'; $('lam').value='0.80';
+  runSimulation();
+}
+function runComparison(){
+  const gamma=+$('gamma').value,beta=+$('beta').value,k=+$('k').value,lam=+$('lam').value;
+  const b = simulate({gamma,beta,k,lam,baseline:true});
+  const t = simulate({gamma,beta,k,lam,baseline:false});
+  if(cmpChart) cmpChart.destroy();
+  cmpChart = makeLine($('cmpChart'),[
+    {data:b.E,borderColor:'#ff7b98',borderWidth:2,tension:.18},
+    {data:t.E,borderColor:'#6dc9ff',borderWidth:2,tension:.18}
+  ]);
+}
+function runMonteCarlo(){
+  const gamma=+$('gamma').value,beta=+$('beta').value,k=+$('k').value,lam=+$('lam').value;
+  const resp=[],mem=[],vol=[]; let viol=0;
+  for(let i=0;i<500;i++){
+    const o=simulate({gamma,beta,k,lam,baseline:false});
+    resp.push(o.response); mem.push(o.memory); vol.push(o.volatility); if(!o.boundOK) viol++;
+  }
+  $('mcResp').textContent=mean(resp).toFixed(3);
+  $('mcRespCI').textContent='± '+ci95(resp).toFixed(3);
+  $('mcMem').textContent=mean(mem).toFixed(3);
+  $('mcMemCI').textContent='± '+ci95(mem).toFixed(3);
+  $('mcVol').textContent=mean(vol).toFixed(3);
+  $('mcVolCI').textContent='± '+ci95(vol).toFixed(3);
+  $('mcViol').textContent=viol;
+}
+function runCustom(){
+  try{
+    const cfg = JSON.parse($('customJson').value);
+    const o = simulate({gamma:+cfg.gamma,beta:+cfg.beta,k:+cfg.k,lam:+cfg.lambda_trc,T:+cfg.T || 200});
+    $('customOut').textContent = `Response=${o.response.toFixed(3)} · Memory=${o.memory.toFixed(3)} · Volatility=${o.volatility.toFixed(3)} · Bound=${o.boundOK?'OK':'FAIL'}`;
+  }catch(e){ $('customOut').textContent='Invalid JSON.'; }
+}
+
+function topicOf(q){
+  q=q.toLowerCase();
+  if(/creator|author|who made/.test(q)) return 'creator';
+  if(/what are you|what is aura/.test(q)) return 'identity';
+  if(/uncertainty|uncertain/.test(q)) return 'uncertainty';
+  if(/overwhelmed|sad|stress/.test(q)) return 'support';
+  if(/layer|anima|wajdan/.test(q)) return 'layers';
+  if(/gamma|γ/.test(q)) return 'gamma';
+  return 'general';
+}
+function addMsg(box, text, user=false){
+  const row=document.createElement('div'); row.className='msg'+(user?' user':'');
+  const b=document.createElement('div'); b.className='bubble'; b.textContent=text;
+  row.appendChild(b); box.appendChild(row); box.scrollTop=box.scrollHeight;
+}
+function baselineReply(q){
+  return "Here is a concise answer based on the visible prompt alone. I do not keep continuity memory in this baseline panel.";
+}
+function auraReply(q){
+  const t=topicOf(q);
+  let ans="";
+  if(t==='creator') ans="This prototype presents the work as belonging to Alim ul Haq Khan. The wording is intentionally cautious because the linked paper is under peer review.";
+  else if(t==='identity') ans="AURA-X Ω is presented here as a dual-memory continuity framework. In this prototype, it appears as a bounded recursive system that balances continuity and responsiveness under noisy input.";
+  else if(t==='uncertainty') ans="The safe answer is to separate what is validated from what is still open. This demo is strongest when discussing boundedness, continuity, volatility, trade-offs, and scope.";
+  else if(t==='support') ans="I can respond supportively, but this prototype is still a research interface. It can model continuity language better than the baseline panel, without claiming clinical understanding.";
+  else if(t==='layers') ans="In the broader architecture, higher layers such as W(t), epistemic gap, and anchoring are reference layers around the core continuity mechanism. The live simulation itself remains centered on E[t], M[t], R[t], and λtrc.";
+  else if(t==='gamma') ans="γ is the main balance knob. Higher γ makes the state react faster to current input. Lower γ makes the trajectory smoother and more continuity-dominated.";
+  else ans="That can be explained. The cleanest route is to answer naturally first and then add only the scientific note that is actually needed.";
+  return ans;
+}
+function updateLiveFromText(q){
+  const topic=topicOf(q);
+  $('topicBox').textContent=topic;
+  const prev = S.history.slice(-4).map((x,i)=>`${i+1}. ${x.topic}: ${x.text}`).join('\n');
+  $('memBox').textContent=prev || 'no prior turns yet';
+  const gamma=+$('gamma').value,beta=+$('beta').value,k=+$('k').value,lam=+$('lam').value;
+  const probe = simulate({gamma,beta,k,lam});
+  const e = probe.E.at(-1), R = probe.TM.at(-1), W = 0.15*e;
+  $('liveR').textContent=R.toFixed(3);
+  $('liveW').textContent=W.toFixed(3);
+  $('liveCt').textContent=(1 + Math.abs(e)*0.6).toFixed(3);
+  $('liveBm').textContent=String(S.history.length);
+  $('emoVal').textContent=e.toFixed(3);
+  $('e0Badge').textContent='E₀ = '+e.toFixed(3);
+  let reg='Neutral', ur='معتدل';
+  if(e>0.55){reg='Muhabbat';ur='محبت'}
+  else if(e>0.15){reg='Humdardi';ur='ہمدردی'}
+  else if(e>-0.15){reg='Neutral';ur='معتدل'}
+  else if(e>-0.5){reg='Khauf';ur='خوف'}
+  else {reg='Nafrat';ur='نفرت'}
+  $('emoReg').textContent=reg; $('emoUrdu').textContent=ur;
+}
+async function apiReply(q){
+  const s=getSettings();
+  if(!s.apiKey) throw new Error('No API key saved.');
+  const endpoint = s.provider==='xai' ? 'https://api.x.ai/v1/responses' : 'https://api.openai.com/v1/responses';
+  const payload = {
+    model:s.modelName,
+    store:false,
+    input:[
+      {role:'system',content:s.systemPrompt + "\n\nEmbedded knowledge:\n" + kbText},
+      ...S.history.slice(-6).map(x=>({role:'user',content:x.text})),
+      {role:'user',content:q}
+    ]
+  };
+  const res = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.apiKey},body:JSON.stringify(payload)});
+  if(!res.ok) throw new Error('API request failed: '+res.status);
+  const data = await res.json();
+  if(typeof data.output_text==='string' && data.output_text.trim()) return data.output_text.trim();
+  if(Array.isArray(data.output)){
+    const texts=[];
+    data.output.forEach(item=>{ if(item && Array.isArray(item.content)) item.content.forEach(c=>{ if(c && typeof c.text==='string') texts.push(c.text) }) });
+    const joined=texts.join('\n').trim();
+    if(joined) return joined;
+  }
+  throw new Error('No readable API text.');
+}
+async function sendChat(){
+  const q=$('chatInput').value.trim(); if(!q) return;
+  addMsg($('baselineBox'), q, true); addMsg($('omegaBox'), q, true); $('chatInput').value='';
+  addMsg($('baselineBox'), baselineReply(q));
+  let reply;
+  try{
+    const s=getSettings();
+    reply = s.apiKey ? await apiReply(q) : auraReply(q);
+    $('modeBox').textContent = s.apiKey ? `${s.provider} API natural chat` : 'offline natural + scientific';
+  }catch(e){
+    reply = auraReply(q) + "\n\nFallback note: API mode failed, so the offline research-safe assistant answered instead.";
+    $('modeBox').textContent = 'offline fallback after API error';
+  }
+  addMsg($('omegaBox'), reply);
+  S.history.push({text:q, topic:topicOf(q)});
+  updateLiveFromText(q);
+}
+function resetChat(){
+  S.history=[];
+  $('baselineBox').innerHTML='<div class="msg"><div class="bubble">Hello! I am a helpful AI assistant. How can I help you today?</div></div>';
+  $('omegaBox').innerHTML='<div class="msg"><div class="bubble">Hello! I can answer in a natural way, but I stay careful about what this prototype actually proves.</div></div>';
+  $('topicBox').textContent='none yet'; $('memBox').textContent='no prior turns yet'; $('modeBox').textContent='offline natural + scientific';
+  $('liveBm').textContent='0'; $('liveR').textContent='0.000'; $('liveW').textContent='0.000'; $('liveCt').textContent='1.000';
+  $('emoVal').textContent='0.000'; $('emoReg').textContent='Neutral'; $('emoUrdu').textContent='معتدل'; $('e0Badge').textContent='E₀ = 0.000';
+}
+function exportSummary(){
+  const text = `AURA-X Ω export\nProvider: ${getSettings().provider}\nHistory turns: ${S.history.length}\n\n` + S.history.map((x,i)=>`${i+1}. ${x.topic}: ${x.text}`).join('\n');
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='AURAX_Omega_export.txt'; a.click();
+  URL.revokeObjectURL(a.href);
+}
+document.querySelectorAll('.promptchips button').forEach(b=>b.onclick=()=>{$('chatInput').value=b.dataset.p; sendChat();});
+
+$('paperKB').value = kbText;
+runSimulation(); runComparison();
+</script>
+</body>
+</html>
