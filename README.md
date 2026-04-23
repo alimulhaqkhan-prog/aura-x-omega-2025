@@ -7,7 +7,6 @@
 [![Status](https://img.shields.io/badge/Status-Simulation--Stage-orange?style=flat-square)]()
 [![Theorem 1](https://img.shields.io/badge/Theorem%201-Formally%20Derived-brightgreen?style=flat-square)]()
 [![Theorem 2](https://img.shields.io/badge/Theorem%202-Formally%20Derived-brightgreen?style=flat-square)]()
-
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0001--4708--0365-a6ce39?style=flat-square)](https://orcid.org/0009-0001-4708-0365)
 [![Patent](https://img.shields.io/badge/UK%20IPO-GB2518804.6-blue?style=flat-square)]()
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.17845294-lightgrey?style=flat-square)](https://doi.org/10.5281/zenodo.17845294)
@@ -16,169 +15,201 @@
 
 ---
 
-A minimal, testable computational framework modeling a potential mechanism to address stateless processing limitations in AI systems — through dual-memory resonance. Two formally derived theorems. Simulation-validated. Honest about scope.
+A minimal, testable computational framework exploring a potential continuity mechanism for AI systems through dual-memory resonance. Formally derived, simulation-validated, and explicit about scope.
 
-> ⚠ **This is a simulation-stage prototype using synthetic input only — not a deployed AI system.**
-
----
-
-## The Problem
-
-Contemporary LLMs process each interaction in isolation, devoid of a persistent internal state capturing the user's affective history. This stateless architecture limits application in therapeutic, educational, and long-term assistive roles where continuity of experience matters.
+> **Important:** This repository presents a simulation-stage prototype using synthetic input only. It is **not** a deployed AI system.
 
 ---
 
-## Memory Architecture
+## Overview
 
-AURA-X Ω introduces a dual-memory control layer:
+AURA-X Ω studies whether a system can preserve meaningful temporal continuity without collapsing into instability or rigid persistence.
 
-| Memory | Symbol | Role |
+The framework introduces a dual-memory structure:
+
+| Memory Type | Symbol | Role |
 |---|---|---|
-| **Temporary Memory** | TM | Short-horizon volatile representation of current input context |
-| **Bold Memory** | BM | Persistent episodic memory encoding emotionally salient past state |
+| **Temporary Memory** | TM | Short-horizon volatile representation of current input |
+| **Bold Memory** | BM | Persistent continuity-bearing memory of salient prior state |
 
-> **Terminology note:** "Bold Memory" denotes long-term, identity-bearing memory — structurally slow-changing, resistant to noise, analogous to episodic long-term memory in cognitive science (not a claim of neurological equivalence).
+> **Terminology note:** “Bold Memory” is used here as a structural continuity term. It is **not** a claim of neurological equivalence.
 
 ---
 
 ## Core Equations
 
-**Static Form — Eq. 1 (Grand Emotional Continuity Equation):**
-```
+### Static Conceptual Form
+```text
 E0 = tanh( R(TM, BM) − D + lambda_faith + lambda_sys + lambda_trc )
-```
 
-**Dynamic Extension — Eq. 3 (temporal continuity):**
-```
-E0(t+1) = (1 − gamma) * E0(t)  +  gamma * tanh( X(t) )
-```
+Dynamic Simulation Form Used in the Prototype
 
-**Memory-State Coupling — validated implementation:**
-```
-M[t] = (1 − beta) * M[t−1]  +  beta * E[t−1]
-R    = tanh( TM  +  k * M[t] )
-```
+M[t] = (1 − beta) * M[t−1] + beta * E[t−1]
+R[t] = tanh( TM[t] + k * M[t] )
+X[t] = R[t] − D + lambda_faith + lambda_sys + lambda_trc[t]
+E[t] = (1 − gamma) * E[t−1] + gamma * tanh( X[t] )
 
-**Resonance Operator — Section 2.2:**
-```
-R(TM, BM) = sum_i  alpha_i(t) * sim(TM, BM_i) * intensity(BM_i)
-```
+Conceptual Resonance Operator
 
-### Parameter Reference
+R(TM, BM) = sum_i alpha_i(t) * sim(TM, BM_i) * intensity(BM_i)
 
-| Symbol | Name | Role | Sim. value |
-|---|---|---|---|
-| gamma | Smoothing | Reactivity vs inertia · **sets hard bound 2·gamma** | 0.3–0.5 |
-| beta | Memory rate | M[t] learning speed from past state | 0.30 |
-| k | Coupling | TM–M interaction strength | 0.30 |
-| D | Decay | Emotional cooling | 0.30 |
-| lambda_faith | Belief | Value-aligned resilience | 0.10 |
-| lambda_sys | System | Safety/policy constraint | 0.10 |
-| **lambda_trc** | Truth-resonance | Modeled as a stochastic perturbation approximating truth-sensitive correction (Corollary 1) | −0.8, P≈0.08 |
 
 ---
 
-## Mathematical Analysis
+Parameter Reference
 
-> These results are formally derived and analytically supported under bounded assumptions. Full derivations are available in the paper (Section 3).
+Symbol	Name	Role	Typical Sim. Value
 
-### Theorem 1 — Bounded Output
-> For all finite parameter values: **E0 ∈ (−1, +1)**
+gamma	Smoothing	Reactivity vs inertia; sets the operational hard bound 2·gamma	0.30–0.50
+beta	Memory Rate	Learning speed of M[t] from prior state	0.30
+k	Coupling	TM–M interaction strength	0.30
+D	Decay	Emotional cooling term	0.30
+lambda_faith	Belief	Value-aligned resilience term	0.10
+lambda_sys	System	Safety / policy constraint term	0.10
+lambda_trc	Truth-Resonance	Stochastic perturbation approximating truth-sensitive correction	−0.8, P≈0.08
 
-*Derivation.* `tanh(X) = (e^X − e^{-X}) / (e^X + e^{-X})` with limits ±1 at ±∞. For finite X: −1 < tanh(X) < 1. Since X is a finite linear combination of bounded variables, E0 remains bounded. □
 
-*Consequence:* No combination of parameters can cause output divergence — bounded by mathematical construction.
-
-### Theorem 2 — Bounded Stability
-> If |R(t)| ≤ K < ∞ and gamma ∈ (0,1): E0(t) converges to a unique bounded attractor ⊂ [−1, +1].
-
-*Derivation sketch.* The update map T: E → (1−gamma)·E + gamma·tanh(X) is a contraction mapping on [−1,+1] under the supremum norm. By Banach's Fixed-Point Theorem, a unique attractor exists. Perturbations from equilibrium decay as (1−gamma)^t → 0. □
-
-### Corollary 1 — Monotonic Truth Regulation
-> dE0 / d(lambda_trc) = sech²(X) > 0 for all X ∈ ℝ
-
-lambda_trc is a monotonic control variable: decreasing it strictly decreases E0. This provides a principled handle for truth-sensitive affective correction.
-
-### Volatility Bound — Section 3.7
-```
-|Delta E(t)| = |E0(t+1) − E0(t)| <= 2 * gamma   (hard analytical bound)
-```
-
-gamma is simultaneously a smoothing coefficient and an interpretable **safety parameter** — directly bounding maximum step-to-step state change. Empirical confirmation: max |ΔE| ≈ 1.82·gamma across 500 trials.
 
 ---
 
-## Numerical Results
+Mathematical Analysis
 
-**Setup (Section 5.1):** R(t) ~ N(0.2, 0.5), T=200 steps, 500 Monte Carlo trials, gamma=0.50, beta=0.30, k=0.30.
+Theorem 1 — Bounded Output
 
-| Metric | Baseline | TM–BM | Δ | Note |
-|---|---|---|---|---|
-| Response corr(TM, E) | 0.859 | 0.674 | −0.185 | Memory reduces raw sensitivity |
-| **Memory** autocorr lag-1 | 0.489 | **0.599** | **+0.110 (+22%)** | Temporal continuity increases |
-| **Volatility** σ(ΔE) | 0.232 | **0.187** | **−0.045 (−19%)** | State instability decreases |
-| Bound violations |ΔE|>2·gamma | 0 | 0 | Theorem 2 confirmed |
+For all finite parameter values:
 
-lambda_trc spike-and-recovery: sharp transient dips followed by recovery within ~10 steps — **unique to this formulation, not present in baseline.**
+E0 ∈ (−1, +1)
 
-> **Important:** The Memory–Response trade-off is partially a property of gamma in any first-order filter. The contribution of the memory layer specifically requires further controlled experiments to fully isolate.
+Because tanh(X) remains bounded in (-1, +1) for finite X, the output stays bounded by construction.
 
----
+Theorem 2 — Bounded Stability
 
-## Live Research Prototype
+If |R(t)| ≤ K < ∞ and gamma ∈ (0,1), then the recursive update remains bounded and converges to a unique bounded attractor under the stated assumptions.
 
-**[Open Prototype → AURA_X_Omega_Final.html](https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/AURA_X_Omega_Final.html)**
+Corollary 1 — Monotonic Truth Regulation
 
-| Panel | Description |
-|---|---|
-| **Overview** | Framework, equations, theorems, results summary |
-| **Simulation** | Live E(t) graph · real-time parameter control |
-| **Offline Tests** | 1000-trial automated validation · no API required |
-| **Comparison** | Baseline vs TM–BM · gamma-sweep trade-off |
-| **Monte Carlo** | 500 trials · Section 5.1 exact setup |
-| **Knowledge Q&A** | Full paper embedded · works offline |
-| **AI Chat (API)** | Grok / OpenAI / Gemini · paper as system prompt |
+dE0 / d(lambda_trc) = sech²(X) > 0
+
+This makes lambda_trc a monotonic control variable in the formal static framing.
+
+Volatility Bound
+
+|Delta E(t)| = |E(t+1) − E(t)| <= 2 * gamma
+
+This gives gamma a second interpretation: it is not only a smoothing coefficient, but also an operational upper bound on maximum step-to-step change.
+
 
 ---
 
-## Scope and Limitations
+Numerical Results
 
-**Formally derived / empirically confirmed:**
-- E0 ∈ (−1,+1) — Theorem 1 (analytical derivation)
-- Bounded stability — Theorem 2 (Banach contraction argument)
-- Volatility bound |ΔE| ≤ 2·gamma — 0 violations in 500+ trials
-- lambda_trc spike-and-recovery — unique signal, not in baseline
-- Controllable memory–response trade-off via gamma
+Setup: R(t) ~ N(0.2, 0.5), T = 200, 500 Monte Carlo trials, gamma = 0.50, beta = 0.30, k = 0.30.
 
-**Not yet validated:**
-- Real-world or semantic input — only synthetic Gaussian tested
-- Human affective or behavioural data
-- Memory–Response trade-off exclusively attributable to memory layer
-- Full adaptive memory (static BM → attractor convergence)
-- Neuroscience, consciousness, or AGI claims
+Metric	Baseline	TM–BM	Δ	Interpretation
 
-> This is a **simulation-stage framework.** Mathematical derivations are analytically supported. Empirical claims are restricted to synthetic input and should be interpreted as preliminary directional evidence.
+Response corr(TM, E)	0.859	0.674	−0.185	Lower raw sensitivity
+Memory autocorr lag-1	0.489	0.599	+0.110 (+22%)	Greater temporal continuity
+Volatility σ(ΔE)	0.232	0.187	−0.045 (−19%)	Reduced instability
+Bound violations `	ΔE	> 2·gamma`	0	0
+
+
+lambda_trc spike-and-recovery appears as a transient dip followed by recovery within roughly 10 steps in the tested setup.
+
+> Important caution: The memory–response trade-off is partially a property of gamma in any first-order filter. The specific contribution of the memory layer still requires further controlled isolation.
+
+
+
 
 ---
 
-## Broader Architecture
+Live Research Prototype
 
-AURA-X Ω is Framework 5 within the ANIMA unified architecture:
+Open Live Demo → index.html
 
-```
+Prototype Panels
+
+Panel	Purpose
+
+Chat	Baseline vs AURA-X conversational comparison
+Simulation	Live continuity dynamics under synthetic input
+Custom Test	User-defined simulation settings
+Analyze	Baseline vs TM–BM comparison and Monte Carlo summary
+Reference	Scope, framing, and embedded research context
+
+
+> Keep the deployed filename as index.html so this link remains stable.
+
+
+
+
+---
+
+Scope and Limitations
+
+Formally Derived / Empirically Supported in This Repository
+
+Bounded output under the stated formulation
+
+Bounded recursive stability under the stated assumptions
+
+Operational volatility tracking with |ΔE| <= 2·gamma
+
+Transient lambda_trc spike-and-recovery behavior in synthetic tests
+
+Controllable memory–response trade-off via gamma
+
+
+Not Yet Validated
+
+Real-world or semantic input
+
+Human affective or behavioural data
+
+Memory–response trade-off exclusively attributable to the memory layer
+
+Full adaptive semantic BM
+
+Neuroscience, consciousness, or AGI-level claims
+
+
+> This is a simulation-stage framework. Empirical claims are restricted to synthetic input and should be interpreted accordingly.
+
+
+
+
+---
+
+Broader Architecture
+
+AURA-X Ω is positioned as Framework 5 within the broader continuity-first architecture:
+
 PMCM → UPS Theory → AEC → CRM → AURA-X Ω → RGCC-X+ → CSLV → ACI (Λ) → ANIMA → Wajdan
-```
 
-Unified paper: DOI [10.5281/zenodo.18865265](https://doi.org/10.5281/zenodo.18865265)
+Unified paper DOI:
+
+10.5281/zenodo.18865265
+
 
 ---
 
-## Citation
+Repository Structure
 
-```bibtex
+.
+├── index.html
+├── README.md
+└── assets/
+
+> If you add more resources later, keep index.html as the main GitHub Pages entry file.
+
+
+
+
+---
+
+Citation
+
 @article{khan2025aurax,
-  title     = {AURA-X Omega: A Dual-Memory Emotional Continuity Layer
-               and Its Numerical Evaluation},
+  title     = {AURA-X Omega: A Dual-Memory Emotional Continuity Layer and Its Numerical Evaluation},
   author    = {Khan, Alim ul Haq},
   year      = {2025},
   doi       = {10.5281/zenodo.17845294},
@@ -186,23 +217,30 @@ Unified paper: DOI [10.5281/zenodo.18865265](https://doi.org/10.5281/zenodo.1886
 }
 
 @article{khan2026unified,
-  title     = {AURA-X Omega: A Unified Architecture for Emotionally
-               Continuous, Cognitively Immune, and Safety-Aligned AI},
+  title     = {AURA-X Omega: A Unified Architecture for Emotionally Continuous, Cognitively Immune, and Safety-Aligned AI},
   author    = {Khan, Alim ul Haq},
   year      = {2026},
   doi       = {10.5281/zenodo.18865265},
   publisher = {Zenodo}
 }
-```
+
 
 ---
 
-## Author
+Author
 
-**Alim ul Haq Khan** · Independent AI Safety Researcher · AURA-X Ω Research Cell  
-Lajbok Dir-L, Timergara, KPK, Pakistan  
-ORCID: [0009-0001-4708-0365](https://orcid.org/0009-0001-4708-0365) ·
-GitHub: [alimulhaqkhan-prog](https://github.com/alimulhaqkhan-prog)
+Alim ul Haq Khan
+Independent AI Safety Researcher · AURA-X Ω Research Cell
+Lajbok Dir-L, Timergara, KPK, Pakistan
 
-**UK IPO Patent Application: GB2518804.6** — Filed 06 November 2025  
+ORCID: 0009-0001-4708-0365
+
+GitHub: alimulhaqkhan-prog
+
+
+UK IPO Patent Application: GB2518804.6 — Filed 06 November 2025
+
 Copyright © 2025–2026 Alim ul Haq Khan. All Rights Reserved.
+
+
+---
