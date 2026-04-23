@@ -1,195 +1,163 @@
 🧠 AURA-X Ω · TM–BM Resonance Framework
 
-"Continuity is not memory alone — it is resonance."
+<p align="center">
+  <b>Minimal · Measurable · Reproducible</b>
+</p><p align="center">
+  <img src="https://img.shields.io/badge/status-simulation--stage-orange" />
+  <img src="https://img.shields.io/badge/input-synthetic--gaussian-blue" />
+  <img src="https://img.shields.io/badge/validation-limited-lightgrey" />
+  <br>
+  <img src="https://img.shields.io/badge/ORCID-0009--0001--4708--0365-green" />
+  <img src="https://img.shields.io/badge/UKIPO-GB2518804.6-blue" />
+</p>---
 
-"Status" (https://img.shields.io/badge/status-simulation--stage-orange)
-"Input" (https://img.shields.io/badge/input-synthetic--gaussian-blue)
-"Validation" (https://img.shields.io/badge/validation-limited-lightgrey)
-"ORCID" (https://img.shields.io/badge/ORCID-0009--0001--4708--0365-green)
-"Patent" (https://img.shields.io/badge/UKIPO-GB2518804.6-blue)
+«"Continuity is not memory alone — it is resonance."»
 
 ---
 
 🔷 Overview
 
-AURA-X Ω is a minimal, testable computational framework that studies temporal emotional continuity — how an internal state:
+AURA-X Ω is a minimal, testable computational framework that studies:
 
-- persists
-- adapts
-- stabilises
+«how an internal state persists, adapts, and stabilises over time under stochastic input.»
 
-over time under stochastic input.
+It is not a full AGI system — but a controlled experimental model for:
 
-The system is intentionally simple and measurable, focusing on one core question:
-
-«Can a system maintain meaningful continuity without collapsing into rigidity or dissolving into noise?»
+- temporal continuity
+- memory accumulation
+- response dynamics
 
 ---
 
 🧠 Core Idea
 
-The model introduces a dual interaction between input (TM) and accumulated state (M):
+The system uses two components:
 
-- TM (Temporary Memory): current input signal
-- M (Memory State): accumulated past state (continuity carrier)
+TM → Temporary Memory (input / stimulus)
+M  → Memory State (accumulated past)
 
-Their interaction produces a bounded emotional state E(t).
+The goal:
+
+«Can a system maintain continuity without collapsing into rigidity or dissolving into noise?»
 
 ---
 
 🧮 Core Model
 
-M[t] = (1 - β) · M[t-1] + β · E[t-1]
-R    = tanh(TM + k · M[t])
-E[t] = (1 - γ) · E[t-1] + γ · R
+M[t] = (1 − β) · M[t−1] + β · E[t−1]
+
+R    = tanh( TM + k · M[t] )
+
+E[t] = (1 − γ) · E[t−1] + γ · R
 
 Parameters
 
-Symbol| Meaning| Range
-γ| Reactivity vs memory balance| (0,1)
-β| Memory update rate| (0,1)
-k| TM–M coupling strength| [0,1]
-λ_trc| Transient regulator (spike control)| ℝ
+Symbol| Meaning
+γ| response vs memory control
+β| memory update speed
+k| TM–memory coupling strength
 
-The "tanh" nonlinearity ensures:
-
-«E(t) ∈ (-1, +1) → bounded and stable by construction»
+"tanh" ensures bounded stability:
+E ∈ (−1, +1)
 
 ---
 
-📊 Experimental Setup
+📊 Experimental Results (Colab Verified)
 
-All experiments performed in Google Colab.
+Input: Gaussian (μ = 0.2, σ = 0.5), T = 200
 
-- Input: Gaussian noise
-- μ = 0.2, σ = 0.5
-- T = 200 time steps
+Baseline vs TM–BM Model
 
----
+Metric| Baseline| TM–BM| Effect
+Response| 0.859| 0.674| ↓ controlled
+Memory| 0.489| 0.599| ↑ improved
+Volatility| 0.232| 0.187| ↓ smoother
 
-📈 Results
+Interpretation
 
-🔹 Baseline vs TM–BM Model
+- Memory increased (+22%)
+- Volatility reduced (−19%)
+- Response remains meaningful
 
-Parameters: γ = 0.50, β = 0.30, k = 0.30
-
-Metric| Definition| Baseline| TM–BM| Δ
-Response| corr(TM, E)| 0.859| 0.674| ↓
-Memory| corr(E[t], E[t−1])| 0.489| 0.599| +22% ↑
-Volatility| std(ΔE)| 0.232| 0.187| −19% ↓
-
-🧠 Interpretation
-
-The TM–BM system:
-
-- increases temporal continuity
-- reduces instability
-- while preserving meaningful responsiveness
-
-This demonstrates a controlled balance, not noise injection.
+👉 This shows a controlled trade-off, not collapse
 
 ---
 
-🔁 Memory–Response Trade-off
+📈 Memory–Response Trade-off
 
-Across:
-
-γ ∈ {0.1, 0.3, 0.5, 0.7, 0.9}
-
-The system produces a:
-
-«smooth, monotonic trade-off curve»
+Across γ values:
 
 High Response  ←──────────────→  High Memory
-   (γ → 1)                         (γ → 0)
+(γ = 0.9)                     (γ = 0.1)
 
-Key Insight
+✔ Smooth
+✔ Monotonic
+✔ Controllable
 
-This is a parameter-controlled behaviour space, not a fixed attractor.
+This is a parameter-governed behaviour space, not a fixed system.
 
 ---
 
-⚡ λ_trc Regulator (Transient Control)
+⚡ λ_trc (Transient Regulator)
 
-When transient penalties are applied:
+When perturbation is applied:
 
-- sharp dips appear in E(t)
-- system recovers within ~10 steps
-- effect is reversible and bounded
+- sharp dips in E(t)
+- recovery in ~10 steps
+- effect is reversible
 
-Importance
+👉 This behaviour does NOT appear in simple baseline filters
 
-This introduces:
+---
 
-«controlled, temporary disruption without destroying continuity»
+🔬 What is Actually Proven
 
-⚠️ Note: requires further controlled validation
+✔ Stable bounded system
+✔ Measurable continuity increase
+✔ Tunable memory–response trade-off
+✔ Transient regulation behaviour
+
+---
+
+⚠️ Limitations
+
+❌ Only synthetic input tested
+❌ No real-world / semantic validation
+❌ No neuroscience claims
+❌ Not deployed in real AI systems
+
+👉 This is a simulation-stage framework
 
 ---
 
 🚀 Live Demo
 
-🔹 Research Prototype — TM–BM Continuity Demo
-https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/AURA_X_Omega_Research.html
+🔹 Interactive Prototype (Recommended)
+https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/AURA_X_Omega_Trainable_R.html
 
-Minimal interactive simulation aligned with reported results
+Features:
 
-- adjust γ, β, k
-- toggle Baseline vs TM–BM
-- observe Memory, Response, Volatility
-- explore λ_trc behaviour
-
-👉 This demo corresponds directly to the experimental setup above.
+- adjust γ, β, k live
+- toggle baseline vs TM–BM
+- real-time metrics
 
 ---
 
-📌 Scope and Limitations
-
-✅ Validated
-
-- Bounded stable output
-- Measurable increase in temporal continuity
-- Controllable memory–response trade-off
-- Transient regulation via λ_trc
-
-❌ Not Yet Validated
-
-- Real-world / semantic inputs
-- Human behavioural or affective data
-- Neuroscience claims
-- Deployment in production AI systems
-
-«This is a simulation-stage framework.»
-
----
-
-🔮 Future Directions
-
-1. Replace scalar TM with vector embeddings
-2. Test on non-stationary real data
-3. Quantify λ_trc (depth, recovery, sensitivity)
-4. Integrate as continuity layer in LLM systems
-
----
-
-📁 Repository Structure
+📂 Repository Structure
 
 /
-├── AURA_X_Omega_Research.html   ← main research demo
+├── AURA_X_Omega_Research.html
 ├── README.md
-└── notebook/                   ← experiments (coming)
+└── notebook/   (coming)
 
 ---
 
-📚 Citation
+🔮 Future Work
 
-@article{khan2025aurax,
-  title   = {A Dual Memory Framework for Ensuring Emotional Continuity in AI Systems},
-  author  = {Khan, Alim ul Haq},
-  year    = {2025},
-  doi     = {10.5281/zenodo.17845294},
-  publisher = {Zenodo}
-}
+- vector / semantic memory (embeddings)
+- real-world input streams
+- λ_trc quantitative analysis
+- chatbot continuity integration
 
 ---
 
@@ -197,23 +165,22 @@ Minimal interactive simulation aligned with reported results
 
 Alim ul Haq Khan
 ORCID: https://orcid.org/0009-0001-4708-0365
-GitHub: https://github.com/alimulhaqkhan-prog
-Location: Timergara, KPK, Pakistan
+
+---
+
+🔒 Legal
 
 UK IPO Patent: GB2518804.6
 
----
-
-⚖️ License
-
-Copyright © 2025–2026
 All Rights Reserved
+No reproduction or AI training use allowed without permission
 
 ---
 
-🧠 Final Note
+🧭 Final Note
 
-«This work does not claim to model full emotion.
-It demonstrates a minimal, quantifiable mechanism of continuity under memory coupling.»
+This project does not claim AGI.
 
----
+It provides:
+
+«a minimal, measurable step toward modelling continuity in artificial systems.»
