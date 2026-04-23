@@ -99,7 +99,7 @@ This is the strongest feature unique to the AURA-X Ω formulation relative to a 
 
 ## Live Demo
 
-🔹 [Research Prototype — TM–BM Continuity Demo](https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/AURA_X_Omega_Trainable_R.html)
+🔹 👉 https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/AURA_X_Omega_Research.html
 
 *Interactive simulation: adjust γ, β, k in real time · toggle Baseline vs TM–BM · live metrics*
 
