@@ -1,63 +1,70 @@
-🧠 AURA-X Ω · TM–BM Resonance Framework
+
+```markdown
+# 🧠 AURA-X Ω · TM–BM Resonance Framework
+
+<div align="center">
+
+![Status](https://img.shields.io/badge/Status-Simulation--Stage-yellow?style=flat-square)
+![Input](https://img.shields.io/badge/Input-Synthetic_Gaussian-lightgrey?style=flat-square)
+![Validation](https://img.shields.io/badge/Real--world_Validation-None_Yet-orange?style=flat-square)
+![ORCID](https://img.shields.io/badge/ORCID-0009--0001--4708--0365-green?style=flat-square)
+![Patent](https://img.shields.io/badge/UK_IPO-GB2518804.6-blue?style=flat-square)
+
+</div>
 
 <p align="center">
-  <b>Minimal · Measurable · Reproducible</b>
-</p><p align="center">
-  <img src="https://img.shields.io/badge/status-simulation--stage-orange" />
-  <img src="https://img.shields.io/badge/input-synthetic--gaussian-blue" />
-  <img src="https://img.shields.io/badge/validation-limited-lightgrey" />
-  <br>
-  <img src="https://img.shields.io/badge/ORCID-0009--0001--4708--0365-green" />
-  <img src="https://img.shields.io/badge/UKIPO-GB2518804.6-blue" />
-</p>---
-
-«"Continuity is not memory alone — it is resonance."»
+  <i>“Continuity is not memory alone — it is resonance.”</i>
+</p>
 
 ---
 
-🔷 Overview
+## 🔷 Overview
 
-AURA-X Ω is a minimal, testable computational framework that studies:
+**AURA-X Ω** is a minimal, testable computational framework that studies:
 
-«how an internal state persists, adapts, and stabilises over time under stochastic input.»
+> How an internal state **persists, adapts, and stabilises** over time under stochastic input.
 
-It is not a full AGI system — but a controlled experimental model for:
+It is **not** a full AGI system — but a controlled experimental model for:
 
-- temporal continuity
-- memory accumulation
-- response dynamics
-
----
-
-🧠 Core Idea
-
-The system uses two components:
-
-TM → Temporary Memory (input / stimulus)
-M  → Memory State (accumulated past)
-
-The goal:
-
-«Can a system maintain continuity without collapsing into rigidity or dissolving into noise?»
+- Temporal continuity  
+- Memory accumulation  
+- Response dynamics  
 
 ---
 
-🧮 Core Model
+## 🧠 Core Idea
 
+The system uses two memory components:
+
+```
+
+TM  →  Temporary Memory   (input / stimulus)
+M   →  Memory State       (accumulated past)
+
+```
+
+The central research question:
+
+> *Can a system maintain continuity without collapsing into rigidity or dissolving into noise?*
+
+---
+
+## 🧮 Core Model
+
+```text
 M[t] = (1 − β) · M[t−1] + β · E[t−1]
-
 R    = tanh( TM + k · M[t] )
-
 E[t] = (1 − γ) · E[t−1] + γ · R
+```
 
 Parameters
 
-Symbol| Meaning
-γ| response vs memory control
-β| memory update speed
-k| TM–memory coupling strength
+Symbol Meaning Range
+γ Response vs memory control (0, 1)
+β Memory update speed (0, 1)
+k TM–Memory coupling strength [0, 1]
 
-"tanh" ensures bounded stability:
+tanh ensures bounded stability:
 E ∈ (−1, +1)
 
 ---
@@ -68,112 +75,121 @@ Input: Gaussian (μ = 0.2, σ = 0.5), T = 200
 
 Baseline vs TM–BM Model
 
-Metric| Baseline| TM–BM| Effect
-Response| 0.859| 0.674| ↓ controlled
-Memory| 0.489| 0.599| ↑ improved
-Volatility| 0.232| 0.187| ↓ smoother
+Metric Baseline TM–BM Effect
+Response 0.859 0.674 ↓ controlled
+Memory 0.489 0.599 ↑ improved
+Volatility 0.232 0.187 ↓ smoother
 
 Interpretation
 
-- Memory increased (+22%)
-- Volatility reduced (−19%)
-- Response remains meaningful
+· Memory increased from 0.489 → 0.599
+· Volatility decreased from 0.232 → 0.187
+· Response remains meaningful
 
-👉 This shows a controlled trade-off, not collapse
+👉 A controlled trade‑off, not collapse.
 
 ---
 
 📈 Memory–Response Trade-off
 
-Across γ values:
+Across varying γ values:
 
-High Response  ←──────────────→  High Memory
-(γ = 0.9)                     (γ = 0.1)
+```
+High Response ←──────────────────→ High Memory
+    (γ = 0.9)                          (γ = 0.1)
+```
 
 ✔ Smooth
 ✔ Monotonic
 ✔ Controllable
 
-This is a parameter-governed behaviour space, not a fixed system.
+This is a parameter‑governed behaviour space, not a fixed attractor.
 
 ---
 
-⚡ λ_trc (Transient Regulator)
+⚡ λ_trc — Transient Regulator
 
 When perturbation is applied:
 
-- sharp dips in E(t)
-- recovery in ~10 steps
-- effect is reversible
+· Sharp dips in E(t)
+· Recovery within ~10 steps
+· Effect is reversible
 
-👉 This behaviour does NOT appear in simple baseline filters
+👉 This behaviour was not observed in the tested baseline configuration.
 
 ---
 
 🔬 What is Actually Proven
 
-✔ Stable bounded system
-✔ Measurable continuity increase
-✔ Tunable memory–response trade-off
-✔ Transient regulation behaviour
+· ✅ Stable bounded system
+· ✅ Measurable continuity increase
+· ✅ Tunable memory–response trade‑off
+· ✅ Transient regulation behaviour
 
 ---
 
 ⚠️ Limitations
 
-❌ Only synthetic input tested
-❌ No real-world / semantic validation
-❌ No neuroscience claims
-❌ Not deployed in real AI systems
+· ❌ Only synthetic input tested
+· ❌ No real‑world / semantic validation
+· ❌ No neuroscience claims
+· ❌ Not deployed in real AI systems
 
-👉 This is a simulation-stage framework
+👉 This is a simulation‑stage framework.
 
 ---
 
 🚀 Live Demo
 
-🔹 Interactive Prototype (Recommended)
-https://alimulhaqkhan-prog.github.io/aura-x-omega-v2-trainable-R/AURA_X_Omega_Trainable_R.html
+<p align="center">
+  <a href="https://alimulhaqkhan-prog.github.io/aura-x-omega-2025/AURA_X_Omega_Research.html">
+    <img src="https://img.shields.io/badge/🔹_Research_Prototype-Live-blue?style=for-the-badge" alt="Live Demo">
+  </a>
+</p>
 
-Features:
+Minimal simulation aligned with reported results:
 
-- adjust γ, β, k live
-- toggle baseline vs TM–BM
-- real-time metrics
+· Adjust γ, β, k in real time
+· Toggle Baseline vs TM–BM model
+· Observe memory, response, volatility
 
 ---
 
 📂 Repository Structure
 
+```
 /
-├── AURA_X_Omega_Research.html
+├── AURA_X_Omega_Research.html   ← minimal research prototype
 ├── README.md
-└── notebook/   (coming)
+└── notebook/                    (coming)
+```
 
 ---
 
 🔮 Future Work
 
-- vector / semantic memory (embeddings)
-- real-world input streams
-- λ_trc quantitative analysis
-- chatbot continuity integration
+· Vector / semantic memory (embeddings)
+· Real‑world input streams
+· λ_trc quantitative analysis
+· Chatbot continuity integration
 
 ---
 
 👤 Author
 
 Alim ul Haq Khan
-ORCID: https://orcid.org/0009-0001-4708-0365
+ORCID: 0009-0001-4708-0365
+📍 Timergara, KPK, Pakistan
 
 ---
 
 🔒 Legal
 
-UK IPO Patent: GB2518804.6
+UK IPO Patent Application: GB2518804.6
+Filed 06 November 2025
 
-All Rights Reserved
-No reproduction or AI training use allowed without permission
+© 2025–2026 Alim ul Haq Khan. All Rights Reserved.
+No reproduction, adaptation, or AI‑training use permitted without explicit written consent.
 
 ---
 
@@ -183,4 +199,11 @@ This project does not claim AGI.
 
 It provides:
 
-«a minimal, measurable step toward modelling continuity in artificial systems.»
+A minimal, measurable step toward modelling continuity in artificial systems.
+
+<p align="center">
+  <sub>✨ clean · minimal · reproducible ✨</sub>
+</p>
+```
+
+---
