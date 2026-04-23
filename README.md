@@ -201,30 +201,6 @@ Repository Structure
 
 > If you add more resources later, keep index.html as the main GitHub Pages entry file.
 
-
-
-
----
-
-Citation
-
-@article{khan2025aurax,
-  title     = {AURA-X Omega: A Dual-Memory Emotional Continuity Layer and Its Numerical Evaluation},
-  author    = {Khan, Alim ul Haq},
-  year      = {2025},
-  doi       = {10.5281/zenodo.17845294},
-  publisher = {Zenodo}
-}
-
-@article{khan2026unified,
-  title     = {AURA-X Omega: A Unified Architecture for Emotionally Continuous, Cognitively Immune, and Safety-Aligned AI},
-  author    = {Khan, Alim ul Haq},
-  year      = {2026},
-  doi       = {10.5281/zenodo.18865265},
-  publisher = {Zenodo}
-}
-
-
 ---
 
 Author
